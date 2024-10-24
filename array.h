@@ -16,7 +16,7 @@ namespace original{
         explicit array(int size);
         array(std::initializer_list<TYPE> lst);
         array(const array& other);
-        auto operator=(const array& other) -> array&;
+        array& operator=(const array& other);
         array(array&& other) noexcept;
 
         ~array();
