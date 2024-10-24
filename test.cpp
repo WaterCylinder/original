@@ -9,6 +9,9 @@ int main(){
     printf("max(5,3):%d\n", original::max(5, 3));
     auto arr3 = arr2;
     printf("arr3:%p, arr2:%p\n", &arr3, &arr2);
-    printf("arr3:%s\narr2:%s", arr3.toString().c_str(), arr2.toString().c_str());
+    printf("arr3:%s\narr2:%s\n", arr3.toString().c_str(), arr2.toString().c_str());
+    auto arr4 = original::array(arr2);
+    printf("arr4:%p, arr2:%p\n", &arr4, &arr2);
+    printf("arr4:%s\narr2:%s", arr4.toString().c_str(), arr2.toString().c_str());
     return 0;
 }
