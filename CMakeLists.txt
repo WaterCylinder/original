@@ -7,4 +7,5 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 include_directories(${CMAKE_SOURCE_DIR})
 
 
-add_executable(test test.cpp)
+add_executable(test test.cpp
+                    maths.h array.h error.h chain.h)
