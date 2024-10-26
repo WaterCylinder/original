@@ -17,17 +17,20 @@ namespace original{
 }
 
     template<typename TYPE>
-    TYPE original::abs(TYPE a) {
+    auto original::abs(TYPE a) -> TYPE
+    {
         return a > 0 ? a : -a;
     }
 
     template<typename TYPE>
-    TYPE original::max(TYPE a, TYPE b) {
+    auto original::max(TYPE a, TYPE b) -> TYPE
+    {
         return a > b ? a : b;
     }
 
     template<typename TYPE>
-    TYPE original::min(TYPE a, TYPE b) {
+    auto original::min(TYPE a, TYPE b) -> TYPE
+    {
         return a < b ? a : b;
     }
 

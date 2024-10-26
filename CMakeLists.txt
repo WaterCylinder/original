@@ -8,4 +8,4 @@ include_directories(${CMAKE_SOURCE_DIR})
 
 
 add_executable(test test.cpp
-                    maths.h array.h error.h chain.h)
+                    array.h chain.h)
