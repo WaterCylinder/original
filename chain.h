@@ -11,8 +11,6 @@ namespace original {
     {
         template <typename TYPE>
         class chainNode final : wrapper<TYPE>{
-
-                TYPE data;
                 chainNode* prev;
                 chainNode* next;
 
@@ -32,19 +30,18 @@ namespace original {
             };
 
         template <typename TYPE>
-        class iterator final : iterable<wrapper<TYPE>> {
-            chainNode<TYPE>* ptr_;
+        class iterator final : iterable<TYPE> {
 
         public:
             explicit iterator(chainNode<TYPE>* ptr);
 
-            iterator* getNext() override;
-            iterator* getPrev() override;
+            iterable<TYPE>* getNext() override;
+            iterable<TYPE>* getPrev() override;
             bool hasNext() override;
             bool hasPrev() override;
 
-            iterator& operator++() override;
-            iterator& operator--() override;
+            iterable<TYPE>& operator++() override;
+            iterable<TYPE>& operator--() override;
         };
     }
 
@@ -63,8 +60,8 @@ namespace original {
             chain(std::initializer_list<TYPE> list);
             explicit chain(array<TYPE> arr);
             _GLIBCXX_NODISCARD size_t size() const;
-            Chain::iterator<Chain::chainNode<TYPE>>* begins() override;
-            Chain::iterator<Chain::chainNode<TYPE>>* ends() override;
+            iterable<TYPE>* begins() override;
+            iterable<TYPE>* ends() override;
             TYPE get(int index) const override;
             TYPE operator[](int index) override;
             void set(int index, TYPE e) override;
@@ -76,11 +73,11 @@ namespace original {
 
     template <typename TYPE>
     original::Chain::chainNode<TYPE>::chainNode(TYPE data, chainNode* prev, chainNode* next)
-    : data(data), prev(prev), next(next) {}
+    : wrapper<TYPE>(data), prev(prev), next(next) {}
 
     template <typename TYPE>
     original::Chain::chainNode<TYPE>::chainNode(const chainNode& other)
-    : data(other->data), prev(other->prev), next(other->next) {}
+    : wrapper<TYPE>(other->data), prev(other->prev), next(other->next) {}
 
     template <typename TYPE>
     auto original::Chain::chainNode<TYPE>::operator=(const chainNode& other) -> chainNode& {
@@ -93,7 +90,7 @@ namespace original {
 
     template <typename TYPE>
     original::Chain::chainNode<TYPE>::chainNode(chainNode&& other) _GLIBCXX_NOEXCEPT
-    : data(other->data), prev(other->prev), next(other->next)
+    : wrapper<TYPE>(other->data), prev(other->prev), next(other->next)
     {
         other->prev = nullptr;
         other->next = nullptr;
@@ -144,16 +141,16 @@ namespace original {
     }
 
     template <typename TYPE>
-    original::Chain::iterator<TYPE>::iterator(chainNode<TYPE>* ptr) : iterable<wrapper<TYPE>>(), ptr_(ptr) {}
+    original::Chain::iterator<TYPE>::iterator(chainNode<TYPE>* ptr) : iterable<wrapper<TYPE>>(ptr) {}
 
     template <typename TYPE>
-    auto original::Chain::iterator<TYPE>::getNext() -> iterator*
+    auto original::Chain::iterator<TYPE>::getNext() -> iterable<TYPE>*
     {
         return this->ptr_->getPNext();
     }
 
     template <typename TYPE>
-    auto original::Chain::iterator<TYPE>::getPrev() -> iterator* {
+    auto original::Chain::iterator<TYPE>::getPrev() -> iterable<TYPE>* {
         return this->ptr_->getPPrev();
     }
 
@@ -176,13 +173,13 @@ namespace original {
     }
 
     template <typename TYPE>
-    auto original::Chain::iterator<TYPE>::operator++() -> iterator& {
+    auto original::Chain::iterator<TYPE>::operator++() -> iterable<TYPE>& {
         this->ptr_ = this->ptr_->getPNext();
         return *this;
     }
 
     template <typename TYPE>
-    auto original::Chain::iterator<TYPE>::operator--() -> iterator& {
+    auto original::Chain::iterator<TYPE>::operator--() -> iterable<TYPE>& {
         this->ptr_ = this->ptr_->getPPrev();
         return *this;
     }
@@ -244,12 +241,12 @@ namespace original {
     }
 
     template <typename TYPE>
-    auto original::chain<TYPE>::begins() -> Chain::iterator<Chain::chainNode<TYPE>>*{
+    auto original::chain<TYPE>::begins() -> iterable<TYPE>*{
         return new Chain::iterator(this->begin);
     }
 
     template <typename TYPE>
-    auto original::chain<TYPE>::ends() -> Chain::iterator<Chain::chainNode<TYPE>>*{
+    auto original::chain<TYPE>::ends() -> iterable<TYPE>*{
         return new Chain::iterator(this->end);
     }
 

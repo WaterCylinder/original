@@ -2,14 +2,15 @@
 #define ITERABLE_H
 
 #include "sstream"
+#include "wrapper.h"
 
 namespace original{
 
     template <typename TYPE>
     class iterable{
-        TYPE* ptr_;
+        wrapper<TYPE>* ptr_;
     public:
-        explicit iterable(TYPE* ptr);
+        explicit iterable(wrapper<TYPE>* ptr);
         iterable(const iterable& other);
         iterable& operator=(const iterable& other);
         virtual ~iterable() = default;
@@ -36,7 +37,7 @@ namespace original{
 }
 
     template <typename TYPE>
-    original::iterable<TYPE>::iterable(TYPE* ptr) : ptr_(ptr) {}
+    original::iterable<TYPE>::iterable(wrapper<TYPE>* ptr) : ptr_(ptr) {}
 
     template <typename TYPE>
     original::iterable<TYPE>::iterable(const iterable& other) :ptr_(other.ptr_) {}
