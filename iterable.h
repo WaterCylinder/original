@@ -8,6 +8,7 @@ namespace original{
 
     template <typename TYPE>
     class iterable{
+    protected:
         wrapper<TYPE>* ptr_;
     public:
         explicit iterable(wrapper<TYPE>* ptr);
@@ -15,16 +16,13 @@ namespace original{
         iterable& operator=(const iterable& other);
         virtual ~iterable() = default;
 
-        TYPE& operator*();
-        TYPE* operator->();
-        virtual iterable* getNext();
-        virtual iterable* getPrev();
+        TYPE operator*();
+        virtual iterable* getNext() = 0;
+        virtual iterable* getPrev() = 0;
         virtual bool hasNext();
         virtual bool hasPrev();
         virtual iterable& operator++();
-        iterable operator++(int);
         virtual iterable& operator--();
-        iterable operator--(int);
         bool operator==(const iterable& other) const;
         bool operator<(const iterable& other) const;
         bool operator>(const iterable& other) const;
@@ -52,28 +50,9 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::iterable<TYPE>::operator*() -> TYPE&
+    auto original::iterable<TYPE>::operator*() -> TYPE
     {
-        return *this->ptr_;
-    }
-
-    template <typename TYPE>
-    auto original::iterable<TYPE>::operator->() -> TYPE*
-    {
-        return this->ptr_;
-    }
-
-    template <typename TYPE>
-    auto original::iterable<TYPE>::getNext() -> iterable*
-    {
-        return this->ptr_ + 1;
-    }
-
-
-    template <typename TYPE>
-    auto original::iterable<TYPE>::getPrev() -> iterable*
-    {
-        return this->ptr_ - 1;
+        return this->ptr_->getVal();
     }
 
     template <typename TYPE>
@@ -91,31 +70,15 @@ namespace original{
     template <typename TYPE>
     auto original::iterable<TYPE>::operator++() -> iterable&
     {
-        this->ptr_ = this->getNext();
+        this = this->getNext();
         return *this;
-    }
-
-    template <typename TYPE>
-    auto original::iterable<TYPE>::operator++(int) -> iterable
-    {
-        iterable it = *this;
-        ++*this;
-        return it;
     }
 
     template <typename TYPE>
     auto original::iterable<TYPE>::operator--() -> iterable&
     {
-        this->ptr_ = this->getPrev();
+        this = this->getPrev();
         return *this;
-    }
-
-    template <typename TYPE>
-    auto original::iterable<TYPE>::operator--(int) -> iterable
-    {
-        iterable it = *this;
-        --*this;
-        return it;
     }
 
     template <typename TYPE>

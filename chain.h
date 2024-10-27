@@ -10,7 +10,7 @@ namespace original {
     namespace Chain
     {
         template <typename TYPE>
-        class chainNode final : wrapper<TYPE>{
+        class chainNode final : public wrapper<TYPE>{
                 chainNode* prev;
                 chainNode* next;
 
@@ -30,7 +30,7 @@ namespace original {
             };
 
         template <typename TYPE>
-        class iterator final : iterable<TYPE> {
+        class iterator final : public iterable<TYPE> {
 
         public:
             explicit iterator(chainNode<TYPE>* ptr);
@@ -62,10 +62,10 @@ namespace original {
             _GLIBCXX_NODISCARD size_t size() const;
             iterable<TYPE>* begins() override;
             iterable<TYPE>* ends() override;
-            TYPE get(int index) const override;
+            TYPE get(int index) override;
             TYPE operator[](int index) override;
             void set(int index, TYPE e) override;
-            _GLIBCXX_NODISCARD std::string toString(bool enter) const override;
+            _GLIBCXX_NODISCARD std::string toString(bool enter) override;
             ~chain() override;
 
         };
@@ -141,17 +141,17 @@ namespace original {
     }
 
     template <typename TYPE>
-    original::Chain::iterator<TYPE>::iterator(chainNode<TYPE>* ptr) : iterable<wrapper<TYPE>>(ptr) {}
+    original::Chain::iterator<TYPE>::iterator(chainNode<TYPE>* ptr) : iterable<TYPE>(ptr) {}
 
     template <typename TYPE>
     auto original::Chain::iterator<TYPE>::getNext() -> iterable<TYPE>*
     {
-        return this->ptr_->getPNext();
+        return new iterator(this->ptr_->getPNext());
     }
 
     template <typename TYPE>
     auto original::Chain::iterator<TYPE>::getPrev() -> iterable<TYPE>* {
-        return this->ptr_->getPPrev();
+        return new iterator(this->ptr_->getPPrev());
     }
 
     template <typename TYPE>
@@ -184,7 +184,7 @@ namespace original {
         return *this;
     }
 
-    template <typename TYPE>
+template <typename TYPE>
     auto original::chain<TYPE>::indexOutOfBound(int index) -> bool
     {
         if (index < 0)
@@ -251,7 +251,7 @@ namespace original {
     }
 
 template <typename TYPE>
-    TYPE original::chain<TYPE>::get(int index) const
+    TYPE original::chain<TYPE>::get(int index)
     {
         if (this->indexOutOfBound(index)){
             throw indexError();
@@ -260,9 +260,9 @@ template <typename TYPE>
         auto* it = this->begins();
         for(size_t i = 0; i < idx; i++)
         {
-            it = it.getNext();
+            it = it->getNext();
         }
-        return *it;
+        return it->operator*();
     }
 
     template <typename TYPE>
@@ -277,29 +277,29 @@ template <typename TYPE>
         if (this->indexOutOfBound(index)){
             throw indexError();
         }
-        Chain::chainNode<TYPE>* new_node = new Chain::chainNode(e);
+        // Chain::chainNode<TYPE>* new_node = new Chain::chainNode(e);
         const size_t idx = index >= 0 ? index : this->size() + index;
         auto* it = this->begins();
         for(size_t i = 0; i < idx; i++)
         {
-            it = it.getNext();
+            it = it->getNext();
         }
-    //todo
-        Chain::chainNode<TYPE>* prev = *it.getPrev();
-        Chain::chainNode<TYPE>* next = *it.getNext();
-        Chain::chainNode<TYPE>::connect(prev, new_node);
-        Chain::chainNode<TYPE>::connect(new_node, next);
-        delete *it;
+    //todo: can not use iterator to set value of elements
+        // Chain::chainNode<TYPE>* prev = it->getPrev();
+        // Chain::chainNode<TYPE>* next = it->getNext();
+        // Chain::chainNode<TYPE>::connect(prev, new_node);
+        // Chain::chainNode<TYPE>::connect(new_node, next);
+        // delete it;
     }
 
 template <typename TYPE>
-    auto original::chain<TYPE>::toString(const bool enter) const -> std::string
+    auto original::chain<TYPE>::toString(const bool enter) -> std::string
     {
         std::stringstream ss;
         ss << "chain" << "(";
         for (auto* it = this->begins(); it->hasNext(); it = it->getNext())
         {
-            ss << it->operator*()->toString() << ",";
+            ss << it->operator*() << ",";
         }
         ss << ")";
         if (enter)

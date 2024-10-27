@@ -2,7 +2,6 @@
 #define CONTAINER_H
 #include "iterable.h"
 #include <string>
-#include "wrapper.h"
 
 namespace original {
 
@@ -11,10 +10,10 @@ namespace original {
     public:
         virtual iterable<TYPE>* begins() = 0;
         virtual iterable<TYPE>* ends() = 0;
-        virtual TYPE get(int index) const = 0;
+        virtual TYPE get(int index) = 0;
         virtual TYPE operator[](int index) = 0;
         virtual void set(int index, TYPE e) = 0;
-        _GLIBCXX_NODISCARD virtual std::string toString(bool enter) const = 0;
+        _GLIBCXX_NODISCARD virtual std::string toString(bool enter) = 0;
         virtual ~container() = default;
     };
 
