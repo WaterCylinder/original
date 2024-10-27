@@ -4,6 +4,7 @@
 
 
 #include <initializer_list>
+#include "config.h"
 #include <sstream>
 #include "error.h"
 

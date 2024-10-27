@@ -2,6 +2,7 @@
 #define CONTAINER_H
 #include "iterable.h"
 #include <string>
+#include "config.h"
 
 namespace original {
 

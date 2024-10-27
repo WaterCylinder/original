@@ -18,5 +18,7 @@ int main(){
     printf("arr3[-1]:%d\n", arr3[-1]);
     auto arr5 = original::array<int>(0);
     auto chain1 = original::chain({1, 2, 3, 4, 5});
+    printf("%s", chain1.toString(true).c_str());
+    printf("%d\n", chain1[2]);
     return 0;
 }

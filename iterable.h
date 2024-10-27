@@ -3,11 +3,12 @@
 
 #include "sstream"
 #include "wrapper.h"
+#include "config.h"
 
 namespace original{
 
     template <typename TYPE>
-    class iterable{
+    class iterable {
     protected:
         wrapper<TYPE>* ptr_;
     public:
@@ -17,8 +18,8 @@ namespace original{
         virtual ~iterable() = default;
 
         TYPE operator*();
-        virtual iterable* getNext() = 0;
-        virtual iterable* getPrev() = 0;
+        virtual iterable <TYPE> * getNext() = 0;
+        virtual iterable <TYPE> * getPrev() = 0;
         virtual bool hasNext();
         virtual bool hasPrev();
         virtual iterable& operator++();
@@ -70,15 +71,15 @@ namespace original{
     template <typename TYPE>
     auto original::iterable<TYPE>::operator++() -> iterable&
     {
-        this = this->getNext();
-        return *this;
+        iterable<TYPE>* next = this->getNext();
+        return *next;
     }
 
     template <typename TYPE>
     auto original::iterable<TYPE>::operator--() -> iterable&
     {
-        this = this->getPrev();
-        return *this;
+        iterable<TYPE>* prev = this->getPrev();
+        return *prev;
     }
 
     template <typename TYPE>
@@ -102,7 +103,7 @@ namespace original{
     template <typename TYPE>
     auto original::iterable<TYPE>::operator!=(const iterable& other) const -> bool
     {
-        return !(this == other);
+        return this->ptr_ != other.ptr_;
     }
 
     template <typename TYPE>

@@ -2,6 +2,7 @@
 #define CHAIN_H
 #pragma once
 
+#include "config.h"
 #include <sstream>
 #include "array.h"
 #include "container.h"
@@ -10,7 +11,8 @@ namespace original {
     namespace Chain
     {
         template <typename TYPE>
-        class chainNode final : public wrapper<TYPE>{
+        class chainNode final : public virtual wrapper<TYPE>{
+                TYPE data;
                 chainNode* prev;
                 chainNode* next;
 
@@ -26,30 +28,26 @@ namespace original {
                 void setPPrev(chainNode* new_prev);
                 void setPNext(chainNode* new_next);
                 static void connect(chainNode* prev, chainNode* next);
-                _GLIBCXX_NODISCARD std::string toString(bool enter) const override;
             };
 
         template <typename TYPE>
-        class iterator final : public iterable<TYPE> {
-
+        class iterator final : public virtual iterable<TYPE> {
+            chainNode<TYPE>* ptr_;
         public:
             explicit iterator(chainNode<TYPE>* ptr);
-
-            iterable<TYPE>* getNext() override;
-            iterable<TYPE>* getPrev() override;
+            iterator<TYPE>* getNext() override;
+            iterator<TYPE>* getPrev() override;
             bool hasNext() override;
             bool hasPrev() override;
 
-            iterable<TYPE>& operator++() override;
-            iterable<TYPE>& operator--() override;
+            iterator<TYPE>& operator++() override;
+            iterator<TYPE>& operator--() override;
         };
     }
 
         template <typename TYPE>
-        class chain final : container<TYPE>{
+        class chain final : virtual container<TYPE>{
         public:
-
-
             size_t size_;
             Chain::chainNode<TYPE>* begin;
             Chain::chainNode<TYPE>* end;
@@ -73,11 +71,11 @@ namespace original {
 
     template <typename TYPE>
     original::Chain::chainNode<TYPE>::chainNode(TYPE data, chainNode* prev, chainNode* next)
-    : wrapper<TYPE>(data), prev(prev), next(next) {}
+    : wrapper<TYPE>(data), data(data), prev(prev), next(next) {}
 
     template <typename TYPE>
     original::Chain::chainNode<TYPE>::chainNode(const chainNode& other)
-    : wrapper<TYPE>(other->data), prev(other->prev), next(other->next) {}
+    : wrapper<TYPE>(other->data), data(other->data), prev(other->prev), next(other->next) {}
 
     template <typename TYPE>
     auto original::Chain::chainNode<TYPE>::operator=(const chainNode& other) -> chainNode& {
@@ -130,28 +128,19 @@ namespace original {
     }
 
     template <typename TYPE>
-    auto original::Chain::chainNode<TYPE>::toString(const bool enter) const -> std::string {
-        std::stringstream ss;
-        ss << this->data;
-        if (enter)
-        {
-            ss << "\n";
-        }
-        return ss.str();
+    original::Chain::iterator<TYPE>::iterator(chainNode<TYPE>* ptr) :
+        iterable<TYPE>(ptr), ptr_(ptr) {}
+
+    template <typename TYPE>
+    auto original::Chain::iterator<TYPE>::getNext() -> original::Chain::iterator<TYPE> * {
+        auto* next = this->ptr_->getPNext();
+        return new iterator(next);
     }
 
     template <typename TYPE>
-    original::Chain::iterator<TYPE>::iterator(chainNode<TYPE>* ptr) : iterable<TYPE>(ptr) {}
-
-    template <typename TYPE>
-    auto original::Chain::iterator<TYPE>::getNext() -> iterable<TYPE>*
-    {
-        return new iterator(this->ptr_->getPNext());
-    }
-
-    template <typename TYPE>
-    auto original::Chain::iterator<TYPE>::getPrev() -> iterable<TYPE>* {
-        return new iterator(this->ptr_->getPPrev());
+    auto original::Chain::iterator<TYPE>::getPrev() -> original::Chain::iterator<TYPE> * {
+        auto* prev = this->ptr_->getPPrev();
+        return new iterator(prev);
     }
 
     template <typename TYPE>
@@ -173,13 +162,13 @@ namespace original {
     }
 
     template <typename TYPE>
-    auto original::Chain::iterator<TYPE>::operator++() -> iterable<TYPE>& {
+    auto original::Chain::iterator<TYPE>::operator++() -> iterator<TYPE>& {
         this->ptr_ = this->ptr_->getPNext();
         return *this;
     }
 
     template <typename TYPE>
-    auto original::Chain::iterator<TYPE>::operator--() -> iterable<TYPE>& {
+    auto original::Chain::iterator<TYPE>::operator--() -> iterator<TYPE>& {
         this->ptr_ = this->ptr_->getPPrev();
         return *this;
     }
@@ -257,12 +246,12 @@ template <typename TYPE>
             throw indexError();
         }
         const size_t idx = index >= 0 ? index : this->size() + index;
-        auto* it = this->begins();
+        auto* cur = this->begin;
         for(size_t i = 0; i < idx; i++)
         {
-            it = it->getNext();
+            cur = cur->getPNext();
         }
-        return it->operator*();
+        return cur->getVal();
     }
 
     template <typename TYPE>
@@ -299,7 +288,10 @@ template <typename TYPE>
         ss << "chain" << "(";
         for (auto* it = this->begins(); it->hasNext(); it = it->getNext())
         {
-            ss << it->operator*() << ",";
+            ss << it->operator*();
+            if (it->hasNext()){
+                ss << "," << " ";
+            }
         }
         ss << ")";
         if (enter)
