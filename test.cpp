@@ -1,4 +1,5 @@
 #include "array.h"
+#include "chain.h"
 #include "maths.h"
 
 int main(){
@@ -16,5 +17,6 @@ int main(){
     printf("arr2[2]:%d\n", arr2[2]);
     printf("arr3[-1]:%d\n", arr3[-1]);
     auto arr5 = original::array<int>(0);
+    auto chain1 = original::chain({1, 2, 3, 4, 5});
     return 0;
 }

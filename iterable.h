@@ -16,8 +16,8 @@ namespace original{
 
         TYPE& operator*();
         TYPE* operator->();
-        virtual TYPE* getNext();
-        virtual TYPE* getPrev();
+        virtual iterable* getNext();
+        virtual iterable* getPrev();
         virtual bool hasNext();
         virtual bool hasPrev();
         virtual iterable& operator++();
@@ -50,7 +50,7 @@ namespace original{
         return *this;
     }
 
-template <typename TYPE>
+    template <typename TYPE>
     auto original::iterable<TYPE>::operator*() -> TYPE&
     {
         return *this->ptr_;
@@ -63,19 +63,19 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
-    auto original::iterable<TYPE>::getNext() -> TYPE*
+    auto original::iterable<TYPE>::getNext() -> iterable*
     {
         return this->ptr_ + 1;
     }
 
 
-template <typename TYPE>
-    auto original::iterable<TYPE>::getPrev() -> TYPE*
+    template <typename TYPE>
+    auto original::iterable<TYPE>::getPrev() -> iterable*
     {
         return this->ptr_ - 1;
     }
 
-template <typename TYPE>
+    template <typename TYPE>
     auto original::iterable<TYPE>::hasNext() -> bool
     {
         return this->getNext() == nullptr;
@@ -87,7 +87,7 @@ template <typename TYPE>
         return this->getPrev() == nullptr;
     }
 
-template <typename TYPE>
+    template <typename TYPE>
     auto original::iterable<TYPE>::operator++() -> iterable&
     {
         this->ptr_ = this->getNext();
@@ -117,7 +117,7 @@ template <typename TYPE>
         return it;
     }
 
-template <typename TYPE>
+    template <typename TYPE>
     auto original::iterable<TYPE>::operator==(const iterable& other) const -> bool
     {
         return this->ptr_ == other->ptr_;
