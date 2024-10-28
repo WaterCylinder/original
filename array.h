@@ -7,11 +7,12 @@
 #include "config.h"
 #include <sstream>
 #include "error.h"
+#include "printable.h"
 
 namespace original{
 
     template<typename TYPE>
-    class array{
+    class array : public virtual printable{
         size_t size_;
         TYPE* body;
 
@@ -30,7 +31,7 @@ namespace original{
         TYPE get(int index);
         TYPE operator[](int index);
         void set(int index, TYPE e);
-        std::string toString(bool enter = false);
+        std::string toString(bool enter) override;
     };
 
 }

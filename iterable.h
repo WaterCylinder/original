@@ -1,14 +1,15 @@
 #ifndef ITERABLE_H
 #define ITERABLE_H
-
+#pragma once
 #include "sstream"
 #include "wrapper.h"
 #include "config.h"
+#include "printable.h"
 
 namespace original{
 
     template <typename TYPE>
-    class iterable {
+    class iterable : public virtual printable{
         wrapper<TYPE>* wrapper_;
     public:
         explicit iterable(wrapper<TYPE>* ptr);
@@ -28,7 +29,7 @@ namespace original{
         bool operator>(const iterable& other) const;
         bool operator!=(const iterable& other) const;
 
-        std::string toString(bool enter = false);
+        std::string toString(bool enter) override;
 
     };
 

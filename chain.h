@@ -63,9 +63,6 @@ namespace original {
         _GLIBCXX_NODISCARD std::string toString(bool enter) override;
         ~chain() override;
     };
-
-
-
 }
 
     template <typename TYPE>
