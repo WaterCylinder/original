@@ -9,8 +9,7 @@ namespace original{
 
     template <typename TYPE>
     class iterable {
-    protected:
-        wrapper<TYPE>* ptr_;
+        wrapper<TYPE>* wrapper_;
     public:
         explicit iterable(wrapper<TYPE>* ptr);
         iterable(const iterable& other);
@@ -18,8 +17,8 @@ namespace original{
         virtual ~iterable() = default;
 
         TYPE operator*();
-        virtual iterable <TYPE> * getNext() = 0;
-        virtual iterable <TYPE> * getPrev() = 0;
+        virtual iterable* getNext() = 0;
+        virtual iterable* getPrev() = 0;
         virtual bool hasNext();
         virtual bool hasPrev();
         virtual iterable& operator++();
@@ -36,24 +35,24 @@ namespace original{
 }
 
     template <typename TYPE>
-    original::iterable<TYPE>::iterable(wrapper<TYPE>* ptr) : ptr_(ptr) {}
+    original::iterable<TYPE>::iterable(wrapper<TYPE>* ptr) : wrapper_(ptr) {}
 
     template <typename TYPE>
-    original::iterable<TYPE>::iterable(const iterable& other) :ptr_(other.ptr_) {}
+    original::iterable<TYPE>::iterable(const iterable& other) :wrapper_(other.wrapper_) {}
 
     template <typename TYPE>
     auto original::iterable<TYPE>::operator=(const iterable& other) -> iterable&
     {
         if (this == &other) return *this;
 
-        this->ptr_ = other.ptr_;
+        this->wrapper_ = other.wrapper_;
         return *this;
     }
 
     template <typename TYPE>
     auto original::iterable<TYPE>::operator*() -> TYPE
     {
-        return this->ptr_->getVal();
+        return this->wrapper_->getVal();
     }
 
     template <typename TYPE>
@@ -71,39 +70,39 @@ namespace original{
     template <typename TYPE>
     auto original::iterable<TYPE>::operator++() -> iterable&
     {
-        iterable<TYPE>* next = this->getNext();
+        iterable* next = this->getNext();
         return *next;
     }
 
     template <typename TYPE>
     auto original::iterable<TYPE>::operator--() -> iterable&
     {
-        iterable<TYPE>* prev = this->getPrev();
+        iterable* prev = this->getPrev();
         return *prev;
     }
 
     template <typename TYPE>
     auto original::iterable<TYPE>::operator==(const iterable& other) const -> bool
     {
-        return this->ptr_ == other->ptr_;
+        return this->wrapper_ == other->wrapper_;
     }
 
     template <typename TYPE>
     auto original::iterable<TYPE>::operator<(const iterable& other) const -> bool
     {
-        return this->ptr_ < other->ptr_;
+        return this->wrapper_ < other->wrapper_;
     }
 
     template <typename TYPE>
     auto original::iterable<TYPE>::operator>(const iterable& other) const -> bool
     {
-        return this->ptr_ > other->ptr_;
+        return this->wrapper_ > other->wrapper_;
     }
 
     template <typename TYPE>
     auto original::iterable<TYPE>::operator!=(const iterable& other) const -> bool
     {
-        return this->ptr_ != other.ptr_;
+        return this->wrapper_ != other.wrapper_;
     }
 
     template <typename TYPE>

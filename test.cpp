@@ -20,5 +20,10 @@ int main(){
     auto chain1 = original::chain({1, 2, 3, 4, 5});
     printf("%s", chain1.toString(true).c_str());
     printf("%d\n", chain1[2]);
+    // 'class original::chain<int>::chainNode' is private within this context
+    // auto node = original::chain<int>::chainNode(10);
+    const auto it1 = chain1.begins();
+    printf("iterator1 from chain1:%p\n", it1);
+    printf("**it1=%d\n", it1->operator*());
     return 0;
 }
