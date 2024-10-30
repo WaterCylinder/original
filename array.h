@@ -8,15 +8,14 @@
 #include <sstream>
 #include "error.h"
 #include "printable.h"
+#include "serial.h"
 
 namespace original{
 
     template<typename TYPE>
-    class array : public virtual printable{
+    class array : public printable, public serial<TYPE>{
         size_t size_;
         TYPE* body;
-
-        bool indexOutOfBound(int index);
 
         public:
         explicit array(size_t size);
@@ -27,24 +26,14 @@ namespace original{
 
         ~array();
 
-        _GLIBCXX_NODISCARD size_t size() const;
-        TYPE get(int index);
-        TYPE operator[](int index);
-        void set(int index, TYPE e);
+        _GLIBCXX_NODISCARD size_t size() const override;
+        TYPE get(int index) override;
+        TYPE operator[](int index) override;
+        void set(int index, TYPE e) override;
         std::string toString(bool enter) override;
     };
 
 }
-
-    template <typename TYPE>
-    auto original::array<TYPE>::indexOutOfBound(int index) -> bool
-    {
-        if (index < 0)
-        {
-            return index < - this->size();
-        }
-        return index >= this->size_;
-    }
 
     template <typename TYPE>
     original::array<TYPE>::array(const size_t size)
@@ -107,11 +96,7 @@ namespace original{
         if (this->indexOutOfBound(index)){
             throw indexError();
         }
-        if (index < 0)
-        {
-            return this->body[this->size() + index];
-        }
-        return this->body[index];
+        return this->body[this->negIndex(index)];
     }
 
     template <typename TYPE>
@@ -126,13 +111,7 @@ namespace original{
         if (this->indexOutOfBound(index)){
             throw indexError();
         }
-        if (index < 0)
-        {
-            this->body[index] = e;
-        }else
-        {
-            this->body[this->size() + index] = e;
-        }
+        this->body[this->negIndex(index)] = e;
     }
 
     template <typename TYPE>

@@ -5,14 +5,17 @@
 #include "config.h"
 #include <sstream>
 #include "array.h"
-#include "container.h"
+#include "iterator.h"
+#include "serial.h"
+#include "iterable.h"
+
 
 namespace original {
     template <typename TYPE>
-    class chain final : public virtual container<TYPE>{
-        class chainNode final : public virtual wrapper<TYPE>{
+    class chain final : public serial<TYPE>, public iterable<TYPE>, public printable{
+        class chainNode final : public wrapper<TYPE>{
             public:
-                friend class chain::iterator;
+                friend class iterator<TYPE>;
                 friend class chain;
             private:
                 TYPE data;
@@ -35,31 +38,16 @@ namespace original {
         chainNode* begin;
         chainNode* end;
 
-        bool indexOutOfBound(int index);
-
     public:
-        class iterator final : public virtual iterable<TYPE> {
-            chainNode* node;
-        public:
-            explicit iterator(chainNode* ptr);
-            iterator* getNext() override;
-            iterator* getPrev() override;
-            bool hasNext() override;
-            bool hasPrev() override;
-
-            iterator& operator++() override;
-            iterator& operator--() override;
-        };
-
         explicit chain();
         chain(std::initializer_list<TYPE> list);
         explicit chain(array<TYPE> arr);
-        _GLIBCXX_NODISCARD size_t size() const;
-        iterable<TYPE>* begins() override;
-        iterable<TYPE>* ends() override;
+        _GLIBCXX_NODISCARD size_t size() const override;
         TYPE get(int index) override;
         TYPE operator[](int index) override;
         void set(int index, TYPE e) override;
+        iterator<TYPE>* begins() override;
+        iterator<TYPE>* ends() override;
         _GLIBCXX_NODISCARD std::string toString(bool enter) override;
         ~chain() override;
     };
@@ -124,62 +112,6 @@ namespace original {
     }
 
     template <typename TYPE>
-    original::chain<TYPE>::iterator::iterator(chainNode* ptr) :
-        iterable<TYPE>(ptr), node(ptr) {}
-
-    template <typename TYPE>
-    auto original::chain<TYPE>::iterator::getNext() -> iterator* {
-        auto* next = this->node->getPNext();
-        return new iterator(next);
-    }
-
-    template <typename TYPE>
-    auto original::chain<TYPE>::iterator::getPrev() -> iterator * {
-        auto* prev = this->node->getPPrev();
-        return new iterator(prev);
-    }
-
-    template <typename TYPE>
-    auto original::chain<TYPE>::iterator::hasNext() -> bool {
-        if (this->node == nullptr)
-        {
-            return false;
-        }
-        return this->getNext() != nullptr;
-    }
-
-    template <typename TYPE>
-    auto original::chain<TYPE>::iterator::hasPrev() -> bool {
-        if (this->node == nullptr)
-        {
-            return false;
-        }
-        return this->getPrev() != nullptr;
-    }
-
-    template <typename TYPE>
-    auto original::chain<TYPE>::iterator::operator++() -> iterator& {
-        this->node = this->node->getPNext();
-        return *this;
-    }
-
-    template <typename TYPE>
-    auto original::chain<TYPE>::iterator::operator--() -> iterator& {
-        this->node = this->node->getPPrev();
-        return *this;
-    }
-
-template <typename TYPE>
-    auto original::chain<TYPE>::indexOutOfBound(int index) -> bool
-    {
-        if (index < 0)
-        {
-            return index < - this->size();
-        }
-        return index >= this->size_;
-    }
-
-    template <typename TYPE>
     original::chain<TYPE>::chain()
         : size_(0), begin(), end() {}
 
@@ -225,25 +157,24 @@ template <typename TYPE>
         return this->size_;
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::begins() -> iterable<TYPE>*{
-        return new typename iterator::iterator(this->begin);
+    template<typename TYPE>
+    original::iterator<TYPE> * original::chain<TYPE>::begins() {
+        return new iterator(begin);
+    }
+
+    template<typename TYPE>
+    original::iterator<TYPE> * original::chain<TYPE>::ends() {
+        return new iterator(end);
     }
 
     template <typename TYPE>
-    auto original::chain<TYPE>::ends() -> iterable<TYPE>*{
-        return new typename iterator::iterator(this->end);
-    }
-
-template <typename TYPE>
     TYPE original::chain<TYPE>::get(int index)
     {
         if (this->indexOutOfBound(index)){
             throw indexError();
         }
-        const size_t idx = index >= 0 ? index : this->size() + index;
         auto* cur = this->begin;
-        for(size_t i = 0; i < idx; i++)
+        for(size_t i = 0; i < this->negIndex(index); i++)
         {
             cur = cur->getPNext();
         }
@@ -262,19 +193,17 @@ template <typename TYPE>
         if (this->indexOutOfBound(index)){
             throw indexError();
         }
-        // Chain::chainNode<TYPE>* new_node = new Chain::chainNode(e);
-        const size_t idx = index >= 0 ? index : this->size() + index;
-        auto* it = this->begins();
-        for(size_t i = 0; i < idx; i++)
+        auto* new_node = new chainNode(e);
+        auto* cur = this->begin;
+        for(size_t i = 0; i < this->negIndex(index); i++)
         {
-            it = it->getNext();
+            cur = cur->getPNext();
         }
-    //todo: can not use iterator to set value of elements
-        // Chain::chainNode<TYPE>* prev = it->getPrev();
-        // Chain::chainNode<TYPE>* next = it->getNext();
-        // Chain::chainNode<TYPE>::connect(prev, new_node);
-        // Chain::chainNode<TYPE>::connect(new_node, next);
-        // delete it;
+         auto* prev = cur->getPPrev();
+         auto* next = cur->getPNext();
+         original::chain<TYPE>::chainNode::connect(prev, new_node);
+         original::chain<TYPE>::chainNode::connect(new_node, next);
+         delete cur;
     }
 
 template <typename TYPE>
@@ -282,10 +211,10 @@ template <typename TYPE>
     {
         std::stringstream ss;
         ss << "chain" << "(";
-        for (auto* it = this->begins(); it->hasNext(); it = it->getNext())
+        for (auto* node = this->begin; node != nullptr; node = node->getPNext())
         {
-            ss << it->operator*();
-            if (it->hasNext()){
+            ss << node->toString(false);
+            if (node != this->end){
                 ss << "," << " ";
             }
         }

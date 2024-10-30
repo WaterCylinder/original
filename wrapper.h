@@ -8,7 +8,7 @@
 namespace original
 {
     template <typename TYPE>
-    class wrapper : public virtual printable{
+    class wrapper : public printable{
     protected:
         TYPE data;
     public:

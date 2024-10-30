@@ -19,6 +19,13 @@ namespace original{
         }
     };
 
+    class emptyPointerError final : public std::exception{
+        _GLIBCXX_NODISCARD auto what() const _GLIBCXX_NOEXCEPT -> const char* override
+        {
+            return "Attempting to access null pointer";
+        }
+    };
+
     class unSupportedMethodError final : public std::exception{
         _GLIBCXX_NODISCARD auto what() const _GLIBCXX_NOEXCEPT -> const char* override
         {
