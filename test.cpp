@@ -17,13 +17,19 @@ int main(){
     printf("arr2[2]:%d\n", arr2[2]);
     printf("arr3[-1]:%d\n", arr3[-1]);
     auto arr5 = original::array<int>(0);
-    auto chain1 = original::chain({1, 2, 3, 4, 5});
-    printf("%s", chain1.toString(true).c_str());
-    printf("%d\n", chain1[2]);
-    // 'class original::chain<int>::chainNode' is private within this context
-    // auto node = original::chain<int>::chainNode(10);
-    const auto it1 = chain1.begins();
-    printf("iterator1 from chain1:%p\n", it1);
-    printf("**it1=%d\n", it1->operator*());
+    auto chain1 = original::chain(arr4);
+    printf("chain1:%s", chain1.toCString(true));
+    chain1.set(2, 10);
+    printf("chain1:%s", chain1.toCString(true));
+    for (int i = 0; i < chain1.size(); ++i) {
+        printf("chain1[%d] = %d\n", i, chain1[i]);
+    }
+    for (original::iterator<int>* it = chain1.begins(); !it->isNull(); it->next()) {
+        printf("chain1 element = %d\n", it->get());
+    }
+    printf("\n");
+    for (original::iterator<int>* it = chain1.ends(); !it->isNull(); it->prev()) {
+        printf("chain1 element = %d\n", it->get());
+    }
     return 0;
 }
