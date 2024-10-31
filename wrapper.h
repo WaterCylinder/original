@@ -9,11 +9,9 @@ namespace original
 {
     template <typename TYPE>
     class wrapper : public printable{
-    protected:
-        TYPE data;
     public:
-        explicit wrapper(TYPE data);
-        virtual TYPE getVal() const = 0;
+        virtual TYPE& getVal() = 0;
+        virtual void setVal(TYPE data) = 0;
         virtual wrapper* getPPrev() = 0;
         virtual wrapper* getPNext() = 0;
         virtual ~wrapper() = default;
@@ -21,13 +19,10 @@ namespace original
     };
 
 }
-    template <typename TYPE>
-    original::wrapper<TYPE>::wrapper(TYPE data) : data(data) {}
-
     template<typename TYPE>
     std::string original::wrapper<TYPE>::toString(bool enter){
         std::stringstream ss;
-        ss << this->data;
+        ss << this->getVal();
         if (enter)
         {
             ss << "\n";

@@ -31,5 +31,23 @@ int main(){
     for (original::iterator<int>* it = chain1.ends(); !it->isNull(); it->prev()) {
         printf("chain1 element = %d, Iterator: %s\n", it->get(), it->toCString(false));
     }
+    printf("\n");
+    auto chain2 = original::chain({6, 7, 3, 9, 4, 2, 10, 14, -5});
+    for (original::iterator<int> *l = chain2.begins(), *r = chain2.ends(); !l->equal(r) && !l->atRight(r); l->next(), r->prev()) {
+        int val = l->get();
+        l->set(r->get());
+        r->set(val);
+    }
+    for (int i = 0; i < chain2.size(); ++i) {
+        printf("chain2[%d] = %d\n", i, chain2[i]);
+    }
+    printf("\n");
+    chain2.foreach([](int& value) {
+        printf("Element: %d\n", value);
+    });
+    printf("\n");
+    for (int value : chain2) {
+        printf("Element: %d\n", value);
+    }
     return 0;
 }

@@ -18,7 +18,7 @@ namespace original {
                 friend class iterator<TYPE>;
                 friend class chain;
             private:
-                TYPE data;
+                TYPE data_;
                 chainNode* prev;
                 chainNode* next;
             protected:
@@ -26,7 +26,8 @@ namespace original {
                 chainNode(const chainNode& other);
                 chainNode& operator=(const chainNode& other);
                 chainNode(chainNode&& other) _GLIBCXX_NOEXCEPT;
-                TYPE getVal() const override;
+                TYPE& getVal() override;
+                void setVal(TYPE data) override;
                 chainNode* getPPrev() override;
                 chainNode* getPNext() override;
                 void setPPrev(chainNode* new_prev);
@@ -35,8 +36,8 @@ namespace original {
         };
 
         size_t size_;
-        chainNode* begin;
-        chainNode* end;
+        chainNode* begin_;
+        chainNode* end_;
 
     public:
         explicit chain();
@@ -55,11 +56,11 @@ namespace original {
 
     template <typename TYPE>
     original::chain<TYPE>::chainNode::chainNode(TYPE data, chainNode* prev, chainNode* next)
-    : wrapper<TYPE>(data), data(data), prev(prev), next(next) {}
+    : data_(data), prev(prev), next(next) {}
 
     template <typename TYPE>
     original::chain<TYPE>::chainNode::chainNode(const chainNode& other)
-    : wrapper<TYPE>(other->data), data(other->data), prev(other->prev), next(other->next) {}
+    : data_(other->data_), prev(other->prev), next(other->next) {}
 
     template <typename TYPE>
     auto original::chain<TYPE>::chainNode::operator=(const chainNode& other) -> chainNode& {
@@ -72,16 +73,22 @@ namespace original {
 
     template <typename TYPE>
     original::chain<TYPE>::chainNode::chainNode(chainNode&& other) _GLIBCXX_NOEXCEPT
-    : wrapper<TYPE>(other->data), prev(other->prev), next(other->next)
+    : wrapper<TYPE>(other->data_), prev(other->prev), next(other->next)
     {
         other->prev = nullptr;
         other->next = nullptr;
     }
 
     template <typename TYPE>
-    auto original::chain<TYPE>::chainNode::getVal() const -> TYPE
+    auto original::chain<TYPE>::chainNode::getVal() -> TYPE&
     {
-        return this->data;
+        return this->data_;
+    }
+
+    template <typename TYPE>
+    auto original::chain<TYPE>::chainNode::setVal(TYPE data) -> void
+    {
+        this->data_ = data;
     }
 
     template <typename TYPE>
@@ -113,21 +120,21 @@ namespace original {
 
     template <typename TYPE>
     original::chain<TYPE>::chain()
-        : size_(0), begin(), end() {}
+        : size_(0), begin_(), end_() {}
 
     template <typename TYPE>
     original::chain<TYPE>::chain(std::initializer_list<TYPE> list)
-        : size_(0), begin(), end() {
+        : size_(0), begin_(), end_() {
         for (auto e : list) {
             auto* cur_node = new chainNode(e);
             if (this->size() == 0)
             {
-                this->begin = cur_node;
-                this->end = cur_node;
+                this->begin_ = cur_node;
+                this->end_ = cur_node;
             }else
             {
-                chainNode::connect(this->end, cur_node);
-                this->end = cur_node;
+                chainNode::connect(this->end_, cur_node);
+                this->end_ = cur_node;
             }
             size_ += 1;
         }
@@ -135,17 +142,17 @@ namespace original {
 
     template <typename TYPE>
     original::chain<TYPE>::chain(array<TYPE> arr)
-        : size_(0), begin(), end() {
+        : size_(0), begin_(), end_() {
         for (size_t i = 0; i < arr.size(); i++) {
             auto* cur_node = new chainNode(arr.get(i));
             if (this->size() == 0)
             {
-                this->begin = cur_node;
-                this->end = cur_node;
+                this->begin_ = cur_node;
+                this->end_ = cur_node;
             }else
             {
-                chainNode::connect(this->end, cur_node);
-                this->end = cur_node;
+                chainNode::connect(this->end_, cur_node);
+                this->end_ = cur_node;
             }
             size_ += 1;
         }
@@ -159,12 +166,12 @@ namespace original {
 
     template<typename TYPE>
     original::iterator<TYPE> * original::chain<TYPE>::begins() {
-        return new iterator(begin);
+        return new iterator(begin_);
     }
 
     template<typename TYPE>
     original::iterator<TYPE> * original::chain<TYPE>::ends() {
-        return new iterator(end);
+        return new iterator(end_);
     }
 
     template <typename TYPE>
@@ -173,10 +180,20 @@ namespace original {
         if (this->indexOutOfBound(index)){
             throw indexError();
         }
-        auto* cur = this->begin;
-        for(size_t i = 0; i < this->negIndex(index); i++)
-        {
-            cur = cur->getPNext();
+        int reverse_visit = this->negIndex(index) <= this->size() / 2 ? 0 : 1;
+        original::chain<TYPE>::chainNode* cur;
+        if (!reverse_visit){
+            cur = this->begin_;
+            for(size_t i = 0; i < this->negIndex(index); i++)
+            {
+                cur = cur->getPNext();
+            }
+        } else{
+            cur = this->end_;
+            for(size_t i = this->size() - 1; i > this->negIndex(index); i--)
+            {
+                cur = cur->getPPrev();
+            }
         }
         return cur->getVal();
     }
@@ -194,10 +211,20 @@ namespace original {
             throw indexError();
         }
         auto* new_node = new chainNode(e);
-        auto* cur = this->begin;
-        for(size_t i = 0; i < this->negIndex(index); i++)
-        {
-            cur = cur->getPNext();
+        int reverse_visit = this->negIndex(index) <= this->size() / 2 ? 0 : 1;
+        original::chain<TYPE>::chainNode* cur;
+        if (!reverse_visit){
+            cur = this->begin_;
+            for(size_t i = 0; i < this->negIndex(index); i++)
+            {
+                cur = cur->getPNext();
+            }
+        } else{
+            cur = this->end_;
+            for(size_t i = this->size() - 1; i > this->negIndex(index); i--)
+            {
+                cur = cur->getPPrev();
+            }
         }
          auto* prev = cur->getPPrev();
          auto* next = cur->getPNext();
@@ -211,10 +238,10 @@ template <typename TYPE>
     {
         std::stringstream ss;
         ss << "chain" << "(";
-        for (auto* node = this->begin; node != nullptr; node = node->getPNext())
+        for (auto* node = this->begin_; node != nullptr; node = node->getPNext())
         {
             ss << node->toString(false);
-            if (node != this->end){
+            if (node != this->end_){
                 ss << "," << " ";
             }
         }
@@ -228,7 +255,7 @@ template <typename TYPE>
 
 template <typename TYPE>
     original::chain<TYPE>::~chain() {
-        auto* current = begin;
+        auto* current = begin_;
         while (current) {
             auto* next = current->getPNext();
             delete current;
