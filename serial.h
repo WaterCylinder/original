@@ -15,10 +15,10 @@ namespace original{
         virtual void set(int index, TYPE e) = 0;
         virtual void push(int index, TYPE e) = 0;
         virtual TYPE pop(int index) = 0;
-        virtual void push_begin(TYPE e) = 0;
-        virtual TYPE pop_begin() = 0;
-        virtual void push_end(TYPE e) = 0;
-        virtual TYPE pop_end() = 0;
+        virtual void pushBegin(TYPE e) = 0;
+        virtual TYPE popBegin() = 0;
+        virtual void pushEnd(TYPE e) = 0;
+        virtual TYPE popEnd() = 0;
     };
 }
 

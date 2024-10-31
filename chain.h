@@ -47,12 +47,12 @@ namespace original {
         TYPE get(int index) override;
         TYPE operator[](int index) override;
         void set(int index, TYPE e) override;
-        void push_begin(TYPE e) override;
+        void pushBegin(TYPE e) override;
         void push(int index, TYPE e) override;
-        void push_end(TYPE e) override;
-        TYPE pop_begin() override;
+        void pushEnd(TYPE e) override;
+        TYPE popBegin() override;
         TYPE pop(int index) override;
-        TYPE pop_end() override;
+        TYPE popEnd() override;
         iterator<TYPE>* begins() override;
         iterator<TYPE>* ends() override;
         _GLIBCXX_NODISCARD std::string toString(bool enter) override;
@@ -240,7 +240,7 @@ namespace original {
     }
 
     template <typename TYPE>
-    void original::chain<TYPE>::push_begin(TYPE e){
+    void original::chain<TYPE>::pushBegin(TYPE e){
         auto* new_node = new chainNode(e);
         if (this->size() == 0){
             this->begin_ = new_node;
@@ -256,9 +256,9 @@ namespace original {
     void original::chain<TYPE>::push(int index, TYPE e){
         index = this->negIndex(index);
         if (index == 0){
-            this->push_begin(e);
+            this->pushBegin(e);
         } else if (index == this->size()){
-            this->push_end(e);
+            this->pushEnd(e);
         } else{
             if (this->indexOutOfBound(index)){
                 throw indexError();
@@ -287,7 +287,7 @@ namespace original {
     }
 
     template <typename TYPE>
-    void original::chain<TYPE>::push_end(TYPE e){
+    void original::chain<TYPE>::pushEnd(TYPE e){
         auto* new_node = new chainNode(e);
         if (this->size() == 0){
             this->begin_ = new_node;
@@ -300,7 +300,7 @@ namespace original {
     }
 
     template <typename TYPE>
-    TYPE original::chain<TYPE>::pop_begin(){
+    TYPE original::chain<TYPE>::popBegin(){
         TYPE res;
         if (this->size() == 0){
             throw noElementError();
@@ -323,9 +323,9 @@ namespace original {
     TYPE original::chain<TYPE>::pop(int index){
         index = this->negIndex(index);
         if (index == 0){
-            return this->pop_begin();
+            return this->popBegin();
         } else if (index == this->size() - 1){
-            return this->pop_end();
+            return this->popEnd();
         } else{
             if (this->indexOutOfBound(index)){
                 throw indexError();
@@ -357,7 +357,7 @@ namespace original {
     }
 
     template <typename TYPE>
-    TYPE original::chain<TYPE>::pop_end(){
+    TYPE original::chain<TYPE>::popEnd(){
         TYPE res;
         if (this->size() == 0){
             throw noElementError();

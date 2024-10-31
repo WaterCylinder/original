@@ -30,12 +30,12 @@ namespace original{
         TYPE get(int index) override;
         TYPE operator[](int index) override;
         void set(int index, TYPE e) override;
-        void push_begin(TYPE e) override;
+        void pushBegin(TYPE e) override;
         void push(int index, TYPE e) override;
-        void push_end(TYPE e) override;
-        TYPE pop_begin() override;
+        void pushEnd(TYPE e) override;
+        TYPE popBegin() override;
         TYPE pop(int index) override;
-        TYPE pop_end() override;
+        TYPE popEnd() override;
         std::string toString(bool enter) override;
     };
 
@@ -121,7 +121,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    void original::array<TYPE>::push_begin(TYPE e){
+    void original::array<TYPE>::pushBegin(TYPE e){
         this->set(0, e);
     }
 
@@ -131,12 +131,12 @@ namespace original{
     }
 
     template <typename TYPE>
-    void original::array<TYPE>::push_end(TYPE e){
+    void original::array<TYPE>::pushEnd(TYPE e){
         this->set(this->size() - 1, e);
     }
 
     template <typename TYPE>
-    TYPE original::array<TYPE>::pop_begin(){
+    TYPE original::array<TYPE>::popBegin(){
         return this->get(0);
     }
 
@@ -146,7 +146,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    TYPE original::array<TYPE>::pop_end(){
+    TYPE original::array<TYPE>::popEnd(){
         return this->get(this->size() - 1);
     }
 

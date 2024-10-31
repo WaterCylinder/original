@@ -60,7 +60,7 @@ int main(){
     printf("chain3 phase1:%s", chain3.toCString(false));
     printf("\n");
     for (int i = 0; i < 21; i++){
-        chain3.push_begin(i);
+        chain3.pushBegin(i);
     }
     printf("chain3 phase2:%s", chain3.toCString(true));
     for (int i = 1; i < chain3.size() - 1; i += 3){
