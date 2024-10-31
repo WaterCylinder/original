@@ -8,11 +8,17 @@ namespace original{
     class serial : public container<TYPE>{
     protected:
         bool indexOutOfBound(int index);
+        int negIndex(int index);
     public:
         virtual TYPE get(int index) = 0;
         virtual TYPE operator[](int index) = 0;
         virtual void set(int index, TYPE e) = 0;
-        int negIndex(int index);
+        virtual void push(int index, TYPE e) = 0;
+        virtual TYPE pop(int index) = 0;
+        virtual void push_begin(TYPE e) = 0;
+        virtual TYPE pop_begin() = 0;
+        virtual void push_end(TYPE e) = 0;
+        virtual TYPE pop_end() = 0;
     };
 }
 

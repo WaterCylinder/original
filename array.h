@@ -30,6 +30,12 @@ namespace original{
         TYPE get(int index) override;
         TYPE operator[](int index) override;
         void set(int index, TYPE e) override;
+        void push_begin(TYPE e) override;
+        void push(int index, TYPE e) override;
+        void push_end(TYPE e) override;
+        TYPE pop_begin() override;
+        TYPE pop(int index) override;
+        TYPE pop_end() override;
         std::string toString(bool enter) override;
     };
 
@@ -112,6 +118,36 @@ namespace original{
             throw indexError();
         }
         this->body[this->negIndex(index)] = e;
+    }
+
+    template <typename TYPE>
+    void original::array<TYPE>::push_begin(TYPE e){
+        this->set(0, e);
+    }
+
+    template <typename TYPE>
+    void original::array<TYPE>::push(int index, TYPE e){
+        this->set(index, e);
+    }
+
+    template <typename TYPE>
+    void original::array<TYPE>::push_end(TYPE e){
+        this->set(this->size() - 1, e);
+    }
+
+    template <typename TYPE>
+    TYPE original::array<TYPE>::pop_begin(){
+        return this->get(0);
+    }
+
+    template <typename TYPE>
+    TYPE original::array<TYPE>::pop(int index){
+        return this->get(index);
+    }
+
+    template <typename TYPE>
+    TYPE original::array<TYPE>::pop_end(){
+        return this->get(this->size() - 1);
     }
 
     template <typename TYPE>

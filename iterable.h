@@ -12,6 +12,8 @@ namespace original{
         virtual iterator<TYPE>* ends() = 0;
         iterator<TYPE> begin();
         iterator<TYPE> end();
+        iterator<TYPE> begin() const;
+        iterator<TYPE> end() const;
         void foreach(const std::function<void(TYPE&)>& callback);
     };
 }
@@ -23,6 +25,16 @@ namespace original{
 
     template <typename TYPE>
     original::iterator<TYPE> original::iterable<TYPE>::end(){
+        return *this->ends();
+    }
+
+    template <typename TYPE>
+    original::iterator<TYPE> original::iterable<TYPE>::begin() const{
+        return *this->begins();
+    }
+
+    template <typename TYPE>
+    original::iterator<TYPE> original::iterable<TYPE>::end() const{
         return *this->ends();
     }
 

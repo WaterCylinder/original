@@ -47,6 +47,12 @@ namespace original {
         TYPE get(int index) override;
         TYPE operator[](int index) override;
         void set(int index, TYPE e) override;
+        void push_begin(TYPE e) override;
+        void push(int index, TYPE e) override;
+        void push_end(TYPE e) override;
+        TYPE pop_begin() override;
+        TYPE pop(int index) override;
+        TYPE pop_end() override;
         iterator<TYPE>* begins() override;
         iterator<TYPE>* ends() override;
         _GLIBCXX_NODISCARD std::string toString(bool enter) override;
@@ -233,7 +239,144 @@ namespace original {
          delete cur;
     }
 
-template <typename TYPE>
+    template <typename TYPE>
+    void original::chain<TYPE>::push_begin(TYPE e){
+        auto* new_node = new chainNode(e);
+        if (this->size() == 0){
+            this->begin_ = new_node;
+            this->end_ = new_node;
+        } else{
+            original::chain<TYPE>::chainNode::connect(new_node, this->begin_);
+            this->begin_ = new_node;
+        }
+        this->size_ += 1;
+    }
+
+    template <typename TYPE>
+    void original::chain<TYPE>::push(int index, TYPE e){
+        index = this->negIndex(index);
+        if (index == 0){
+            this->push_begin(e);
+        } else if (index == this->size()){
+            this->push_end(e);
+        } else{
+            if (this->indexOutOfBound(index)){
+                throw indexError();
+            }
+            auto* new_node = new chainNode(e);
+            int reverse_visit = index <= this->size() / 2 ? 0 : 1;
+            original::chain<TYPE>::chainNode* cur;
+            if (!reverse_visit){
+                cur = this->begin_;
+                for(size_t i = 0; i < index; i++)
+                {
+                    cur = cur->getPNext();
+                }
+            } else{
+                cur = this->end_;
+                for(size_t i = this->size() - 1; i > index; i--)
+                {
+                    cur = cur->getPPrev();
+                }
+            }
+            auto* prev = cur->getPPrev();
+            original::chain<TYPE>::chainNode::connect(prev, new_node);
+            original::chain<TYPE>::chainNode::connect(new_node, cur);
+            this->size_ += 1;
+        }
+    }
+
+    template <typename TYPE>
+    void original::chain<TYPE>::push_end(TYPE e){
+        auto* new_node = new chainNode(e);
+        if (this->size() == 0){
+            this->begin_ = new_node;
+            this->end_ = new_node;
+        } else{
+            original::chain<TYPE>::chainNode::connect(this->end_, new_node);
+            this->end_ = new_node;
+        }
+        this->size_ += 1;
+    }
+
+    template <typename TYPE>
+    TYPE original::chain<TYPE>::pop_begin(){
+        TYPE res;
+        if (this->size() == 0){
+            throw noElementError();
+        } else if (this->size() == 1){
+            res = this->begin_->getVal();
+            delete this->begin_;
+            this->begin_ = nullptr;
+            this->end_ = nullptr;
+        } else{
+            res = this->begin_->getVal();
+            auto* new_begin = this->begin_->getPNext();
+            delete this->begin_;
+            this->begin_ = new_begin;
+        }
+        this->size_ -= 1;
+        return res;
+    }
+
+    template <typename TYPE>
+    TYPE original::chain<TYPE>::pop(int index){
+        index = this->negIndex(index);
+        if (index == 0){
+            return this->pop_begin();
+        } else if (index == this->size() - 1){
+            return this->pop_end();
+        } else{
+            if (this->indexOutOfBound(index)){
+                throw indexError();
+            }
+            TYPE res;
+            int reverse_visit = index <= this->size() / 2 ? 0 : 1;
+            original::chain<TYPE>::chainNode* cur;
+            if (!reverse_visit){
+                cur = this->begin_;
+                for(size_t i = 0; i < index; i++)
+                {
+                    cur = cur->getPNext();
+                }
+            } else{
+                cur = this->end_;
+                for(size_t i = this->size() - 1; i > index; i--)
+                {
+                    cur = cur->getPPrev();
+                }
+            }
+            res = cur->getVal();
+            auto* prev = cur->getPPrev();
+            auto* next = cur->getPNext();
+            original::chain<TYPE>::chainNode::connect(prev, next);
+            delete cur;
+            this->size_ -= 1;
+            return res;
+        }
+    }
+
+    template <typename TYPE>
+    TYPE original::chain<TYPE>::pop_end(){
+        TYPE res;
+        if (this->size() == 0){
+            throw noElementError();
+        } else if (this->size() == 1){
+            res = this->end_->getVal();
+            delete this->end_;
+            this->begin_ = nullptr;
+            this->end_ = nullptr;
+        } else{
+            res = this->end_->getVal();
+            auto* new_end = this->end_->getPPrev();
+            delete this->end_;
+            this->end_ = new_end;
+        }
+        this->size_ -= 1;
+        return res;
+    }
+
+    template <typename TYPE>
     auto original::chain<TYPE>::toString(const bool enter) -> std::string
     {
         std::stringstream ss;

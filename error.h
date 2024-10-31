@@ -32,6 +32,13 @@ namespace original{
             return "Unsupported Method for class";
         }
     };
+
+    class noElementError final : public std::exception{
+        _GLIBCXX_NODISCARD auto what() const _GLIBCXX_NOEXCEPT -> const char* override
+        {
+            return "No such element";
+        }
+    };
 }
 
 #endif //ERROR_H

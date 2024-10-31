@@ -12,7 +12,8 @@ namespace original{
     public:
         explicit iterator(wrapper<TYPE>* wrapper);
         iterator(iterator<TYPE>& other);
-        TYPE operator*();
+        TYPE& operator*();
+        const TYPE& operator*() const;
         iterator& operator=(const iterator<TYPE>* other);
         iterator& operator=(const TYPE& data);
         iterator& operator++();
@@ -26,6 +27,7 @@ namespace original{
         void next();
         void prev();
         TYPE& get();
+        const TYPE& get() const;
         void set(TYPE data);
         bool equal(const iterator<TYPE>* other);
         bool isNull();
@@ -42,7 +44,12 @@ namespace original{
         : ptr_(other.ptr_) {}
 
     template<typename TYPE>
-    TYPE original::iterator<TYPE>::operator*() {
+    TYPE& original::iterator<TYPE>::operator*() {
+        return this->get();
+    }
+
+    template<typename TYPE>
+    const TYPE& original::iterator<TYPE>::operator*() const{
         return this->get();
     }
 
@@ -134,6 +141,14 @@ namespace original{
 
     template<typename TYPE>
     TYPE& original::iterator<TYPE>::get(){
+        if (this->isNull()){
+            throw nullPointerError();
+        }
+        return ptr_->getVal();
+    }
+
+    template<typename TYPE>
+    const TYPE& original::iterator<TYPE>::get() const{
         if (this->isNull()){
             throw nullPointerError();
         }
