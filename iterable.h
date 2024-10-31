@@ -29,7 +29,7 @@ namespace original{
     template <typename TYPE>
     void original::iterable<TYPE>::foreach(const std::function<void(TYPE&)>& callback) {
         for (auto* it = this->begins(); it != nullptr && !it->isNull(); it->next()) {
-            callback(it->get()); // `get()` 现在返回引用
+            callback(it->get());
         }
     }
 
