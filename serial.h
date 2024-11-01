@@ -5,7 +5,7 @@
 
 namespace original{
     template <typename TYPE>
-    class serial : public container<TYPE>{
+    class serial : public container{
     protected:
         bool indexOutOfBound(int index);
         int negIndex(int index);

@@ -23,9 +23,6 @@ namespace original {
                 chainNode* next;
             protected:
                 explicit chainNode(TYPE data, chainNode* prev = nullptr, chainNode* next = nullptr);
-                chainNode(const chainNode& other);
-                chainNode& operator=(const chainNode& other);
-                chainNode(chainNode&& other) _GLIBCXX_NOEXCEPT;
                 TYPE& getVal() override;
                 void setVal(TYPE data) override;
                 chainNode* getPPrev() override;
@@ -64,28 +61,7 @@ namespace original {
     original::chain<TYPE>::chainNode::chainNode(TYPE data, chainNode* prev, chainNode* next)
     : data_(data), prev(prev), next(next) {}
 
-    template <typename TYPE>
-    original::chain<TYPE>::chainNode::chainNode(const chainNode& other)
-    : data_(other->data_), prev(other->prev), next(other->next) {}
-
-    template <typename TYPE>
-    auto original::chain<TYPE>::chainNode::operator=(const chainNode& other) -> chainNode& {
-        if (this == &other) return *this;
-
-        this->prev = other->prev;
-        this->next = other->next;
-        return *this;
-    }
-
-    template <typename TYPE>
-    original::chain<TYPE>::chainNode::chainNode(chainNode&& other) _GLIBCXX_NOEXCEPT
-    : wrapper<TYPE>(other->data_), prev(other->prev), next(other->next)
-    {
-        other->prev = nullptr;
-        other->next = nullptr;
-    }
-
-    template <typename TYPE>
+template <typename TYPE>
     auto original::chain<TYPE>::chainNode::getVal() -> TYPE&
     {
         return this->data_;
@@ -171,12 +147,12 @@ namespace original {
     }
 
     template<typename TYPE>
-    original::iterator<TYPE> * original::chain<TYPE>::begins() {
+    original::iterator<TYPE>* original::chain<TYPE>::begins() {
         return new iterator(begin_);
     }
 
     template<typename TYPE>
-    original::iterator<TYPE> * original::chain<TYPE>::ends() {
+    original::iterator<TYPE>* original::chain<TYPE>::ends() {
         return new iterator(end_);
     }
 

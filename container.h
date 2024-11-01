@@ -7,7 +7,6 @@
 
 namespace original {
 
-    template <typename TYPE>
     class container{
     public:
         _GLIBCXX_NODISCARD virtual size_t size() const = 0;

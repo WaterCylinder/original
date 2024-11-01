@@ -24,7 +24,7 @@ namespace original{
         array& operator=(const array& other);
         array(array&& other) _GLIBCXX_NOEXCEPT;
 
-        ~array();
+        ~array() override;
 
         _GLIBCXX_NODISCARD size_t size() const override;
         TYPE get(int index) override;

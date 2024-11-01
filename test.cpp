@@ -43,7 +43,7 @@ int main(){
     }
     printf("\n");
     printf("chain1 before:%s", chain1.toCString(true));
-    chain1.foreach([](int& value) {
+    chain1.forEach([](int &value) {
         value *= 2;
     });
     printf("chain1 after:%s", chain1.toCString(true));

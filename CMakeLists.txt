@@ -7,4 +7,4 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 include_directories(${CMAKE_SOURCE_DIR})
 
 
-add_executable(test test.cpp printable.h iterator.h vector.h serial.h)
+add_executable(test test.cpp vector.h)
