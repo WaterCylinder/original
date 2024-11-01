@@ -22,8 +22,8 @@ namespace original{
         bool operator!=(const iterator& other);
         bool hasNext();
         bool hasPrev();
-        bool atLeft(const iterator* other);
-        bool atRight(const iterator* other);
+        bool atPrev(const iterator* other);
+        bool atNext(const iterator* other);
         void next();
         void prev();
         TYPE& get();
@@ -108,7 +108,7 @@ namespace original{
     }
 
     template<typename TYPE>
-    bool original::iterator<TYPE>::atLeft(const iterator *other) {
+    bool original::iterator<TYPE>::atPrev(const iterator *other) {
         if (this->isNull()){
             throw nullPointerError();
         }
@@ -116,7 +116,7 @@ namespace original{
     }
 
     template<typename TYPE>
-    bool original::iterator<TYPE>::atRight(const iterator *other) {
+    bool original::iterator<TYPE>::atNext(const iterator *other) {
         if (this->isNull()){
             throw nullPointerError();
         }

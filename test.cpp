@@ -33,7 +33,7 @@ int main(){
     }
     printf("\n");
     auto chain2 = original::chain({6, 7, 3, 9, 4, 2, 10, 14, -5});
-    for (original::iterator<int> *l = chain2.begins(), *r = chain2.ends(); !l->equal(r) && !l->atRight(r); l->next(), r->prev()) {
+    for (original::iterator<int> *l = chain2.begins(), *r = chain2.ends(); !l->equal(r) && !l->atNext(r); l->next(), r->prev()) {
         const int val = l->get();
         l->set(r->get());
         r->set(val);
