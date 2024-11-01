@@ -34,7 +34,7 @@ int main(){
     printf("\n");
     auto chain2 = original::chain({6, 7, 3, 9, 4, 2, 10, 14, -5});
     for (original::iterator<int> *l = chain2.begins(), *r = chain2.ends(); !l->equal(r) && !l->atRight(r); l->next(), r->prev()) {
-        int val = l->get();
+        const int val = l->get();
         l->set(r->get());
         r->set(val);
     }
@@ -48,7 +48,7 @@ int main(){
     });
     printf("chain1 after:%s", chain1.toCString(true));
     printf("\n");
-    for (int value : chain2) {
+    for (const int value : chain2) {
         printf("Element: %d\n", value);
     }
     printf("\n");

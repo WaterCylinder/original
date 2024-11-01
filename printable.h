@@ -5,15 +5,16 @@
 
 namespace original {
     class printable {
-    private:
         std::string cachedString;
     public:
+        virtual ~printable() = default;
+
         _GLIBCXX_NODISCARD virtual std::string toString(bool enter) = 0;
         _GLIBCXX_NODISCARD const char* toCString(bool enter);
     };
 }
 
-    _GLIBCXX_NODISCARD const char* original::printable::toCString(bool enter) {
+    _GLIBCXX_NODISCARD inline const char* original::printable::toCString(bool enter) {
         this->cachedString = this->toString(enter);
         return cachedString.c_str();
     }

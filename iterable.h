@@ -8,6 +8,7 @@ namespace original{
     template <typename TYPE>
     class iterable{
     public:
+        virtual ~iterable() = default;
         virtual iterator<TYPE>* begins() = 0;
         virtual iterator<TYPE>* ends() = 0;
         iterator<TYPE> begin();

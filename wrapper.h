@@ -14,13 +14,13 @@ namespace original
         virtual void setVal(TYPE data) = 0;
         virtual wrapper* getPPrev() = 0;
         virtual wrapper* getPNext() = 0;
-        virtual ~wrapper() = default;
+        ~wrapper() override = default;
         _GLIBCXX_NODISCARD std::string toString(bool enter) override;
     };
 
 }
     template<typename TYPE>
-    std::string original::wrapper<TYPE>::toString(bool enter){
+    std::string original::wrapper<TYPE>::toString(const bool enter){
         std::stringstream ss;
         ss << this->getVal();
         if (enter)

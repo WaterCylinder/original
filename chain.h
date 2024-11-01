@@ -186,8 +186,8 @@ namespace original {
         if (this->indexOutOfBound(index)){
             throw indexError();
         }
-        int reverse_visit = this->negIndex(index) <= this->size() / 2 ? 0 : 1;
-        original::chain<TYPE>::chainNode* cur;
+        const int reverse_visit = this->negIndex(index) <= this->size() / 2 ? 0 : 1;
+        chainNode* cur;
         if (!reverse_visit){
             cur = this->begin_;
             for(size_t i = 0; i < this->negIndex(index); i++)
@@ -196,7 +196,7 @@ namespace original {
             }
         } else{
             cur = this->end_;
-            for(size_t i = this->size() - 1; i > this->negIndex(index); i--)
+            for(size_t i = this->size() - 1; i > this->negIndex(index); i-= 1)
             {
                 cur = cur->getPPrev();
             }
@@ -205,7 +205,7 @@ namespace original {
     }
 
     template <typename TYPE>
-    TYPE original::chain<TYPE>::operator[](int index)
+    TYPE original::chain<TYPE>::operator[](const int index)
     {
         return this->get(index);
     }
@@ -217,8 +217,8 @@ namespace original {
             throw indexError();
         }
         auto* new_node = new chainNode(e);
-        int reverse_visit = this->negIndex(index) <= this->size() / 2 ? 0 : 1;
-        original::chain<TYPE>::chainNode* cur;
+        const int reverse_visit = this->negIndex(index) <= this->size() / 2 ? 0 : 1;
+        chainNode* cur;
         if (!reverse_visit){
             cur = this->begin_;
             for(size_t i = 0; i < this->negIndex(index); i++)
@@ -227,15 +227,15 @@ namespace original {
             }
         } else{
             cur = this->end_;
-            for(size_t i = this->size() - 1; i > this->negIndex(index); i--)
+            for(size_t i = this->size() - 1; i > this->negIndex(index); i -= 1)
             {
                 cur = cur->getPPrev();
             }
         }
          auto* prev = cur->getPPrev();
          auto* next = cur->getPNext();
-         original::chain<TYPE>::chainNode::connect(prev, new_node);
-         original::chain<TYPE>::chainNode::connect(new_node, next);
+         chainNode::connect(prev, new_node);
+         chainNode::connect(new_node, next);
          delete cur;
     }
 
@@ -246,7 +246,7 @@ namespace original {
             this->begin_ = new_node;
             this->end_ = new_node;
         } else{
-            original::chain<TYPE>::chainNode::connect(new_node, this->begin_);
+            chainNode::connect(new_node, this->begin_);
             this->begin_ = new_node;
         }
         this->size_ += 1;
@@ -264,8 +264,8 @@ namespace original {
                 throw indexError();
             }
             auto* new_node = new chainNode(e);
-            int reverse_visit = index <= this->size() / 2 ? 0 : 1;
-            original::chain<TYPE>::chainNode* cur;
+            const int reverse_visit = index <= this->size() / 2 ? 0 : 1;
+            chainNode* cur;
             if (!reverse_visit){
                 cur = this->begin_;
                 for(size_t i = 0; i < index; i++)
@@ -274,14 +274,14 @@ namespace original {
                 }
             } else{
                 cur = this->end_;
-                for(size_t i = this->size() - 1; i > index; i--)
+                for(size_t i = this->size() - 1; i > index; i -= 1)
                 {
                     cur = cur->getPPrev();
                 }
             }
             auto* prev = cur->getPPrev();
-            original::chain<TYPE>::chainNode::connect(prev, new_node);
-            original::chain<TYPE>::chainNode::connect(new_node, cur);
+            chainNode::connect(prev, new_node);
+            chainNode::connect(new_node, cur);
             this->size_ += 1;
         }
     }
@@ -293,7 +293,7 @@ namespace original {
             this->begin_ = new_node;
             this->end_ = new_node;
         } else{
-            original::chain<TYPE>::chainNode::connect(this->end_, new_node);
+            chainNode::connect(this->end_, new_node);
             this->end_ = new_node;
         }
         this->size_ += 1;
@@ -304,7 +304,8 @@ namespace original {
         TYPE res;
         if (this->size() == 0){
             throw noElementError();
-        } else if (this->size() == 1){
+        }
+        if (this->size() == 1){
             res = this->begin_->getVal();
             delete this->begin_;
             this->begin_ = nullptr;
@@ -324,36 +325,36 @@ namespace original {
         index = this->negIndex(index);
         if (index == 0){
             return this->popBegin();
-        } else if (index == this->size() - 1){
-            return this->popEnd();
-        } else{
-            if (this->indexOutOfBound(index)){
-                throw indexError();
-            }
-            TYPE res;
-            int reverse_visit = index <= this->size() / 2 ? 0 : 1;
-            original::chain<TYPE>::chainNode* cur;
-            if (!reverse_visit){
-                cur = this->begin_;
-                for(size_t i = 0; i < index; i++)
-                {
-                    cur = cur->getPNext();
-                }
-            } else{
-                cur = this->end_;
-                for(size_t i = this->size() - 1; i > index; i--)
-                {
-                    cur = cur->getPPrev();
-                }
-            }
-            res = cur->getVal();
-            auto* prev = cur->getPPrev();
-            auto* next = cur->getPNext();
-            original::chain<TYPE>::chainNode::connect(prev, next);
-            delete cur;
-            this->size_ -= 1;
-            return res;
         }
+        if (index == this->size() - 1){
+            return this->popEnd();
+        }
+        if (this->indexOutOfBound(index)){
+            throw indexError();
+        }
+        TYPE res;
+        const int reverse_visit = index <= this->size() / 2 ? 0 : 1;
+        chainNode* cur;
+        if (!reverse_visit){
+            cur = this->begin_;
+            for(size_t i = 0; i < index; i++)
+            {
+                cur = cur->getPNext();
+            }
+        } else{
+            cur = this->end_;
+            for(size_t i = this->size() - 1; i > index; i -= 1)
+            {
+                cur = cur->getPPrev();
+            }
+        }
+        res = cur->getVal();
+        auto* prev = cur->getPPrev();
+        auto* next = cur->getPNext();
+        chainNode::connect(prev, next);
+        delete cur;
+        this->size_ -= 1;
+        return res;
     }
 
     template <typename TYPE>
@@ -361,7 +362,8 @@ namespace original {
         TYPE res;
         if (this->size() == 0){
             throw noElementError();
-        } else if (this->size() == 1){
+        }
+        if (this->size() == 1){
             res = this->end_->getVal();
             delete this->end_;
             this->begin_ = nullptr;

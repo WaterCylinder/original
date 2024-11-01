@@ -6,33 +6,33 @@
 
 namespace original{
     template<typename TYPE>
-    class iterator : public printable{
+    class iterator final : public printable{
     protected:
         wrapper<TYPE>* ptr_;
     public:
         explicit iterator(wrapper<TYPE>* wrapper);
-        iterator(iterator<TYPE>& other);
+        iterator(const iterator& other);
         TYPE& operator*();
         const TYPE& operator*() const;
-        iterator& operator=(const iterator<TYPE>* other);
+        iterator& operator=(const iterator* other);
         iterator& operator=(const TYPE& data);
         iterator& operator++();
         iterator operator++(int);
-        bool operator==(const iterator<TYPE>& other);
-        bool operator!=(const iterator<TYPE>& other);
+        bool operator==(const iterator& other);
+        bool operator!=(const iterator& other);
         bool hasNext();
         bool hasPrev();
-        bool atLeft(const iterator<TYPE>* other);
-        bool atRight(const iterator<TYPE>* other);
+        bool atLeft(const iterator* other);
+        bool atRight(const iterator* other);
         void next();
         void prev();
         TYPE& get();
         const TYPE& get() const;
         void set(TYPE data);
-        bool equal(const iterator<TYPE>* other);
+        bool equal(const iterator* other);
         bool isNull();
         std::string toString(bool enter) override;
-        virtual ~iterator() = default;
+        ~iterator() override = default;
     };
 }
 
@@ -40,7 +40,7 @@ namespace original{
     original::iterator<TYPE>::iterator(wrapper<TYPE>* wrapper) : ptr_(wrapper) {}
 
     template<typename TYPE>
-    original::iterator<TYPE>::iterator(iterator<TYPE>& other)
+    original::iterator<TYPE>::iterator(const iterator& other)
         : ptr_(other.ptr_) {}
 
     template<typename TYPE>
@@ -54,7 +54,7 @@ namespace original{
     }
 
     template<typename TYPE>
-    original::iterator<TYPE>& original::iterator<TYPE>::operator=(const iterator<TYPE>* other) {
+    original::iterator<TYPE>& original::iterator<TYPE>::operator=(const iterator* other) {
         if (this == &other) {
             return *this;
         }
@@ -82,12 +82,12 @@ namespace original{
     }
 
     template<typename TYPE>
-    bool original::iterator<TYPE>::operator==(const iterator<TYPE>& other) {
+    bool original::iterator<TYPE>::operator==(const iterator& other) {
         return this->equal(&other);
     }
 
     template<typename TYPE>
-    bool original::iterator<TYPE>::operator!=(const iterator<TYPE>& other) {
+    bool original::iterator<TYPE>::operator!=(const iterator& other) {
         return !this->equal(&other);
     }
 
@@ -108,7 +108,7 @@ namespace original{
     }
 
     template<typename TYPE>
-    bool original::iterator<TYPE>::atLeft(const iterator<TYPE> *other) {
+    bool original::iterator<TYPE>::atLeft(const iterator *other) {
         if (this->isNull()){
             throw nullPointerError();
         }
@@ -116,7 +116,7 @@ namespace original{
     }
 
     template<typename TYPE>
-    bool original::iterator<TYPE>::atRight(const iterator<TYPE> *other) {
+    bool original::iterator<TYPE>::atRight(const iterator *other) {
         if (this->isNull()){
             throw nullPointerError();
         }
@@ -164,7 +164,7 @@ namespace original{
     }
 
     template<typename TYPE>
-    bool original::iterator<TYPE>::equal(const iterator<TYPE> *other) {
+    bool original::iterator<TYPE>::equal(const iterator *other) {
         return this->ptr_ == other->ptr_;
     }
 
@@ -174,7 +174,7 @@ namespace original{
     }
 
     template<typename TYPE>
-    std::string original::iterator<TYPE>::toString(bool enter){
+    std::string original::iterator<TYPE>::toString(const bool enter){
         std::stringstream ss;
         ss << "iterator" << "(" << "#" << this->ptr_ << ")";
         if (enter){
