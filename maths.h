@@ -14,6 +14,8 @@ namespace original{
 
     template<typename TYPE>
     TYPE min(TYPE a, TYPE b);
+
+    double pow(double base, int exp);
 }
 
     template<typename TYPE>
@@ -32,6 +34,20 @@ namespace original{
     auto original::min(TYPE a, TYPE b) -> TYPE
     {
         return a < b ? a : b;
+    }
+
+    inline auto original::pow(const double base, const int exp) -> double
+    {
+        if (base == 0 && exp <= 0)
+        {
+            throw valueError();
+        }
+        double res = 1.0;
+        for (int i = 0; i < abs(exp); i += 1)
+        {
+            res *= base;
+        }
+        return exp >= 0 ? res : 1 / res;
     }
 
 #endif //MATHS_H

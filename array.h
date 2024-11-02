@@ -30,6 +30,7 @@ namespace original{
         TYPE get(int index) override;
         TYPE operator[](int index) override;
         void set(int index, TYPE e) override;
+        size_t indexOf(TYPE e) override;
         void pushBegin(TYPE e) override;
         void push(int index, TYPE e) override;
         void pushEnd(TYPE e) override;
@@ -121,33 +122,52 @@ namespace original{
     }
 
     template <typename TYPE>
-    void original::array<TYPE>::pushBegin(TYPE e){
-        this->set(0, e);
+    auto original::array<TYPE>::indexOf(TYPE e) -> size_t
+    {
+        for (int i = 0; i < this->size(); i += 1)
+        {
+            if (this->get(i) == e)
+            {
+                return i;
+            }
+        }
+        return this->size();
+    }
+
+template <typename TYPE>
+    auto original::array<TYPE>::pushBegin(TYPE e) -> void
+    {
+        throw unSupportedMethodError();
     }
 
     template <typename TYPE>
-    void original::array<TYPE>::push(int index, TYPE e){
-        this->set(index, e);
+    auto original::array<TYPE>::push(int index, TYPE e) -> void
+    {
+        throw unSupportedMethodError();
     }
 
     template <typename TYPE>
-    void original::array<TYPE>::pushEnd(TYPE e){
-        this->set(this->size() - 1, e);
+    auto original::array<TYPE>::pushEnd(TYPE e) -> void
+    {
+        throw unSupportedMethodError();
     }
 
     template <typename TYPE>
-    TYPE original::array<TYPE>::popBegin(){
-        return this->get(0);
+    auto original::array<TYPE>::popBegin() -> TYPE
+    {
+        throw unSupportedMethodError();
     }
 
     template <typename TYPE>
-    TYPE original::array<TYPE>::pop(int index){
-        return this->get(index);
+    auto original::array<TYPE>::pop(int index) -> TYPE
+    {
+        throw unSupportedMethodError();
     }
 
     template <typename TYPE>
-    TYPE original::array<TYPE>::popEnd(){
-        return this->get(this->size() - 1);
+    auto original::array<TYPE>::popEnd() -> TYPE
+    {
+        throw unSupportedMethodError();
     }
 
     template <typename TYPE>

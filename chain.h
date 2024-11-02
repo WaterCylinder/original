@@ -44,6 +44,7 @@ namespace original {
         TYPE get(int index) override;
         TYPE operator[](int index) override;
         void set(int index, TYPE e) override;
+        size_t indexOf(TYPE e) override;
         void pushBegin(TYPE e) override;
         void push(int index, TYPE e) override;
         void pushEnd(TYPE e) override;
@@ -106,7 +107,7 @@ template <typename TYPE>
 
     template <typename TYPE>
     original::chain<TYPE>::chain(std::initializer_list<TYPE> list)
-        : size_(0), begin_(), end_() {
+        : chain() {
         for (auto e : list) {
             auto* cur_node = new chainNode(e);
             if (this->size() == 0)
@@ -124,7 +125,7 @@ template <typename TYPE>
 
     template <typename TYPE>
     original::chain<TYPE>::chain(array<TYPE> arr)
-        : size_(0), begin_(), end_() {
+        : chain() {
         for (size_t i = 0; i < arr.size(); i++) {
             auto* cur_node = new chainNode(arr.get(i));
             if (this->size() == 0)
@@ -147,17 +148,19 @@ template <typename TYPE>
     }
 
     template<typename TYPE>
-    original::iterator<TYPE>* original::chain<TYPE>::begins() {
+    auto original::chain<TYPE>::begins() -> iterator<TYPE>*
+    {
         return new iterator(begin_);
     }
 
     template<typename TYPE>
-    original::iterator<TYPE>* original::chain<TYPE>::ends() {
+    auto original::chain<TYPE>::ends() -> iterator<TYPE>*
+    {
         return new iterator(end_);
     }
 
     template <typename TYPE>
-    TYPE original::chain<TYPE>::get(int index)
+    auto original::chain<TYPE>::get(int index) -> TYPE
     {
         if (this->indexOutOfBound(index)){
             throw indexError();
@@ -181,13 +184,13 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
-    TYPE original::chain<TYPE>::operator[](const int index)
+    auto original::chain<TYPE>::operator[](const int index) -> TYPE
     {
         return this->get(index);
     }
 
     template <typename TYPE>
-    void original::chain<TYPE>::set(int index, TYPE e)
+    auto original::chain<TYPE>::set(int index, TYPE e) -> void
     {
         if (this->indexOutOfBound(index)){
             throw indexError();
@@ -216,7 +219,20 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
-    void original::chain<TYPE>::pushBegin(TYPE e){
+    auto original::chain<TYPE>::indexOf(TYPE e) -> size_t {
+        size_t i = 0;
+        for (chainNode* current = this->begin_; current != nullptr; current = current->getPNext()) {
+            if (current->getVal() == e) {
+                return i;
+            }
+            i += 1;
+        }
+        return this->size();
+    }
+
+template <typename TYPE>
+    auto original::chain<TYPE>::pushBegin(TYPE e) -> void
+    {
         auto* new_node = new chainNode(e);
         if (this->size() == 0){
             this->begin_ = new_node;
@@ -229,7 +245,8 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
-    void original::chain<TYPE>::push(int index, TYPE e){
+    auto original::chain<TYPE>::push(int index, TYPE e) -> void
+    {
         index = this->negIndex(index);
         if (index == 0){
             this->pushBegin(e);
@@ -263,7 +280,8 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
-    void original::chain<TYPE>::pushEnd(TYPE e){
+    auto original::chain<TYPE>::pushEnd(TYPE e) -> void
+    {
         auto* new_node = new chainNode(e);
         if (this->size() == 0){
             this->begin_ = new_node;
@@ -276,7 +294,8 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
-    TYPE original::chain<TYPE>::popBegin(){
+    auto original::chain<TYPE>::popBegin() -> TYPE
+    {
         TYPE res;
         if (this->size() == 0){
             throw noElementError();
@@ -297,7 +316,8 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
-    TYPE original::chain<TYPE>::pop(int index){
+    auto original::chain<TYPE>::pop(int index) -> TYPE
+    {
         index = this->negIndex(index);
         if (index == 0){
             return this->popBegin();
@@ -334,7 +354,8 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
-    TYPE original::chain<TYPE>::popEnd(){
+    auto original::chain<TYPE>::popEnd() -> TYPE
+    {
         TYPE res;
         if (this->size() == 0){
             throw noElementError();
@@ -374,7 +395,7 @@ template <typename TYPE>
         return ss.str();
     }
 
-template <typename TYPE>
+    template <typename TYPE>
     original::chain<TYPE>::~chain() {
         auto* current = begin_;
         while (current) {

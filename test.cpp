@@ -49,9 +49,10 @@ int main(){
     printf("chain1 after:%s", chain1.toCString(true));
     printf("\n");
     for (const int value : chain2) {
-        printf("Element: %d\n", value);
+        printf("chain2 element: %d\n", value);
     }
     printf("\n");
+    printf("chain2 before:%s", chain2.toCString(true));
     for (int& value : chain2) {
         value *= 3;
     }
@@ -66,6 +67,8 @@ int main(){
     for (int i = 1; i < chain3.size() - 1; i += 3){
         chain3.push(i, i);
     }
-    printf("chain3 phase3:%s", chain3.toCString(false));
+    printf("chain3 phase3:%s", chain3.toCString(true));
+    printf("-3**-3=%f, 0**4=%f, 2**0=%f, 5.2**6=%f\n",
+        original::pow(-3, -3), original::pow(0, 4), original::pow(2, 0), original::pow(5.2, 6));
     return 0;
 }

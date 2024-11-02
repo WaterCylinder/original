@@ -20,7 +20,8 @@ namespace original
 
 }
     template<typename TYPE>
-    std::string original::wrapper<TYPE>::toString(const bool enter){
+    auto original::wrapper<TYPE>::toString(const bool enter) -> std::string
+    {
         std::stringstream ss;
         ss << this->getVal();
         if (enter)

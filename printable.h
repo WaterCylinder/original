@@ -14,9 +14,10 @@ namespace original {
     };
 }
 
-    _GLIBCXX_NODISCARD inline const char* original::printable::toCString(bool enter) {
+    _GLIBCXX_NODISCARD inline auto original::printable::toCString(const bool enter) -> const char*
+    {
         this->cachedString = this->toString(enter);
-        return cachedString.c_str();
+        return this->cachedString.c_str();
     }
 
 #endif // PRINTABLE_H
