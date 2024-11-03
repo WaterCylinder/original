@@ -165,17 +165,17 @@ template <typename TYPE>
         if (this->indexOutOfBound(index)){
             throw indexError();
         }
-        const int reverse_visit = this->negIndex(index) <= this->size() / 2 ? 0 : 1;
+        const int reverse_visit = this->parseNegIndex(index) <= this->size() / 2 ? 0 : 1;
         chainNode* cur;
         if (!reverse_visit){
             cur = this->begin_;
-            for(size_t i = 0; i < this->negIndex(index); i++)
+            for(size_t i = 0; i < this->parseNegIndex(index); i++)
             {
                 cur = cur->getPNext();
             }
         } else{
             cur = this->end_;
-            for(size_t i = this->size() - 1; i > this->negIndex(index); i-= 1)
+            for(size_t i = this->size() - 1; i > this->parseNegIndex(index); i-= 1)
             {
                 cur = cur->getPPrev();
             }
@@ -196,17 +196,17 @@ template <typename TYPE>
             throw indexError();
         }
         auto* new_node = new chainNode(e);
-        const int reverse_visit = this->negIndex(index) <= this->size() / 2 ? 0 : 1;
+        const int reverse_visit = this->parseNegIndex(index) <= this->size() / 2 ? 0 : 1;
         chainNode* cur;
         if (!reverse_visit){
             cur = this->begin_;
-            for(size_t i = 0; i < this->negIndex(index); i++)
+            for(size_t i = 0; i < this->parseNegIndex(index); i++)
             {
                 cur = cur->getPNext();
             }
         } else{
             cur = this->end_;
-            for(size_t i = this->size() - 1; i > this->negIndex(index); i -= 1)
+            for(size_t i = this->size() - 1; i > this->parseNegIndex(index); i -= 1)
             {
                 cur = cur->getPPrev();
             }
@@ -247,7 +247,7 @@ template <typename TYPE>
     template <typename TYPE>
     auto original::chain<TYPE>::push(int index, TYPE e) -> void
     {
-        index = this->negIndex(index);
+        index = this->parseNegIndex(index);
         if (index == 0){
             this->pushBegin(e);
         } else if (index == this->size()){
@@ -318,7 +318,7 @@ template <typename TYPE>
     template <typename TYPE>
     auto original::chain<TYPE>::pop(int index) -> TYPE
     {
-        index = this->negIndex(index);
+        index = this->parseNegIndex(index);
         if (index == 0){
             return this->popBegin();
         }

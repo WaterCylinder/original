@@ -1,6 +1,7 @@
 #include "array.h"
 #include "chain.h"
 #include "maths.h"
+#include "vector.h"
 
 int main(){
     auto arr1 = original::array<int>(4);
@@ -68,7 +69,20 @@ int main(){
         chain3.push(i, i);
     }
     printf("chain3 phase3:%s", chain3.toCString(true));
+    printf("Does chain3 contains 100: bool(%d)\n", chain3.contains(100));
     printf("-3**-3=%f, 0**4=%f, 2**0=%f, 5.2**6=%f\n",
         original::pow(-3, -3), original::pow(0, 4), original::pow(2, 0), original::pow(5.2, 6));
+    auto vector1 = original::vector<double>({1.3, 2.7, 5, 8.9, 4.1, 8, 9.5, 11.45, -0.7, -2, -5.8, 6.4, 23, 56, 65, 0.03, 2.07});
+    printf("vector1: %s", vector1.toCString(true));
+    printf("index of 9.5 in vector1: %llu\n", vector1.indexOf(9.5));
+    // for (auto &e : vector1) // 检查内部包装类的地址连续性和首尾的前后指向是否为nullptr
+    // {
+    //     e *= 3.5;
+    // }
+    // vector1.forEach([](auto &e)
+    // {
+    //     e *= 3.5;
+    // });
+    printf("vector1: %s", vector1.toCString(true));
     return 0;
 }

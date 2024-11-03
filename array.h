@@ -103,7 +103,7 @@ namespace original{
         if (this->indexOutOfBound(index)){
             throw indexError();
         }
-        return this->body[this->negIndex(index)];
+        return this->body[this->parseNegIndex(index)];
     }
 
     template <typename TYPE>
@@ -118,7 +118,7 @@ namespace original{
         if (this->indexOutOfBound(index)){
             throw indexError();
         }
-        this->body[this->negIndex(index)] = e;
+        this->body[this->parseNegIndex(index)] = e;
     }
 
     template <typename TYPE>

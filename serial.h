@@ -8,7 +8,7 @@ namespace original{
     class serial : public container<TYPE>{
     protected:
         _GLIBCXX_NODISCARD bool indexOutOfBound(int index) const;
-        _GLIBCXX_NODISCARD int negIndex(int index) const;
+        _GLIBCXX_NODISCARD int parseNegIndex(int index) const;
     public:
         virtual TYPE get(int index) = 0;
         virtual TYPE operator[](int index) = 0;
@@ -27,11 +27,11 @@ namespace original{
     template<typename TYPE>
     bool original::serial<TYPE>::indexOutOfBound(const int index) const
     {
-        return this->negIndex(index) >= this->size();
+        return this->parseNegIndex(index) >= this->size();
     }
 
     template<typename TYPE>
-    int original::serial<TYPE>::negIndex(int index) const
+    int original::serial<TYPE>::parseNegIndex(int index) const
     {
         return index >= 0 ? index : this->size() + index;
     }
