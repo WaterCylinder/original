@@ -27,7 +27,8 @@ namespace original{
     template<typename TYPE>
     bool original::serial<TYPE>::indexOutOfBound(const int index) const
     {
-        return this->parseNegIndex(index) >= this->size();
+        int parsedIndex = this->parseNegIndex(index);
+        return parsedIndex < 0 || parsedIndex >= this->size();
     }
 
     template<typename TYPE>

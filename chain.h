@@ -310,6 +310,7 @@ template <typename TYPE>
             auto* new_begin = this->begin_->getPNext();
             delete this->begin_;
             this->begin_ = new_begin;
+            chainNode::connect(nullptr, this->begin_);
         }
         this->size_ -= 1;
         return res;
@@ -370,6 +371,7 @@ template <typename TYPE>
             auto* new_end = this->end_->getPPrev();
             delete this->end_;
             this->end_ = new_end;
+            chainNode::connect(this->end_, nullptr);
         }
         this->size_ -= 1;
         return res;

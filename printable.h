@@ -11,6 +11,8 @@ namespace original {
 
         _GLIBCXX_NODISCARD virtual std::string toString(bool enter) = 0;
         _GLIBCXX_NODISCARD const char* toCString(bool enter);
+
+        static const char* boolean(bool b);
     };
 }
 
@@ -19,5 +21,10 @@ namespace original {
         this->cachedString = this->toString(enter);
         return this->cachedString.c_str();
     }
+
+    const char* original::printable::boolean(bool b) {
+        return b != 0 ? "true" : "false";
+    }
+
 
 #endif // PRINTABLE_H

@@ -68,10 +68,16 @@ int main(){
     for (int i = 1; i < chain3.size() - 1; i += 3){
         chain3.push(i, i);
     }
+    chain3.pushEnd(100);
     printf("chain3 phase3:%s", chain3.toCString(true));
-    printf("Does chain3 contains 100: bool(%d)\n", chain3.contains(100));
+    printf("Does chain3 contains 100: %s\n", original::printable::boolean(chain3.contains(100)));
     printf("-3**-3=%f, 0**4=%f, 2**0=%f, 5.2**6=%f\n",
         original::pow(-3, -3), original::pow(0, 4), original::pow(2, 0), original::pow(5.2, 6));
+    while (chain3.size() > 0){
+        int midIndex = int(chain3.size() / 2);
+        chain3.pop(midIndex);
+        printf("chain3: %s", chain3.toCString(true));
+    }
     auto vector1 = original::vector<double>({1.3, 2.7, 5, 8.9, 4.1, 8, 9.5, 11.45, -0.7, -2, -5.8, 6.4, 23, 56, 65, 0.03, 2.07});
     printf("vector1: %s", vector1.toCString(true));
     printf("index of 9.5 in vector1: %zu\n", vector1.indexOf(9.5));
@@ -88,7 +94,11 @@ int main(){
     while (vector1.size() > 0) {
         int midIndex = int(vector1.size() / 2);
         vector1.pop(midIndex);
-        printf("vector1: %s\n", vector1.toCString(true));
+        printf("vector1: %s", vector1.toCString(true));
     }
+    vector1.pushBegin(1);
+    vector1.pushEnd(6);
+    printf("vector1: %s", vector1.toCString(true));
+    printf("index of 6 in vector1: %zu\n", vector1.indexOf(6));
     return 0;
 }

@@ -35,7 +35,7 @@ namespace original{
 
         static vectorNode** vectorNodeArrayInit(size_t size);
         static void moveElements(vectorNode** old_body, size_t inner_idx,
-                          size_t len, vectorNode** new_body, size_t offset);
+                          size_t len, vectorNode** new_body, int offset);
         size_t toInnerIdx(int index);
         _GLIBCXX_NODISCARD bool outOfMaxSize(size_t increment) const;
         void connectAll();
@@ -118,7 +118,7 @@ namespace original{
 
     template <typename TYPE>
     auto original::vector<TYPE>::moveElements(vectorNode** old_body, const size_t inner_idx,
-        const size_t len, vectorNode** new_body, const size_t offset) -> void{
+        const size_t len, vectorNode** new_body, const int offset) -> void{
         if (offset > 0)
         {
             for (int i = 0; i < len; i += 1)
@@ -292,15 +292,16 @@ template <typename TYPE>
             }
             adjust(1);
             index = this->toInnerIdx(this->parseNegIndex(index));
+            size_t rel_idx = index - this->inner_begin;
             if (index - this->inner_begin <= (this->size() - 1) / 2)
             {
                 vector::moveElements(this->body, this->inner_begin,
-                                     index + 1, this->body, -1);
+                                     rel_idx + 1, this->body, -1);
                 this->inner_begin -= 1;
             }else
             {
                 vector::moveElements(this->body, index,
-                    this->size() - 1 - index, this->body, 1);
+                    this->size() - 1 - rel_idx, this->body, 1);
             }
             this->body[index] = new vectorNode(e);
             this->size_ += 1;
@@ -353,16 +354,17 @@ template <typename TYPE>
         index = this->toInnerIdx(this->parseNegIndex(index));
         delete this->body[index];
         this->body[index] = nullptr;
+        size_t rel_idx = index - this->inner_begin;
         if (index - this->inner_begin <= (this->size() - 1) / 2)
         {
             vector::moveElements(this->body, this->inner_begin,
-                index + 1, this->body, 1);
+                                 rel_idx, this->body, 1);
             this->inner_begin += 1;
             vectorNode::connect(this->body[index], this->body[index + 1]);
         }else
         {
             vector::moveElements(this->body, index + 1,
-                this->size() - 2 - index, this->body, -1);
+                this->size() - 1 - rel_idx, this->body, -1);
             vectorNode::connect(this->body[index - 1], this->body[index]);
         }
         this->size_ -= 1;
