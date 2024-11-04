@@ -14,12 +14,17 @@ namespace original{
                 friend class vector;
             private:
                 TYPE data_;
+                vectorNode* prev;
+                vectorNode* next;
             protected:
-                explicit vectorNode(TYPE data);
+                explicit vectorNode(TYPE data, vectorNode* prev = nullptr, vectorNode* next = nullptr);
                 TYPE& getVal() override;
                 void setVal(TYPE data) override;
                 vectorNode* getPPrev() override;
                 vectorNode* getPNext() override;
+                void setPPrev(vectorNode* new_prev);
+                void setPNext(vectorNode* new_next);
+                static void connect(vectorNode* prev, vectorNode* next);
         };
 
         size_t size_;
@@ -33,6 +38,7 @@ namespace original{
                           size_t len, vectorNode** new_body, size_t offset);
         size_t toInnerIdx(int index);
         _GLIBCXX_NODISCARD bool outOfMaxSize(size_t increment) const;
+        void connectAll();
         void grow(size_t new_size);
         void adjust(size_t increment);
     public:
@@ -58,7 +64,8 @@ namespace original{
 }
 
     template<typename TYPE>
-    original::vector<TYPE>::vectorNode::vectorNode(TYPE data) : data_(data) {}
+    original::vector<TYPE>::vectorNode::vectorNode(TYPE data, vectorNode* prev, vectorNode* next)
+        : data_(data), prev(prev), next(next) {}
 
     template <typename TYPE>
     auto original::vector<TYPE>::vectorNode::getVal() -> TYPE&
@@ -74,12 +81,28 @@ namespace original{
 
     template <typename TYPE>
     auto original::vector<TYPE>::vectorNode::getPPrev() -> vectorNode* {
-        return this - 1;
+        return this->prev;
     }
 
     template <typename TYPE>
     auto original::vector<TYPE>::vectorNode::getPNext() -> vectorNode* {
-        return this + 1;
+        return this->next;
+    }
+
+    template <typename TYPE>
+    void original::vector<TYPE>::vectorNode::setPPrev(vectorNode* new_prev){
+        this->prev = new_prev;
+    }
+
+    template <typename TYPE>
+    void original::vector<TYPE>::vectorNode::setPNext(vectorNode* new_next){
+        this->next = new_next;
+    }
+
+    template <typename TYPE>
+    void original::vector<TYPE>::vectorNode::connect(vectorNode* prev, vectorNode* next){
+        if (prev != nullptr) prev->setPNext(next);
+        if (next != nullptr) next->setPPrev(prev);
     }
 
     template <typename TYPE>
@@ -128,6 +151,14 @@ namespace original{
     }
 
     template <typename TYPE>
+    void original::vector<TYPE>::connectAll(){
+        for (int i = 0; i < (int)(this->size() - 1); ++i) {
+            vectorNode::connect(this->body[this->toInnerIdx(i)],
+                                this->body[this->toInnerIdx(i + 1)]);
+        }
+    }
+
+    template <typename TYPE>
     auto original::vector<TYPE>::grow(const size_t new_size) -> void
     {
         vectorNode** new_body = vector::vectorNodeArrayInit(new_size);
@@ -138,6 +169,7 @@ namespace original{
         this->body = new_body;
         this->max_size = new_size;
         this->inner_begin = new_begin;
+        vector::connectAll();
     }
 
     template <typename TYPE>
@@ -150,6 +182,7 @@ namespace original{
             vector::moveElements(this->body, this->inner_begin, this->size(), this->body,
                                  new_begin - this->inner_begin);
             this->inner_begin = new_begin;
+            vector::connectAll();
         } else {
             const size_t new_max_size = (this->size() + increment) * 2;
             grow(new_max_size);
@@ -169,6 +202,7 @@ namespace original{
             this->body[this->inner_begin + this->size()] = new vectorNode(e);
             this->size_ += 1;
         }
+        vector::connectAll();
     }
 
     template <typename TYPE>
@@ -180,6 +214,7 @@ namespace original{
             this->body[this->toInnerIdx(i)] = new vectorNode(arr.get(i));
             this->size_ += 1;
         }
+        vector::connectAll();
     }
 
 template <typename TYPE>
@@ -236,6 +271,8 @@ template <typename TYPE>
         this->inner_begin -= 1;
         this->body[this->toInnerIdx(0)] = new vectorNode(e);
         this->size_ += 1;
+        vectorNode::connect(this->body[this->toInnerIdx(0)],
+                            this->body[this->toInnerIdx(1)]);
     }
 
     template <typename TYPE>
@@ -255,9 +292,10 @@ template <typename TYPE>
             }
             adjust(1);
             index = this->toInnerIdx(this->parseNegIndex(index));
-            if (index <= (this->size() - 1) / 2)
+            if (index - this->inner_begin <= (this->size() - 1) / 2)
             {
-                vector::moveElements(this->body, this->inner_begin, index + 1, this->body, -1);
+                vector::moveElements(this->body, this->inner_begin,
+                                     index + 1, this->body, -1);
                 this->inner_begin -= 1;
             }else
             {
@@ -266,6 +304,8 @@ template <typename TYPE>
             }
             this->body[index] = new vectorNode(e);
             this->size_ += 1;
+            vectorNode::connect(this->body[index - 1], this->body[index]);
+            vectorNode::connect(this->body[index], this->body[index + 1]);
         }
     }
 
@@ -275,6 +315,8 @@ template <typename TYPE>
         adjust(1);
         this->body[this->toInnerIdx(this->size())] = new vectorNode(e);
         this->size_ += 1;
+        vectorNode::connect(this->body[this->toInnerIdx(this->size() - 2)],
+                            this->body[this->toInnerIdx(this->size() - 1)]);
     }
 
     template <typename TYPE>
@@ -289,6 +331,7 @@ template <typename TYPE>
         this->body[index] = nullptr;
         this->inner_begin += 1;
         this->size_ -= 1;
+        vectorNode::connect(nullptr, this->body[this->toInnerIdx(0)]);
         return res;
     }
 
@@ -310,15 +353,17 @@ template <typename TYPE>
         index = this->toInnerIdx(this->parseNegIndex(index));
         delete this->body[index];
         this->body[index] = nullptr;
-        if (index <= (this->size() - 1) / 2)
+        if (index - this->inner_begin <= (this->size() - 1) / 2)
         {
             vector::moveElements(this->body, this->inner_begin,
                 index + 1, this->body, 1);
             this->inner_begin += 1;
+            vectorNode::connect(this->body[index], this->body[index + 1]);
         }else
         {
             vector::moveElements(this->body, index + 1,
                 this->size() - 2 - index, this->body, -1);
+            vectorNode::connect(this->body[index - 1], this->body[index]);
         }
         this->size_ -= 1;
         return res;
@@ -335,6 +380,7 @@ template <typename TYPE>
         delete this->body[index];
         this->body[index] = nullptr;
         this->size_ -= 1;
+        vectorNode::connect(this->body[this->toInnerIdx(this->size() - 1)], nullptr);
         return res;
     }
 
@@ -360,10 +406,6 @@ template <typename TYPE>
         for (int i = 0; i < this->size(); i += 1)
         {
             size_t index = this->toInnerIdx(i);
-            if (this->body[index] - this->body[index - 1] == 1) // 这是一段测试结点地址之间是否连续的代码
-            {
-                ss << "<->";
-            }
             ss << this->body[index]->toString(false);
             if (i < this->size() - 1)
             {

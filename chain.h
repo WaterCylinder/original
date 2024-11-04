@@ -97,8 +97,8 @@ template <typename TYPE>
     template <typename TYPE>
     auto original::chain<TYPE>::chainNode::connect(chainNode* prev, chainNode* next) -> void
     {
-        prev->setPNext(next);
-        next->setPPrev(prev);
+        if (prev != nullptr) prev->setPNext(next);
+        if (next != nullptr) next->setPPrev(prev);
     }
 
     template <typename TYPE>

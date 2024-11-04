@@ -74,15 +74,21 @@ int main(){
         original::pow(-3, -3), original::pow(0, 4), original::pow(2, 0), original::pow(5.2, 6));
     auto vector1 = original::vector<double>({1.3, 2.7, 5, 8.9, 4.1, 8, 9.5, 11.45, -0.7, -2, -5.8, 6.4, 23, 56, 65, 0.03, 2.07});
     printf("vector1: %s", vector1.toCString(true));
-    printf("index of 9.5 in vector1: %llu\n", vector1.indexOf(9.5));
-    // for (auto &e : vector1) // 检查内部包装类的地址连续性和首尾的前后指向是否为nullptr
-    // {
-    //     e *= 3.5;
-    // }
-    // vector1.forEach([](auto &e)
-    // {
-    //     e *= 3.5;
-    // });
+    printf("index of 9.5 in vector1: %zu\n", vector1.indexOf(9.5));
+     for (auto &e : vector1)
+     {
+         e *= 3.5;
+     }
+     vector1.forEach([](auto &e)
+     {
+         e *= 3.5;
+     });
     printf("vector1: %s", vector1.toCString(true));
+    printf("\n");
+    while (vector1.size() > 0) {
+        int midIndex = int(vector1.size() / 2);
+        vector1.pop(midIndex);
+        printf("vector1: %s\n", vector1.toCString(true));
+    }
     return 0;
 }
