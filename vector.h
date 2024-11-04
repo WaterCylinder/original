@@ -169,7 +169,7 @@ namespace original{
         this->body = new_body;
         this->max_size = new_size;
         this->inner_begin = new_begin;
-        vector::connectAll();
+        this->connectAll();
     }
 
     template <typename TYPE>
@@ -182,7 +182,7 @@ namespace original{
             vector::moveElements(this->body, this->inner_begin, this->size(), this->body,
                                  new_begin - this->inner_begin);
             this->inner_begin = new_begin;
-            vector::connectAll();
+            this->connectAll();
         } else {
             const size_t new_max_size = (this->size() + increment) * 2;
             grow(new_max_size);
@@ -202,7 +202,7 @@ namespace original{
             this->body[this->inner_begin + this->size()] = new vectorNode(e);
             this->size_ += 1;
         }
-        vector::connectAll();
+        this->connectAll();
     }
 
     template <typename TYPE>
@@ -214,7 +214,7 @@ namespace original{
             this->body[this->toInnerIdx(i)] = new vectorNode(arr.get(i));
             this->size_ += 1;
         }
-        vector::connectAll();
+        this->connectAll();
     }
 
 template <typename TYPE>
