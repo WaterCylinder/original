@@ -184,8 +184,8 @@ namespace original{
             this->inner_begin = new_begin;
             this->connectAll();
         } else {
-            const size_t new_max_size = (this->size() + increment) * 2;
-            grow(new_max_size);
+            size_t new_max_size = (this->size() + increment) * 2;
+            this->grow(new_max_size);
         }
     }
 
@@ -196,7 +196,7 @@ namespace original{
     template <typename TYPE>
     original::vector<TYPE>::vector(std::initializer_list<TYPE> list) : vector()
     {
-        vector::adjust(list.size());
+        this->adjust(list.size());
         for (TYPE e : list)
         {
             this->body[this->inner_begin + this->size()] = new vectorNode(e);
@@ -208,7 +208,7 @@ namespace original{
     template <typename TYPE>
     original::vector<TYPE>::vector(array<TYPE> arr) : vector()
     {
-        vector::adjust(arr.size());
+        this->adjust(arr.size());
         for (int i = 0; i < arr.size(); i += 1)
         {
             this->body[this->toInnerIdx(i)] = new vectorNode(arr.get(i));
@@ -267,7 +267,7 @@ template <typename TYPE>
     template <typename TYPE>
     auto original::vector<TYPE>::pushBegin(TYPE e) -> void
     {
-        adjust(1);
+        this->adjust(1);
         this->inner_begin -= 1;
         this->body[this->toInnerIdx(0)] = new vectorNode(e);
         this->size_ += 1;
@@ -290,7 +290,7 @@ template <typename TYPE>
             {
                 throw indexError();
             }
-            adjust(1);
+            this->adjust(1);
             index = this->toInnerIdx(this->parseNegIndex(index));
             size_t rel_idx = index - this->inner_begin;
             if (index - this->inner_begin <= (this->size() - 1) / 2)
@@ -313,7 +313,7 @@ template <typename TYPE>
     template <typename TYPE>
     auto original::vector<TYPE>::pushEnd(TYPE e) -> void
     {
-        adjust(1);
+        this->adjust(1);
         this->body[this->toInnerIdx(this->size())] = new vectorNode(e);
         this->size_ += 1;
         vectorNode::connect(this->body[this->toInnerIdx(this->size() - 2)],
