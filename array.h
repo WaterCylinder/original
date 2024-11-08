@@ -37,7 +37,7 @@ namespace original{
         TYPE popBegin() override;
         TYPE pop(int index) override;
         TYPE popEnd() override;
-        std::string toString(bool enter) override;
+        std::string toString(bool enter) const override;
     };
 
 }
@@ -171,7 +171,7 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
-    auto original::array<TYPE>::toString(const bool enter) -> std::string
+    auto original::array<TYPE>::toString(const bool enter) const -> std::string
     {
         std::stringstream ss;
         ss << "array" << "(";

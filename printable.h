@@ -9,8 +9,8 @@ namespace original {
     public:
         virtual ~printable() = 0;
 
-        _GLIBCXX_NODISCARD virtual std::string toString(bool enter) = 0;
-        _GLIBCXX_NODISCARD const char* toCString(bool enter);
+        _GLIBCXX_NODISCARD virtual std::string toString(bool enter) const = 0;
+        _GLIBCXX_NODISCARD const char* toCString(bool enter) const;
 
         static const char* boolean(bool b);
 
@@ -22,7 +22,7 @@ namespace original {
 
     original::printable::~printable() = default;
 
-    _GLIBCXX_NODISCARD inline auto original::printable::toCString(const bool enter) -> const char*
+    _GLIBCXX_NODISCARD inline auto original::printable::toCString(const bool enter) const -> const char*
     {
         this->cachedString = this->toString(enter);
         return this->cachedString.c_str();

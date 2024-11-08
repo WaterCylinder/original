@@ -16,12 +16,12 @@ namespace original
         virtual wrapper* getPPrev() const = 0;
         virtual wrapper* getPNext() const = 0;
         ~wrapper() override = default;
-        _GLIBCXX_NODISCARD std::string toString(bool enter) override;
+        _GLIBCXX_NODISCARD std::string toString(bool enter) const override;
     };
 
 }
     template<typename TYPE>
-    auto original::wrapper<TYPE>::toString(const bool enter) -> std::string
+    auto original::wrapper<TYPE>::toString(const bool enter) const -> std::string
     {
         std::stringstream ss;
         ss << this->getVal();

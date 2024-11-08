@@ -59,7 +59,7 @@ namespace original {
         TYPE popEnd() override;
         iterator<TYPE>* begins() override;
         iterator<TYPE>* ends() override;
-        _GLIBCXX_NODISCARD std::string toString(bool enter) override;
+        _GLIBCXX_NODISCARD std::string toString(bool enter) const override;
         ~chain() override;
     };
 }
@@ -450,7 +450,7 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
-    auto original::chain<TYPE>::toString(const bool enter) -> std::string
+    auto original::chain<TYPE>::toString(const bool enter) const -> std::string
     {
         std::stringstream ss;
         ss << "chain" << "(";

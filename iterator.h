@@ -34,7 +34,7 @@ namespace original {
         void set(TYPE data);
         bool equal(const iterator* other) const;
         _GLIBCXX_NODISCARD bool isNull() const;
-        std::string toString(bool enter) override;
+        std::string toString(bool enter) const override;
         ~iterator() override = default;
     };
 }
@@ -186,7 +186,7 @@ namespace original {
     }
 
     template<typename TYPE>
-    auto original::iterator<TYPE>::toString(const bool enter) -> std::string {
+    auto original::iterator<TYPE>::toString(const bool enter) const -> std::string {
         std::stringstream ss;
         ss << "iterator" << "(" << "#" << this->ptr_ << ")";
         if (enter) {
