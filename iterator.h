@@ -27,8 +27,8 @@ namespace original {
         bool atNext(const iterator* other) const;
         void next();
         void prev();
-        std::shared_ptr<iterator> getNext();
-        std::shared_ptr<iterator> getPrev();
+        std::unique_ptr<iterator> getNext();
+        std::unique_ptr<iterator> getPrev();
         TYPE& get();
         const TYPE& get() const;
         void set(TYPE data);
@@ -136,19 +136,19 @@ namespace original {
     }
 
     template<typename TYPE>
-    std::shared_ptr<original::iterator<TYPE>> original::iterator<TYPE>::getNext() {
+    std::unique_ptr<original::iterator<TYPE>> original::iterator<TYPE>::getNext() {
         if (this->isNull()) {
             throw nullPointerError();
         }
-        return std::make_shared<iterator>(ptr_->getPNext());
+        return std::make_unique<iterator>(ptr_->getPNext());
     }
 
     template<typename TYPE>
-    std::shared_ptr<original::iterator<TYPE>> original::iterator<TYPE>::getPrev() {
+    std::unique_ptr<original::iterator<TYPE>> original::iterator<TYPE>::getPrev() {
         if (this->isNull()) {
             throw nullPointerError();
         }
-        return std::make_shared<iterator>(ptr_->getPPrev());
+        return std::make_unique<iterator>(ptr_->getPPrev());
     }
 
     template<typename TYPE>

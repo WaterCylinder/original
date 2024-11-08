@@ -101,10 +101,17 @@ int main(){
     printf("vector1: %s", vector1.toCString(true));
     printf("index of 6 in vector1: %zu\n", vector1.indexOf(6));
     auto vector2 = original::vector<original::vector<int>>();
-    auto nested_vec1 = original::vector<int>({1});
-    auto nested_vec2 = original::vector<int>({2});
-    vector2.pushEnd(nested_vec1);
-    vector2.pushEnd(nested_vec2);
+    auto* nested_vec1 = new original::vector<int>({1});
+    auto* nested_vec2 = new original::vector<int>({2});
+    vector2.pushEnd(*nested_vec1);
+    vector2.pushEnd(*nested_vec2);
     printf("vector2: %s", vector2.toCString(true));
+    printf("size of vector2: %d\n", vector2.size());
+    for (auto vec: vector2) {
+        printf("nested vector phase1: %s", vec.toCString(true));
+        vec.forEach([](auto e){
+            // 此处调用forEach发现内部生成迭代器遍历的时候，迭代器的指针类型为printable*
+        });
+    }
     return 0;
 }

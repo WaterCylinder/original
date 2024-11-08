@@ -471,7 +471,7 @@ template <typename TYPE>
         for (int i = 0; i < this->size(); i += 1)
         {
             size_t index = this->toInnerIdx(i);
-            ss << this->body[index]->toString(false);
+            ss << this->body[index]->getVal();
             if (i < this->size() - 1)
             {
                 ss << "," << " ";
