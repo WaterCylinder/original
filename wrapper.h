@@ -11,9 +11,10 @@ namespace original
     class wrapper : public printable{
     public:
         virtual TYPE& getVal() = 0;
+        virtual const TYPE& getVal() const = 0;
         virtual void setVal(TYPE data) = 0;
-        virtual wrapper* getPPrev() = 0;
-        virtual wrapper* getPNext() = 0;
+        virtual wrapper* getPPrev() const = 0;
+        virtual wrapper* getPNext() const = 0;
         ~wrapper() override = default;
         _GLIBCXX_NODISCARD std::string toString(bool enter) override;
     };

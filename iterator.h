@@ -19,12 +19,12 @@ namespace original {
         iterator& operator=(const TYPE& data);
         iterator& operator++();
         iterator operator++(int);
-        bool operator==(const iterator& other);
-        bool operator!=(const iterator& other);
-        bool hasNext();
-        bool hasPrev();
-        bool atPrev(const iterator* other);
-        bool atNext(const iterator* other);
+        bool operator==(const iterator& other) const;
+        bool operator!=(const iterator& other) const;
+        _GLIBCXX_NODISCARD bool hasNext() const;
+        _GLIBCXX_NODISCARD bool hasPrev() const;
+        bool atPrev(const iterator* other) const;
+        bool atNext(const iterator* other) const;
         void next();
         void prev();
         std::shared_ptr<iterator> getNext();
@@ -32,8 +32,8 @@ namespace original {
         TYPE& get();
         const TYPE& get() const;
         void set(TYPE data);
-        bool equal(const iterator* other);
-        bool isNull();
+        bool equal(const iterator* other) const;
+        _GLIBCXX_NODISCARD bool isNull() const;
         std::string toString(bool enter) override;
         ~iterator() override = default;
     };
@@ -84,27 +84,27 @@ namespace original {
     }
 
     template<typename TYPE>
-    auto original::iterator<TYPE>::operator==(const iterator& other) -> bool {
+    auto original::iterator<TYPE>::operator==(const iterator& other) const -> bool {
         return this->equal(&other);
     }
 
     template<typename TYPE>
-    auto original::iterator<TYPE>::operator!=(const iterator& other) -> bool {
+    auto original::iterator<TYPE>::operator!=(const iterator& other) const -> bool {
         return !this->equal(&other);
     }
 
     template<typename TYPE>
-    auto original::iterator<TYPE>::hasNext() -> bool {
+    auto original::iterator<TYPE>::hasNext() const -> bool {
         return !this->isNull() && ptr_->getPNext() != nullptr;
     }
 
     template<typename TYPE>
-    auto original::iterator<TYPE>::hasPrev() -> bool {
+    auto original::iterator<TYPE>::hasPrev() const -> bool {
         return !this->isNull() && ptr_->getPPrev() != nullptr;
     }
 
     template<typename TYPE>
-    auto original::iterator<TYPE>::atPrev(const iterator* other) -> bool {
+    auto original::iterator<TYPE>::atPrev(const iterator* other) const -> bool {
         if (this->isNull()) {
             throw nullPointerError();
         }
@@ -112,7 +112,7 @@ namespace original {
     }
 
     template<typename TYPE>
-    auto original::iterator<TYPE>::atNext(const iterator* other) -> bool {
+    auto original::iterator<TYPE>::atNext(const iterator* other) const -> bool {
         if (this->isNull()) {
             throw nullPointerError();
         }
@@ -176,12 +176,12 @@ namespace original {
     }
 
     template<typename TYPE>
-    auto original::iterator<TYPE>::equal(const iterator* other) -> bool {
+    auto original::iterator<TYPE>::equal(const iterator* other) const -> bool {
         return this->ptr_ == other->ptr_;
     }
 
     template<typename TYPE>
-    bool original::iterator<TYPE>::isNull() {
+    bool original::iterator<TYPE>::isNull() const {
         return ptr_ == nullptr;
     }
 

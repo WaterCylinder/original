@@ -27,10 +27,10 @@ namespace original{
         ~array() override;
 
         _GLIBCXX_NODISCARD size_t size() const override;
-        TYPE get(int index) override;
-        TYPE operator[](int index) override;
+        TYPE get(int index) const override;
+        TYPE operator[](int index) const override;
         void set(int index, TYPE e) override;
-        size_t indexOf(TYPE e) override;
+        size_t indexOf(TYPE e) const override;
         void pushBegin(TYPE e) override;
         void push(int index, TYPE e) override;
         void pushEnd(TYPE e) override;
@@ -98,7 +98,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::array<TYPE>::get(int index) -> TYPE
+    auto original::array<TYPE>::get(int index) const -> TYPE
     {
         if (this->indexOutOfBound(index)){
             throw indexError();
@@ -107,7 +107,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::array<TYPE>::operator[](const int index) -> TYPE
+    auto original::array<TYPE>::operator[](const int index) const -> TYPE
     {
         return this->get(index);
     }
@@ -122,7 +122,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::array<TYPE>::indexOf(TYPE e) -> size_t
+    auto original::array<TYPE>::indexOf(TYPE e) const -> size_t
     {
         for (int i = 0; i < this->size(); i += 1)
         {

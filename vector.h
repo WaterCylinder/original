@@ -19,9 +19,10 @@ namespace original{
             protected:
                 explicit vectorNode(TYPE data, vectorNode* prev = nullptr, vectorNode* next = nullptr);
                 TYPE& getVal() override;
+                const TYPE& getVal() const override;
                 void setVal(TYPE data) override;
-                vectorNode* getPPrev() override;
-                vectorNode* getPNext() override;
+                vectorNode* getPPrev() const override;
+                vectorNode* getPNext() const override;
                 void setPPrev(vectorNode* new_prev);
                 void setPNext(vectorNode* new_next);
                 static void connect(vectorNode* prev, vectorNode* next);
@@ -36,7 +37,7 @@ namespace original{
         static vectorNode** vectorNodeArrayInit(size_t size);
         static void moveElements(vectorNode** old_body, size_t inner_idx,
                           size_t len, vectorNode** new_body, int offset);
-        size_t toInnerIdx(int index);
+        _GLIBCXX_NODISCARD size_t toInnerIdx(int index) const;
         _GLIBCXX_NODISCARD bool outOfMaxSize(size_t increment) const;
         void connectAll();
         void grow(size_t new_size);
@@ -46,10 +47,10 @@ namespace original{
         vector(std::initializer_list<TYPE> list);
         explicit vector(array<TYPE> arr);
         _GLIBCXX_NODISCARD size_t size() const override;
-        TYPE get(int index) override;
-        TYPE operator[](int index) override;
+        TYPE get(int index) const override;
+        TYPE operator[](int index) const override;
         void set(int index, TYPE e) override;
-        size_t indexOf(TYPE e) override;
+        size_t indexOf(TYPE e) const override;
         void pushBegin(TYPE e) override;
         void push(int index, TYPE e) override;
         void pushEnd(TYPE e) override;
@@ -74,18 +75,24 @@ namespace original{
     }
 
     template <typename TYPE>
+    auto original::vector<TYPE>::vectorNode::getVal() const -> const TYPE&
+    {
+        return this->data_;
+    }
+
+    template <typename TYPE>
     auto original::vector<TYPE>::vectorNode::setVal(TYPE data) -> void
     {
         this->data_ = data;
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::vectorNode::getPPrev() -> vectorNode* {
+    auto original::vector<TYPE>::vectorNode::getPPrev() const -> vectorNode* {
         return this->prev;
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::vectorNode::getPNext() -> vectorNode* {
+    auto original::vector<TYPE>::vectorNode::getPNext() const -> vectorNode* {
         return this->next;
     }
 
@@ -139,7 +146,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::toInnerIdx(int index) -> size_t
+    auto original::vector<TYPE>::toInnerIdx(int index) const -> size_t
     {
         return this->inner_begin + index;
     }
@@ -224,7 +231,7 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::get(int index) -> TYPE
+    auto original::vector<TYPE>::get(int index) const -> TYPE
     {
         if (this->indexOutOfBound(index))
         {
@@ -235,7 +242,7 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::operator[](const int index) -> TYPE
+    auto original::vector<TYPE>::operator[](const int index) const -> TYPE
     {
         return this->get(index);
     }
@@ -252,7 +259,7 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::indexOf(TYPE e) -> size_t
+    auto original::vector<TYPE>::indexOf(TYPE e) const -> size_t
     {
         for (int i = 0; i < this->size(); i += 1)
         {

@@ -24,9 +24,10 @@ namespace original {
             protected:
                 explicit chainNode(TYPE data, chainNode* prev = nullptr, chainNode* next = nullptr);
                 TYPE& getVal() override;
+                const TYPE& getVal() const override;
                 void setVal(TYPE data) override;
-                chainNode* getPPrev() override;
-                chainNode* getPNext() override;
+                chainNode* getPPrev() const override;
+                chainNode* getPNext() const override;
                 void setPPrev(chainNode* new_prev);
                 void setPNext(chainNode* new_next);
                 static void connect(chainNode* prev, chainNode* next);
@@ -41,10 +42,10 @@ namespace original {
         chain(std::initializer_list<TYPE> list);
         explicit chain(array<TYPE> arr);
         _GLIBCXX_NODISCARD size_t size() const override;
-        TYPE get(int index) override;
-        TYPE operator[](int index) override;
+        TYPE get(int index) const override;
+        TYPE operator[](int index) const override;
         void set(int index, TYPE e) override;
-        size_t indexOf(TYPE e) override;
+        size_t indexOf(TYPE e) const override;
         void pushBegin(TYPE e) override;
         void push(int index, TYPE e) override;
         void pushEnd(TYPE e) override;
@@ -62,8 +63,14 @@ namespace original {
     original::chain<TYPE>::chainNode::chainNode(TYPE data, chainNode* prev, chainNode* next)
     : data_(data), prev(prev), next(next) {}
 
-template <typename TYPE>
+    template <typename TYPE>
     auto original::chain<TYPE>::chainNode::getVal() -> TYPE&
+    {
+        return this->data_;
+    }
+
+    template <typename TYPE>
+    auto original::chain<TYPE>::chainNode::getVal() const -> const TYPE&
     {
         return this->data_;
     }
@@ -75,12 +82,12 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
-    auto original::chain<TYPE>::chainNode::getPPrev() -> chainNode* {
+    auto original::chain<TYPE>::chainNode::getPPrev() const -> chainNode* {
         return this->prev;
     }
 
     template <typename TYPE>
-    auto original::chain<TYPE>::chainNode::getPNext() -> chainNode* {
+    auto original::chain<TYPE>::chainNode::getPNext() const -> chainNode* {
         return this->next;
     }
 
@@ -160,7 +167,7 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
-    auto original::chain<TYPE>::get(int index) -> TYPE
+    auto original::chain<TYPE>::get(int index) const -> TYPE
     {
         if (this->indexOutOfBound(index)){
             throw indexError();
@@ -184,7 +191,7 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
-    auto original::chain<TYPE>::operator[](const int index) -> TYPE
+    auto original::chain<TYPE>::operator[](const int index) const -> TYPE
     {
         return this->get(index);
     }
@@ -219,7 +226,7 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
-    auto original::chain<TYPE>::indexOf(TYPE e) -> size_t {
+    auto original::chain<TYPE>::indexOf(TYPE e) const -> size_t {
         size_t i = 0;
         for (chainNode* current = this->begin_; current != nullptr; current = current->getPNext()) {
             if (current->getVal() == e) {
