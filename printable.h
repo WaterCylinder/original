@@ -5,7 +5,7 @@
 
 namespace original {
     class printable {
-        std::string cachedString;
+        mutable std::string cachedString;
     public:
         virtual ~printable() = 0;
 
@@ -28,15 +28,14 @@ namespace original {
         return this->cachedString.c_str();
     }
 
-    const char* original::printable::boolean(bool b) {
+    inline const char* original::printable::boolean(bool b) {
         return b != 0 ? "true" : "false";
     }
 
-    std::ostream& original::operator<<(std::ostream& os, const printable& p){
+    inline std::ostream& original::operator<<(std::ostream& os, const printable& p){
         os << "printable";
         os << "(" << "#" << &p << ")";
         return os;
     }
-
 
 #endif // PRINTABLE_H
