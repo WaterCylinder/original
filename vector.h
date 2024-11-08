@@ -18,6 +18,8 @@ namespace original{
                 vectorNode* next;
             protected:
                 explicit vectorNode(TYPE data, vectorNode* prev = nullptr, vectorNode* next = nullptr);
+                vectorNode(const vectorNode& other);
+                vectorNode& operator=(const vectorNode& other);
                 TYPE& getVal() override;
                 const TYPE& getVal() const override;
                 void setVal(TYPE data) override;
@@ -25,6 +27,7 @@ namespace original{
                 vectorNode* getPNext() const override;
                 void setPPrev(vectorNode* new_prev);
                 void setPNext(vectorNode* new_next);
+                ~vectorNode();
                 static void connect(vectorNode* prev, vectorNode* next);
         };
 
@@ -46,6 +49,8 @@ namespace original{
         explicit vector();
         vector(std::initializer_list<TYPE> list);
         explicit vector(array<TYPE> arr);
+        vector& operator=(const vector& other);
+        bool operator==(const vector& other) const;
         _GLIBCXX_NODISCARD size_t size() const override;
         TYPE get(int index) const override;
         TYPE operator[](int index) const override;
@@ -67,6 +72,20 @@ namespace original{
     template<typename TYPE>
     original::vector<TYPE>::vectorNode::vectorNode(TYPE data, vectorNode* prev, vectorNode* next)
         : data_(data), prev(prev), next(next) {}
+
+    template<typename TYPE>
+    original::vector<TYPE>::vectorNode::vectorNode(const vectorNode& other)
+        : data_(other.data_), prev(other.prev), next(other.next) {}
+
+    template<typename TYPE>
+    auto original::vector<TYPE>::vectorNode::operator=(const vectorNode& other) -> vectorNode& {
+        if (this != &other) {
+            data_ = other.data_;
+            prev = other.prev;
+            next = other.next;
+        }
+        return *this;
+    }
 
     template <typename TYPE>
     auto original::vector<TYPE>::vectorNode::getVal() -> TYPE&
@@ -105,6 +124,9 @@ namespace original{
     void original::vector<TYPE>::vectorNode::setPNext(vectorNode* new_next){
         this->next = new_next;
     }
+
+    template <typename TYPE>
+    original::vector<TYPE>::vectorNode::~vectorNode()= default;
 
     template <typename TYPE>
     void original::vector<TYPE>::vectorNode::connect(vectorNode* prev, vectorNode* next){
@@ -172,7 +194,7 @@ namespace original{
         size_t new_begin = (new_size - 1) / 4;
         vector::moveElements(this->body, this->inner_begin,
                              this->size(), new_body, new_begin - this->inner_begin);
-        delete this->body;
+        delete[] this->body;
         this->body = new_body;
         this->max_size = new_size;
         this->inner_begin = new_begin;
@@ -210,6 +232,40 @@ namespace original{
             this->size_ += 1;
         }
         this->connectAll();
+    }
+
+    template<typename TYPE>
+    original::vector<TYPE>& original::vector<TYPE>::operator=(const vector& other){
+        if (this == &other) return *this;
+        for (size_t i = 0; i < this->max_size; ++i) {
+            if (this->body[i] != nullptr) {
+                delete this->body[i];
+            }
+        }
+        delete[] this->body;
+        this->max_size = other.max_size;
+        this->inner_begin = other.inner_begin;
+        this->size_ = other.size_;
+        this->body = vector::vectorNodeArrayInit(this->max_size);
+        for (int i = 0; i < this->size(); ++i) {
+            TYPE data = other.body[this->toInnerIdx(i)]->getVal();
+            this->body[this->toInnerIdx(i)] = new vectorNode(data);
+        }
+        this->connectAll();
+        return *this;
+    }
+
+    template<typename TYPE>
+    bool original::vector<TYPE>::operator==(const vector& other) const{
+        if (this == &other) return true;
+        if (this->size() != other.size()) return false;
+        for (int i = 0; i < this->size(); ++i) {
+            size_t index = this->toInnerIdx(i);
+            if (this->body[index]->getVal() != other.body[index]->getVal()){
+                return false;
+            }
+        }
+        return true;
     }
 
     template <typename TYPE>

@@ -100,5 +100,11 @@ int main(){
     vector1.pushEnd(6);
     printf("vector1: %s", vector1.toCString(true));
     printf("index of 6 in vector1: %zu\n", vector1.indexOf(6));
+    auto vector2 = original::vector<original::vector<int>>();
+    auto nested_vec1 = original::vector<int>({1});
+    auto nested_vec2 = original::vector<int>({2});
+    vector2.pushEnd(nested_vec1);
+    vector2.pushEnd(nested_vec2);
+    printf("vector2: %s", vector2.toCString(true));
     return 0;
 }

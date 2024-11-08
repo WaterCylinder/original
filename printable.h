@@ -7,7 +7,7 @@ namespace original {
     class printable {
         std::string cachedString;
     public:
-        virtual ~printable() = default;
+        virtual ~printable() = 0;
 
         _GLIBCXX_NODISCARD virtual std::string toString(bool enter) = 0;
         _GLIBCXX_NODISCARD const char* toCString(bool enter);
@@ -19,6 +19,8 @@ namespace original {
 
     std::ostream& operator<<(std::ostream& os, const printable& p);
 }
+
+    original::printable::~printable() = default;
 
     _GLIBCXX_NODISCARD inline auto original::printable::toCString(const bool enter) -> const char*
     {
