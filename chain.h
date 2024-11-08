@@ -23,6 +23,8 @@ namespace original {
                 chainNode* next;
             protected:
                 explicit chainNode(TYPE data, chainNode* prev = nullptr, chainNode* next = nullptr);
+                chainNode(const chainNode& other);
+                chainNode& operator=(const chainNode& other);
                 TYPE& getVal() override;
                 const TYPE& getVal() const override;
                 void setVal(TYPE data) override;
@@ -39,8 +41,11 @@ namespace original {
 
     public:
         explicit chain();
+        chain(const chain& other);
         chain(std::initializer_list<TYPE> list);
         explicit chain(array<TYPE> arr);
+        chain& operator=(const chain& other);
+        bool operator==(const chain& other) const;
         _GLIBCXX_NODISCARD size_t size() const override;
         TYPE get(int index) const override;
         TYPE operator[](int index) const override;
@@ -62,6 +67,20 @@ namespace original {
     template <typename TYPE>
     original::chain<TYPE>::chainNode::chainNode(TYPE data, chainNode* prev, chainNode* next)
     : data_(data), prev(prev), next(next) {}
+
+    template<typename TYPE>
+    original::chain<TYPE>::chainNode::chainNode(const chainNode& other)
+            : data_(other.data_), prev(other.prev), next(other.next) {}
+
+    template<typename TYPE>
+    auto original::chain<TYPE>::chainNode::operator=(const chainNode& other) -> chainNode& {
+        if (this != &other) {
+            data_ = other.data_;
+            prev = other.prev;
+            next = other.next;
+        }
+        return *this;
+    }
 
     template <typename TYPE>
     auto original::chain<TYPE>::chainNode::getVal() -> TYPE&
@@ -112,6 +131,11 @@ namespace original {
     original::chain<TYPE>::chain()
         : size_(0), begin_(), end_() {}
 
+    template<typename TYPE>
+    original::chain<TYPE>::chain(const chain& other) : chain(){
+        this->operator=(other);
+    }
+
     template <typename TYPE>
     original::chain<TYPE>::chain(std::initializer_list<TYPE> list)
         : chain() {
@@ -146,6 +170,47 @@ namespace original {
             }
             size_ += 1;
         }
+    }
+
+    template<typename TYPE>
+    original::chain<TYPE>& original::chain<TYPE>::operator=(const chain& other){
+        if (this == &other) return *this;
+        auto* current = begin_;
+        while (current) {
+            auto* next = current->getPNext();
+            delete current;
+            current = next;
+        }
+        this->size_ = other.size_;
+        if (this->size() != 0){
+            auto* other_ = other.begin_;
+            this->begin_ = new chainNode(other_->getVal());
+            auto* this_ = this->begin_;
+            while (other_ != other.end_){
+                other_ = other_->getPNext();
+                chainNode::connect(this_, new chainNode(other_->getVal()));
+                this_ = this_->getPNext();
+            }
+            this->end_ = this_;
+        } else{
+            this->begin_ = nullptr;
+            this->end_ = nullptr;
+        }
+        return *this;
+    }
+
+    template<typename TYPE>
+    bool original::chain<TYPE>::operator==(const chain& other) const{
+        if (this == &other) return true;
+        if (this->size() != other.size()) return false;
+        auto* this_ = this->begin_;
+        auto* other_ = other.begin_;
+        for (int i = 0; i < this->size(); ++i) {
+            if (this_->getVal() != other_->getVal()){
+                return false;
+            }
+        }
+        return true;
     }
 
     template <typename TYPE>

@@ -47,6 +47,7 @@ namespace original{
         void adjust(size_t increment);
     public:
         explicit vector();
+        vector(const vector& other);
         vector(std::initializer_list<TYPE> list);
         explicit vector(array<TYPE> arr);
         vector& operator=(const vector& other);
@@ -221,6 +222,11 @@ namespace original{
     template <typename TYPE>
     original::vector<TYPE>::vector() : size_(0), max_size(this->INNER_SIZE_INIT),
         inner_begin((this->INNER_SIZE_INIT - 1)/2), body(vector::vectorNodeArrayInit(this->INNER_SIZE_INIT)) {}
+
+    template<typename TYPE>
+    original::vector<TYPE>::vector(const vector& other) : vector(){
+        this->operator=(other);
+    }
 
     template <typename TYPE>
     original::vector<TYPE>::vector(std::initializer_list<TYPE> list) : vector()
@@ -471,7 +477,7 @@ template <typename TYPE>
         for (int i = 0; i < this->size(); i += 1)
         {
             size_t index = this->toInnerIdx(i);
-            ss << this->body[index]->getVal();
+            ss << this->body[index]->toString(false);
             if (i < this->size() - 1)
             {
                 ss << "," << " ";

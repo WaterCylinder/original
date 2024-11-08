@@ -101,17 +101,52 @@ int main(){
     printf("vector1: %s", vector1.toCString(true));
     printf("index of 6 in vector1: %zu\n", vector1.indexOf(6));
     auto vector2 = original::vector<original::vector<int>>();
-    auto* nested_vec1 = new original::vector<int>({1});
-    auto* nested_vec2 = new original::vector<int>({2});
-    vector2.pushEnd(*nested_vec1);
-    vector2.pushEnd(*nested_vec2);
+    for (int i = 0; i < 10; ++i) {
+        vector2.pushEnd(original::vector<int>({1*i, 2*i, 3*i}));
+    }
     printf("vector2: %s", vector2.toCString(true));
-    printf("size of vector2: %d\n", vector2.size());
     for (auto vec: vector2) {
-        printf("nested vector phase1: %s", vec.toCString(true));
-        vec.forEach([](auto e){
-            // 此处调用forEach发现内部生成迭代器遍历的时候，迭代器的指针类型为printable*
-        });
+        printf("vector: %s", vec.toCString(true));
+        for (auto e: vec) {
+            printf("%d ", e);
+        }
+        printf("\n");
+    }
+    auto chain4 = original::chain<original::chain<int>>();
+    for (int i = 0; i < 10; ++i) {
+        chain4.pushEnd(original::chain<int>({2*i, 4*i, 6*i}));
+    }
+    printf("chain4: %s", chain4.toCString(true));
+    for (auto ch: chain4) {
+        printf("chain: %s", ch.toCString(true));
+        for (auto e: ch) {
+            printf("%d ", e);
+        }
+        printf("\n");
+    }
+    auto vector3 = original::vector<original::chain<int>>();
+    for (int i = 0; i < 3; ++i) {
+        vector3.pushEnd(original::chain<int>({1*i, 3*i}));
+    }
+    printf("vector3: %s", vector3.toCString(true));
+    for (auto ch: vector3) {
+        printf("chain: %s", ch.toCString(true));
+        for (auto e: ch) {
+            printf("%d ", e);
+        }
+        printf("\n");
+    }
+    auto arr6 = original::array<original::chain<double>>(4);
+    for (int i = 0; i < arr6.size(); ++i) {
+        arr6.set(i, original::chain<double>({E*i, PI*i}));
+    }
+    printf("arr6: %s", arr6.toCString(true));
+    for (int i = 0; i < arr6.size(); ++i) {
+        printf("chain: %s", arr6[i].toCString(true));
+        for (auto e: arr6[i]) {
+            printf("%lf ", e);
+        }
+        printf("\n");
     }
     return 0;
 }
