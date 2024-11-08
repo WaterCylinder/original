@@ -2,12 +2,12 @@
 #define VECTOR_H
 
 #include "serial.h"
-#include "iterable.h"
+#include "iterationStream.h"
 #include "array.h"
 
 namespace original{
     template <typename TYPE>
-    class vector final : public serial<TYPE>, public iterable<TYPE>, public printable{
+    class vector final : public serial<TYPE>, public iterationStream<TYPE>{
         class vectorNode final : public wrapper<TYPE>{
             public:
                 friend class iterator<TYPE>;
@@ -63,8 +63,8 @@ namespace original{
         TYPE popBegin() override;
         TYPE pop(int index) override;
         TYPE popEnd() override;
-        iterator<TYPE>* begins() override;
-        iterator<TYPE>* ends() override;
+        iterator<TYPE>* begins() const override;
+        iterator<TYPE>* ends() const override;
         _GLIBCXX_NODISCARD std::string toString(bool enter) const override;
         ~vector() override;
     };
@@ -456,14 +456,14 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::begins() -> iterator<TYPE>*
+    auto original::vector<TYPE>::begins() const -> iterator<TYPE>*
     {
         size_t index = this->toInnerIdx(0);
         return new iterator<TYPE>(this->body[index]);
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::ends() -> iterator<TYPE>*
+    auto original::vector<TYPE>::ends() const -> iterator<TYPE>*
     {
         size_t index = this->toInnerIdx(this->size() - 1);
         return new iterator<TYPE>(this->body[index]);
@@ -473,21 +473,8 @@ template <typename TYPE>
     std::string original::vector<TYPE>::toString(const bool enter) const
     {
         std::stringstream ss;
-        ss << "vector" << "(";
-        for (int i = 0; i < this->size(); i += 1)
-        {
-            size_t index = this->toInnerIdx(i);
-            ss << this->body[index]->toString(false);
-            if (i < this->size() - 1)
-            {
-                ss << "," << " ";
-            }
-        }
-        ss << ")";
-        if (enter)
-        {
-            ss << "\n";
-        }
+        ss << "vector" << this->elementsString();
+        if (enter) ss << "\n";
         return ss.str();
     }
 

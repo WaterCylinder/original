@@ -33,8 +33,7 @@ namespace original {
     }
 
     inline std::ostream& original::operator<<(std::ostream& os, const printable& p){
-        os << "printable";
-        os << "(" << "#" << &p << ")";
+        os << p.toString(false);
         return os;
     }
 

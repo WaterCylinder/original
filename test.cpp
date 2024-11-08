@@ -105,7 +105,7 @@ int main(){
         vector2.pushEnd(original::vector<int>({1*i, 2*i, 3*i}));
     }
     printf("vector2: %s", vector2.toCString(true));
-    for (auto vec: vector2) {
+    for (const auto& vec: vector2) {
         printf("vector: %s", vec.toCString(true));
         for (auto e: vec) {
             printf("%d ", e);
@@ -117,7 +117,7 @@ int main(){
         chain4.pushEnd(original::chain<int>({2*i, 4*i, 6*i}));
     }
     printf("chain4: %s", chain4.toCString(true));
-    for (auto ch: chain4) {
+    for (const auto& ch: chain4) {
         printf("chain: %s", ch.toCString(true));
         for (auto e: ch) {
             printf("%d ", e);
@@ -129,7 +129,7 @@ int main(){
         vector3.pushEnd(original::chain<int>({1*i, 3*i}));
     }
     printf("vector3: %s", vector3.toCString(true));
-    for (auto ch: vector3) {
+    for (const auto& ch: vector3) {
         printf("chain: %s", ch.toCString(true));
         for (auto e: ch) {
             printf("%d ", e);

@@ -9,7 +9,7 @@ namespace original {
     template<typename TYPE>
     class iterator final : public printable {
     protected:
-        wrapper<TYPE>* ptr_;
+        mutable wrapper<TYPE>* ptr_;
     public:
         explicit iterator(wrapper<TYPE>* wrapper);
         iterator(const iterator& other);
@@ -27,6 +27,8 @@ namespace original {
         bool atNext(const iterator* other) const;
         void next();
         void prev();
+        void next() const;
+        void prev() const;
         std::unique_ptr<iterator> getNext();
         std::unique_ptr<iterator> getPrev();
         TYPE& get();
@@ -129,6 +131,22 @@ namespace original {
 
     template<typename TYPE>
     auto original::iterator<TYPE>::prev() -> void {
+        if (this->isNull()) {
+            throw nullPointerError();
+        }
+        ptr_ = ptr_->getPPrev();
+    }
+
+    template<typename TYPE>
+    auto original::iterator<TYPE>::next() const -> void {
+        if (this->isNull()) {
+            throw nullPointerError();
+        }
+        ptr_ = ptr_->getPNext();
+    }
+
+    template<typename TYPE>
+    auto original::iterator<TYPE>::prev() const -> void {
         if (this->isNull()) {
             throw nullPointerError();
         }

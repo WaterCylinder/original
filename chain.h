@@ -5,14 +5,13 @@
 #include "config.h"
 #include <sstream>
 #include "array.h"
-#include "iterator.h"
 #include "serial.h"
-#include "iterable.h"
+#include "iterationStream.h"
 
 
 namespace original {
     template <typename TYPE>
-    class chain final : public serial<TYPE>, public iterable<TYPE>, public printable{
+    class chain final : public serial<TYPE>, public iterationStream<TYPE>{
         class chainNode final : public wrapper<TYPE>{
             public:
                 friend class iterator<TYPE>;
@@ -57,8 +56,8 @@ namespace original {
         TYPE popBegin() override;
         TYPE pop(int index) override;
         TYPE popEnd() override;
-        iterator<TYPE>* begins() override;
-        iterator<TYPE>* ends() override;
+        iterator<TYPE>* begins() const override;
+        iterator<TYPE>* ends() const override;
         _GLIBCXX_NODISCARD std::string toString(bool enter) const override;
         ~chain() override;
     };
@@ -220,13 +219,13 @@ namespace original {
     }
 
     template<typename TYPE>
-    auto original::chain<TYPE>::begins() -> iterator<TYPE>*
+    auto original::chain<TYPE>::begins() const -> iterator<TYPE>*
     {
         return new iterator(begin_);
     }
 
     template<typename TYPE>
-    auto original::chain<TYPE>::ends() -> iterator<TYPE>*
+    auto original::chain<TYPE>::ends() const -> iterator<TYPE>*
     {
         return new iterator(end_);
     }
@@ -453,19 +452,8 @@ template <typename TYPE>
     auto original::chain<TYPE>::toString(const bool enter) const -> std::string
     {
         std::stringstream ss;
-        ss << "chain" << "(";
-        for (auto* node = this->begin_; node != nullptr; node = node->getPNext())
-        {
-            ss << node->toString(false);
-            if (node != this->end_){
-                ss << "," << " ";
-            }
-        }
-        ss << ")";
-        if (enter)
-        {
-            ss << "\n";
-        }
+        ss << "chain" << this->elementsString();
+        if (enter) ss << "\n";
         return ss.str();
     }
 

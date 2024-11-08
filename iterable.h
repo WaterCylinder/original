@@ -9,8 +9,8 @@ namespace original{
     class iterable{
     public:
         virtual ~iterable() = default;
-        virtual iterator<TYPE>* begins() = 0;
-        virtual iterator<TYPE>* ends() = 0;
+        virtual iterator<TYPE>* begins() const = 0;
+        virtual iterator<TYPE>* ends() const = 0;
         iterator<TYPE> begin();
         iterator<TYPE> end();
         iterator<TYPE> begin() const;
