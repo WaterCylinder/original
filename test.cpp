@@ -154,5 +154,16 @@ int main(){
     std::cout << arr6 << std::endl;
     std::cout << vector3 << std::endl;
     std::cout << vector2 << std::endl;
+    auto arr7 = original::array<original::array<int>>(8);
+    for (int i = 0; i < 8; ++i)
+    {
+        auto arr = original::array<int>(8);
+        for (int j = 0; j < 8; ++j)
+        {
+            arr[j] = 8 * i + j;
+        }
+        arr7[i] = arr;
+    }
+    std::cout << arr7 << std::endl;
     return 0;
 }

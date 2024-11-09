@@ -18,14 +18,14 @@ namespace original{
         TYPE* body;
 
         public:
+        explicit array();
         explicit array(size_t size);
         array(std::initializer_list<TYPE> lst);
         array(const array& other);
         array& operator=(const array& other);
+        bool operator==(const array& other) const;
         array(array&& other) _GLIBCXX_NOEXCEPT;
-
         ~array() override;
-
         _GLIBCXX_NODISCARD size_t size() const override;
         TYPE get(int index) const override;
         TYPE& operator[](int index) override;
@@ -41,6 +41,9 @@ namespace original{
     };
 
 }
+
+    template <typename TYPE>
+    original::array<TYPE>::array() : array(0) {}
 
     template <typename TYPE>
     original::array<TYPE>::array(const size_t size)
@@ -80,6 +83,21 @@ namespace original{
     }
 
     template <typename TYPE>
+    auto original::array<TYPE>::operator==(const array& other) const -> bool
+    {
+        if (this == &other) return true;
+        if (this->size() != other.size()) return false;
+        for (int i = 0; i < this->size(); i ++)
+        {
+            if (this->body[i] != other.body[i])
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+template <typename TYPE>
     original::array<TYPE>::array(array&& other) _GLIBCXX_NOEXCEPT
         : size_(other.size_), body(other.body) {
         other.size_ = 0;
