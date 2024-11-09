@@ -45,7 +45,7 @@ namespace original {
         bool operator==(const chain& other) const;
         _GLIBCXX_NODISCARD size_t size() const override;
         TYPE get(int index) const override;
-        TYPE operator[](int index) const override;
+        TYPE& operator[](int index) override;
         void set(int index, TYPE e) override;
         size_t indexOf(TYPE e) const override;
         void pushBegin(TYPE e) override;
@@ -253,9 +253,27 @@ namespace original {
     }
 
     template <typename TYPE>
-    auto original::chain<TYPE>::operator[](const int index) const -> TYPE
+    auto original::chain<TYPE>::operator[](const int index) -> TYPE&
     {
-        return this->get(index);
+        if (this->indexOutOfBound(index)){
+            throw indexError();
+        }
+        const int reverse_visit = this->parseNegIndex(index) <= this->size() / 2 ? 0 : 1;
+        chainNode* cur;
+        if (!reverse_visit){
+            cur = this->begin_;
+            for(size_t i = 0; i < this->parseNegIndex(index); i++)
+            {
+                cur = cur->getPNext();
+            }
+        } else{
+            cur = this->end_;
+            for(size_t i = this->size() - 1; i > this->parseNegIndex(index); i-= 1)
+            {
+                cur = cur->getPPrev();
+            }
+        }
+        return cur->getVal();
     }
 
     template <typename TYPE>

@@ -28,7 +28,7 @@ namespace original{
 
         _GLIBCXX_NODISCARD size_t size() const override;
         TYPE get(int index) const override;
-        TYPE operator[](int index) const override;
+        TYPE& operator[](int index) override;
         void set(int index, TYPE e) override;
         size_t indexOf(TYPE e) const override;
         void pushBegin(TYPE e) override;
@@ -107,9 +107,12 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::array<TYPE>::operator[](const int index) const -> TYPE
+    auto original::array<TYPE>::operator[](int index) -> TYPE&
     {
-        return this->get(index);
+        if (this->indexOutOfBound(index)){
+            throw indexError();
+        }
+        return this->body[this->parseNegIndex(index)];
     }
 
     template <typename TYPE>

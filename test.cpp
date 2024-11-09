@@ -140,7 +140,8 @@ int main(){
     }
     auto arr6 = original::array<original::chain<double>>(4);
     for (int i = 0; i < arr6.size(); ++i) {
-        arr6.set(i, original::chain({E*i, PI*i}));
+        // arr6.set(i, original::chain({E*i, PI*i}));
+        arr6[i] = original::chain({E*i, PI*i});
     }
     printf("arr6: %s", arr6.toCString(true));
     for (int i = 0; i < arr6.size(); ++i) {

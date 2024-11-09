@@ -27,7 +27,7 @@ namespace original{
                 vectorNode* getPNext() const override;
                 void setPPrev(vectorNode* new_prev);
                 void setPNext(vectorNode* new_next);
-                ~vectorNode();
+                ~vectorNode() override;
                 static void connect(vectorNode* prev, vectorNode* next);
         };
 
@@ -54,7 +54,7 @@ namespace original{
         bool operator==(const vector& other) const;
         _GLIBCXX_NODISCARD size_t size() const override;
         TYPE get(int index) const override;
-        TYPE operator[](int index) const override;
+        TYPE& operator[](int index) override;
         void set(int index, TYPE e) override;
         size_t indexOf(TYPE e) const override;
         void pushBegin(TYPE e) override;
@@ -186,7 +186,7 @@ namespace original{
     template <typename TYPE>
     auto original::vector<TYPE>::connectAll() -> void
     {
-        for (int i = 0; i < (int)(this->size() - 1); ++i) {
+        for (int i = 0; i < static_cast<int>(this->size() - 1); ++i) {
             vectorNode::connect(this->body[this->toInnerIdx(i)],
                                 this->body[this->toInnerIdx(i + 1)]);
         }
@@ -310,9 +310,14 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::operator[](const int index) const -> TYPE
+    auto original::vector<TYPE>::operator[](int index) -> TYPE&
     {
-        return this->get(index);
+        if (this->indexOutOfBound(index))
+        {
+            throw indexError();
+        }
+        index = this->toInnerIdx(this->parseNegIndex(index));
+        return this->body[index]->getVal();
     }
 
     template <typename TYPE>

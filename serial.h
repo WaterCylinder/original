@@ -11,7 +11,8 @@ namespace original{
         _GLIBCXX_NODISCARD int parseNegIndex(int index) const;
     public:
         virtual TYPE get(int index) const = 0;
-        virtual TYPE operator[](int index) const = 0;
+        virtual TYPE operator[](int index) const;
+        virtual TYPE& operator[](int index) = 0;
         virtual void set(int index, TYPE e) = 0;
         virtual size_t indexOf(TYPE e) const = 0;
         bool contains(TYPE e) const override;
@@ -38,6 +39,12 @@ namespace original{
     }
 
     template <typename TYPE>
+    auto original::serial<TYPE>::operator[](const int index) const -> TYPE
+    {
+        return this->get(index);
+    }
+
+template <typename TYPE>
     auto original::serial<TYPE>::contains(TYPE e) const -> bool
     {
         return this->indexOf(e) != this->size();
