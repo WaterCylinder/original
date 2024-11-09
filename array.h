@@ -13,7 +13,7 @@
 namespace original{
 
     template<typename TYPE>
-    class array : public printable, public serial<TYPE>{
+    class array final : public printable, public serial<TYPE>{
         size_t size_;
         TYPE* body;
 
