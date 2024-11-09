@@ -134,7 +134,7 @@ namespace original{
         return this->size();
     }
 
-template <typename TYPE>
+    template <typename TYPE>
     auto original::array<TYPE>::pushBegin(TYPE e) -> void
     {
         throw unSupportedMethodError();

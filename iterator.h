@@ -154,7 +154,8 @@ namespace original {
     }
 
     template<typename TYPE>
-    std::unique_ptr<original::iterator<TYPE>> original::iterator<TYPE>::getNext() {
+    auto original::iterator<TYPE>::getNext() -> std::unique_ptr<iterator>
+    {
         if (this->isNull()) {
             throw nullPointerError();
         }
@@ -162,7 +163,8 @@ namespace original {
     }
 
     template<typename TYPE>
-    std::unique_ptr<original::iterator<TYPE>> original::iterator<TYPE>::getPrev() {
+    auto original::iterator<TYPE>::getPrev() -> std::unique_ptr<iterator>
+    {
         if (this->isNull()) {
             throw nullPointerError();
         }

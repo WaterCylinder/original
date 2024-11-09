@@ -2,8 +2,6 @@
 #define CHAIN_H
 #pragma once
 
-#include "config.h"
-#include <sstream>
 #include "array.h"
 #include "serial.h"
 #include "iterationStream.h"

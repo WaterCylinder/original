@@ -20,7 +20,7 @@ namespace original {
     std::ostream& operator<<(std::ostream& os, const printable& p);
 }
 
-    original::printable::~printable() = default;
+    inline original::printable::~printable() = default;
 
     _GLIBCXX_NODISCARD inline auto original::printable::toCString(const bool enter) const -> const char*
     {

@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "array.h"
 #include "chain.h"
 #include "maths.h"
@@ -74,7 +76,7 @@ int main(){
     printf("-3**-3=%f, 0**4=%f, 2**0=%f, 5.2**6=%f\n",
         original::pow(-3, -3), original::pow(0, 4), original::pow(2, 0), original::pow(5.2, 6));
     while (chain3.size() > 0){
-        int midIndex = int(chain3.size() / 2);
+        int midIndex = static_cast<int>(chain3.size() / 2);
         chain3.pop(midIndex);
         printf("chain3: %s", chain3.toCString(true));
     }
@@ -92,7 +94,7 @@ int main(){
     printf("vector1: %s", vector1.toCString(true));
     printf("\n");
     while (vector1.size() > 0) {
-        int midIndex = int(vector1.size() / 2);
+        int midIndex = static_cast<int>(vector1.size() / 2);
         vector1.pop(midIndex);
         printf("vector1: %s", vector1.toCString(true));
     }
@@ -102,7 +104,7 @@ int main(){
     printf("index of 6 in vector1: %zu\n", vector1.indexOf(6));
     auto vector2 = original::vector<original::vector<int>>();
     for (int i = 0; i < 10; ++i) {
-        vector2.pushEnd(original::vector<int>({1*i, 2*i, 3*i}));
+        vector2.pushEnd(original::vector({1*i, 2*i, 3*i}));
     }
     printf("vector2: %s", vector2.toCString(true));
     for (const auto& vec: vector2) {
@@ -114,7 +116,7 @@ int main(){
     }
     auto chain4 = original::chain<original::chain<int>>();
     for (int i = 0; i < 10; ++i) {
-        chain4.pushEnd(original::chain<int>({2*i, 4*i, 6*i}));
+        chain4.pushEnd(original::chain({2*i, 4*i, 6*i}));
     }
     printf("chain4: %s", chain4.toCString(true));
     for (const auto& ch: chain4) {
@@ -126,7 +128,7 @@ int main(){
     }
     auto vector3 = original::vector<original::chain<int>>();
     for (int i = 0; i < 3; ++i) {
-        vector3.pushEnd(original::chain<int>({1*i, 3*i}));
+        vector3.pushEnd(original::chain({1*i, 3*i}));
     }
     printf("vector3: %s", vector3.toCString(true));
     for (const auto& ch: vector3) {
@@ -138,7 +140,7 @@ int main(){
     }
     auto arr6 = original::array<original::chain<double>>(4);
     for (int i = 0; i < arr6.size(); ++i) {
-        arr6.set(i, original::chain<double>({E*i, PI*i}));
+        arr6.set(i, original::chain({E*i, PI*i}));
     }
     printf("arr6: %s", arr6.toCString(true));
     for (int i = 0; i < arr6.size(); ++i) {
@@ -148,5 +150,8 @@ int main(){
         }
         printf("\n");
     }
+    std::cout << arr6 << std::endl;
+    std::cout << vector3 << std::endl;
+    std::cout << vector2 << std::endl;
     return 0;
 }

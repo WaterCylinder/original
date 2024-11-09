@@ -117,12 +117,14 @@ namespace original{
     }
 
     template <typename TYPE>
-    void original::vector<TYPE>::vectorNode::setPPrev(vectorNode* new_prev){
+    auto original::vector<TYPE>::vectorNode::setPPrev(vectorNode* new_prev) -> void
+    {
         this->prev = new_prev;
     }
 
     template <typename TYPE>
-    void original::vector<TYPE>::vectorNode::setPNext(vectorNode* new_next){
+    auto original::vector<TYPE>::vectorNode::setPNext(vectorNode* new_next) -> void
+    {
         this->next = new_next;
     }
 
@@ -130,7 +132,8 @@ namespace original{
     original::vector<TYPE>::vectorNode::~vectorNode()= default;
 
     template <typename TYPE>
-    void original::vector<TYPE>::vectorNode::connect(vectorNode* prev, vectorNode* next){
+    auto original::vector<TYPE>::vectorNode::connect(vectorNode* prev, vectorNode* next) -> void
+    {
         if (prev != nullptr) prev->setPNext(next);
         if (next != nullptr) next->setPPrev(prev);
     }
@@ -181,7 +184,8 @@ namespace original{
     }
 
     template <typename TYPE>
-    void original::vector<TYPE>::connectAll(){
+    auto original::vector<TYPE>::connectAll() -> void
+    {
         for (int i = 0; i < (int)(this->size() - 1); ++i) {
             vectorNode::connect(this->body[this->toInnerIdx(i)],
                                 this->body[this->toInnerIdx(i + 1)]);
@@ -241,7 +245,8 @@ namespace original{
     }
 
     template<typename TYPE>
-    original::vector<TYPE>& original::vector<TYPE>::operator=(const vector& other){
+    auto original::vector<TYPE>::operator=(const vector& other) -> vector&
+    {
         if (this == &other) return *this;
         for (size_t i = 0; i < this->max_size; ++i) {
             if (this->body[i] != nullptr) {
@@ -262,7 +267,8 @@ namespace original{
     }
 
     template<typename TYPE>
-    bool original::vector<TYPE>::operator==(const vector& other) const{
+    auto original::vector<TYPE>::operator==(const vector& other) const -> bool
+    {
         if (this == &other) return true;
         if (this->size() != other.size()) return false;
         for (int i = 0; i < this->size(); ++i) {
@@ -470,7 +476,7 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
-    std::string original::vector<TYPE>::toString(const bool enter) const
+    auto original::vector<TYPE>::toString(const bool enter) const -> std::string
     {
         std::stringstream ss;
         ss << "vector" << this->elementsString();

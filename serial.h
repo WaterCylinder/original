@@ -25,20 +25,20 @@ namespace original{
 }
 
     template<typename TYPE>
-    bool original::serial<TYPE>::indexOutOfBound(const int index) const
+    auto original::serial<TYPE>::indexOutOfBound(const int index) const -> bool
     {
         int parsedIndex = this->parseNegIndex(index);
         return parsedIndex < 0 || parsedIndex >= this->size();
     }
 
     template<typename TYPE>
-    int original::serial<TYPE>::parseNegIndex(int index) const
+    auto original::serial<TYPE>::parseNegIndex(int index) const -> int
     {
         return index >= 0 ? index : this->size() + index;
     }
 
     template <typename TYPE>
-    bool original::serial<TYPE>::contains(TYPE e) const
+    auto original::serial<TYPE>::contains(TYPE e) const -> bool
     {
         return this->indexOf(e) != this->size();
     }

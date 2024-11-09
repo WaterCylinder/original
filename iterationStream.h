@@ -18,14 +18,16 @@ namespace original{
     };
 
     template<typename TYPE>
-    std::ostream& operator<<(std::ostream& os, const original::iterationStream<TYPE>& i){
+    auto operator<<(std::ostream& os, const iterationStream<TYPE>& i) -> std::ostream&
+    {
         os << i.toString(false);
         return os;
     }
 }
 
     template<typename TYPE>
-    std::string original::iterationStream<TYPE>::elementsString() const {
+    auto original::iterationStream<TYPE>::elementsString() const -> std::string
+    {
         std::stringstream ss;
         ss << "(";
         bool first = true;
@@ -41,7 +43,8 @@ namespace original{
     }
 
     template<typename TYPE>
-    std::string original::iterationStream<TYPE>::toString(bool enter) const{
+    auto original::iterationStream<TYPE>::toString(const bool enter) const -> std::string
+    {
         std::stringstream ss;
         ss << "iterationStream" << this->elementsString();
         if (enter) ss << "\n";
