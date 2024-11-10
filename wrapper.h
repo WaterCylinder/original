@@ -1,6 +1,8 @@
 #ifndef WRAPPER_H
 #define WRAPPER_H
 #pragma once
+#include <sstream>
+
 #include "string"
 #include "config.h"
 #include "printable.h"

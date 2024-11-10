@@ -1,0 +1,13 @@
+<map id="original::chain&lt; TYPE &gt;" name="original::chain&lt; TYPE &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="91,683,239,965"/>
+<area shape="rect" id="Node000002" href="$classoriginal_1_1serial.html" title=" " alt="" coords="5,288,154,635"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,649,134,682,129,683,121,650"/>
+<area shape="rect" id="Node000003" href="$classoriginal_1_1container.html" title=" " alt="" coords="23,59,136,187"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="82,202,82,288,77,288,77,202"/>
+<area shape="rect" id="Node000004" href="$classoriginal_1_1iteration_stream.html" title=" " alt="" coords="178,408,326,515"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="238,530,201,684,196,682,233,529"/>
+<area shape="rect" id="Node000005" href="$classoriginal_1_1printable.html" title=" " alt="" coords="179,56,287,189"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="240,204,251,408,246,408,235,204"/>
+<area shape="rect" id="Node000006" href="$classoriginal_1_1iterable.html" title=" " alt="" coords="312,5,413,240"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="322,255,271,409,266,407,317,253"/>
+</map>

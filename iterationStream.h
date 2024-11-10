@@ -31,7 +31,7 @@ namespace original{
         std::stringstream ss;
         ss << "(";
         bool first = true;
-        for (const original::iterator<TYPE> it = this->begin(); !it.isNull(); it.next()) {
+        for (const iterator<TYPE> it = this->begin(); !it.isNull(); it.next()) {
             if (!first) {
                 ss << ", ";
             }

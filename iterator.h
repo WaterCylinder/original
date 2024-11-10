@@ -2,8 +2,10 @@
 #define ITERATOR_H
 
 #include "printable.h"
+#include "error.h"
 #include "wrapper.h"
 #include <memory>
+#include <sstream>
 
 namespace original {
     template<typename TYPE>
@@ -25,6 +27,8 @@ namespace original {
         _GLIBCXX_NODISCARD bool hasPrev() const;
         bool atPrev(const iterator* other) const;
         bool atNext(const iterator* other) const;
+        bool atPrev(const iterator& other) const;
+        bool atNext(const iterator& other) const;
         void next();
         void prev();
         void next() const;
@@ -35,6 +39,7 @@ namespace original {
         const TYPE& get() const;
         void set(TYPE data);
         bool equal(const iterator* other) const;
+        bool equal(const iterator& other) const;
         _GLIBCXX_NODISCARD bool isNull() const;
         std::string toString(bool enter) const override;
         ~iterator() override = default;
@@ -61,7 +66,7 @@ namespace original {
     template<typename TYPE>
     auto original::iterator<TYPE>::operator=(const iterator& other) -> iterator& {
         if (this != &other) {
-            ptr_ = other.ptr_;
+            this->ptr_ = other.ptr_;
         }
         return *this;
     }
@@ -87,12 +92,12 @@ namespace original {
 
     template<typename TYPE>
     auto original::iterator<TYPE>::operator==(const iterator& other) const -> bool {
-        return this->equal(&other);
+        return this->equal(other);
     }
 
     template<typename TYPE>
     auto original::iterator<TYPE>::operator!=(const iterator& other) const -> bool {
-        return !this->equal(&other);
+        return !this->equal(other);
     }
 
     template<typename TYPE>
@@ -119,6 +124,18 @@ namespace original {
             throw nullPointerError();
         }
         return ptr_->getPPrev() == other->ptr_;
+    }
+
+    template <typename TYPE>
+    auto original::iterator<TYPE>::atPrev(const iterator& other) const -> bool
+    {
+        return this->atPrev(&other);
+    }
+
+    template<typename TYPE>
+    auto original::iterator<TYPE>::atNext(const iterator& other) const -> bool
+    {
+        return this->atNext(&other);
     }
 
     template<typename TYPE>
@@ -201,14 +218,25 @@ namespace original {
     }
 
     template<typename TYPE>
+    auto original::iterator<TYPE>::equal(const iterator& other) const -> bool {
+        return this->ptr_ == other.ptr_;
+    }
+
+    template<typename TYPE>
     bool original::iterator<TYPE>::isNull() const {
-        return ptr_ == nullptr;
+        return this->ptr_ == nullptr;
     }
 
     template<typename TYPE>
     auto original::iterator<TYPE>::toString(const bool enter) const -> std::string {
         std::stringstream ss;
-        ss << "iterator" << "(" << "#" << this->ptr_ << ")";
+        if (this->isNull())
+        {
+            ss << "iterator" << "(" << "nullptr" << ")";
+        }else
+        {
+            ss << "iterator" << "(#" << this->ptr_ << ", " << this->get() << ")";
+        }
         if (enter) {
             ss << "\n";
         }
