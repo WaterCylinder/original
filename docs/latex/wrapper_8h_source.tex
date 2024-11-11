@@ -29,13 +29,10 @@
 \DoxyCodeLine{00026\ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{classoriginal_1_1wrapper}{original::wrapper<TYPE>::toString}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ enter)\ \textcolor{keyword}{const}\ -\/>\ std::string}
 \DoxyCodeLine{00027\ \ \ \ \ \{}
 \DoxyCodeLine{00028\ \ \ \ \ \ \ \ \ std::stringstream\ ss;}
-\DoxyCodeLine{00029\ \ \ \ \ \ \ \ \ ss\ <<\ this-\/>getVal();}
-\DoxyCodeLine{00030\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (enter)}
-\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ \{}
-\DoxyCodeLine{00032\ \ \ \ \ \ \ \ \ \ \ \ \ ss\ <<\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}};}
-\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ \}}
-\DoxyCodeLine{00034\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ ss.str();}
-\DoxyCodeLine{00035\ \ \ \ \ \}}
-\DoxyCodeLine{00036\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//WRAPPER\_H}}
+\DoxyCodeLine{00029\ \ \ \ \ \ \ \ \ ss\ <<\ \textcolor{stringliteral}{"{}wrapper"{}}\ <<\ \textcolor{stringliteral}{"{}(\#"{}}\ <<\ \textcolor{keyword}{this}\ <<\ \textcolor{stringliteral}{"{},\ "{}}\ <<\ this-\/>getVal()\ <<\ \textcolor{stringliteral}{"{})"{}};}
+\DoxyCodeLine{00030\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (enter)\ ss\ <<\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}};}
+\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ ss.str();}
+\DoxyCodeLine{00032\ \ \ \ \ \}}
+\DoxyCodeLine{00033\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//WRAPPER\_H}}
 
 \end{DoxyCode}
