@@ -26,11 +26,8 @@ namespace original
     auto original::wrapper<TYPE>::toString(const bool enter) const -> std::string
     {
         std::stringstream ss;
-        ss << this->getVal();
-        if (enter)
-        {
-            ss << "\n";
-        }
+        ss << "wrapper" << "(#" << this << ", " << this->getVal() << ")";
+        if (enter) ss << "\n";
         return ss.str();
     }
 #endif //WRAPPER_H

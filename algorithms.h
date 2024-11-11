@@ -37,6 +37,10 @@ namespace original
         int dis = 0;
         iterator it = iterator(begin);
         while (!it.equal(end)) {
+            if (it.isNull())
+            {
+                return std::numeric_limits<int>::max();
+            }
             dis += 1;
             it.next();
         }
@@ -63,7 +67,7 @@ namespace original
     {
         size_t cnt = 0;
         iterator it = iterator(begin);
-        while (!it.isNull() && !it.atNext(end)) {
+        while (!it.isNull() && !end.atPrev(it)) {
             if (it.get() == target) {
                 cnt += 1;
             }
@@ -86,7 +90,7 @@ namespace original
             it1.next();
             it2.next();
         }
-        return it1.equal(end1) && it2.equal(end2);
+        return it1.equal(end1) && it2.equal(end2) && it1.get() == it2.get();
     }
 
     template <typename TYPE>
