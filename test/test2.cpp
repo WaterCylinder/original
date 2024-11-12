@@ -5,6 +5,7 @@
 #include "chain.h"
 #include "couple.h"
 #include "vector.h"
+#include "maths.h"
 
 int main()
 {
@@ -35,5 +36,12 @@ int main()
         a1[e].second() += 1;
     }
     std::cout << "after: " << a1 << std::endl;
+    auto v2 = original::vector<double>();
+    for (int i = 0; i < 10; ++i) {
+        v2.pushEnd(double{});
+    }
+    std::cout << "before: " << v2 << std::endl;
+    original::algorithms::fill(*v2.begins(), *v2.ends(), PI);
+    std::cout << "after: " << v2 << std::endl;
     return 0;
 }

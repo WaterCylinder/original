@@ -19,7 +19,7 @@ namespace original {
                 chainNode* prev;
                 chainNode* next;
             protected:
-                explicit chainNode(TYPE data, chainNode* prev = nullptr, chainNode* next = nullptr);
+                explicit chainNode(TYPE data = TYPE{}, chainNode* prev = nullptr, chainNode* next = nullptr);
                 chainNode(const chainNode& other);
                 chainNode& operator=(const chainNode& other);
                 TYPE& getVal() override;

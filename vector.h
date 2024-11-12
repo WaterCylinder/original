@@ -17,7 +17,7 @@ namespace original{
                 vectorNode* prev;
                 vectorNode* next;
             protected:
-                explicit vectorNode(TYPE data, vectorNode* prev = nullptr, vectorNode* next = nullptr);
+                explicit vectorNode(TYPE data = TYPE{}, vectorNode* prev = nullptr, vectorNode* next = nullptr);
                 vectorNode(const vectorNode& other);
                 vectorNode& operator=(const vectorNode& other);
                 TYPE& getVal() override;

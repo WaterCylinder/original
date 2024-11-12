@@ -10,7 +10,7 @@ namespace original
     {
         public:
         template<typename TYPE>
-        static int distance(const iterator<TYPE>& begin, const iterator<TYPE>& end);
+        static size_t distance(const iterator<TYPE>& begin, const iterator<TYPE>& end);
 
         template<typename TYPE>
         static iterator<TYPE> find(const iterator<TYPE>& begin, const iterator<TYPE>& end, const TYPE& target);
@@ -23,15 +23,19 @@ namespace original
                           const iterator<TYPE>& begin2, const iterator<TYPE>& end2);
 
         template<typename TYPE>
+        static void fill(const iterator<TYPE>& begin,
+                         const iterator<TYPE>& end, const TYPE& value = TYPE{});
+
+        template<typename TYPE>
         static void swap(iterator<TYPE>& it1, iterator<TYPE>& it2) noexcept;
     };
 }
 
     template <typename TYPE>
-    auto original::algorithms::distance(const iterator<TYPE>& begin, const iterator<TYPE>& end) -> int
+    auto original::algorithms::distance(const iterator<TYPE>& begin, const iterator<TYPE>& end) -> size_t
     {
         if (begin.isNull() || end.isNull()) {
-            return std::numeric_limits<int>::max();
+            return std::numeric_limits<size_t>::max();
         }
 
         int dis = 0;
@@ -39,7 +43,7 @@ namespace original
         while (!it.equal(end)) {
             if (it.isNull())
             {
-                return std::numeric_limits<int>::max();
+                return std::numeric_limits<size_t>::max();
             }
             dis += 1;
             it.next();
@@ -92,6 +96,24 @@ namespace original
         }
         return it1.equal(end1) && it2.equal(end2) && it1.get() == it2.get();
     }
+
+    template<typename TYPE>
+    auto original::algorithms::fill(const iterator<TYPE>& begin,
+                                    const iterator<TYPE>& end, const TYPE& value) -> void{
+        if (begin.isNull() || end.isNull()) {
+            throw nullPointerError();
+        }
+        iterator it = iterator(begin);
+        while (!it.equal(end)){
+            if (it.isNull()){
+                throw nullPointerError();
+            }
+            it.set(value);
+            it.next();
+        }
+        it.set(value);
+    }
+
 
     template <typename TYPE>
     auto original::algorithms::swap(iterator<TYPE>& it1, iterator<TYPE>& it2) noexcept -> void

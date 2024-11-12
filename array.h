@@ -47,7 +47,11 @@ namespace original{
 
     template <typename TYPE>
     original::array<TYPE>::array(const size_t size)
-        : size_(size), body(new TYPE[size_]) {}
+        : size_(size), body(new TYPE[size_]) {
+        for (int i = 0; i < this->size(); ++i) {
+            this->body[i] = TYPE{};
+        }
+    }
 
     template <typename TYPE>
     original::array<TYPE>::array(std::initializer_list<TYPE> lst)
