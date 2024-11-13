@@ -43,5 +43,22 @@ int main()
     std::cout << "before: " << v2 << std::endl;
     original::algorithms::fill(*v2.begins(), *v2.ends(), PI);
     std::cout << "after: " << v2 << std::endl;
+    std::cout << "number of elements less than 3 in v1: "
+    << original::algorithms::count_if(*v1.begins(), *v1.ends(), [](int e){
+        return e < 3;
+    }) << std::endl;
+    std::cout << "find the element greater than 4 and less than 6 in c1: "
+    << original::algorithms::find_if(*c1.begins(), *c1.ends(), [](int e){
+        return e > 4 && e < 6;
+    }) << std::endl;
+    auto c3 = original::chain<int>();
+    for (int i = 0; i < 8; ++i) {
+        c3.pushEnd(i);
+    }
+    std::cout << "before: " << c3 << std::endl;
+    original::algorithms::fill(*c3.begins(), *c3.ends());
+    std::cout << "after1: " << c3 << std::endl;
+    original::algorithms::fill_n(*c3.begins(), 3, 233);
+    std::cout << "after2: " << c3 << std::endl;
     return 0;
 }

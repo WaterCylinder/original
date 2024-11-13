@@ -3,6 +3,7 @@
 
 #include <limits>
 #include "iterator.h"
+#include <functional>
 
 namespace original
 {
@@ -15,8 +16,16 @@ namespace original
         template<typename TYPE>
         static iterator<TYPE> find(const iterator<TYPE>& begin, const iterator<TYPE>& end, const TYPE& target);
 
+        template<typename TYPE, typename Callback>
+        static iterator<TYPE> find_if(const iterator<TYPE>& begin,
+                                      const iterator<TYPE>& end, Callback callback);
+
         template<typename TYPE>
         static size_t count(const iterator<TYPE>& begin, const iterator<TYPE>& end, const TYPE& target);
+
+        template<typename TYPE, typename Callback>
+        static size_t count_if(const iterator<TYPE>& begin,
+                               const iterator<TYPE>& end, Callback callback);
 
         template<typename TYPE>
         static bool equal(const iterator<TYPE>& begin1, const iterator<TYPE>& end1,
@@ -25,6 +34,9 @@ namespace original
         template<typename TYPE>
         static void fill(const iterator<TYPE>& begin,
                          const iterator<TYPE>& end, const TYPE& value = TYPE{});
+
+        template<typename TYPE>
+        static void fill_n(const iterator<TYPE>& begin, size_t n, const TYPE& value = TYPE{});
 
         template<typename TYPE>
         static void swap(iterator<TYPE>& it1, iterator<TYPE>& it2) noexcept;
@@ -65,6 +77,20 @@ namespace original
         return end;
     }
 
+    template<typename TYPE, typename Callback>
+    auto original::algorithms::find_if(const iterator<TYPE> &begin, const iterator<TYPE> &end,
+                                       const Callback callback) -> iterator<TYPE>{
+        original::callBackChecker<Callback, bool, const TYPE&>::check();
+        iterator it = iterator(begin);
+        while (!it.isNull() && !it.equal(end)) {
+            if (callback(it.get())) {
+                return it;
+            }
+            it.next();
+        }
+        return end;
+    }
+
     template <typename TYPE>
     auto original::algorithms::count(const iterator<TYPE>& begin, const iterator<TYPE>& end,
         const TYPE& target) -> size_t
@@ -80,6 +106,22 @@ namespace original
         return cnt;
     }
 
+    template <typename TYPE, typename Callback>
+    auto original::algorithms::count_if(const iterator<TYPE>& begin, const iterator<TYPE>& end,
+                                        const Callback callback) -> size_t
+    {
+        original::callBackChecker<Callback, bool, const TYPE&>::check();
+        size_t cnt = 0;
+        iterator it = iterator(begin);
+        while (!it.isNull() && !end.atPrev(it)) {
+            if (callback(it.get())) {
+                cnt += 1;
+            }
+            it.next();
+        }
+        return cnt;
+    }
+
     template <typename TYPE>
     auto original::algorithms::equal(const iterator<TYPE>& begin1, const iterator<TYPE>& end1,
                                      const iterator<TYPE>& begin2, const iterator<TYPE>& end2) -> bool
@@ -88,9 +130,6 @@ namespace original
         iterator it2 = iterator(begin2);
 
         while (!it1.isNull() && !it2.isNull() && !it1.equal(end1) && !it2.equal(end2)) {
-            if (it1.get() != it2.get()) {
-                return false;
-            }
             it1.next();
             it2.next();
         }
@@ -100,28 +139,27 @@ namespace original
     template<typename TYPE>
     auto original::algorithms::fill(const iterator<TYPE>& begin,
                                     const iterator<TYPE>& end, const TYPE& value) -> void{
-        if (begin.isNull() || end.isNull()) {
-            throw nullPointerError();
-        }
         iterator it = iterator(begin);
         while (!it.equal(end)){
-            if (it.isNull()){
-                throw nullPointerError();
-            }
             it.set(value);
             it.next();
         }
         it.set(value);
     }
 
+    template<typename TYPE>
+    auto original::algorithms::fill_n(const iterator<TYPE>& begin,
+                                      size_t n, const TYPE& value) -> void{
+        iterator it = iterator(begin);
+        for (int i = 0; i < n; ++i) {
+            it.set(value);
+            it.next();
+        }
+    }
 
     template <typename TYPE>
     auto original::algorithms::swap(iterator<TYPE>& it1, iterator<TYPE>& it2) noexcept -> void
     {
-        if (it1.isNull() || it2.isNull()) {
-            return;
-        }
-
         TYPE tmp = it2.get();
         it2.set(it1.get());
         it1.set(tmp);

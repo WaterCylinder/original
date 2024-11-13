@@ -15,7 +15,9 @@ namespace original{
         iterator<TYPE> end();
         iterator<TYPE> begin() const;
         iterator<TYPE> end() const;
-        void forEach(const std::function<void(TYPE&)>& callback);
+
+        template<typename Callback>
+        void forEach(Callback callback);
     };
 }
 
@@ -44,8 +46,10 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::iterable<TYPE>::forEach(const std::function<void(TYPE&)>& callback) -> void
+    template<typename Callback>
+    auto original::iterable<TYPE>::forEach(const Callback callback) -> void
     {
+        original::callBackChecker<Callback, void, TYPE&>::check();
         for (auto* it = this->begins(); it != nullptr && !it->isNull(); it->next()) {
             callback(it->get());
         }
