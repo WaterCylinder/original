@@ -16,6 +16,8 @@
 #include "maths.h"
 #include "printable.h"
 #include "serial.h"
+#include "transform.h"
+#include "transformStream.h"
 #include "vector.h"
 #include "wrapper.h"
 

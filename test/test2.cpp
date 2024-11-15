@@ -8,6 +8,7 @@
 #include "maths.h"
 #include "comparator.h"
 #include "filter.h"
+#include "transformStream.h"
 
 
 int main()
@@ -66,5 +67,11 @@ int main()
     std::cout << "after1: " << c3 << std::endl;
     original::algorithms::fill(*c3.begins(), 3, 233);
     std::cout << "after2: " << c3 << std::endl;
+    original::algorithms::fill(*c3.begins(), *c3.ends());
+    c3.forEach(original::addTransform(3));
+    std::cout << "after3: " << c3 << std::endl;
+    original::algorithms::fill(*c3.begins(), *c3.ends());
+    // todo
+//    c3.forEach(original::addTransform(3) + original::addTransform(7) + original::addTransform(9));
     return 0;
 }
