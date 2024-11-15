@@ -6,6 +6,9 @@
 #include "couple.h"
 #include "vector.h"
 #include "maths.h"
+#include "comparator.h"
+#include "filter.h"
+
 
 int main()
 {
@@ -44,13 +47,16 @@ int main()
     original::algorithms::fill(*v2.begins(), *v2.ends(), PI);
     std::cout << "after: " << v2 << std::endl;
     std::cout << "number of elements less than 3 in v1: "
-    << original::algorithms::count_if(*v1.begins(), *v1.ends(), [](int e){
+    << original::algorithms::count(*v1.begins(), *v1.ends(), [](int e) {
         return e < 3;
     }) << std::endl;
     std::cout << "find the element greater than 4 and less than 6 in c1: "
-    << original::algorithms::find_if(*c1.begins(), *c1.ends(), [](int e){
+    << original::algorithms::find(*c1.begins(), *c1.ends(), [](int e) {
         return e > 4 && e < 6;
     }) << std::endl;
+    std::cout << "count the elements in c1, range in [1,5]: "
+        << original::algorithms::count(
+                *c1.begins(), *c1.ends(), original::rangeFilter(1,5)) << std::endl;
     auto c3 = original::chain<int>();
     for (int i = 0; i < 8; ++i) {
         c3.pushEnd(i);
@@ -58,7 +64,7 @@ int main()
     std::cout << "before: " << c3 << std::endl;
     original::algorithms::fill(*c3.begins(), *c3.ends());
     std::cout << "after1: " << c3 << std::endl;
-    original::algorithms::fill_n(*c3.begins(), 3, 233);
+    original::algorithms::fill(*c3.begins(), 3, 233);
     std::cout << "after2: " << c3 << std::endl;
     return 0;
 }
