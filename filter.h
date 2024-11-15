@@ -1,16 +1,12 @@
 #ifndef FILTER_H
 #define FILTER_H
 
-#include <vector>
-#include <functional>
-#include <iostream>
-
 namespace original {
 
     template<typename TYPE>
     class filter {
     protected:
-        virtual bool match(const TYPE& t) const = 0;
+        virtual bool match(const TYPE& t) const;
     public:
         explicit filter() = default;
         bool operator()(const TYPE& t) const;
@@ -18,7 +14,7 @@ namespace original {
 
     template<typename TYPE>
     class equalFilter final : public filter<TYPE> {
-        TYPE threshold;
+        TYPE target;
         bool match(const TYPE& t) const override;
     public:
         explicit equalFilter(const TYPE& threshold);
@@ -35,18 +31,23 @@ namespace original {
 } // namespace original
 
     template<typename TYPE>
+    bool original::filter<TYPE>::match(const TYPE&) const {
+        return true;
+    }
+
+    template<typename TYPE>
     bool original::filter<TYPE>::operator()(const TYPE& t) const {
         return this->match(t);
     }
 
     template<typename TYPE>
     bool original::equalFilter<TYPE>::match(const TYPE& t) const {
-        return t == threshold;
+        return t == target;
     }
 
     template<typename TYPE>
     original::equalFilter<TYPE>::equalFilter(const TYPE& threshold)
-            : threshold(threshold) {}
+            : target(threshold) {}
 
     template<typename TYPE>
     bool original::rangeFilter<TYPE>::match(const TYPE& t) const {
