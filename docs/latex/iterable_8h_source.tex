@@ -18,42 +18,46 @@
 \DoxyCodeLine{00015\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classoriginal_1_1iterator}{iterator<TYPE>}}\ end();}
 \DoxyCodeLine{00016\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classoriginal_1_1iterator}{iterator<TYPE>}}\ begin()\ \textcolor{keyword}{const};}
 \DoxyCodeLine{00017\ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classoriginal_1_1iterator}{iterator<TYPE>}}\ end()\ \textcolor{keyword}{const};}
-\DoxyCodeLine{00018\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ forEach(\textcolor{keyword}{const}\ std::function<\textcolor{keywordtype}{void}(TYPE\&)>\&\ callback);}
-\DoxyCodeLine{00019\ \ \ \ \ \};}
-\DoxyCodeLine{00020\ \}}
-\DoxyCodeLine{00021\ }
-\DoxyCodeLine{00022\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ TYPE>}
-\DoxyCodeLine{00023\ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{classoriginal_1_1iterable}{original::iterable<TYPE>::begin}}()\ -\/>\ iterator<TYPE>}
-\DoxyCodeLine{00024\ \ \ \ \ \{}
-\DoxyCodeLine{00025\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *this-\/>begins();}
-\DoxyCodeLine{00026\ \ \ \ \ \}}
-\DoxyCodeLine{00027\ }
-\DoxyCodeLine{00028\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ TYPE>}
-\DoxyCodeLine{00029\ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{classoriginal_1_1iterable}{original::iterable<TYPE>::end}}()\ -\/>\ iterator<TYPE>}
-\DoxyCodeLine{00030\ \ \ \ \ \{}
-\DoxyCodeLine{00031\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *this-\/>ends()-\/>getNext();}
-\DoxyCodeLine{00032\ \ \ \ \ \}}
-\DoxyCodeLine{00033\ }
-\DoxyCodeLine{00034\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ TYPE>}
-\DoxyCodeLine{00035\ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{classoriginal_1_1iterable}{original::iterable<TYPE>::begin}}()\ const\ -\/>\ iterator<TYPE>}
-\DoxyCodeLine{00036\ \ \ \ \ \{}
-\DoxyCodeLine{00037\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *this-\/>begins();}
-\DoxyCodeLine{00038\ \ \ \ \ \}}
-\DoxyCodeLine{00039\ }
-\DoxyCodeLine{00040\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ TYPE>}
-\DoxyCodeLine{00041\ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{classoriginal_1_1iterable}{original::iterable<TYPE>::end}}()\ const\ -\/>\ iterator<TYPE>}
-\DoxyCodeLine{00042\ \ \ \ \ \{}
-\DoxyCodeLine{00043\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *this-\/>ends()-\/>getNext();}
-\DoxyCodeLine{00044\ \ \ \ \ \}}
-\DoxyCodeLine{00045\ }
-\DoxyCodeLine{00046\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ TYPE>}
-\DoxyCodeLine{00047\ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{classoriginal_1_1iterable}{original::iterable<TYPE>::forEach}}(\textcolor{keyword}{const}\ std::function<\textcolor{keywordtype}{void}(TYPE\&)>\&\ callback)\ -\/>\ \textcolor{keywordtype}{void}}
-\DoxyCodeLine{00048\ \ \ \ \ \{}
-\DoxyCodeLine{00049\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}*\ it\ =\ this-\/>begins();\ it\ !=\ \textcolor{keyword}{nullptr}\ \&\&\ !it-\/>isNull();\ it-\/>next())\ \{}
-\DoxyCodeLine{00050\ \ \ \ \ \ \ \ \ \ \ \ \ callback(it-\/>get());}
-\DoxyCodeLine{00051\ \ \ \ \ \ \ \ \ \}}
-\DoxyCodeLine{00052\ \ \ \ \ \}}
-\DoxyCodeLine{00053\ }
-\DoxyCodeLine{00054\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//ITERABLE\_H}}
+\DoxyCodeLine{00018\ }
+\DoxyCodeLine{00019\ \ \ \ \ \ \ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Callback>}
+\DoxyCodeLine{00020\ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ forEach(Callback\ callback);}
+\DoxyCodeLine{00021\ \ \ \ \ \};}
+\DoxyCodeLine{00022\ \}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ TYPE>}
+\DoxyCodeLine{00025\ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{classoriginal_1_1iterable}{original::iterable<TYPE>::begin}}()\ -\/>\ iterator<TYPE>}
+\DoxyCodeLine{00026\ \ \ \ \ \{}
+\DoxyCodeLine{00027\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *this-\/>begins();}
+\DoxyCodeLine{00028\ \ \ \ \ \}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00030\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ TYPE>}
+\DoxyCodeLine{00031\ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{classoriginal_1_1iterable}{original::iterable<TYPE>::end}}()\ -\/>\ iterator<TYPE>}
+\DoxyCodeLine{00032\ \ \ \ \ \{}
+\DoxyCodeLine{00033\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *this-\/>ends()-\/>getNext();}
+\DoxyCodeLine{00034\ \ \ \ \ \}}
+\DoxyCodeLine{00035\ }
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ TYPE>}
+\DoxyCodeLine{00037\ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{classoriginal_1_1iterable}{original::iterable<TYPE>::begin}}()\ const\ -\/>\ iterator<TYPE>}
+\DoxyCodeLine{00038\ \ \ \ \ \{}
+\DoxyCodeLine{00039\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *this-\/>begins();}
+\DoxyCodeLine{00040\ \ \ \ \ \}}
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ TYPE>}
+\DoxyCodeLine{00043\ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{classoriginal_1_1iterable}{original::iterable<TYPE>::end}}()\ const\ -\/>\ iterator<TYPE>}
+\DoxyCodeLine{00044\ \ \ \ \ \{}
+\DoxyCodeLine{00045\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ *this-\/>ends()-\/>getNext();}
+\DoxyCodeLine{00046\ \ \ \ \ \}}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00048\ \ \ \ \ \textcolor{keyword}{template}\ <\textcolor{keyword}{typename}\ TYPE>}
+\DoxyCodeLine{00049\ \ \ \ \ \textcolor{keyword}{template}<\textcolor{keyword}{typename}\ Callback>}
+\DoxyCodeLine{00050\ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{classoriginal_1_1iterable}{original::iterable<TYPE>::forEach}}(Callback\ callback)\ -\/>\ \textcolor{keywordtype}{void}}
+\DoxyCodeLine{00051\ \ \ \ \ \{}
+\DoxyCodeLine{00052\ \ \ \ \ \ \ \ \ callBackChecker<Callback,\ void,\ TYPE\&>::check();}
+\DoxyCodeLine{00053\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keyword}{auto}*\ it\ =\ this-\/>begins();\ it\ !=\ \textcolor{keyword}{nullptr}\ \&\&\ !it-\/>isNull();\ it-\/>next())\ \{}
+\DoxyCodeLine{00054\ \ \ \ \ \ \ \ \ \ \ \ \ callback(it-\/>get());}
+\DoxyCodeLine{00055\ \ \ \ \ \ \ \ \ \}}
+\DoxyCodeLine{00056\ \ \ \ \ \}}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00058\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//ITERABLE\_H}}
 
 \end{DoxyCode}

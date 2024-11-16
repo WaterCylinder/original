@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['wrapper_0',['wrapper',['../classoriginal_1_1wrapper.html',1,'original']]]
+  ['rangefilter_0',['rangeFilter',['../classoriginal_1_1range_filter.html',1,'original']]]
 ];

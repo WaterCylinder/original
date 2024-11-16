@@ -49,7 +49,7 @@ namespace original{
     template<typename Callback>
     auto original::iterable<TYPE>::forEach(Callback callback) -> void
     {
-        original::callBackChecker<Callback, void, TYPE&>::check();
+        callBackChecker<Callback, void, TYPE&>::check();
         for (auto* it = this->begins(); it != nullptr && !it->isNull(); it->next()) {
             callback(it->get());
         }

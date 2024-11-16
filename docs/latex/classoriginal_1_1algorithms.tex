@@ -2,7 +2,8 @@
 \hypertarget{classoriginal_1_1algorithms}{}\label{classoriginal_1_1algorithms}\index{original::algorithms@{original::algorithms}}
 
 
-Collaboration diagram for original\+::algorithms\+:\nopagebreak
+Collaboration diagram for original\+::algorithms\+:
+\nopagebreak
 \begin{figure}[H]
 \begin{center}
 \leavevmode
@@ -12,17 +13,29 @@ Collaboration diagram for original\+::algorithms\+:\nopagebreak
 \doxysubsubsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\Hypertarget{classoriginal_1_1algorithms_a62e867d4ac0b308cba2b508504c2f99c}\label{classoriginal_1_1algorithms_a62e867d4ac0b308cba2b508504c2f99c} 
-{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries distance} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&begin, const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&end) -\/$>$ int
+\Hypertarget{classoriginal_1_1algorithms_aad37b6cc7290ab7f12ac058b31f85ecb}\label{classoriginal_1_1algorithms_aad37b6cc7290ab7f12ac058b31f85ecb} 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries distance} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&begin, const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&end) -\/$>$ size\+\_\+t
 \item 
 \Hypertarget{classoriginal_1_1algorithms_afa9cdcf78092228da48017157ea237cd}\label{classoriginal_1_1algorithms_afa9cdcf78092228da48017157ea237cd} 
 {\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries find} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&begin, const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&end, const TYPE \&target) -\/$>$ \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$
 \item 
+\Hypertarget{classoriginal_1_1algorithms_a0bc3aee901508ba45cadcb56be700450}\label{classoriginal_1_1algorithms_a0bc3aee901508ba45cadcb56be700450} 
+{\footnotesize template$<$typename TYPE , typename Callback $>$ }\\auto {\bfseries find} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&begin, const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&end, const Callback callback) -\/$>$ \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$
+\item 
 \Hypertarget{classoriginal_1_1algorithms_abc557e14066a5dea68c6dd9aa6267f87}\label{classoriginal_1_1algorithms_abc557e14066a5dea68c6dd9aa6267f87} 
 {\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries count} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&begin, const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&end, const TYPE \&target) -\/$>$ size\+\_\+t
 \item 
+\Hypertarget{classoriginal_1_1algorithms_a142ba3f8cc38303cf806f5eb53e13a67}\label{classoriginal_1_1algorithms_a142ba3f8cc38303cf806f5eb53e13a67} 
+{\footnotesize template$<$typename TYPE , typename Callback $>$ }\\auto {\bfseries count} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&begin, const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&end, const Callback callback) -\/$>$ size\+\_\+t
+\item 
 \Hypertarget{classoriginal_1_1algorithms_a6d7afe1ef0403f361753112861dbc765}\label{classoriginal_1_1algorithms_a6d7afe1ef0403f361753112861dbc765} 
 {\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries equal} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&begin1, const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&end1, const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&begin2, const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&end2) -\/$>$ bool
+\item 
+\Hypertarget{classoriginal_1_1algorithms_a2334b1582a399c31031302862cb78ef1}\label{classoriginal_1_1algorithms_a2334b1582a399c31031302862cb78ef1} 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries fill} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&begin, const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&end, const TYPE \&value) -\/$>$ void
+\item 
+\Hypertarget{classoriginal_1_1algorithms_af4fdeef00e64f731ebf6a4b84b933013}\label{classoriginal_1_1algorithms_af4fdeef00e64f731ebf6a4b84b933013} 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries fill} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&begin, size\+\_\+t n, const TYPE \&value) -\/$>$ void
 \item 
 \Hypertarget{classoriginal_1_1algorithms_a95fad90088435bd390c53251a3c86d78}\label{classoriginal_1_1algorithms_a95fad90088435bd390c53251a3c86d78} 
 {\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries swap} (\mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&it1, \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&it2) noexcept -\/$>$ void
@@ -30,17 +43,29 @@ Collaboration diagram for original\+::algorithms\+:\nopagebreak
 \doxysubsubsection*{Static Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\Hypertarget{classoriginal_1_1algorithms_add7037e6b4ffad0f446d79239816a5ae}\label{classoriginal_1_1algorithms_add7037e6b4ffad0f446d79239816a5ae} 
-{\footnotesize template$<$typename TYPE $>$ }\\static int {\bfseries distance} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&begin, const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&end)
+\Hypertarget{classoriginal_1_1algorithms_a0fa003b038a75a25fc7269f385391f1f}\label{classoriginal_1_1algorithms_a0fa003b038a75a25fc7269f385391f1f} 
+{\footnotesize template$<$typename TYPE $>$ }\\static size\+\_\+t {\bfseries distance} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&begin, const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&end)
 \item 
 \Hypertarget{classoriginal_1_1algorithms_ae45932ca6b4360b6197a955a1b6575cc}\label{classoriginal_1_1algorithms_ae45932ca6b4360b6197a955a1b6575cc} 
 {\footnotesize template$<$typename TYPE $>$ }\\static \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ {\bfseries find} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&begin, const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&end, const TYPE \&target)
 \item 
+\Hypertarget{classoriginal_1_1algorithms_aa3e2c5b94c91840659a0d2c43ec6720b}\label{classoriginal_1_1algorithms_aa3e2c5b94c91840659a0d2c43ec6720b} 
+{\footnotesize template$<$typename TYPE , typename Callback $>$ }\\static \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ {\bfseries find} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&begin, const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&end, Callback callback)
+\item 
 \Hypertarget{classoriginal_1_1algorithms_addb73c9104be2442efa47e8b1e2311bb}\label{classoriginal_1_1algorithms_addb73c9104be2442efa47e8b1e2311bb} 
 {\footnotesize template$<$typename TYPE $>$ }\\static size\+\_\+t {\bfseries count} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&begin, const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&end, const TYPE \&target)
 \item 
+\Hypertarget{classoriginal_1_1algorithms_ad3c2455e2fac5d3fd9e67d1381393e27}\label{classoriginal_1_1algorithms_ad3c2455e2fac5d3fd9e67d1381393e27} 
+{\footnotesize template$<$typename TYPE , typename Callback $>$ }\\static size\+\_\+t {\bfseries count} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&begin, const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&end, Callback callback)
+\item 
 \Hypertarget{classoriginal_1_1algorithms_a3ba26a44a05a202c4ae0259b2287b95e}\label{classoriginal_1_1algorithms_a3ba26a44a05a202c4ae0259b2287b95e} 
 {\footnotesize template$<$typename TYPE $>$ }\\static bool {\bfseries equal} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&begin1, const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&end1, const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&begin2, const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&end2)
+\item 
+\Hypertarget{classoriginal_1_1algorithms_a0c73c14858871484fac7fb868430edb3}\label{classoriginal_1_1algorithms_a0c73c14858871484fac7fb868430edb3} 
+{\footnotesize template$<$typename TYPE $>$ }\\static void {\bfseries fill} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&begin, const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&end, const TYPE \&value=TYPE\{\})
+\item 
+\Hypertarget{classoriginal_1_1algorithms_ad8cae2abff5325135a2dab6d300f1782}\label{classoriginal_1_1algorithms_ad8cae2abff5325135a2dab6d300f1782} 
+{\footnotesize template$<$typename TYPE $>$ }\\static void {\bfseries fill} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&begin, size\+\_\+t n, const TYPE \&value=TYPE\{\})
 \item 
 \Hypertarget{classoriginal_1_1algorithms_a6cfe0dc1a626d35f77ce48d200a62fdf}\label{classoriginal_1_1algorithms_a6cfe0dc1a626d35f77ce48d200a62fdf} 
 {\footnotesize template$<$typename TYPE $>$ }\\static void {\bfseries swap} (\mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&it1, \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \&it2) noexcept

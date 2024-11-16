@@ -8,6 +8,7 @@ namespace original {
     protected:
         virtual bool match(const TYPE& t) const;
     public:
+        virtual ~filter() = default;
         explicit filter() = default;
         bool operator()(const TYPE& t) const;
     };

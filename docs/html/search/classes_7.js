@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['serial_0',['serial',['../classoriginal_1_1serial.html',1,'original']]]
+  ['lessfilter_0',['lessFilter',['../classoriginal_1_1less_filter.html',1,'original']]]
 ];

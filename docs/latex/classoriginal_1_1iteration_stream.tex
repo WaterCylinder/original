@@ -2,16 +2,18 @@
 \hypertarget{classoriginal_1_1iteration_stream}{}\label{classoriginal_1_1iteration_stream}\index{original::iterationStream$<$ TYPE $>$@{original::iterationStream$<$ TYPE $>$}}
 
 
-Inheritance diagram for original\+::iteration\+Stream\texorpdfstring{$<$}{<} TYPE \texorpdfstring{$>$}{>}\+:\nopagebreak
+Inheritance diagram for original\+::iteration\+Stream\texorpdfstring{$<$}{<} TYPE \texorpdfstring{$>$}{>}\+:
+\nopagebreak
 \begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[height=550pt]{classoriginal_1_1iteration_stream__inherit__graph}
+\includegraphics[width=350pt]{classoriginal_1_1iteration_stream__inherit__graph}
 \end{center}
 \end{figure}
 
 
-Collaboration diagram for original\+::iteration\+Stream\texorpdfstring{$<$}{<} TYPE \texorpdfstring{$>$}{>}\+:\nopagebreak
+Collaboration diagram for original\+::iteration\+Stream\texorpdfstring{$<$}{<} TYPE \texorpdfstring{$>$}{>}\+:
+\nopagebreak
 \begin{figure}[H]
 \begin{center}
 \leavevmode
@@ -43,7 +45,9 @@ virtual \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \texo
 \item 
 \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ {\bfseries end} () const
 \item 
-void {\bfseries for\+Each} (const std\+::function$<$ void(TYPE \&)$>$ \&callback)
+{\footnotesize template$<$typename Callback $>$ }\\void {\bfseries for\+Each} (Callback callback)
+\item 
+{\footnotesize template$<$typename Callback $>$ }\\auto {\bfseries for\+Each} (Callback callback) -\/$>$ void
 \end{DoxyCompactItemize}
 \doxysubsubsection*{Protected Member Functions}
 \begin{DoxyCompactItemize}

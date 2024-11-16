@@ -6,16 +6,17 @@ namespace original{
     template<typename TYPE>
     class transform{
         protected:
-            virtual void apply(TYPE& t) const;
+            virtual void apply(TYPE& t);
         public:
+            virtual ~transform() = default;
             explicit transform() = default;
-            void operator()(TYPE& t) const;
+            virtual void operator()(TYPE& t);
     };
 
     template<typename TYPE>
     class addTransform final : public transform<TYPE>{
             TYPE num;
-            void apply(TYPE &t) const override;
+            void apply(TYPE &t) override;
         public:
             explicit addTransform(const TYPE& num);
     };
@@ -23,10 +24,11 @@ namespace original{
 } // namespace original
 
     template<typename TYPE>
-    void original::transform<TYPE>::apply(TYPE&) const {}
+    void original::transform<TYPE>::apply(TYPE&) {}
 
     template<typename TYPE>
-    void original::transform<TYPE>::operator()(TYPE &t) const {
+    void original::transform<TYPE>::operator()(TYPE &t) {
+        std::cout << "Base apply called\n"; // Debug line
         this->apply(t);
     }
 
@@ -34,7 +36,8 @@ namespace original{
     original::addTransform<TYPE>::addTransform(const TYPE &num) : num(num) {}
 
     template<typename TYPE>
-    void original::addTransform<TYPE>::apply(TYPE &t) const {
+    void original::addTransform<TYPE>::apply(TYPE &t) {
+        std::cout << "Derived apply called\n"; // Debug line
         t = t + this->num;
     }
 

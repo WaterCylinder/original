@@ -9,7 +9,7 @@ namespace original {
 
     template<typename TYPE>
     class transformStream {
-        chain<std::shared_ptr<transform<TYPE>>> stream;  // 使用智能指针
+        chain<std::shared_ptr<transform<TYPE>>> stream;
 
         void pushEnd(const transform<TYPE>& t);
 
@@ -33,16 +33,17 @@ namespace original {
 }
 
     template<typename TYPE>
-    original::transformStream<TYPE>::transformStream() : stream() {}
+    original::transformStream<TYPE>::transformStream()
+        : stream(chain<std::shared_ptr<transform<TYPE>>>()) {}
 
     template<typename TYPE>
     void original::transformStream<TYPE>::pushEnd(const transform<TYPE>& t) {
-        this->stream.pushEnd(std::make_shared<transform<TYPE>>(t));
+        this->stream.pushEnd(std::make_shared<std::decay_t<decltype(t)>>(t));
     }
 
     template<typename TYPE>
     void original::transformStream<TYPE>::operator()(TYPE& t) {
-        for (auto transform : this->stream) {
+        for (const auto& transform : this->stream) {
             (*transform)(t);
         }
     }
