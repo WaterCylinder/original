@@ -71,7 +71,8 @@ int main()
     c3.forEach(original::addTransform(3));
     std::cout << "after3: " << c3 << std::endl;
     original::algorithms::fill(*c3.begins(), *c3.ends());
-    // todo
-//    c3.forEach(original::addTransform(3) + original::addTransform(7) + original::addTransform(9));
+    c3.forEach(original::addTransform(3) + original::addTransform(7));
+    std::cout << "after4: " << c3 << std::endl;
+//    auto ts = original::addTransform(3) + original::addTransform(7);
     return 0;
 }
