@@ -28,7 +28,6 @@ namespace original{
 
     template<typename TYPE>
     void original::transform<TYPE>::operator()(TYPE &t) {
-        std::cout << "Base apply called\n"; // Debug line
         this->apply(t);
     }
 
@@ -37,7 +36,6 @@ namespace original{
 
     template<typename TYPE>
     void original::addTransform<TYPE>::apply(TYPE &t) {
-        std::cout << "Derived apply called\n"; // Debug line
         t = t + this->num;
     }
 

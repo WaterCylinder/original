@@ -72,6 +72,11 @@ int main()
     std::cout << "after3: " << c3 << std::endl;
     original::algorithms::fill(*c3.begins(), *c3.ends());
     c3.forEach(original::addTransform(3) + original::addTransform(7));
+    c3.forEach(
+        original::addTransform(3)
+                + original::addTransform(7)
+                + original::addTransform(10)
+                + original::addTransform(5));
     std::cout << "after4: " << c3 << std::endl;
     return 0;
 }

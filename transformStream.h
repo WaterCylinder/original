@@ -18,18 +18,14 @@ namespace original {
 
     public:
         void operator()(TYPE& t);
+        transformStream& operator+(const transform<TYPE>& t);
 
         template<typename T>
         friend transformStream<T> operator+(const transform<T>& t1, const transform<T>& t2);
-        template<typename T>
-        friend transformStream<T> operator+(transformStream<T>& ts, const  transform<T>&& t);
     };
 
     template<typename TYPE>
     transformStream<TYPE> operator+(const transform<TYPE>& t1, const transform<TYPE>& t2);
-
-    template<typename TYPE>
-    transformStream<TYPE> operator+(transformStream<TYPE>& ts, const  transform<TYPE>&& t);
 }
 
     template<typename TYPE>
@@ -48,17 +44,18 @@ namespace original {
         }
     }
 
+    template <typename TYPE>
+    auto original::transformStream<TYPE>::operator+(const transform<TYPE>& t) -> transformStream&
+    {
+        this->pushEnd(t);
+        return *this;
+    }
+
     template<typename TYPE>
     auto original::operator+(const transform<TYPE>& t1, const transform<TYPE>& t2) -> transformStream<TYPE> {
         transformStream<TYPE> ts;
         ts.pushEnd(t1);
         ts.pushEnd(t2);
-        return ts;
-    }
-
-    template<typename TYPE>
-    auto original::operator+(transformStream<TYPE>& ts, const  transform<TYPE>&& t) -> transformStream<TYPE>{
-        ts.pushEnd(t);
         return ts;
     }
 
