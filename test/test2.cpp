@@ -83,5 +83,9 @@ int main()
             + original::addTransform(7)
             + original::multiplyTransform(10));
     std::cout << "after5: " << c3 << std::endl;
+    auto v3 = original::vector<int>();
+    c3.forEach(original::addTransform(10)
+                + original::copyTransform(v3));
+    std::cout << "v3: " << v3 << std::endl;
     return 0;
 }

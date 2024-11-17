@@ -10,6 +10,7 @@ namespace original{
         _GLIBCXX_NODISCARD bool indexOutOfBound(int index) const;
         _GLIBCXX_NODISCARD int parseNegIndex(int index) const;
     public:
+        void add(TYPE e) override;
         virtual TYPE get(int index) const = 0;
         virtual TYPE operator[](int index) const;
         virtual TYPE& operator[](int index) = 0;
@@ -39,6 +40,12 @@ namespace original{
     }
 
     template <typename TYPE>
+    auto original::serial<TYPE>::add(TYPE e) -> void
+    {
+        this->pushEnd(e);
+    }
+
+template <typename TYPE>
     auto original::serial<TYPE>::operator[](const int index) const -> TYPE
     {
         return this->get(index);
