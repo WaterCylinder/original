@@ -2,6 +2,8 @@
 #define ITERABLE_H
 
 #include <functional>
+#include <transform.h>
+
 #include "iterator.h"
 
 namespace original{
@@ -16,8 +18,8 @@ namespace original{
         iterator<TYPE> begin() const;
         iterator<TYPE> end() const;
 
-        template<typename Callback>
-        void forEach(Callback callback);
+        template<typename Callback = std::function<void(TYPE&)>>
+        void forEach(Callback callback = transform<TYPE>());
     };
 }
 

@@ -97,5 +97,17 @@ int main()
     std::cout << "v4: " << v4 << std::endl;
     v4.forEach(original::assignOptTransform(std::string("QwQ")));
     std::cout << "v4: " << v4 << std::endl;
+    original::algorithms::fill(*c3.begins(), *c3.ends());
+    c3.forEach();
+    std::cout << "after6: " << c3 << std::endl;
+    original::algorithms::fill(*c3.begins(), *c3.ends(), 1);
+    c3.forEach(
+        original::multiOptTransform(5)
+        + (original::addOptTransform(3)
+        + original::addOptTransform(7))
+        + (original::addOptTransform(7)
+        + original::multiOptTransform(3))
+    );
+    std::cout << "after7: " << c3 << std::endl;
     return 0;
 }
