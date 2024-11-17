@@ -34,7 +34,7 @@ namespace original {
 
     template<typename TYPE>
     void original::transformStream<TYPE>::pushEnd(const transform<TYPE>& t) {
-        this->stream.pushEnd(std::make_shared<std::decay_t<decltype(t)>>(t));
+        this->stream.pushEnd(std::shared_ptr<transform<TYPE>>(t.clone()));
     }
 
     template<typename TYPE>
