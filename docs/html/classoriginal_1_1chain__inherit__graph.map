@@ -1,13 +1,13 @@
 <map id="original::chain&lt; TYPE &gt;" name="original::chain&lt; TYPE &gt;">
-<area shape="rect" id="Node000001" title=" " alt="" coords="91,704,239,987"/>
-<area shape="rect" id="Node000002" href="$classoriginal_1_1serial.html" title=" " alt="" coords="5,309,154,656"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,670,134,704,129,705,121,671"/>
-<area shape="rect" id="Node000003" href="$classoriginal_1_1container.html" title=" " alt="" coords="23,69,136,197"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="82,212,82,309,77,309,77,212"/>
-<area shape="rect" id="Node000004" href="$classoriginal_1_1iteration_stream.html" title=" " alt="" coords="178,429,326,536"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="238,551,201,705,196,704,233,550"/>
-<area shape="rect" id="Node000005" href="$classoriginal_1_1printable.html" title=" " alt="" coords="179,67,287,200"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="240,215,252,429,246,430,235,215"/>
-<area shape="rect" id="Node000006" href="$classoriginal_1_1iterable.html" title=" " alt="" coords="312,5,413,261"/>
-<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="320,277,271,430,266,429,315,275"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="91,725,239,1008"/>
+<area shape="rect" id="Node000002" href="$classoriginal_1_1serial.html" title=" " alt="" coords="5,309,154,677"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,692,135,725,130,726,123,693"/>
+<area shape="rect" id="Node000003" href="$classoriginal_1_1container.html" title=" " alt="" coords="23,59,136,208"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="82,223,82,310,77,310,77,223"/>
+<area shape="rect" id="Node000004" href="$classoriginal_1_1iteration_stream.html" title=" " alt="" coords="178,440,326,547"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="239,562,200,726,195,725,233,561"/>
+<area shape="rect" id="Node000005" href="$classoriginal_1_1printable.html" title=" " alt="" coords="178,13,291,253"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="243,268,252,440,246,440,238,268"/>
+<area shape="rect" id="Node000006" href="$classoriginal_1_1iterable.html" title=" " alt="" coords="316,5,417,261"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="324,277,271,441,266,439,319,275"/>
 </map>

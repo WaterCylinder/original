@@ -77,11 +77,12 @@
 \DoxyCodeLine{00074\ \ \ \ \ \textcolor{keyword}{auto}\ \mbox{\hyperlink{classoriginal_1_1couple}{original::couple<F\_TYPE,\ S\_TYPE>::toString}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{bool}\ enter)\ \textcolor{keyword}{const}\ -\/>\ std::string}
 \DoxyCodeLine{00075\ \ \ \ \ \{}
 \DoxyCodeLine{00076\ \ \ \ \ \ \ \ \ std::stringstream\ ss;}
-\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ ss\ <<\ \textcolor{stringliteral}{"{}couple"{}}\ <<\ \textcolor{stringliteral}{"{}("{}}\ <<\ \textcolor{stringliteral}{"{}first:\ "{}}\ <<\ this-\/>first\_\ <<\ \textcolor{stringliteral}{"{},\ "{}}\ <<\ \textcolor{stringliteral}{"{}second:\ "{}}\ <<\ this-\/>second\_\ <<\ \textcolor{stringliteral}{"{})"{}};}
-\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (enter)\ ss\ <<\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}};}
-\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ ss.str();}
-\DoxyCodeLine{00080\ \ \ \ \ \}}
-\DoxyCodeLine{00081\ }
-\DoxyCodeLine{00082\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//COUPLE\_H}}
+\DoxyCodeLine{00077\ \ \ \ \ \ \ \ \ ss\ <<\ \textcolor{stringliteral}{"{}couple"{}}\ <<\ \textcolor{stringliteral}{"{}("{}}\ <<\ \textcolor{stringliteral}{"{}first:\ "{}}\ <<\ formatString(this-\/>first\_)}
+\DoxyCodeLine{00078\ \ \ \ \ \ \ \ \ \ \ \ <<\ \textcolor{stringliteral}{"{},\ "{}}\ <<\ \textcolor{stringliteral}{"{}second:\ "{}}\ <<\ formatString(this-\/>second\_)\ <<\ \textcolor{stringliteral}{"{})"{}};}
+\DoxyCodeLine{00079\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (enter)\ ss\ <<\ \textcolor{stringliteral}{"{}\(\backslash\)n"{}};}
+\DoxyCodeLine{00080\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{return}\ ss.str();}
+\DoxyCodeLine{00081\ \ \ \ \ \}}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00083\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//COUPLE\_H}}
 
 \end{DoxyCode}

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['serial_0',['serial',['../classoriginal_1_1serial.html',1,'original']]]
+  ['rangefilter_0',['rangeFilter',['../classoriginal_1_1range_filter.html',1,'original']]]
 ];

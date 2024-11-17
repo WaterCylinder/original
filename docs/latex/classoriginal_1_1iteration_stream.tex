@@ -17,7 +17,7 @@ Collaboration diagram for original\+::iteration\+Stream\texorpdfstring{$<$}{<} T
 \begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[width=256pt]{classoriginal_1_1iteration_stream__coll__graph}
+\includegraphics[width=260pt]{classoriginal_1_1iteration_stream__coll__graph}
 \end{center}
 \end{figure}
 \doxysubsubsection*{Public Member Functions}
@@ -29,6 +29,10 @@ std\+::string \mbox{\hyperlink{classoriginal_1_1iteration_stream_adc17b45187aa82
 \begin{DoxyCompactItemize}
 \item 
 \+\_\+\+GLIBCXX\+\_\+\+NODISCARD const char \texorpdfstring{$\ast$}{*} {\bfseries to\+CString} (bool enter) const
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries format\+String} (const TYPE \&t) -\/$>$ std\+::string
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries format\+CString} (const TYPE \&t) -\/$>$ const char \texorpdfstring{$\ast$}{*}
 \end{DoxyCompactItemize}
 \doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1iterable}{original\+::iterable$<$ TYPE $>$}}}
 \begin{DoxyCompactItemize}
@@ -65,7 +69,13 @@ virtual \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \texo
 \doxysubsection*{Static Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1printable}{original\+::printable}}}
 \begin{DoxyCompactItemize}
 \item 
-static const char \texorpdfstring{$\ast$}{*} {\bfseries boolean} (bool b)
+{\footnotesize template$<$typename TYPE $>$ }\\static std\+::string {\bfseries format\+String} (const TYPE \&t)
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\static const char \texorpdfstring{$\ast$}{*} {\bfseries format\+CString} (const TYPE \&t)
+\item 
+template$<$$>$ auto {\bfseries format\+String} (const char \&t) -\/$>$ std\+::string
+\item 
+template$<$$>$ auto {\bfseries format\+String} (const bool \&t) -\/$>$ std\+::string
 \end{DoxyCompactItemize}
 
 

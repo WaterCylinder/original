@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['unsupportedmethoderror_0',['unSupportedMethodError',['../classoriginal_1_1un_supported_method_error.html',1,'original']]]
+  ['transform_0',['transform',['../classoriginal_1_1transform.html',1,'original']]],
+  ['transformstream_1',['transformStream',['../classoriginal_1_1transform_stream.html',1,'original']]]
 ];

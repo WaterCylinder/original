@@ -7,7 +7,7 @@ Inheritance diagram for original\+::iterator\texorpdfstring{$<$}{<} TYPE \texorp
 \begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[width=162pt]{classoriginal_1_1iterator__inherit__graph}
+\includegraphics[width=165pt]{classoriginal_1_1iterator__inherit__graph}
 \end{center}
 \end{figure}
 
@@ -17,7 +17,7 @@ Collaboration diagram for original\+::iterator\texorpdfstring{$<$}{<} TYPE \texo
 \begin{figure}[H]
 \begin{center}
 \leavevmode
-\includegraphics[width=162pt]{classoriginal_1_1iterator__coll__graph}
+\includegraphics[width=165pt]{classoriginal_1_1iterator__coll__graph}
 \end{center}
 \end{figure}
 \doxysubsubsection*{Public Member Functions}
@@ -113,6 +113,10 @@ std\+::string \mbox{\hyperlink{classoriginal_1_1iterator_a45bd687bfc25784c8d6b61
 \begin{DoxyCompactItemize}
 \item 
 \+\_\+\+GLIBCXX\+\_\+\+NODISCARD const char \texorpdfstring{$\ast$}{*} {\bfseries to\+CString} (bool enter) const
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries format\+String} (const TYPE \&t) -\/$>$ std\+::string
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries format\+CString} (const TYPE \&t) -\/$>$ const char \texorpdfstring{$\ast$}{*}
 \end{DoxyCompactItemize}
 \doxysubsubsection*{Protected Attributes}
 \begin{DoxyCompactItemize}
@@ -124,7 +128,13 @@ std\+::string \mbox{\hyperlink{classoriginal_1_1iterator_a45bd687bfc25784c8d6b61
 \doxysubsection*{Static Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1printable}{original\+::printable}}}
 \begin{DoxyCompactItemize}
 \item 
-static const char \texorpdfstring{$\ast$}{*} {\bfseries boolean} (bool b)
+{\footnotesize template$<$typename TYPE $>$ }\\static std\+::string {\bfseries format\+String} (const TYPE \&t)
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\static const char \texorpdfstring{$\ast$}{*} {\bfseries format\+CString} (const TYPE \&t)
+\item 
+template$<$$>$ auto {\bfseries format\+String} (const char \&t) -\/$>$ std\+::string
+\item 
+template$<$$>$ auto {\bfseries format\+String} (const bool \&t) -\/$>$ std\+::string
 \end{DoxyCompactItemize}
 
 

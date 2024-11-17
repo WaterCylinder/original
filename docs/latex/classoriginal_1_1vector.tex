@@ -69,6 +69,8 @@ TYPE \mbox{\hyperlink{classoriginal_1_1vector_a34e14e8facd9f2f6be6030e4d4cd11f7}
 \doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1serial}{original\+::serial$<$ TYPE $>$}}}
 \begin{DoxyCompactItemize}
 \item 
+void \mbox{\hyperlink{classoriginal_1_1serial_ab206a126065dc63bbce9f4d66ffdfb93}{add}} (TYPE e) override
+\item 
 virtual TYPE {\bfseries operator\mbox{[}$\,$\mbox{]}} (int index) const
 \item 
 bool \mbox{\hyperlink{classoriginal_1_1serial_ab99e5be6502b5c12f3f7b6b27d59dea4}{contains}} (TYPE e) const override
@@ -79,6 +81,10 @@ bool \mbox{\hyperlink{classoriginal_1_1serial_ab99e5be6502b5c12f3f7b6b27d59dea4}
 \begin{DoxyCompactItemize}
 \item 
 \+\_\+\+GLIBCXX\+\_\+\+NODISCARD const char \texorpdfstring{$\ast$}{*} {\bfseries to\+CString} (bool enter) const
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries format\+String} (const TYPE \&t) -\/$>$ std\+::string
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries format\+CString} (const TYPE \&t) -\/$>$ const char \texorpdfstring{$\ast$}{*}
 \end{DoxyCompactItemize}
 \doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1iterable}{original\+::iterable$<$ TYPE $>$}}}
 \begin{DoxyCompactItemize}
@@ -99,7 +105,13 @@ bool \mbox{\hyperlink{classoriginal_1_1serial_ab99e5be6502b5c12f3f7b6b27d59dea4}
 \doxysubsection*{Static Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1printable}{original\+::printable}}}
 \begin{DoxyCompactItemize}
 \item 
-static const char \texorpdfstring{$\ast$}{*} {\bfseries boolean} (bool b)
+{\footnotesize template$<$typename TYPE $>$ }\\static std\+::string {\bfseries format\+String} (const TYPE \&t)
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\static const char \texorpdfstring{$\ast$}{*} {\bfseries format\+CString} (const TYPE \&t)
+\item 
+template$<$$>$ auto {\bfseries format\+String} (const char \&t) -\/$>$ std\+::string
+\item 
+template$<$$>$ auto {\bfseries format\+String} (const bool \&t) -\/$>$ std\+::string
 \end{DoxyCompactItemize}
 \doxysubsection*{Protected Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1serial}{original\+::serial$<$ TYPE $>$}}}
 \begin{DoxyCompactItemize}

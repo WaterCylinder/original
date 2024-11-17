@@ -204,7 +204,7 @@
 \DoxyCodeLine{00201\ \ \ \ \ \ \ \ \ std::stringstream\ ss;}
 \DoxyCodeLine{00202\ \ \ \ \ \ \ \ \ ss\ <<\ \textcolor{stringliteral}{"{}array"{}}\ <<\ \textcolor{stringliteral}{"{}("{}};}
 \DoxyCodeLine{00203\ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{for}\ (\textcolor{keywordtype}{size\_t}\ i\ =\ 0;\ i\ <\ this-\/>size\_;\ ++i)\ \{}
-\DoxyCodeLine{00204\ \ \ \ \ \ \ \ \ \ \ \ \ ss\ <<\ this-\/>body[i];}
+\DoxyCodeLine{00204\ \ \ \ \ \ \ \ \ \ \ \ \ ss\ <<\ formatString(this-\/>body[i]);}
 \DoxyCodeLine{00205\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordflow}{if}\ (i\ <\ this-\/>size\_\ -\/\ 1)\ \{}
 \DoxyCodeLine{00206\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ss\ <<\ \textcolor{stringliteral}{"{},\ "{}};}
 \DoxyCodeLine{00207\ \ \ \ \ \ \ \ \ \ \ \ \ \}}

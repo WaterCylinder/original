@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['wrapper_0',['wrapper',['../classoriginal_1_1wrapper.html',1,'original']]]
+  ['valueerror_0',['valueError',['../classoriginal_1_1value_error.html',1,'original']]],
+  ['vector_1',['vector',['../classoriginal_1_1vector.html',1,'original']]]
 ];
