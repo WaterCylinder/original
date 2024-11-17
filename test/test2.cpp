@@ -21,9 +21,9 @@ int main()
         *v1.begins(), *v1.ends(), 6) << std::endl;
     std::cout << "number of 2 in v1: " << original::algorithms::count(
         *v1.begins(), *v1.ends(), 2) << std::endl;
-    std::cout << "does sequence of v1 equals itself: " << original::printable::boolean(original::algorithms::equal(
+    std::cout << "does sequence of v1 equals itself: " << original::printable::formatCString(original::algorithms::equal(
         *v1.begins(), *v1.ends(), *v1.begins(), *v1.ends())) << std::endl;
-    std::cout << "does sequence of v1 equals c1: " << original::printable::boolean(original::algorithms::equal(
+    std::cout << "does sequence of v1 equals c1: " << original::printable::formatCString(original::algorithms::equal(
     *v1.begins(), *v1.ends(), *c1.begins(), *c1.ends())) << std::endl;
     const auto c2 = original::chain({3, 1});
     std::cout << "c2 before swap: " << c2 << std::endl;

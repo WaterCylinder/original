@@ -235,7 +235,7 @@ namespace original {
             ss << "iterator" << "(" << "nullptr" << ")";
         }else
         {
-            ss << "iterator" << "(#" << this->ptr_ << ", " << this->get() << ")";
+            ss << "iterator" << "(#" << this->ptr_ << ", " << formatString(this->get()) << ")";
         }
         if (enter) {
             ss << "\n";

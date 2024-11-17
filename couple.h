@@ -74,7 +74,8 @@ template <typename F_TYPE, typename S_TYPE>
     auto original::couple<F_TYPE, S_TYPE>::toString(const bool enter) const -> std::string
     {
         std::stringstream ss;
-        ss << "couple" << "(" << "first: " << this->first_ << ", " << "second: " << this->second_ << ")";
+        ss << "couple" << "(" << "first: " << formatString(this->first_)
+           << ", " << "second: " << formatString(this->second_) << ")";
         if (enter) ss << "\n";
         return ss.str();
     }

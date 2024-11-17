@@ -13,9 +13,10 @@ namespace original {
         _GLIBCXX_NODISCARD virtual std::string toString(bool enter) const;
         _GLIBCXX_NODISCARD const char* toCString(bool enter) const;
 
-        static const char* boolean(bool b);
         template<typename TYPE>
-        static std::string formatElement(const TYPE& element);
+        static std::string formatString(const TYPE& t);
+        template<typename TYPE>
+        static const char* formatCString(const TYPE& t);
 
         friend std::ostream& operator<<(std::ostream& os, const printable& p);
     };
@@ -25,7 +26,7 @@ namespace original {
 
     inline original::printable::~printable() = default;
 
-    inline std::string original::printable::toString(bool enter) const
+    inline std::string original::printable::toString(const bool enter) const
     {
         std::stringstream ss;
         ss << typeid(this).name() << "(#" << this << ")";
@@ -39,22 +40,44 @@ namespace original {
         return this->cachedString.c_str();
     }
 
-    inline const char* original::printable::boolean(const bool b) {
-        return b != 0 ? "true" : "false";
-    }
-
     template<typename TYPE>
-    auto original::printable::formatElement(const TYPE& element) -> std::string
+    auto original::printable::formatString(const TYPE& t) -> std::string
     {
         std::stringstream ss;
-        ss << element;
+        ss << t;
         return ss.str();
     }
 
-    template<>
-    inline auto original::printable::formatElement<std::string>(const std::string& element) -> std::string
+    template <typename TYPE>
+    auto original::printable::formatCString(const TYPE& t) -> const char*
     {
-        return "\"" + element + "\"";
+        thread_local std::string cached_result;
+        cached_result = formatString<TYPE>(t);
+        return cached_result.c_str();
+    }
+
+    template<>
+    inline auto original::printable::formatString<std::string>(const std::string& t) -> std::string
+    {
+        return "\"" + t + "\"";
+    }
+
+    template<>
+    inline auto original::printable::formatString<char>(const char& t) -> std::string
+    {
+        return "'" + std::string(1, t) + "'";
+    }
+
+    template<>
+    inline auto original::printable::formatString<bool>(const bool& t) -> std::string
+    {
+        return t != 0 ? "true" : "false";
+    }
+
+    template<>
+    inline auto original::printable::formatString<std::nullptr_t>(const std::nullptr_t&) -> std::string
+    {
+        return "nullptr";
     }
 
     inline std::ostream& original::operator<<(std::ostream& os, const printable& p){

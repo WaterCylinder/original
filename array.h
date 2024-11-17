@@ -201,7 +201,7 @@ template <typename TYPE>
         std::stringstream ss;
         ss << "array" << "(";
         for (size_t i = 0; i < this->size_; ++i) {
-            ss << formatElement(this->body[i]);
+            ss << formatString(this->body[i]);
             if (i < this->size_ - 1) {
                 ss << ", ";
             }

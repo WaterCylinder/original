@@ -35,7 +35,7 @@ namespace original{
             if (!first) {
                 ss << ", ";
             }
-            ss << formatElement(it.get());
+            ss << formatString(it.get());
             first = false;
         }
         ss << ")";

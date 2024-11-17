@@ -72,7 +72,7 @@ int main(){
     }
     chain3.pushEnd(100);
     printf("chain3 phase3:%s", chain3.toCString(true));
-    printf("Does chain3 contains 100: %s\n", original::printable::boolean(chain3.contains(100)));
+    printf("Does chain3 contains 100: %s\n", original::printable::formatCString(chain3.contains(100)));
     printf("-3**-3=%f, 0**4=%f, 2**0=%f, 5.2**6=%f\n",
         original::pow(-3, -3), original::pow(0, 4), original::pow(2, 0), original::pow(5.2, 6));
     while (chain3.size() > 0){

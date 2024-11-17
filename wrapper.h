@@ -26,7 +26,7 @@ namespace original
     auto original::wrapper<TYPE>::toString(const bool enter) const -> std::string
     {
         std::stringstream ss;
-        ss << "wrapper" << "(#" << this << ", " << this->getVal() << ")";
+        ss << "wrapper" << "(#" << this << ", " << formatString(this->getVal()) << ")";
         if (enter) ss << "\n";
         return ss.str();
     }
