@@ -14,6 +14,8 @@ namespace original {
         _GLIBCXX_NODISCARD const char* toCString(bool enter) const;
 
         static const char* boolean(bool b);
+        template<typename TYPE>
+        static std::string formatElement(const TYPE& element);
 
         friend std::ostream& operator<<(std::ostream& os, const printable& p);
     };
@@ -37,8 +39,22 @@ namespace original {
         return this->cachedString.c_str();
     }
 
-    inline const char* original::printable::boolean(bool b) {
+    inline const char* original::printable::boolean(const bool b) {
         return b != 0 ? "true" : "false";
+    }
+
+    template<typename TYPE>
+    auto original::printable::formatElement(const TYPE& element) -> std::string
+    {
+        std::stringstream ss;
+        ss << element;
+        return ss.str();
+    }
+
+    template<>
+    inline auto original::printable::formatElement<std::string>(const std::string& element) -> std::string
+    {
+        return "\"" + element + "\"";
     }
 
     inline std::ostream& original::operator<<(std::ostream& os, const printable& p){

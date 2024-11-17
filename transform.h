@@ -17,21 +17,30 @@ namespace original{
     };
 
     template<typename TYPE>
-    class addTransform final : public transform<TYPE>{
-            TYPE num;
+    class addOptTransform final : public transform<TYPE>{
+            TYPE t;
             void apply(TYPE &t) override;
         public:
-            addTransform* clone() const override;
-            explicit addTransform(const TYPE& num);
+            addOptTransform* clone() const override;
+            explicit addOptTransform(const TYPE& t);
     };
 
     template<typename TYPE>
-    class multiplyTransform final : public transform<TYPE>{
-            TYPE num;
+    class assignOptTransform final : public transform<TYPE>{
+            TYPE val;
             void apply(TYPE &t) override;
         public:
-            multiplyTransform* clone() const override;
-            explicit multiplyTransform(const TYPE& num);
+            assignOptTransform* clone() const override;
+            explicit assignOptTransform(const TYPE& val);
+    };
+
+    template<typename TYPE>
+    class multiOptTransform final : public transform<TYPE>{
+            TYPE t;
+            void apply(TYPE &t) override;
+        public:
+            multiOptTransform* clone() const override;
+            explicit multiOptTransform(const TYPE& t);
     };
 
     template<typename TYPE>
@@ -69,33 +78,49 @@ namespace original{
     }
 
     template<typename TYPE>
-    original::addTransform<TYPE>::addTransform(const TYPE &num) : num(num) {}
+    original::assignOptTransform<TYPE>::assignOptTransform(const TYPE& val)
+        : val(val) {}
 
     template <typename TYPE>
-    auto original::addTransform<TYPE>::clone() const -> addTransform*
+    auto original::assignOptTransform<TYPE>::clone() const -> assignOptTransform*
     {
-        return new addTransform(*this);
+        return new assignOptTransform(*this);
     }
 
     template<typename TYPE>
-    auto original::addTransform<TYPE>::apply(TYPE& t) -> void
+    auto original::assignOptTransform<TYPE>::apply(TYPE& t) -> void
     {
-        t = t + this->num;
+        t = this->val;
     }
 
     template<typename TYPE>
-    original::multiplyTransform<TYPE>::multiplyTransform(const TYPE &num) : num(num) {}
+    original::addOptTransform<TYPE>::addOptTransform(const TYPE &t) : t(t) {}
 
     template <typename TYPE>
-    auto original::multiplyTransform<TYPE>::clone() const -> multiplyTransform*
+    auto original::addOptTransform<TYPE>::clone() const -> addOptTransform*
     {
-        return new multiplyTransform(*this);
+        return new addOptTransform(*this);
     }
 
     template<typename TYPE>
-    auto original::multiplyTransform<TYPE>::apply(TYPE& t) -> void
+    auto original::addOptTransform<TYPE>::apply(TYPE& t) -> void
     {
-        t = t * this->num;
+        t = t + this->t;
+    }
+
+    template<typename TYPE>
+    original::multiOptTransform<TYPE>::multiOptTransform(const TYPE &t) : t(t) {}
+
+    template <typename TYPE>
+    auto original::multiOptTransform<TYPE>::clone() const -> multiOptTransform*
+    {
+        return new multiOptTransform(*this);
+    }
+
+    template<typename TYPE>
+    auto original::multiOptTransform<TYPE>::apply(TYPE& t) -> void
+    {
+        t = t * this->t;
     }
 
     template <typename TYPE>

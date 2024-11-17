@@ -68,24 +68,34 @@ int main()
     original::algorithms::fill(*c3.begins(), 3, 233);
     std::cout << "after2: " << c3 << std::endl;
     original::algorithms::fill(*c3.begins(), *c3.ends());
-    c3.forEach(original::addTransform(3));
+    c3.forEach(original::addOptTransform(3));
     std::cout << "after3: " << c3 << std::endl;
     original::algorithms::fill(*c3.begins(), *c3.ends());
     c3.forEach(
-        original::addTransform(3)
-                + original::addTransform(7)
-                + original::addTransform(10)
-                + original::addTransform(10));
+        original::addOptTransform(3)
+                + original::addOptTransform(7)
+                + original::addOptTransform(10)
+                + original::addOptTransform(10));
     std::cout << "after4: " << c3 << std::endl;
     original::algorithms::fill(*c3.begins(), *c3.ends());
     c3.forEach(
-    original::addTransform(3)
-            + original::addTransform(7)
-            + original::multiplyTransform(10));
+    original::addOptTransform(3)
+            + original::addOptTransform(7)
+            + original::multiOptTransform(10));
     std::cout << "after5: " << c3 << std::endl;
     auto v3 = original::vector<int>();
-    c3.forEach(original::addTransform(10)
+    c3.forEach(original::addOptTransform(10)
                 + original::copyTransform(v3));
     std::cout << "v3: " << v3 << std::endl;
+    auto v4 = original::vector<std::string>();
+    for (int i = 0; i < 20; ++i)
+    {
+        v4.pushEnd(std::to_string(i));
+    }
+    std::cout << "v4: " << v4 << std::endl;
+    v4.forEach(original::addOptTransform(std::string("^-^")));
+    std::cout << "v4: " << v4 << std::endl;
+    v4.forEach(original::assignOptTransform(std::string("QwQ")));
+    std::cout << "v4: " << v4 << std::endl;
     return 0;
 }
