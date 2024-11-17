@@ -43,9 +43,15 @@ namespace original {
     template<typename TYPE>
     auto original::printable::formatString(const TYPE& t) -> std::string
     {
-        std::stringstream ss;
-        ss << t;
-        return ss.str();
+        if constexpr (std::is_enum_v<TYPE>) {
+            std::string enumName = typeid(t).name();
+            int enumValue = static_cast<std::underlying_type_t<TYPE>>(t);
+            return enumName + "(" + std::to_string(enumValue) + ")";
+        } else {
+            std::stringstream ss;
+            ss << t;
+            return ss.str();
+        }
     }
 
     template <typename TYPE>

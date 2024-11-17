@@ -7,7 +7,7 @@
 #include "vector.h"
 #include "maths.h"
 #include "comparator.h"
-#include "filter.h"
+#include "filterStream.h"
 #include "transformStream.h"
 
 
@@ -100,7 +100,7 @@ int main()
     original::algorithms::fill(*c3.begins(), *c3.ends());
     c3.forEach();
     std::cout << "after6: " << c3 << std::endl;
-    original::algorithms::fill(*c3.begins(), *c3.ends(), 1);
+    original::algorithms::fill(*c3.begins(), *c3.ends(), 10);
     c3.forEach(
         original::multiOptTransform(5)
         + (original::addOptTransform(3)
@@ -109,5 +109,19 @@ int main()
         + original::multiOptTransform(3))
     );
     std::cout << "after7: " << c3 << std::endl;
+    std::cout << "numbers equal to 5 or 6 in v1: "
+        << original::algorithms::count(*v1.begins(), *v1.ends(),
+            original::equalFilter(5) || original::equalFilter(6))
+        << std::endl;
+    std::cout << "numbers equal to 5 and 6 in v1(impossible): "
+        << original::algorithms::count(*v1.begins(), *v1.ends(),
+            original::equalFilter(5) && original::equalFilter(6))
+        << std::endl;
+    std::cout << "numbers in range (1, 6) in v1: "
+    << original::algorithms::count(*v1.begins(), *v1.ends(),
+        original::rangeFilter(1, 6)
+        && !original::equalFilter(1)
+        && !original::equalFilter(6))
+    << std::endl; // compile error
     return 0;
 }

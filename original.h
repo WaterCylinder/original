@@ -10,6 +10,7 @@
 #include "couple.h"
 #include "error.h"
 #include "filter.h"
+#include "filterStream.h"
 #include "iterable.h"
 #include "iterationStream.h"
 #include "iterator.h"

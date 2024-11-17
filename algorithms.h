@@ -80,7 +80,7 @@ namespace original
     template<typename TYPE, typename Callback>
     auto original::algorithms::find(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                     const Callback callback) -> iterator<TYPE>{
-        original::callBackChecker<Callback, bool, const TYPE&>::check();
+        callBackChecker<Callback, bool, const TYPE&>::check();
         iterator it = iterator(begin);
         while (!it.isNull() && !it.equal(end)) {
             if (callback(it.get())) {
@@ -110,7 +110,7 @@ namespace original
     auto original::algorithms::count(const iterator<TYPE>& begin, const iterator<TYPE>& end,
                                      const Callback callback) -> size_t
     {
-        original::callBackChecker<Callback, bool, const TYPE&>::check();
+        callBackChecker<Callback, bool, const TYPE&>::check();
         size_t cnt = 0;
         iterator it = iterator(begin);
         while (!it.isNull() && !end.atPrev(it)) {

@@ -17,6 +17,7 @@ namespace original {
 
     public:
         void operator()(TYPE& t);
+        ~transformStream() = default;
         transformStream& operator+(const transform<TYPE>& t);
         transformStream& operator+(const transformStream& ts);
 
@@ -33,8 +34,7 @@ namespace original {
 }
 
     template<typename TYPE>
-    original::transformStream<TYPE>::transformStream()
-        : stream(chain<std::shared_ptr<transform<TYPE>>>()) {}
+    original::transformStream<TYPE>::transformStream() : stream() {}
 
     template<typename TYPE>
     auto original::transformStream<TYPE>::pushEnd(const transform<TYPE>& t) -> void
