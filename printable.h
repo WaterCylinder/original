@@ -17,6 +17,8 @@ namespace original {
         static std::string formatString(const TYPE& t);
         template<typename TYPE>
         static const char* formatCString(const TYPE& t);
+        template<typename TYPE>
+        static std::string formatEnum(const TYPE& t);
 
         friend std::ostream& operator<<(std::ostream& os, const printable& p);
     };
@@ -44,9 +46,7 @@ namespace original {
     auto original::printable::formatString(const TYPE& t) -> std::string
     {
         if constexpr (std::is_enum_v<TYPE>) {
-            std::string enumName = typeid(t).name();
-            int enumValue = static_cast<std::underlying_type_t<TYPE>>(t);
-            return enumName + "(" + std::to_string(enumValue) + ")";
+            return formatEnum(t);
         } else {
             std::stringstream ss;
             ss << t;
@@ -62,7 +62,15 @@ namespace original {
         return cached_result.c_str();
     }
 
-    template<>
+    template <typename TYPE>
+    auto original::printable::formatEnum(const TYPE& t) -> std::string
+    {
+        std::string enumName = typeid(t).name();
+        const int enumValue = static_cast<std::underlying_type_t<TYPE>>(t);
+        return enumName + "(" + std::to_string(enumValue) + ")";
+    }
+
+template<>
     inline auto original::printable::formatString<std::string>(const std::string& t) -> std::string
     {
         return "\"" + t + "\"";

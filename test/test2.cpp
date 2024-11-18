@@ -109,19 +109,30 @@ int main()
         + original::multiOptTransform(3))
     );
     std::cout << "after7: " << c3 << std::endl;
-    std::cout << "numbers equal to 5 or 6 in v1: "
-        << original::algorithms::count(*v1.begins(), *v1.ends(),
+    const auto v5 = original::vector({1, 2, 6, 2, 5, 3, 2});
+    std::cout << "numbers equal to 5 or 6 in v5: "
+        << original::algorithms::count(*v5.begins(), *v5.ends(),
             original::equalFilter(5) || original::equalFilter(6))
         << std::endl;
-    std::cout << "numbers equal to 5 and 6 in v1(impossible): "
-        << original::algorithms::count(*v1.begins(), *v1.ends(),
+    std::cout << "numbers equal to 5 and 6 in v5(impossible): "
+        << original::algorithms::count(*v5.begins(), *v5.ends(),
             original::equalFilter(5) && original::equalFilter(6))
         << std::endl;
-    std::cout << "numbers in range (1, 6) in v1: "
-    << original::algorithms::count(*v1.begins(), *v1.ends(),
+    std::cout << "numbers in range [1, 6) in v5: "
+    << original::algorithms::count(*v5.begins(), *v5.ends(),
+        original::rangeFilter(1, 6) && original::notEqualFilter(6))
+    << std::endl;
+    std::cout << "numbers in range (1, 6) in v5: "
+    << original::algorithms::count(*v5.begins(), *v5.ends(),
         original::rangeFilter(1, 6)
-        && !original::equalFilter(1)
-        && !original::equalFilter(6))
-    << std::endl; // compile error
+        && original::notEqualFilter(6)
+        && original::notEqualFilter(1))
+    << std::endl;
+    std::cout << "numbers in range (1, 6) in v5: "
+    << original::algorithms::count(*v5.begins(), *v5.ends(),
+        original::rangeFilter(1, 6)
+        && !original::equalFilter(6)
+        && !original::equalFilter(1))
+    << std::endl; // wrong result
     return 0;
 }

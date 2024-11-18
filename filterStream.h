@@ -60,10 +60,15 @@ namespace original{
     template <typename TYPE>
     auto original::filterStream<TYPE>::addBrackets() const -> void
     {
-        this->stream.pushBegin(nullptr);
-        this->stream.pushEnd(nullptr);
-        this->ops.pushBegin(opts::LEFT_BRACKET);
-        this->ops.pushEnd(opts::RIGHT_BRACKET);
+        if (this->ops.size() == 0 ||
+            this->ops[0] != opts::LEFT_BRACKET ||
+            this->ops[-1] != opts::RIGHT_BRACKET)
+        {
+            this->stream.pushBegin(nullptr);
+            this->stream.pushEnd(nullptr);
+            this->ops.pushBegin(opts::LEFT_BRACKET);
+            this->ops.pushEnd(opts::RIGHT_BRACKET);
+        }
     }
 
     template <typename TYPE>
@@ -98,7 +103,7 @@ namespace original{
     {
         for (const auto& filter: fs.stream)
         {
-            this->stream.pushEnd(*filter->clone());
+            this->stream.pushEnd(filter);
         }
         for (const auto& op: fs.ops)
         {
@@ -211,26 +216,28 @@ namespace original{
 
         auto it_stream = this->stream.begins();
         auto it_ops = this->ops.begins();
-        while (!it_stream->isNull() || !it_ops->isNull())
+
+        while (!it_stream->isNull())
         {
-            if (!it_stream->isNull() && it_stream->get() != nullptr)
+            if (it_stream->get() != nullptr)
             {
                 value_stack.pushEnd((*it_stream->get())(t));
             }
-            if (!it_ops->isNull())
+            else
             {
-                switch (it_ops->get())
+                if (!it_ops->isNull())
                 {
-                    case opts::NOT:
-                        {
+                    switch (it_ops->get())
+                    {
+                        case opts::NOT:
                             value_stack.pushEnd(!value_stack.popEnd());
                             break;
-                        }
-                    case opts::AND:
-                    case opts::OR:
-                        {
-                            while (operator_stack.size() != 0 && operator_stack[-1] != opts::LEFT_BRACKET &&
-                                  (operator_stack[-1] == opts::AND || operator_stack[-1] == opts::OR))
+
+                        case opts::AND:
+                        case opts::OR:
+                            while (operator_stack.size() != 0 &&
+                                   operator_stack[-1] != opts::LEFT_BRACKET &&
+                                   (operator_stack[-1] == opts::AND || operator_stack[-1] == opts::OR))
                             {
                                 opts op = operator_stack.popEnd();
                                 const bool right = value_stack.popEnd();
@@ -239,14 +246,12 @@ namespace original{
                             }
                             operator_stack.pushEnd(it_ops->get());
                             break;
-                        }
-                    case opts::LEFT_BRACKET:
-                        {
+
+                        case opts::LEFT_BRACKET:
                             operator_stack.pushEnd(it_ops->get());
                             break;
-                        }
-                    case opts::RIGHT_BRACKET:
-                        {
+
+                        case opts::RIGHT_BRACKET:
                             while (operator_stack.size() != 0 && operator_stack[-1] != opts::LEFT_BRACKET)
                             {
                                 opts op = operator_stack.popEnd();
@@ -256,12 +261,14 @@ namespace original{
                             }
                             operator_stack.popEnd();
                             break;
-                        }
-                    default: {}
+
+                        default:
+                            break;
+                    }
+                    it_ops->next();
                 }
             }
-            if (!it_stream->isNull()) it_stream->next();
-            if (!it_ops->isNull()) it_ops->next();
+            it_stream->next();
         }
 
         while (operator_stack.size() != 0)
