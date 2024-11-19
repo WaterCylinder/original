@@ -153,5 +153,9 @@ int main()
               || original::equalFilter(4))
               && !original::equalFilter(2))
     << std::endl;
+    std::cout << "numbers of v6 in range [1, 3]: "
+    << original::algorithms::count(*v6.begins(), *v6.ends(),
+               original::group(original::rangeFilter(1, 3)))
+    << std::endl;
     return 0;
 }
