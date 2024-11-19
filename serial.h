@@ -45,13 +45,13 @@ namespace original{
         this->pushEnd(e);
     }
 
-template <typename TYPE>
+    template <typename TYPE>
     auto original::serial<TYPE>::operator[](const int index) const -> TYPE
     {
         return this->get(index);
     }
 
-template <typename TYPE>
+    template <typename TYPE>
     auto original::serial<TYPE>::contains(TYPE e) const -> bool
     {
         return this->indexOf(e) != this->size();

@@ -67,12 +67,12 @@ namespace original {
     template <typename TYPE>
     auto original::printable::formatEnum(const TYPE& t) -> std::string
     {
-        std::string enumName = typeid(t).name();
+        const std::string enumName = typeid(t).name();
         const int enumValue = static_cast<std::underlying_type_t<TYPE>>(t);
         return enumName + "(" + std::to_string(enumValue) + ")";
     }
 
-template<>
+    template<>
     inline auto original::printable::formatString<std::string>(const std::string& t) -> std::string
     {
         return "\"" + t + "\"";

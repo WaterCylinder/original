@@ -60,7 +60,7 @@ namespace original{
     template <typename TYPE>
     auto original::filterStream<TYPE>::addBrackets() const -> void
     {
-        if (this->ops.size() == 0 ||
+        if (this->ops.empty() ||
             this->ops[0] != opts::LEFT_BRACKET ||
             this->ops[-1] != opts::RIGHT_BRACKET)
         {
