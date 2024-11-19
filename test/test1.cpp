@@ -165,5 +165,7 @@ int main(){
         arr7[i] = arr;
     }
     std::cout << arr7 << std::endl;
+    original::vector<int> vector4 = {1, 2, 3, 4, 5, 6};
+    std::cout << "vector4: " << vector4 << std::endl;
     return 0;
 }

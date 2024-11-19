@@ -8,14 +8,14 @@ namespace original{
     template<typename TYPE>
     class filterStream
     {
-        enum class opts{AND, OR, NOT, LEFT_BRACKET, RIGHT_BRACKET};
+        enum class opts{AND = 1, OR = 0, NOT = 2, LEFT_BRACKET = 3, RIGHT_BRACKET = 3};
 
         mutable chain<std::shared_ptr<filter<TYPE>>> stream;
         mutable chain<opts> ops;
 
         protected:
             explicit filterStream();
-            void addBrackets() const;
+            void addBrackets();
             void addAndOpt();
             void addOrOpt();
             void addNotOpt();
@@ -40,6 +40,10 @@ namespace original{
             friend filterStream<T> operator||(const filter<T>& f, const filterStream<T>& ofs);
             template<typename T>
             friend filterStream<T> operator!(const filter<T>& f);
+            template<typename T>
+            friend filterStream<T> group(const filterStream<T>& ofs);
+            template<typename T>
+            friend filterStream<T> group(const filter<T>& f);
     };
 
     template<typename T>
@@ -52,23 +56,22 @@ namespace original{
     filterStream<T> operator||(const filter<T>& f, const filterStream<T>& ofs);
     template<typename T>
     filterStream<T> operator!(const filter<T>& f);
+    template<typename T>
+    filterStream<T> group(const filterStream<T>& ofs);
+    template<typename T>
+    filterStream<T> group(const filter<T>& f);
 } // namespace original
 
     template <typename TYPE>
     original::filterStream<TYPE>::filterStream() : stream(), ops() {}
 
     template <typename TYPE>
-    auto original::filterStream<TYPE>::addBrackets() const -> void
+    auto original::filterStream<TYPE>::addBrackets() -> void
     {
-        if (this->ops.empty() ||
-            this->ops[0] != opts::LEFT_BRACKET ||
-            this->ops[-1] != opts::RIGHT_BRACKET)
-        {
-            this->stream.pushBegin(nullptr);
-            this->stream.pushEnd(nullptr);
-            this->ops.pushBegin(opts::LEFT_BRACKET);
-            this->ops.pushEnd(opts::RIGHT_BRACKET);
-        }
+        this->stream.pushBegin(nullptr);
+        this->stream.pushEnd(nullptr);
+        this->ops.pushBegin(opts::LEFT_BRACKET);
+        this->ops.pushEnd(opts::RIGHT_BRACKET);
     }
 
     template <typename TYPE>
@@ -114,7 +117,6 @@ namespace original{
     template <typename TYPE>
     auto original::filterStream<TYPE>::operator&&(const filter<TYPE>& f) -> filterStream&
     {
-        this->addBrackets();
         this->addAndOpt();
         this->pushEnd(f);
         return *this;
@@ -123,9 +125,7 @@ namespace original{
     template <typename TYPE>
     auto original::filterStream<TYPE>::operator&&(const filterStream& fs) -> filterStream&
     {
-        this->addBrackets();
         this->addAndOpt();
-        fs.addBrackets();
         this->pushAll(fs);
         return *this;
     }
@@ -133,7 +133,6 @@ namespace original{
     template <typename TYPE>
     auto original::filterStream<TYPE>::operator||(const filter<TYPE>& f) -> filterStream&
     {
-        this->addBrackets();
         this->addOrOpt();
         this->pushEnd(f);
         return *this;
@@ -142,9 +141,7 @@ namespace original{
     template <typename TYPE>
     auto original::filterStream<TYPE>::operator||(const filterStream& fs) -> filterStream&
     {
-        this->addBrackets();
         this->addOrOpt();
-        fs.addBrackets();
         this->pushAll(fs);
         return *this;
     }
@@ -152,8 +149,8 @@ namespace original{
     template <typename TYPE>
     auto original::filterStream<TYPE>::operator!() -> filterStream&
     {
-        this->addNotOpt();
         this->addBrackets();
+        this->addNotOpt();
         return *this;
     }
 
@@ -173,7 +170,6 @@ namespace original{
         filterStream<TYPE> fs;
         fs.pushEnd(f);
         fs.addAndOpt();
-        ofs.addBrackets();
         fs.pushAll(ofs);
         return fs;
     }
@@ -194,7 +190,6 @@ namespace original{
         filterStream<TYPE> fs;
         fs.pushEnd(f);
         fs.addOrOpt();
-        ofs.addBrackets();
         fs.pushAll(ofs);
         return fs;
     }
@@ -208,6 +203,21 @@ namespace original{
         return fs;
     }
 
+    template<typename TYPE>
+    original::filterStream<TYPE> original::group(const filterStream<TYPE> &ofs) {
+        filterStream<TYPE> fs;
+        fs.pushAll(ofs);
+        fs.addBrackets();
+        return fs;
+    }
+
+    template<typename TYPE>
+    original::filterStream<TYPE> original::group(const filter<TYPE> &f) {
+        filterStream<TYPE> fs;
+        fs.pushEnd(f);
+        return fs;
+    }
+
     template <typename TYPE>
     bool original::filterStream<TYPE>::operator()(const TYPE& t) const
     {
@@ -216,7 +226,6 @@ namespace original{
 
         auto it_stream = this->stream.begins();
         auto it_ops = this->ops.begins();
-
 
         while (!it_stream->isNull())
         {
