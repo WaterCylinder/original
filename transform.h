@@ -18,7 +18,7 @@ namespace original{
 
     template<typename TYPE>
     class addOptTransform final : public transform<TYPE>{
-            TYPE t;
+            TYPE t_;
             void apply(TYPE &t) override;
         public:
             addOptTransform* clone() const override;
@@ -27,7 +27,7 @@ namespace original{
 
     template<typename TYPE>
     class assignOptTransform final : public transform<TYPE>{
-            TYPE val;
+            TYPE val_;
             void apply(TYPE &t) override;
         public:
             assignOptTransform* clone() const override;
@@ -36,7 +36,7 @@ namespace original{
 
     template<typename TYPE>
     class multiOptTransform final : public transform<TYPE>{
-            TYPE t;
+            TYPE t_;
             void apply(TYPE &t) override;
         public:
             multiOptTransform* clone() const override;
@@ -79,7 +79,7 @@ namespace original{
 
     template<typename TYPE>
     original::assignOptTransform<TYPE>::assignOptTransform(const TYPE& val)
-        : val(val) {}
+        : val_(val) {}
 
     template <typename TYPE>
     auto original::assignOptTransform<TYPE>::clone() const -> assignOptTransform*
@@ -90,11 +90,11 @@ namespace original{
     template<typename TYPE>
     auto original::assignOptTransform<TYPE>::apply(TYPE& t) -> void
     {
-        t = this->val;
+        t = this->val_;
     }
 
     template<typename TYPE>
-    original::addOptTransform<TYPE>::addOptTransform(const TYPE &t) : t(t) {}
+    original::addOptTransform<TYPE>::addOptTransform(const TYPE &t) : t_(t) {}
 
     template <typename TYPE>
     auto original::addOptTransform<TYPE>::clone() const -> addOptTransform*
@@ -105,11 +105,11 @@ namespace original{
     template<typename TYPE>
     auto original::addOptTransform<TYPE>::apply(TYPE& t) -> void
     {
-        t = t + this->t;
+        t = t + this->t_;
     }
 
     template<typename TYPE>
-    original::multiOptTransform<TYPE>::multiOptTransform(const TYPE &t) : t(t) {}
+    original::multiOptTransform<TYPE>::multiOptTransform(const TYPE &t) : t_(t) {}
 
     template <typename TYPE>
     auto original::multiOptTransform<TYPE>::clone() const -> multiOptTransform*
@@ -120,7 +120,7 @@ namespace original{
     template<typename TYPE>
     auto original::multiOptTransform<TYPE>::apply(TYPE& t) -> void
     {
-        t = t * this->t;
+        t = t * this->t_;
     }
 
     template <typename TYPE>

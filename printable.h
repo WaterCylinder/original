@@ -1,6 +1,8 @@
 #ifndef PRINTABLE_H
 #define PRINTABLE_H
 #pragma once
+
+#include <memory>
 #include "config.h"
 #include "sstream"
 
@@ -57,9 +59,9 @@ namespace original {
     template <typename TYPE>
     auto original::printable::formatCString(const TYPE& t) -> const char*
     {
-        thread_local std::string cached_result;
-        cached_result = formatString<TYPE>(t);
-        return cached_result.c_str();
+        static std::unique_ptr<std::string> result =
+                std::make_unique<std::string>(formatString<TYPE>(t));
+        return result->c_str();
     }
 
     template <typename TYPE>

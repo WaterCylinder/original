@@ -4,7 +4,7 @@
 #include "filter.h"
 
 namespace original{
-
+    // das bug
     template<typename TYPE>
     class filterStream
     {
@@ -152,8 +152,8 @@ namespace original{
     template <typename TYPE>
     auto original::filterStream<TYPE>::operator!() -> filterStream&
     {
-        this->addBrackets();
         this->addNotOpt();
+        this->addBrackets();
         return *this;
     }
 
@@ -217,6 +217,7 @@ namespace original{
         auto it_stream = this->stream.begins();
         auto it_ops = this->ops.begins();
 
+
         while (!it_stream->isNull())
         {
             if (it_stream->get() != nullptr)
@@ -235,7 +236,7 @@ namespace original{
 
                         case opts::AND:
                         case opts::OR:
-                            while (operator_stack.size() != 0 &&
+                            while (!operator_stack.empty() &&
                                    operator_stack[-1] != opts::LEFT_BRACKET &&
                                    (operator_stack[-1] == opts::AND || operator_stack[-1] == opts::OR))
                             {
@@ -252,7 +253,7 @@ namespace original{
                             break;
 
                         case opts::RIGHT_BRACKET:
-                            while (operator_stack.size() != 0 && operator_stack[-1] != opts::LEFT_BRACKET)
+                            while (!operator_stack.empty() && operator_stack[-1] != opts::LEFT_BRACKET)
                             {
                                 opts op = operator_stack.popEnd();
                                 const bool right = value_stack.popEnd();
@@ -271,7 +272,7 @@ namespace original{
             it_stream->next();
         }
 
-        while (operator_stack.size() != 0)
+        while (!operator_stack.empty())
         {
             opts op = operator_stack.popEnd();
             const bool right = value_stack.popEnd();

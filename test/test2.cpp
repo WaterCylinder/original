@@ -102,11 +102,11 @@ int main()
     std::cout << "after6: " << c3 << std::endl;
     original::algorithms::fill(*c3.begins(), *c3.ends(), 10);
     c3.forEach(
-        original::multiOptTransform(5)
-        + (original::addOptTransform(3)
-        + original::addOptTransform(7))
-        + (original::addOptTransform(7)
-        + original::multiOptTransform(3))
+        original::multiOptTransform<int>(5)
+        + (original::addOptTransform<int>(3)
+        + original::addOptTransform<int>(7))
+        + (original::addOptTransform<int>(7)
+        + original::multiOptTransform<int>(3))
     );
     std::cout << "after7: " << c3 << std::endl;
     const auto v5 = original::vector({1, 2, 6, 2, 5, 3, 2});
