@@ -4,14 +4,14 @@
 #include "filter.h"
 
 namespace original{
-    // das bug
     template<typename TYPE>
     class filterStream
     {
-        enum class opts{AND = 1, OR = 0, NOT = 2, LEFT_BRACKET = 3, RIGHT_BRACKET = 3};
+        enum class opts{AND = 1, OR = 0, NOT = 2, LEFT_BRACKET = 3, RIGHT_BRACKET = 4};
 
         mutable chain<std::shared_ptr<filter<TYPE>>> stream;
         mutable chain<opts> ops;
+        mutable bool flag;
 
         protected:
             explicit filterStream();
@@ -21,6 +21,7 @@ namespace original{
             void addNotOpt();
             void pushEnd(const filter<TYPE>& f);
             void pushAll(const filterStream& fs);
+            void toPostFix() const;
         public:
             ~filterStream() = default;
             filterStream& operator&&(const filter<TYPE>& f);
@@ -63,7 +64,7 @@ namespace original{
 } // namespace original
 
     template <typename TYPE>
-    original::filterStream<TYPE>::filterStream() : stream(), ops() {}
+    original::filterStream<TYPE>::filterStream() : stream(), ops(), flag(false) {}
 
     template <typename TYPE>
     auto original::filterStream<TYPE>::addBrackets() -> void
@@ -112,6 +113,58 @@ namespace original{
         {
             this->ops.pushEnd(op);
         }
+    }
+
+    template <typename TYPE>
+    auto original::filterStream<TYPE>::toPostFix() const -> void{
+        this->flag = true;
+
+        chain<std::shared_ptr<filter<TYPE>>> stream_post;
+        chain<opts> ops_post;
+        chain<opts> ops_tmp;
+
+        auto it_stream = this->stream.begins();
+        auto it_ops = this->ops.begins();
+
+        while (!it_stream->isNull()){
+            if (it_stream->get() != nullptr){
+                stream_post.pushEnd(it_stream->get());
+            } else if (!it_ops->isNull()){
+                switch (it_ops->get()) {
+                    case opts::LEFT_BRACKET:
+                        ops_tmp.pushEnd(opts::LEFT_BRACKET);
+                        break;
+                    case opts::RIGHT_BRACKET:
+                        while (!ops_tmp.empty() && ops_tmp[-1] != opts::LEFT_BRACKET){
+                            stream_post.pushEnd(nullptr);
+                            ops_post.pushEnd(ops_tmp.popEnd());
+                        }
+                        ops_tmp.popEnd();
+                        break;
+                    case opts::NOT:
+                        ops_tmp.pushEnd(opts::NOT);
+                        break;
+                    default:
+                        while (!ops_tmp.empty()
+                               && ops_tmp[-1] >= it_ops->get()
+                               && ops_tmp[-1] != opts::LEFT_BRACKET){
+                            stream_post.pushEnd(nullptr);
+                            ops_post.pushEnd(ops_tmp.popEnd());
+                        }
+                        ops_tmp.pushEnd(it_ops->get());
+                        break;
+                }
+                it_ops->next();
+            }
+            it_stream->next();
+        }
+
+        while (!ops_tmp.empty()){
+            stream_post.pushEnd(nullptr);
+            ops_post.pushEnd(ops_tmp.popEnd());
+        }
+        this->stream = stream_post;
+        this->ops = ops_post;
     }
 
     template <typename TYPE>
@@ -221,72 +274,30 @@ namespace original{
     template <typename TYPE>
     bool original::filterStream<TYPE>::operator()(const TYPE& t) const
     {
-        chain<bool> value_stack;
-        chain<opts> operator_stack;
+        if (!this->flag) this->toPostFix();
 
+        chain<bool> value_stack;
         auto it_stream = this->stream.begins();
         auto it_ops = this->ops.begins();
 
-        while (!it_stream->isNull())
-        {
-            if (it_stream->get() != nullptr)
-            {
+        while (!it_stream->isNull()){
+            if (it_stream->get() != nullptr){
                 value_stack.pushEnd((*it_stream->get())(t));
-            }
-            else
-            {
-                if (!it_ops->isNull())
-                {
-                    switch (it_ops->get())
-                    {
-                        case opts::NOT:
-                            value_stack.pushEnd(!value_stack.popEnd());
-                            break;
-
-                        case opts::AND:
-                        case opts::OR:
-                            while (!operator_stack.empty() &&
-                                   operator_stack[-1] != opts::LEFT_BRACKET &&
-                                   (operator_stack[-1] == opts::AND || operator_stack[-1] == opts::OR))
-                            {
-                                opts op = operator_stack.popEnd();
-                                const bool right = value_stack.popEnd();
-                                const bool left = value_stack.popEnd();
-                                value_stack.pushEnd(op == opts::AND ? left && right : left || right);
-                            }
-                            operator_stack.pushEnd(it_ops->get());
-                            break;
-
-                        case opts::LEFT_BRACKET:
-                            operator_stack.pushEnd(it_ops->get());
-                            break;
-
-                        case opts::RIGHT_BRACKET:
-                            while (!operator_stack.empty() && operator_stack[-1] != opts::LEFT_BRACKET)
-                            {
-                                opts op = operator_stack.popEnd();
-                                const bool right = value_stack.popEnd();
-                                const bool left = value_stack.popEnd();
-                                value_stack.pushEnd(op == opts::AND ? left && right : left || right);
-                            }
-                            operator_stack.popEnd();
-                            break;
-
-                        default:
-                            break;
-                    }
-                    it_ops->next();
+            } else if (!it_ops->isNull()){
+                switch (it_ops->get()) {
+                    case opts::NOT:
+                        value_stack[-1] = !value_stack[-1];
+                        break;
+                    default:
+                        bool right = value_stack.popEnd();
+                        bool left = value_stack.popEnd();
+                        value_stack.pushEnd(it_ops->get() == opts::AND ?
+                                            left && right : left || right);
+                        break;
                 }
+                it_ops->next();
             }
             it_stream->next();
-        }
-
-        while (!operator_stack.empty())
-        {
-            opts op = operator_stack.popEnd();
-            const bool right = value_stack.popEnd();
-            const bool left = value_stack.popEnd();
-            value_stack.pushEnd(op == opts::AND ? left && right : left || right);
         }
         return value_stack[-1];
     }

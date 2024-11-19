@@ -110,29 +110,48 @@ int main()
     );
     std::cout << "after7: " << c3 << std::endl;
     const auto v5 = original::vector({1, 2, 6, 2, 5, 3, 2});
-    std::cout << "numbers equal to 5 or 6 in v5: "
+    std::cout << "numbers of v5 equal to 5 or 6: "
         << original::algorithms::count(*v5.begins(), *v5.ends(),
             original::equalFilter(5) || original::equalFilter(6))
         << std::endl;
-    std::cout << "numbers equal to 5 and 6 in v5(impossible): "
+    std::cout << "numbers of v5 equal to 5 and 6(impossible): "
         << original::algorithms::count(*v5.begins(), *v5.ends(),
             original::equalFilter(5) && original::equalFilter(6))
         << std::endl;
-    std::cout << "numbers in range [1, 6) in v5: "
+    std::cout << "numbers of v5 in range [1, 6): "
     << original::algorithms::count(*v5.begins(), *v5.ends(),
         original::rangeFilter(1, 6) && original::notEqualFilter(6))
     << std::endl;
-    std::cout << "numbers in range (1, 6) in v5: "
+    std::cout << "numbers of v5 in range (1, 6): "
     << original::algorithms::count(*v5.begins(), *v5.ends(),
         original::rangeFilter(1, 6)
         && original::notEqualFilter(6)
         && original::notEqualFilter(1))
     << std::endl;
-    std::cout << "numbers in range (1, 6) in v5: "
+    std::cout << "numbers of v5 in range (1, 6): "
     << original::algorithms::count(*v5.begins(), *v5.ends(),
         original::rangeFilter(1, 6)
         && !original::equalFilter(6)
         && !original::equalFilter(1))
-    << std::endl; // wrong result
+    << std::endl;
+    auto v6 = original::vector({1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
+    std::cout << "numbers of v6 in range [1, 4]: "
+    << original::algorithms::count(*v6.begins(), *v6.ends(),
+        original::rangeFilter(1, 3)
+        || original::equalFilter(4)
+        && !original::equalFilter(2))
+    << std::endl;
+    std::cout << "numbers of v6 in range [1, 2) or (2, 4]: "
+    << original::algorithms::count(*v6.begins(), *v6.ends(),
+        original::group(original::group(original::rangeFilter<int>(1, 3))
+                || original::equalFilter(4))
+                && original::group(!original::equalFilter(2)))
+    << std::endl;
+    std::cout << "numbers of v6 in range [1, 2) or (2, 4]: "
+    << original::algorithms::count(*v6.begins(), *v6.ends(),
+              original::group(original::rangeFilter(1, 3)
+              || original::equalFilter(4))
+              && !original::equalFilter(2))
+    << std::endl;
     return 0;
 }
