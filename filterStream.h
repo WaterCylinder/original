@@ -289,8 +289,8 @@ namespace original{
                         value_stack[-1] = !value_stack[-1];
                         break;
                     default:
-                        bool right = value_stack.popEnd();
-                        bool left = value_stack.popEnd();
+                        const bool right = value_stack.popEnd();
+                        const bool left = value_stack.popEnd();
                         value_stack.pushEnd(it_ops->get() == opts::AND ?
                                             left && right : left || right);
                         break;
