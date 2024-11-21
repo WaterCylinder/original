@@ -18,14 +18,14 @@ namespace original
 
         template<typename TYPE, typename Callback>
         static iterator<TYPE> find(const iterator<TYPE>& begin,
-                                   const iterator<TYPE>& end, Callback callback);
+                                   const iterator<TYPE>& end, Callback condition);
 
         template<typename TYPE>
         static size_t count(const iterator<TYPE>& begin, const iterator<TYPE>& end, const TYPE& target);
 
         template<typename TYPE, typename Callback>
         static size_t count(const iterator<TYPE>& begin,
-                            const iterator<TYPE>& end, Callback callback);
+                            const iterator<TYPE>& end, Callback condition);
 
         template<typename TYPE>
         static bool equal(const iterator<TYPE>& begin1, const iterator<TYPE>& end1,
@@ -79,11 +79,11 @@ namespace original
 
     template<typename TYPE, typename Callback>
     auto original::algorithms::find(const iterator<TYPE> &begin, const iterator<TYPE> &end,
-                                    const Callback callback) -> iterator<TYPE>{
+                                    const Callback condition) -> iterator<TYPE>{
         callBackChecker<Callback, bool, const TYPE&>::check();
         iterator it = iterator(begin);
         while (!it.isNull() && !it.equal(end)) {
-            if (callback(it.get())) {
+            if (condition(it.get())) {
                 return it;
             }
             it.next();
@@ -108,13 +108,13 @@ namespace original
 
     template <typename TYPE, typename Callback>
     auto original::algorithms::count(const iterator<TYPE>& begin, const iterator<TYPE>& end,
-                                     const Callback callback) -> size_t
+                                     const Callback condition) -> size_t
     {
         callBackChecker<Callback, bool, const TYPE&>::check();
         size_t cnt = 0;
         iterator it = iterator(begin);
         while (!it.isNull() && !end.atPrev(it)) {
-            if (callback(it.get())) {
+            if (condition(it.get())) {
                 cnt += 1;
             }
             it.next();
