@@ -6,7 +6,6 @@
 #include "couple.h"
 #include "vector.h"
 #include "maths.h"
-#include "comparator.h"
 #include "filterStream.h"
 #include "transformStream.h"
 

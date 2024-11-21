@@ -32,14 +32,22 @@ namespace original
                           const iterator<TYPE>& begin2, const iterator<TYPE>& end2);
 
         template<typename TYPE>
-        static void fill(const iterator<TYPE>& begin,
-                         const iterator<TYPE>& end, const TYPE& value = TYPE{});
+        static iterator<TYPE> fill(const iterator<TYPE>& begin,
+                             const iterator<TYPE>& end, const TYPE& value = TYPE{});
 
         template<typename TYPE>
-        static void fill(const iterator<TYPE>& begin, size_t n, const TYPE& value = TYPE{});
+        static iterator<TYPE> fill(const iterator<TYPE>& begin, size_t n, const TYPE& value = TYPE{});
 
         template<typename TYPE>
         static void swap(iterator<TYPE>& it1, iterator<TYPE>& it2) noexcept;
+
+        template<typename TYPE>
+        static iterator<TYPE> copy(const iterator<TYPE>& begin_src, const iterator<TYPE>& end_src,
+                                   const iterator<TYPE>& begin_tar);
+
+        template<typename TYPE, typename Callback>
+        static iterator<TYPE> copy(const iterator<TYPE>& begin_src, const iterator<TYPE>& end_src,
+                                   const iterator<TYPE>& begin_tar, Callback condition);
     };
 }
 
@@ -138,23 +146,25 @@ namespace original
 
     template<typename TYPE>
     auto original::algorithms::fill(const iterator<TYPE>& begin,
-                                    const iterator<TYPE>& end, const TYPE& value) -> void{
+                                    const iterator<TYPE>& end, const TYPE& value) -> iterator<TYPE> {
         iterator it = iterator(begin);
         while (!it.equal(end)){
             it.set(value);
             it.next();
         }
         it.set(value);
+        return it;
     }
 
     template<typename TYPE>
     auto original::algorithms::fill(const iterator<TYPE>& begin,
-                                    size_t n, const TYPE& value) -> void{
+                                    size_t n, const TYPE& value) -> iterator<TYPE> {
         iterator it = iterator(begin);
         for (int i = 0; i < n; ++i) {
             it.set(value);
             it.next();
         }
+        return it;
     }
 
     template <typename TYPE>
@@ -163,6 +173,41 @@ namespace original
         TYPE tmp = it2.get();
         it2.set(it1.get());
         it1.set(tmp);
+    }
+
+    template <typename TYPE>
+    auto original::algorithms::copy(const iterator<TYPE>& begin_src, const iterator<TYPE>& end_src,
+                        const iterator<TYPE>& begin_tar) -> iterator<TYPE>{
+        iterator it_src = iterator(begin_src);
+        iterator it_tar = iterator(begin_tar);
+        while (!it_src.equal(end_src)){
+            it_tar.set(it_src.get());
+            it_src.next();
+            it_tar.next();
+        }
+        it_tar.set(it_src.get());
+        it_tar.next();
+        return it_tar;
+    }
+
+    template<typename TYPE, typename Callback>
+    auto original::algorithms::copy(const iterator<TYPE>& begin_src, const iterator<TYPE>& end_src,
+                               const iterator<TYPE>& begin_tar, Callback condition) -> iterator<TYPE>{
+        callBackChecker<Callback, bool, const TYPE&>::check();
+        iterator it_src = iterator(begin_src);
+        iterator it_tar = iterator(begin_tar);
+        while (!it_src.equal(end_src)){
+            if (condition(it_src.get())){
+                it_tar.set(it_src.get());
+            }
+            it_src.next();
+            it_tar.next();
+        }
+        if (condition(it_src.get())){
+            it_tar.set(it_src.get());
+        }
+        it_tar.next();
+        return it_tar;
     }
 
 #endif // ALGORITHMS_H

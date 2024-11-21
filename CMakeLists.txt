@@ -10,3 +10,5 @@ include_directories(${CMAKE_SOURCE_DIR})
 add_executable(test1 test/test1.cpp original.h)
 
 add_executable(test2 test/test2.cpp original.h)
+
+add_executable(test3 test/test3.cpp original.h)
