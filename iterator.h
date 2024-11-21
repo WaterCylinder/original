@@ -23,6 +23,7 @@ namespace original {
         iterator operator++(int);
         bool operator==(const iterator& other) const;
         bool operator!=(const iterator& other) const;
+        explicit operator bool() const;
         _GLIBCXX_NODISCARD bool hasNext() const;
         _GLIBCXX_NODISCARD bool hasPrev() const;
         bool atPrev(const iterator* other) const;
@@ -98,6 +99,11 @@ namespace original {
     template<typename TYPE>
     auto original::iterator<TYPE>::operator!=(const iterator& other) const -> bool {
         return !this->equal(other);
+    }
+
+    template<typename TYPE>
+    original::iterator<TYPE>::operator bool() const{
+        return ptr_ != nullptr;
     }
 
     template<typename TYPE>

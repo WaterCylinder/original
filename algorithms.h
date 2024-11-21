@@ -48,6 +48,9 @@ namespace original
         template<typename TYPE, typename Callback>
         static iterator<TYPE> copy(const iterator<TYPE>& begin_src, const iterator<TYPE>& end_src,
                                    const iterator<TYPE>& begin_tar, Callback condition);
+
+        template<typename TYPE>
+        static iterator<TYPE> reverse(const iterator<TYPE>& begin, const iterator<TYPE>& end);
     };
 }
 
@@ -208,6 +211,19 @@ namespace original
         }
         it_tar.next();
         return it_tar;
+    }
+
+    template<typename TYPE>
+    auto original::algorithms::reverse(const iterator<TYPE>& begin,
+                                       const iterator<TYPE>& end) -> iterator<TYPE>{
+        iterator left = iterator(begin);
+        iterator right = iterator(end);
+        while (!left.equal(right) && !left.atNext(right)){
+            swap(left, right);
+            left.next();
+            right.prev();
+        }
+        return left;
     }
 
 #endif // ALGORITHMS_H
