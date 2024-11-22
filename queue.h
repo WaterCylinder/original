@@ -10,7 +10,7 @@ namespace original {
     class queue : public iterationStream<TYPE> {
         SERIAL serial_;
     public:
-        explicit queue(const SERIAL& serial = chain<TYPE>{});
+        explicit queue(const SERIAL& serial = SERIAL{});
         queue(const queue<TYPE, SERIAL>& other);
         queue& operator=(const queue<TYPE, SERIAL>& other);
         _GLIBCXX_NODISCARD size_t size() const;
@@ -68,12 +68,12 @@ namespace original {
 
     template<typename TYPE, typename SERIAL>
     auto original::queue<TYPE, SERIAL>::head() const -> TYPE {
-        return serial_[0];
+        return serial_.get(0);
     }
 
     template<typename TYPE, typename SERIAL>
     auto original::queue<TYPE, SERIAL>::tail() const -> TYPE {
-        return serial_[-1];
+        return serial_.get(-1);
     }
 
     template<typename TYPE, typename SERIAL>

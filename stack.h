@@ -10,7 +10,7 @@ namespace original {
     class stack : public iterationStream<TYPE> {
         SERIAL serial_;
     public:
-        explicit stack(const SERIAL& serial = chain<TYPE>{});
+        explicit stack(const SERIAL& serial = SERIAL{});
         stack(const stack<TYPE, SERIAL>& other);
         stack& operator=(const stack<TYPE, SERIAL>& other);
         _GLIBCXX_NODISCARD size_t size() const;
@@ -67,7 +67,7 @@ namespace original {
 
     template<typename TYPE, typename SERIAL>
     auto original::stack<TYPE, SERIAL>::top() const -> TYPE {
-        return serial_[-1];
+        return serial_.get(-1);
     }
 
     template<typename TYPE, typename SERIAL>

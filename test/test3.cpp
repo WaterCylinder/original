@@ -1,7 +1,6 @@
 #include "stack.h"
 #include <iostream>
 #include <queue.h>
-
 #include "chain.h"
 #include "vector.h"
 #include "algorithms.h"
@@ -45,7 +44,16 @@ int main(){
     std::cout << "q1 after2: " << q1 << std::endl;
     const auto q2 = original::queue(q1);
     std::cout << "q2: " << q2 << std::endl;
-    auto s2 = original::stack<int, original::vector<int>>(original::vector<int>());
+    auto s2 = original::stack<int, original::vector<int>>();
+    std::cout << "s2: " << s2 << std::endl;
+    for (int i = 0; i < 50; ++i) {
+        s2.push(i);
+    }
+    std::cout << "s2: " << s2 << std::endl;
+    for (int i = 0; i < 18; ++i) {
+        s2.pop();
+    }
+    std::cout << "s2.top(): " << s2.top() << std::endl;
     std::cout << "s2: " << s2 << std::endl;
     return 0;
 }
