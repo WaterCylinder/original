@@ -13,6 +13,7 @@ namespace original {
         _GLIBCXX_NODISCARD bool empty() const;
         virtual bool contains(TYPE e) const = 0 ;
         virtual void add(TYPE e) = 0;
+        virtual void clear() = 0;
         virtual ~container() = default;
     };
 }

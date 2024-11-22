@@ -1,6 +1,7 @@
-
-
+#include "stack.h"
 #include <iostream>
+#include <queue.h>
+
 #include "chain.h"
 #include "vector.h"
 #include "algorithms.h"
@@ -26,5 +27,21 @@ int main(){
     std::cout << "c1 before1: " << c1 << std::endl;
     original::algorithms::reverse(*c1.begins(), *c1.ends());
     std::cout << "c1 after1: " << c1 << std::endl;
+    original::stack<int> s1;
+    std::cout << "s1 before1: " << s1 << std::endl;
+    for (int i = 0; i < v1.size(); i++) {
+        s1.push(i);
+    }
+    std::cout << "s1 after1: " << s1 << std::endl;
+    original::queue<int> q1;
+    std::cout << "q1 before1: " << q1 << std::endl;
+    for (int i = 0; i < v1.size(); i++) {
+        q1.push(i);
+    }
+    std::cout << "q1 after1: " << q1 << std::endl;
+    for (int i = 0; i < v1.size() / 2; i++) {
+        q1.pop();
+    }
+    std::cout << "q1 after2: " << q1 << std::endl;
     return 0;
 }

@@ -11,6 +11,7 @@ namespace original{
         _GLIBCXX_NODISCARD int parseNegIndex(int index) const;
     public:
         void add(TYPE e) override;
+        void clear() override;
         virtual TYPE get(int index) const = 0;
         virtual TYPE operator[](int index) const;
         virtual TYPE& operator[](int index) = 0;
@@ -43,6 +44,13 @@ namespace original{
     auto original::serial<TYPE>::add(TYPE e) -> void
     {
         this->pushEnd(e);
+    }
+
+    template<typename TYPE>
+    auto original::serial<TYPE>::clear() -> void {
+        while (!this->empty()) {
+            this->popEnd();
+        }
     }
 
     template <typename TYPE>
