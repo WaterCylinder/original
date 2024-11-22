@@ -1,12 +1,18 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
+#include "chain.h"
+#include <sstream>
+#include <string>
+
 namespace original {
     template<typename TYPE, typename SERIAL = chain<TYPE>>
     class queue : public iterationStream<TYPE>{
         SERIAL serial_;
     public:
         explicit queue(const SERIAL& serial = chain<TYPE>{});
+        explicit queue(const queue<TYPE>& other);
+        queue& operator=(const queue<TYPE>& other);
         _GLIBCXX_NODISCARD size_t size() const;
         _GLIBCXX_NODISCARD bool empty() const;
         void clear();
@@ -22,6 +28,18 @@ namespace original {
 
     template<typename TYPE, typename SERIAL>
     original::queue<TYPE, SERIAL>::queue(const SERIAL& serial) : serial_{serial} {}
+
+    template<typename TYPE, typename SERIAL>
+    original::queue<TYPE, SERIAL>::queue(const queue<TYPE> &other) : queue() {
+        this->operator=(other);
+    }
+
+    template<typename TYPE, typename SERIAL>
+    auto original::queue<TYPE, SERIAL>::operator=(const queue<TYPE> &other) -> queue& {
+        if (this == &other) return *this;
+        serial_ = other.serial_;
+        return *this;
+    }
 
     template<typename TYPE, typename SERIAL>
     auto original::queue<TYPE, SERIAL>::size() const -> size_t {

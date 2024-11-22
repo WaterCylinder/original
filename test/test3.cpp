@@ -43,5 +43,7 @@ int main(){
         q1.pop();
     }
     std::cout << "q1 after2: " << q1 << std::endl;
+    const auto q2 = original::queue(q1);
+    std::cout << "q2: " << q2 << std::endl;
     return 0;
 }
