@@ -3,6 +3,7 @@
 
 #include "algorithms.h"
 #include "array.h"
+#include "blocksList.h"
 #include "chain.h"
 #include "comparator.h"
 #include "config.h"
