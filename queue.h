@@ -12,8 +12,8 @@ namespace original {
         void clear();
         void push(TYPE e);
         TYPE pop();
-        TYPE top() const;
-        TYPE bottom() const;
+        TYPE head() const;
+        TYPE tail() const;
         iterator<TYPE>* begins() const override;
         iterator<TYPE>* ends() const override;
         _GLIBCXX_NODISCARD std::string toString(bool enter) const override;
@@ -49,13 +49,13 @@ namespace original {
     }
 
     template<typename TYPE, typename SERIAL>
-    auto original::queue<TYPE, SERIAL>::top() const -> TYPE {
-        return serial_[-1];
+    auto original::queue<TYPE, SERIAL>::head() const -> TYPE {
+        return serial_[0];
     }
 
     template<typename TYPE, typename SERIAL>
-    auto original::queue<TYPE, SERIAL>::bottom() const -> TYPE {
-        return serial_[0];
+    auto original::queue<TYPE, SERIAL>::tail() const -> TYPE {
+        return serial_[-1];
     }
 
     template<typename TYPE, typename SERIAL>
