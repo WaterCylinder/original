@@ -7,12 +7,12 @@
 
 namespace original {
     template<typename TYPE, typename SERIAL = chain<TYPE>>
-    class queue : public iterationStream<TYPE>{
+    class queue : public iterationStream<TYPE> {
         SERIAL serial_;
     public:
         explicit queue(const SERIAL& serial = chain<TYPE>{});
-        explicit queue(const queue<TYPE>& other);
-        queue& operator=(const queue<TYPE>& other);
+        queue(const queue<TYPE, SERIAL>& other);
+        queue& operator=(const queue<TYPE, SERIAL>& other);
         _GLIBCXX_NODISCARD size_t size() const;
         _GLIBCXX_NODISCARD bool empty() const;
         void clear();
@@ -30,12 +30,12 @@ namespace original {
     original::queue<TYPE, SERIAL>::queue(const SERIAL& serial) : serial_{serial} {}
 
     template<typename TYPE, typename SERIAL>
-    original::queue<TYPE, SERIAL>::queue(const queue<TYPE> &other) : queue() {
+    original::queue<TYPE, SERIAL>::queue(const queue<TYPE, SERIAL>& other) : queue() {
         this->operator=(other);
     }
 
     template<typename TYPE, typename SERIAL>
-    auto original::queue<TYPE, SERIAL>::operator=(const queue<TYPE> &other) -> queue& {
+    auto original::queue<TYPE, SERIAL>::operator=(const queue<TYPE, SERIAL>& other) -> queue& {
         if (this == &other) return *this;
         serial_ = other.serial_;
         return *this;
@@ -89,7 +89,7 @@ namespace original {
     template<typename TYPE, typename SERIAL>
     auto original::queue<TYPE, SERIAL>::toString(const bool enter) const -> std::string {
         std::stringstream ss;
-        ss << "queue" << this->elementsString();;
+        ss << "queue" << this->elementsString();
         if (enter) ss << "\n";
         return ss.str();
     }
