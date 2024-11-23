@@ -11,8 +11,8 @@ namespace original {
         SERIAL serial_;
     public:
         explicit queue(const SERIAL& serial = SERIAL{});
-        queue(const queue<TYPE, SERIAL>& other);
-        queue& operator=(const queue<TYPE, SERIAL>& other);
+        queue(const queue& other);
+        queue& operator=(const queue& other);
         _GLIBCXX_NODISCARD size_t size() const;
         _GLIBCXX_NODISCARD bool empty() const;
         void clear();
@@ -30,12 +30,12 @@ namespace original {
     original::queue<TYPE, SERIAL>::queue(const SERIAL& serial) : serial_{serial} {}
 
     template<typename TYPE, typename SERIAL>
-    original::queue<TYPE, SERIAL>::queue(const queue<TYPE, SERIAL>& other) : queue() {
+    original::queue<TYPE, SERIAL>::queue(const queue& other) : queue() {
         this->operator=(other);
     }
 
     template<typename TYPE, typename SERIAL>
-    auto original::queue<TYPE, SERIAL>::operator=(const queue<TYPE, SERIAL>& other) -> queue& {
+    auto original::queue<TYPE, SERIAL>::operator=(const queue& other) -> queue& {
         if (this == &other) return *this;
         serial_ = other.serial_;
         return *this;

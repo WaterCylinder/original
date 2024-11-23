@@ -11,8 +11,8 @@ namespace original {
         SERIAL serial_;
     public:
         explicit stack(const SERIAL& serial = SERIAL{});
-        stack(const stack<TYPE, SERIAL>& other);
-        stack& operator=(const stack<TYPE, SERIAL>& other);
+        stack(const stack& other);
+        stack& operator=(const stack& other);
         _GLIBCXX_NODISCARD size_t size() const;
         _GLIBCXX_NODISCARD bool empty() const;
         void clear();
@@ -29,12 +29,12 @@ namespace original {
     original::stack<TYPE, SERIAL>::stack(const SERIAL& serial) : serial_{serial} {}
 
     template<typename TYPE, typename SERIAL>
-    original::stack<TYPE, SERIAL>::stack(const stack<TYPE, SERIAL>& other) : stack() {
+    original::stack<TYPE, SERIAL>::stack(const stack& other) : stack() {
         this->operator=(other);
     }
 
     template<typename TYPE, typename SERIAL>
-    auto original::stack<TYPE, SERIAL>::operator=(const stack<TYPE, SERIAL>& other) -> stack& {
+    auto original::stack<TYPE, SERIAL>::operator=(const stack& other) -> stack& {
         if (this == &other) return *this;
         serial_ = other.serial_;
         return *this;
