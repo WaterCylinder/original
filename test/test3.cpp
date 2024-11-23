@@ -5,6 +5,7 @@
 #include "vector.h"
 #include "algorithms.h"
 #include "filter.h"
+#include "blocksList.h"
 
 int main(){
     original::chain<std::string> c1 = {"a", "aa", "bc", "vg", "rtqy", "upn"};
