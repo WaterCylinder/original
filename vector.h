@@ -292,7 +292,7 @@ namespace original{
         this->connectAll();
     }
 
-template <typename TYPE>
+    template <typename TYPE>
     auto original::vector<TYPE>::size() const -> size_t
     {
         return this->size_;
