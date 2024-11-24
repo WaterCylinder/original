@@ -6,6 +6,7 @@
 #include "algorithms.h"
 #include "filter.h"
 #include "blocksList.h"
+#include "transformStream.h"
 
 int main(){
     original::chain<std::string> c1 = {"a", "aa", "bc", "vg", "rtqy", "upn"};
@@ -55,6 +56,14 @@ int main(){
         s2.pop();
     }
     std::cout << "s2.top(): " << s2.top() << std::endl;
+    std::cout << "s2: " << s2 << std::endl;
+    original::algorithms::forEach(*s2.begins(), *s2.ends(), original::addOptTransform(1));
+    std::cout << "s2: " << s2 << std::endl;
+    original::algorithms::forEach(*s2.begins(), 0, original::addOptTransform(-1));
+    std::cout << "s2: " << s2 << std::endl;
+    original::algorithms::forEach(*s2.begins(), s2.size(), original::addOptTransform(1) + original::multiOptTransform(2));
+    std::cout << "s2: " << s2 << std::endl;
+    original::algorithms::fill(*s2.begins(), *s2.begins());
     std::cout << "s2: " << s2 << std::endl;
     return 0;
 }

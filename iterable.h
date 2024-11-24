@@ -52,7 +52,7 @@ namespace original{
     auto original::iterable<TYPE>::forEach(Callback operation) -> void
     {
         callBackChecker<Callback, void, TYPE&>::check();
-        for (auto* it = this->begins(); it != nullptr && !it->isNull(); it->next()) {
+        for (auto* it = this->begins(); !it->isNull(); it->next()) {
             operation(it->get());
         }
     }

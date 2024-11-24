@@ -1,6 +1,7 @@
 #ifndef ALGORITHMS_H
 #define ALGORITHMS_H
 
+#include <filter.h>
 #include <limits>
 #include "iterator.h"
 #include <functional>
@@ -16,9 +17,15 @@ namespace original
         template<typename TYPE>
         static iterator<TYPE> find(const iterator<TYPE>& begin, const iterator<TYPE>& end, const TYPE& target);
 
+        template<typename TYPE>
+        static iterator<TYPE> find(const iterator<TYPE>& begin, size_t n, const TYPE& target);
+
         template<typename TYPE, typename Callback>
         static iterator<TYPE> find(const iterator<TYPE>& begin,
                                    const iterator<TYPE>& end, Callback condition);
+
+        template<typename TYPE, typename Callback>
+        static iterator<TYPE> find(const iterator<TYPE>& begin, size_t n, Callback condition);
 
         template<typename TYPE>
         static size_t count(const iterator<TYPE>& begin, const iterator<TYPE>& end, const TYPE& target);
@@ -31,9 +38,16 @@ namespace original
         static bool equal(const iterator<TYPE>& begin1, const iterator<TYPE>& end1,
                           const iterator<TYPE>& begin2, const iterator<TYPE>& end2);
 
+        template<typename TYPE, typename Callback>
+        static void forEach(const iterator<TYPE>& begin,
+                            const iterator<TYPE>& end, Callback operation);
+
+        template<typename TYPE, typename Callback>
+        static iterator<TYPE> forEach(const iterator<TYPE>& begin, size_t n, Callback operation);
+
         template<typename TYPE>
-        static iterator<TYPE> fill(const iterator<TYPE>& begin,
-                             const iterator<TYPE>& end, const TYPE& value = TYPE{});
+        static void fill(const iterator<TYPE>& begin,
+                         const iterator<TYPE>& end, const TYPE& value = TYPE{});
 
         template<typename TYPE>
         static iterator<TYPE> fill(const iterator<TYPE>& begin, size_t n, const TYPE& value = TYPE{});
@@ -47,7 +61,7 @@ namespace original
 
         template<typename TYPE, typename Callback>
         static iterator<TYPE> copy(const iterator<TYPE>& begin_src, const iterator<TYPE>& end_src,
-                                   const iterator<TYPE>& begin_tar, Callback condition);
+                                   const iterator<TYPE>& begin_tar, Callback condition = filter<TYPE>{});
 
         template<typename TYPE>
         static iterator<TYPE> reverse(const iterator<TYPE>& begin, const iterator<TYPE>& end);
@@ -88,6 +102,17 @@ namespace original
         return end;
     }
 
+    template <typename TYPE>
+    auto original::algorithms::find(const iterator<TYPE>& begin, const size_t n, const TYPE& target) -> iterator<TYPE>
+    {
+        auto it = iterator(begin);
+        for (size_t i = 0; i < n; i += 1, it.next())
+        {
+            if (it.get() == target) return it;
+        }
+        return it;
+    }
+
     template<typename TYPE, typename Callback>
     auto original::algorithms::find(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                     const Callback condition) -> iterator<TYPE>{
@@ -100,6 +125,18 @@ namespace original
             it.next();
         }
         return end;
+    }
+
+    template <typename TYPE, typename Callback>
+    auto original::algorithms::find(const iterator<TYPE>& begin, const size_t n, Callback condition) -> iterator<TYPE>
+    {
+        callBackChecker<Callback, bool, const TYPE&>::check();
+        iterator it = iterator(begin);
+        for (size_t i = 0; i < n; i += 1, it.next())
+        {
+            if (condition(it.get())) return it;
+        }
+        return it;
     }
 
     template <typename TYPE>
@@ -147,21 +184,46 @@ namespace original
         return it1.equal(end1) && it2.equal(end2) && it1.get() == it2.get();
     }
 
+    template <typename TYPE, typename Callback>
+    auto original::algorithms::forEach(const iterator<TYPE>& begin, const iterator<TYPE>& end,
+                                       Callback operation) -> void
+    {
+        callBackChecker<Callback, void, TYPE&>::check();
+        auto it = iterator(begin);
+        for (; !it.equal(end); it.next()) {
+            operation(it.get());
+        }
+        operation(it.get());
+    }
+
+    template <typename TYPE, typename Callback>
+    auto original::algorithms::forEach(const iterator<TYPE>& begin, size_t n,
+                                       Callback operation) -> iterator<TYPE>
+    {
+        callBackChecker<Callback, void, TYPE&>::check();
+        auto it = iterator(begin);
+        for (size_t i = 0; i < n; i += 1, it.next())
+        {
+            operation(it.get());
+        }
+        return it;
+    }
+
     template<typename TYPE>
     auto original::algorithms::fill(const iterator<TYPE>& begin,
-                                    const iterator<TYPE>& end, const TYPE& value) -> iterator<TYPE> {
+                                    const iterator<TYPE>& end, const TYPE& value) -> void
+    {
         iterator it = iterator(begin);
         while (!it.equal(end)){
             it.set(value);
             it.next();
         }
         it.set(value);
-        return it;
     }
 
     template<typename TYPE>
     auto original::algorithms::fill(const iterator<TYPE>& begin,
-                                    size_t n, const TYPE& value) -> iterator<TYPE> {
+                                    const size_t n, const TYPE& value) -> iterator<TYPE> {
         iterator it = iterator(begin);
         for (int i = 0; i < n; ++i) {
             it.set(value);
