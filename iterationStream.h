@@ -11,6 +11,7 @@ namespace original{
     protected:
         _GLIBCXX_NODISCARD std::string elementsString() const;
     public:
+        _GLIBCXX_NODISCARD std::string className() const override;
         std::string toString(bool enter) const override;
 
         template<typename U>
@@ -42,11 +43,17 @@ namespace original{
         return ss.str();
     }
 
+    template <typename TYPE>
+    std::string original::iterationStream<TYPE>::className() const
+    {
+        return "iterationStream";
+    }
+
     template<typename TYPE>
     auto original::iterationStream<TYPE>::toString(const bool enter) const -> std::string
     {
         std::stringstream ss;
-        ss << "iterationStream" << this->elementsString();
+        ss << this->className() << this->elementsString();
         if (enter) ss << "\n";
         return ss.str();
     }

@@ -11,12 +11,14 @@ namespace original {
         mutable std::string cachedString;
     public:
         virtual ~printable() = 0;
-
+        _GLIBCXX_NODISCARD virtual std::string className() const;
         _GLIBCXX_NODISCARD virtual std::string toString(bool enter) const;
         _GLIBCXX_NODISCARD const char* toCString(bool enter) const;
 
         template<typename TYPE>
         static std::string formatString(const TYPE& t);
+        template <typename TYPE>
+        static std::string formatString(TYPE* const& ptr);
         template<typename TYPE>
         static const char* formatCString(const TYPE& t);
         template<typename TYPE>
@@ -30,10 +32,15 @@ namespace original {
 
     inline original::printable::~printable() = default;
 
-    inline std::string original::printable::toString(const bool enter) const
+    inline auto original::printable::className() const -> std::string
+    {
+        return "printable";
+    }
+
+    inline auto original::printable::toString(const bool enter) const -> std::string
     {
         std::stringstream ss;
-        ss << typeid(this).name() << "(#" << this << ")";
+        ss << this->className() << "(" << formatString(this) << ")";
         if (enter) ss << "\n";
         return ss.str();
     }
@@ -90,10 +97,15 @@ namespace original {
         return t != 0 ? "true" : "false";
     }
 
-    template<>
-    inline auto original::printable::formatString<std::nullptr_t>(const std::nullptr_t&) -> std::string
+    template <typename TYPE>
+    auto original::printable::formatString(TYPE* const& ptr) -> std::string
     {
-        return "nullptr";
+        if (ptr == nullptr) {
+            return "nullptr";
+        }
+        std::stringstream ss;
+        ss << "#" << ptr;
+        return ss.str();
     }
 
     inline std::ostream& original::operator<<(std::ostream& os, const printable& p){

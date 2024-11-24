@@ -21,7 +21,7 @@ namespace original {
         TYPE top() const;
         iterator<TYPE>* begins() const override;
         iterator<TYPE>* ends() const override;
-        _GLIBCXX_NODISCARD std::string toString(bool enter) const override;
+        _GLIBCXX_NODISCARD std::string className() const override;
     };
 } // namespace original
 
@@ -80,12 +80,10 @@ namespace original {
         return serial_.ends();
     }
 
-    template<typename TYPE, typename SERIAL>
-    auto original::stack<TYPE, SERIAL>::toString(const bool enter) const -> std::string {
-        std::stringstream ss;
-        ss << "stack" << this->elementsString();
-        if (enter) ss << "\n";
-        return ss.str();
+    template <typename TYPE, typename SERIAL>
+    auto original::stack<TYPE, SERIAL>::className() const -> std::string
+    {
+        return "stack";
     }
 
 #endif // STACK_H

@@ -1,6 +1,5 @@
 #ifndef COUPLE_H
 #define COUPLE_H
-#include <variant>
 
 #include "printable.h"
 
@@ -21,6 +20,7 @@ namespace original
         F_TYPE& first();
         S_TYPE& second();
         ~couple() override;
+        _GLIBCXX_NODISCARD std::string className() const override;
         _GLIBCXX_NODISCARD std::string toString(bool enter) const override;
     };
 }
@@ -71,10 +71,16 @@ template <typename F_TYPE, typename S_TYPE>
     original::couple<F_TYPE, S_TYPE>::~couple() = default;
 
     template <typename F_TYPE, typename S_TYPE>
+    auto original::couple<F_TYPE, S_TYPE>::className() const -> std::string
+    {
+        return "couple";
+    }
+
+    template <typename F_TYPE, typename S_TYPE>
     auto original::couple<F_TYPE, S_TYPE>::toString(const bool enter) const -> std::string
     {
         std::stringstream ss;
-        ss << "couple" << "(" << "first: " << formatString(this->first_)
+        ss << this->className() << "(" << "first: " << formatString(this->first_)
            << ", " << "second: " << formatString(this->second_) << ")";
         if (enter) ss << "\n";
         return ss.str();

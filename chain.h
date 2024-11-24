@@ -56,7 +56,7 @@ namespace original {
         TYPE popEnd() override;
         iterator<TYPE>* begins() const override;
         iterator<TYPE>* ends() const override;
-        _GLIBCXX_NODISCARD std::string toString(bool enter) const override;
+        _GLIBCXX_NODISCARD std::string className() const override;
         ~chain() override;
     };
 }
@@ -226,6 +226,12 @@ namespace original {
     auto original::chain<TYPE>::ends() const -> iterator<TYPE>*
     {
         return new iterator(end_);
+    }
+
+    template <typename TYPE>
+    auto original::chain<TYPE>::className() const -> std::string
+    {
+        return "chain";
     }
 
     template <typename TYPE>
@@ -462,15 +468,6 @@ template <typename TYPE>
         }
         this->size_ -= 1;
         return res;
-    }
-
-    template <typename TYPE>
-    auto original::chain<TYPE>::toString(const bool enter) const -> std::string
-    {
-        std::stringstream ss;
-        ss << "chain" << this->elementsString();
-        if (enter) ss << "\n";
-        return ss.str();
     }
 
     template <typename TYPE>

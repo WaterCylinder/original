@@ -3,6 +3,7 @@
 
 #include <couple.h>
 #include <iterationStream.h>
+#include "serial.h"
 
 namespace original {
     // todo
@@ -50,6 +51,7 @@ namespace original {
     public:
         explicit blocksList();
         TYPE get(int index) const override;
+        _GLIBCXX_NODISCARD std::string className() const override;
     };
 }// namespace original
 
@@ -226,6 +228,12 @@ namespace original {
         index = this->parseNegIndex(index);
         auto idx = this->toInnerIdx(index);
         return this->map.get(idx.first())[idx.second()];
+    }
+
+    template <typename TYPE>
+    auto original::blocksList<TYPE>::className() const -> std::string
+    {
+        return "blocksList";
     }
 
 #endif //BLOCKSLIST_H

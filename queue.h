@@ -22,7 +22,7 @@ namespace original {
         TYPE tail() const;
         iterator<TYPE>* begins() const override;
         iterator<TYPE>* ends() const override;
-        _GLIBCXX_NODISCARD std::string toString(bool enter) const override;
+        _GLIBCXX_NODISCARD std::string className() const override;
     };
 }
 
@@ -86,12 +86,10 @@ namespace original {
         return serial_.ends();
     }
 
-    template<typename TYPE, typename SERIAL>
-    auto original::queue<TYPE, SERIAL>::toString(const bool enter) const -> std::string {
-        std::stringstream ss;
-        ss << "queue" << this->elementsString();
-        if (enter) ss << "\n";
-        return ss.str();
+    template <typename TYPE, typename SERIAL>
+    std::string original::queue<TYPE, SERIAL>::className() const
+    {
+        return "queue";
     }
 
 #endif //QUEUE_H

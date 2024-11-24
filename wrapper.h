@@ -18,15 +18,23 @@ namespace original
         virtual wrapper* getPPrev() const = 0;
         virtual wrapper* getPNext() const = 0;
         ~wrapper() override = default;
+        _GLIBCXX_NODISCARD std::string className() const override;
         _GLIBCXX_NODISCARD std::string toString(bool enter) const override;
     };
 
 }
+
+    template <typename TYPE>
+    auto original::wrapper<TYPE>::className() const -> std::string
+    {
+        return "wrapper";
+    }
+
     template<typename TYPE>
     auto original::wrapper<TYPE>::toString(const bool enter) const -> std::string
     {
         std::stringstream ss;
-        ss << "wrapper" << "(#" << this << ", " << formatString(this->getVal()) << ")";
+        ss << this->className() << "(" << formatString(this) << ", " << formatString(this->getVal()) << ")";
         if (enter) ss << "\n";
         return ss.str();
     }

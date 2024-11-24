@@ -42,6 +42,7 @@ namespace original {
         bool equal(const iterator* other) const;
         bool equal(const iterator& other) const;
         _GLIBCXX_NODISCARD bool isNull() const;
+        _GLIBCXX_NODISCARD std::string className() const override;
         std::string toString(bool enter) const override;
         ~iterator() override = default;
     };
@@ -233,16 +234,18 @@ namespace original {
         return this->ptr_ == nullptr;
     }
 
+    template <typename TYPE>
+    std::string original::iterator<TYPE>::className() const
+    {
+        return "iterator";
+    }
+
     template<typename TYPE>
     auto original::iterator<TYPE>::toString(const bool enter) const -> std::string {
         std::stringstream ss;
-        if (this->isNull())
-        {
-            ss << "iterator" << "(" << "nullptr" << ")";
-        }else
-        {
-            ss << "iterator" << "(#" << this->ptr_ << ", " << formatString(this->get()) << ")";
-        }
+        ss << this->className() << "(" << formatString(this->ptr_);
+        if (!this->isNull()) ss << ", " << formatString(this->get());
+        ss << ")";
         if (enter) {
             ss << "\n";
         }

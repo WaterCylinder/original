@@ -37,6 +37,7 @@ namespace original{
         TYPE popBegin() override;
         TYPE pop(int index) override;
         TYPE popEnd() override;
+        _GLIBCXX_NODISCARD std::string className() const override;
         std::string toString(bool enter) const override;
     };
 
@@ -196,10 +197,16 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
+    std::string original::array<TYPE>::className() const
+    {
+        return "array";
+    }
+
+    template <typename TYPE>
     auto original::array<TYPE>::toString(const bool enter) const -> std::string
     {
         std::stringstream ss;
-        ss << "array" << "(";
+        ss << this->className() << "(";
         for (size_t i = 0; i < this->size_; ++i) {
             ss << formatString(this->body[i]);
             if (i < this->size_ - 1) {

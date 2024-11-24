@@ -65,7 +65,7 @@ namespace original{
         TYPE popEnd() override;
         iterator<TYPE>* begins() const override;
         iterator<TYPE>* ends() const override;
-        _GLIBCXX_NODISCARD std::string toString(bool enter) const override;
+        _GLIBCXX_NODISCARD std::string className() const override;
         ~vector() override;
     };
 }
@@ -481,12 +481,9 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::toString(const bool enter) const -> std::string
+    auto original::vector<TYPE>::className() const -> std::string
     {
-        std::stringstream ss;
-        ss << "vector" << this->elementsString();
-        if (enter) ss << "\n";
-        return ss.str();
+        return "vector";
     }
 
     template <typename TYPE>
