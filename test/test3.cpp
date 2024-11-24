@@ -65,5 +65,12 @@ int main(){
     std::cout << "s2: " << s2 << std::endl;
     original::algorithms::fill(*s2.begins(), *s2.begins());
     std::cout << "s2: " << s2 << std::endl;
+    auto c2 = original::chain({1, 3, 6, 9, 8, 4, 2});
+    auto c3 = original::chain({7, 5});
+    std::cout << c2 << " size: " << c2.size() << std::endl;
+    std::cout << c3 << " size: " << c3.size() << std::endl;
+    c2 += c3;
+    std::cout << c2 << " size: " << c2.size() << std::endl;
+    std::cout << c3 << " size: " << c3.size() << std::endl;
     return 0;
 }

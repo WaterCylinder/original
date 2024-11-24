@@ -43,6 +43,7 @@ namespace original {
         explicit chain(array<TYPE> arr);
         chain& operator=(const chain& other);
         bool operator==(const chain& other) const;
+        void operator+=(chain& other);
         _GLIBCXX_NODISCARD size_t size() const override;
         TYPE get(int index) const override;
         TYPE& operator[](int index) override;
@@ -208,6 +209,19 @@ namespace original {
             }
         }
         return true;
+    }
+
+    template <typename TYPE>
+    auto original::chain<TYPE>::operator+=(chain& other) -> void
+    {
+        if (other.empty()) return;
+
+        this->size_ += other.size_;
+        chainNode::connect(this->end_, other.begin_);
+        this->end_ = other.end_;
+        other.size_ = 0;
+        other.begin_ = nullptr;
+        other.end_ = nullptr;
     }
 
     template <typename TYPE>
