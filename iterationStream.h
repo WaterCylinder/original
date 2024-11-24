@@ -13,17 +13,7 @@ namespace original{
     public:
         _GLIBCXX_NODISCARD std::string className() const override;
         std::string toString(bool enter) const override;
-
-        template<typename U>
-        friend std::ostream& operator<<(std::ostream& os, const iterationStream<U>& i);
     };
-
-    template<typename TYPE>
-    auto operator<<(std::ostream& os, const iterationStream<TYPE>& i) -> std::ostream&
-    {
-        os << i.toString(false);
-        return os;
-    }
 }
 
     template<typename TYPE>
