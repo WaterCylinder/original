@@ -2,7 +2,6 @@
 #define STACK_H
 
 #include "chain.h"
-#include <sstream>
 #include <string>
 
 namespace original {
