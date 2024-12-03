@@ -75,7 +75,7 @@ int main(){
     printf("Does chain3 contains 100: %s\n", original::printable::formatCString(chain3.contains(100)));
     printf("-3**-3=%f, 0**4=%f, 2**0=%f, 5.2**6=%f\n",
         original::pow(-3, -3), original::pow(0, 4), original::pow(2, 0), original::pow(5.2, 6));
-    while (chain3.size() > 0){
+    while (!chain3.empty()){
         int midIndex = static_cast<int>(chain3.size() / 2);
         chain3.pop(midIndex);
         printf("chain3: %s", chain3.toCString(true));
@@ -93,7 +93,7 @@ int main(){
      });
     printf("vector1: %s", vector1.toCString(true));
     printf("\n");
-    while (vector1.size() > 0) {
+    while (!vector1.empty()) {
         int midIndex = static_cast<int>(vector1.size() / 2);
         vector1.pop(midIndex);
         printf("vector1: %s", vector1.toCString(true));

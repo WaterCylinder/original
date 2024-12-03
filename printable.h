@@ -8,7 +8,6 @@
 
 namespace original {
     class printable {
-        mutable std::string cachedString;
     public:
         virtual ~printable() = 0;
         _GLIBCXX_NODISCARD virtual std::string className() const;
@@ -47,8 +46,9 @@ namespace original {
 
     _GLIBCXX_NODISCARD inline auto original::printable::toCString(const bool enter) const -> const char*
     {
-        this->cachedString = this->toString(enter);
-        return this->cachedString.c_str();
+        static auto result =
+            std::make_unique<std::string>(this->toString(enter));
+        return result->c_str();
     }
 
     template<typename TYPE>
@@ -66,7 +66,7 @@ namespace original {
     template <typename TYPE>
     auto original::printable::formatCString(const TYPE& t) -> const char*
     {
-        static std::unique_ptr<std::string> result =
+        static auto result =
                 std::make_unique<std::string>(formatString<TYPE>(t));
         return result->c_str();
     }
