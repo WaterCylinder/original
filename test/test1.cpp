@@ -4,6 +4,8 @@
 #include "chain.h"
 #include "maths.h"
 #include "vector.h"
+#include "_iterator.h"
+#include "randomAccessIterator.h"
 
 int main(){
     auto arr1 = original::array<int>(4);
