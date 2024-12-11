@@ -38,7 +38,7 @@ namespace original{
         TYPE pop(int index) override;
         TYPE popEnd() override;
         _GLIBCXX_NODISCARD std::string className() const override;
-        std::string toString(bool enter) const override;
+        _GLIBCXX_NODISCARD std::string toString(bool enter) const override;
     };
 
 }
@@ -102,7 +102,7 @@ namespace original{
         return true;
     }
 
-template <typename TYPE>
+    template <typename TYPE>
     original::array<TYPE>::array(array&& other) _GLIBCXX_NOEXCEPT
         : size_(other.size_), body(other.body) {
         other.size_ = 0;

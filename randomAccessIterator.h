@@ -7,12 +7,13 @@ namespace original{
     template<typename TYPE>
     class RandomAccessIterator final : public Iterator<TYPE>{
         mutable TYPE* _ptr;
-        container<TYPE>* _container;
+        mutable const container<TYPE>* _container;
         mutable long long _pos;
 
-        explicit RandomAccessIterator(TYPE* ptr, container<TYPE>* container, long long pos);
+        explicit RandomAccessIterator(TYPE* ptr, const container<TYPE>* container, long long pos);
     public:
-        // 赋值构造等待实现
+        RandomAccessIterator(const RandomAccessIterator& other);
+        RandomAccessIterator& operator=(const RandomAccessIterator& other);
         _GLIBCXX_NODISCARD bool hasNext() const override;
         _GLIBCXX_NODISCARD bool hasPrev() const override;
         bool atPrev(const Iterator<TYPE>* other) const override;
@@ -32,9 +33,26 @@ namespace original{
 }
 
     template<typename TYPE>
-    original::RandomAccessIterator<TYPE>::RandomAccessIterator(TYPE *ptr, container<TYPE> *container,
+    original::RandomAccessIterator<TYPE>::RandomAccessIterator(TYPE *ptr, const container<TYPE>* container,
                                                                const long long pos)
         : _ptr{ptr}, _container{container}, _pos(pos) {}
+
+    template<typename TYPE>
+    original::RandomAccessIterator<TYPE>::RandomAccessIterator(const RandomAccessIterator &other) : _pos(0) {
+        this->operator=(other);
+    }
+
+    template<typename TYPE>
+    auto original::RandomAccessIterator<TYPE>::operator=(
+        const RandomAccessIterator &other) -> RandomAccessIterator& {
+        if (this != &other) {
+            return *this;
+        }
+        this->_ptr = other._ptr;
+        this->_container = other._container;
+        this->_pos = other._pos;
+        return *this;
+    }
 
     template<typename TYPE>
     auto original::RandomAccessIterator<TYPE>::hasNext() const -> bool {

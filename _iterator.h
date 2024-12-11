@@ -9,6 +9,8 @@ namespace original {
             const TYPE& operator*() const;
             Iterator& operator++();
             Iterator& operator++(int);
+            Iterator& operator--();
+            Iterator& operator--(int);
             bool operator==(const Iterator& other) const;
             bool operator!=(const Iterator& other) const;
             explicit operator bool() const;
@@ -58,6 +60,19 @@ namespace original {
     }
 
     template<typename TYPE>
+    auto original::Iterator<TYPE>::operator--() -> Iterator& {
+        this->prev();
+        return *this;
+    }
+
+    template<typename TYPE>
+    auto original::Iterator<TYPE>::operator--(int) -> Iterator& {
+        Iterator* it = this;
+        this->prev();
+        return *it;
+    }
+
+template<typename TYPE>
     auto original::Iterator<TYPE>::operator==(const Iterator &other) const -> bool {
         return this->equal(other);
     }
