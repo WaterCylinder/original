@@ -124,7 +124,7 @@ template <typename TYPE>
     auto original::array<TYPE>::get(int index) const -> TYPE
     {
         if (this->indexOutOfBound(index)){
-            throw indexError();
+            throw outOfBoundError();
         }
         return this->body[this->parseNegIndex(index)];
     }
@@ -133,7 +133,7 @@ template <typename TYPE>
     auto original::array<TYPE>::operator[](int index) -> TYPE&
     {
         if (this->indexOutOfBound(index)){
-            throw indexError();
+            throw outOfBoundError();
         }
         return this->body[this->parseNegIndex(index)];
     }
@@ -142,7 +142,7 @@ template <typename TYPE>
     auto original::array<TYPE>::set(int index, TYPE e) -> void
     {
         if (this->indexOutOfBound(index)){
-            throw indexError();
+            throw outOfBoundError();
         }
         this->body[this->parseNegIndex(index)] = e;
     }

@@ -16,10 +16,10 @@ namespace original{
             static void check();
     };
 
-    class indexError final : public std::exception{
+    class outOfBoundError final : public std::exception{
         _GLIBCXX_NODISCARD auto what() const _GLIBCXX_NOEXCEPT -> const char* override
         {
-            return "Illegal index.";
+            return "Out of the bound of thw object.";
         }
     };
 

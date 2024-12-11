@@ -303,7 +303,7 @@ namespace original{
     {
         if (this->indexOutOfBound(index))
         {
-            throw indexError();
+            throw outOfBoundError();
         }
         index = this->toInnerIdx(this->parseNegIndex(index));
         return this->body[index]->getVal();
@@ -314,7 +314,7 @@ namespace original{
     {
         if (this->indexOutOfBound(index))
         {
-            throw indexError();
+            throw outOfBoundError();
         }
         index = this->toInnerIdx(this->parseNegIndex(index));
         return this->body[index]->getVal();
@@ -325,7 +325,7 @@ namespace original{
     {
         if (this->indexOutOfBound(index))
         {
-            throw indexError();
+            throw outOfBoundError();
         }
         index = this->toInnerIdx(this->parseNegIndex(index));
         this->body[index]->setVal(e);
@@ -368,7 +368,7 @@ namespace original{
         {
             if (this->indexOutOfBound(index))
             {
-                throw indexError();
+                throw outOfBoundError();
             }
             this->adjust(1);
             index = this->toInnerIdx(this->parseNegIndex(index));
@@ -428,7 +428,7 @@ namespace original{
             return this->popEnd();
         }
         if (this->indexOutOfBound(index)){
-            throw indexError();
+            throw outOfBoundError();
         }
         TYPE res = this->get(index);
         index = this->toInnerIdx(this->parseNegIndex(index));
