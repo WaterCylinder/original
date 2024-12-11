@@ -25,7 +25,7 @@ namespace original {
             virtual TYPE& get() = 0;
             virtual const TYPE& get() const = 0;
             virtual void set(TYPE data) = 0;
-            virtual bool equal(const Iterator* other) const = 0;
+            bool equal(const Iterator* other) const;
             bool equal(const Iterator& other) const;
             _GLIBCXX_NODISCARD virtual bool isValid() const = 0;
             _GLIBCXX_NODISCARD std::string className() const override;
@@ -80,6 +80,11 @@ namespace original {
     template<typename TYPE>
     auto original::Iterator<TYPE>::atNext(const Iterator &other) const -> bool {
         return this->atNext(&other);
+    }
+
+    template<typename TYPE>
+    auto original::Iterator<TYPE>::equal(const Iterator *other) const -> bool {
+        return &this->get() == &other->get();
     }
 
     template<typename TYPE>

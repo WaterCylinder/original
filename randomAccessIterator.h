@@ -12,6 +12,7 @@ namespace original{
 
         explicit RandomAccessIterator(TYPE* ptr, container<TYPE>* container, long long pos);
     public:
+        // 赋值构造等待实现
         _GLIBCXX_NODISCARD bool hasNext() const override;
         _GLIBCXX_NODISCARD bool hasPrev() const override;
         bool atPrev(const Iterator<TYPE>* other) const override;
@@ -25,7 +26,6 @@ namespace original{
         TYPE& get() override;
         const TYPE& get() const override;
         void set(TYPE data) override;
-        bool equal(const Iterator<TYPE> *other) const override;
         _GLIBCXX_NODISCARD bool isValid() const override;
         _GLIBCXX_NODISCARD std::string className() const override;
     };
@@ -102,12 +102,6 @@ namespace original{
     auto original::RandomAccessIterator<TYPE>::set(TYPE data) -> void {
         if (!this->isValid()) throw outOfBoundError();
         *this->_ptr = data;
-    }
-
-    template<typename TYPE>
-    bool original::RandomAccessIterator<TYPE>::equal(const Iterator<TYPE> *other) const {
-        const auto other_it = static_cast<const RandomAccessIterator>(*other);
-        return this->_pos == other_it->_pos;
     }
 
     template<typename TYPE>
