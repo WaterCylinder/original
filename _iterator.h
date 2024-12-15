@@ -26,7 +26,7 @@ namespace original {
             virtual std::unique_ptr<Iterator> getPrev() = 0;
             virtual TYPE& get() = 0;
             virtual const TYPE& get() const = 0;
-            virtual void set(TYPE data) = 0;
+            virtual void set(const TYPE& data) = 0;
             bool equal(const Iterator* other) const;
             bool equal(const Iterator& other) const;
             _GLIBCXX_NODISCARD virtual bool isValid() const = 0;

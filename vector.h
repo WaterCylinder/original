@@ -45,7 +45,17 @@ namespace original{
         void connectAll();
         void grow(size_t new_size);
         void adjust(size_t increment);
+
     public:
+        class iterator<TYPE> final : public randomAccessIterator<TYPE>
+        {
+                iterator(TYPE* ptr, const vector* container, long long pos);
+            public:
+                friend vector;
+                iterator(const iterator& other);
+                iterator& operator=(const iterator& other);
+        };
+
         explicit vector();
         vector(const vector& other);
         vector(std::initializer_list<TYPE> list);
@@ -63,8 +73,8 @@ namespace original{
         TYPE popBegin() override;
         TYPE pop(int index) override;
         TYPE popEnd() override;
-        iterator<TYPE>* begins() const override;
-        iterator<TYPE>* ends() const override;
+        iterator<>* begins() const override;
+        iterator<>* ends() const override;
         _GLIBCXX_NODISCARD std::string className() const override;
         ~vector() override;
     };
@@ -221,6 +231,30 @@ namespace original{
             size_t new_max_size = (this->size() + increment) * 2;
             this->grow(new_max_size);
         }
+    }
+
+    template <typename TYPE>
+    template <>
+    original::vector<TYPE>::iterator<>::iterator(TYPE* ptr, const vector* container, long long pos)
+        : randomAccessIterator<TYPE>(ptr, container, pos) {}
+
+    template <typename TYPE>
+    template <>
+    original::vector<TYPE>::iterator<>::iterator(const iterator& other)
+        : randomAccessIterator<TYPE>(nullptr, nullptr, 0)
+    {
+        this->operator=(other);
+    }
+
+    template <typename TYPE>
+    template <>
+    auto original::vector<TYPE>::iterator<>::operator=(const iterator& other) -> iterator&
+    {
+        if (this != &other) {
+            return *this;
+        }
+        randomAccessIterator<TYPE>::operator=(other);
+        return *this;
     }
 
     template <typename TYPE>
@@ -464,20 +498,6 @@ namespace original{
         this->size_ -= 1;
         vectorNode::connect(this->body[this->toInnerIdx(this->size() - 1)], nullptr);
         return res;
-    }
-
-    template <typename TYPE>
-    auto original::vector<TYPE>::begins() const -> iterator<TYPE>*
-    {
-        size_t index = this->toInnerIdx(0);
-        return new iterator<TYPE>(this->body[index]);
-    }
-
-    template <typename TYPE>
-    auto original::vector<TYPE>::ends() const -> iterator<TYPE>*
-    {
-        size_t index = this->toInnerIdx(this->size() - 1);
-        return new iterator<TYPE>(this->body[index]);
     }
 
     template <typename TYPE>

@@ -4,22 +4,32 @@
 
 
 #include <initializer_list>
+#include <iterationStream.h>
+#include <randomAccessIterator.h>
+
 #include "config.h"
 #include <sstream>
 #include "error.h"
-#include "printable.h"
 #include "serial.h"
 
 namespace original{
 
     template<typename TYPE>
-    class array final : public printable, public serial<TYPE>{
+    class array final : public iterationStream<TYPE>, public serial<TYPE>{
         size_t size_;
         TYPE* body;
 
         public:
-        explicit array();
-        explicit array(size_t size);
+        class iterator<TYPE> final : public randomAccessIterator<TYPE>
+        {
+            iterator(TYPE* ptr, const array* container, long long pos);
+        public:
+            friend array;
+            iterator(const iterator& other);
+            iterator& operator=(const iterator& other);
+        };
+
+        explicit array(size_t size = 0);
         array(std::initializer_list<TYPE> lst);
         array(const array& other);
         array& operator=(const array& other);
@@ -37,6 +47,8 @@ namespace original{
         TYPE popBegin() override;
         TYPE pop(int index) override;
         TYPE popEnd() override;
+        iterator<>* begins() const override; //TODO
+        iterator<>* ends() const override;  //TODO
         _GLIBCXX_NODISCARD std::string className() const override;
         _GLIBCXX_NODISCARD std::string toString(bool enter) const override;
     };
@@ -44,7 +56,28 @@ namespace original{
 }
 
     template <typename TYPE>
-    original::array<TYPE>::array() : array(0) {}
+    template <>
+    original::array<TYPE>::iterator<>::iterator(TYPE* ptr, const array* container, long long pos)
+        : randomAccessIterator<TYPE>(ptr, container, pos) {}
+
+    template <typename TYPE>
+    template <>
+    original::array<TYPE>::iterator<>::iterator(const iterator& other)
+        : randomAccessIterator<TYPE>(nullptr, nullptr, 0)
+    {
+        this->operator=(other);
+    }
+
+    template <typename TYPE>
+    template <>
+    auto original::array<TYPE>::iterator<>::operator=(const iterator& other) -> iterator&
+    {
+        if (this != &other) {
+            return *this;
+        }
+        randomAccessIterator<TYPE>::operator=(other);
+        return *this;
+    }
 
     template <typename TYPE>
     original::array<TYPE>::array(const size_t size)
