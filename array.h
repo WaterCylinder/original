@@ -37,7 +37,7 @@ namespace original{
         bool operator==(const array& other) const;
         array(array&& other) _GLIBCXX_NOEXCEPT;
         ~array() override;
-        _GLIBCXX_NODISCARD size_t size() const override;
+        [[__nodiscard__]] size_t size() const override;
         TYPE get(int index) const override;
         TYPE& operator[](int index) override;
         void set(int index, TYPE e) override;
@@ -50,7 +50,7 @@ namespace original{
         TYPE popEnd() override;
         Iterator* begins() const override;
         Iterator* ends() const override;
-        _GLIBCXX_NODISCARD std::string className() const override;
+        [[__nodiscard__]] std::string className() const override;
     };
 
 }

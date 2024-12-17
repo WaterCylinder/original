@@ -10,7 +10,7 @@ namespace original {
     public:
         doubleDirectionIterator(const doubleDirectionIterator& other);
         doubleDirectionIterator& operator=(const doubleDirectionIterator& other);
-        _GLIBCXX_NODISCARD bool hasPrev() const override;
+        [[__nodiscard__]] bool hasPrev() const override;
         void prev() const override;
     };
 }

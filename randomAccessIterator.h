@@ -17,8 +17,8 @@ namespace original{
     public:
         randomAccessIterator(const randomAccessIterator& other);
         randomAccessIterator& operator=(const randomAccessIterator& other);
-        _GLIBCXX_NODISCARD bool hasNext() const override;
-        _GLIBCXX_NODISCARD bool hasPrev() const override;
+        [[__nodiscard__]] bool hasNext() const override;
+        [[__nodiscard__]] bool hasPrev() const override;
         bool atPrev(const iterator<TYPE>* other) const override;
         bool atNext(const iterator<TYPE>* other) const override;
         void next() const override;
@@ -31,8 +31,8 @@ namespace original{
         TYPE& get() override;
         const TYPE& get() const override;
         void set(const TYPE& data) override;
-        _GLIBCXX_NODISCARD bool isValid() const override;
-        _GLIBCXX_NODISCARD std::string className() const override;
+        [[__nodiscard__]] bool isValid() const override;
+        [[__nodiscard__]] std::string className() const override;
     };
 }
 

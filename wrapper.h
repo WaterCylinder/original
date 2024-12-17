@@ -17,8 +17,8 @@ namespace original
         virtual wrapper* getPPrev() const = 0;
         virtual wrapper* getPNext() const = 0;
         ~wrapper() override = default;
-        _GLIBCXX_NODISCARD std::string className() const override;
-        _GLIBCXX_NODISCARD std::string toString(bool enter) const override;
+        [[__nodiscard__]] std::string className() const override;
+        [[__nodiscard__]] std::string toString(bool enter) const override;
     };
 
 }

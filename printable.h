@@ -9,9 +9,9 @@ namespace original {
     class printable {
     public:
         virtual ~printable() = 0;
-        _GLIBCXX_NODISCARD virtual std::string className() const;
-        _GLIBCXX_NODISCARD virtual std::string toString(bool enter) const;
-        _GLIBCXX_NODISCARD const char* toCString(bool enter) const;
+        [[__nodiscard__]] virtual std::string className() const;
+        [[__nodiscard__]] virtual std::string toString(bool enter) const;
+        [[__nodiscard__]] const char* toCString(bool enter) const;
 
         template<typename TYPE>
         static std::string formatString(const TYPE& t);
@@ -43,7 +43,7 @@ namespace original {
         return ss.str();
     }
 
-    _GLIBCXX_NODISCARD inline auto original::printable::toCString(const bool enter) const -> const char*
+    inline auto original::printable::toCString(const bool enter) const -> const char*
     {
         static auto result =
             std::make_unique<std::string>(this->toString(enter));

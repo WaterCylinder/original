@@ -16,8 +16,8 @@ namespace original {
             bool operator==(const iterator& other) const;
             bool operator!=(const iterator& other) const;
             explicit operator bool() const;
-            _GLIBCXX_NODISCARD virtual bool hasNext() const = 0;
-            _GLIBCXX_NODISCARD virtual bool hasPrev() const = 0;
+            [[__nodiscard__]] virtual bool hasNext() const = 0;
+            [[__nodiscard__]] virtual bool hasPrev() const = 0;
             virtual bool atPrev(const iterator* other) const = 0;
             virtual bool atNext(const iterator* other) const = 0;
             bool atPrev(const iterator& other) const;
@@ -31,9 +31,9 @@ namespace original {
             virtual void set(const TYPE& data) = 0;
             bool equal(const iterator* other) const;
             bool equal(const iterator& other) const;
-            _GLIBCXX_NODISCARD virtual bool isValid() const = 0;
-            _GLIBCXX_NODISCARD std::string className() const override;
-            _GLIBCXX_NODISCARD std::string toString(bool enter) const override;
+            [[__nodiscard__]] virtual bool isValid() const = 0;
+            [[__nodiscard__]] std::string className() const override;
+            [[__nodiscard__]] std::string toString(bool enter) const override;
             ~iterator() override = default;
     };
 

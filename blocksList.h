@@ -42,16 +42,16 @@ namespace original {
         size_t last;
 
         static blocksListNode** blockArrayInit();
-        _GLIBCXX_NODISCARD static size_t indexReset(size_t index, bool increase);
-        _GLIBCXX_NODISCARD static size_t blockCurSize(size_t index);
-        _GLIBCXX_NODISCARD couple<size_t, size_t> toInnerIdx(size_t index) const;
+        [[__nodiscard__]] static size_t indexReset(size_t index, bool increase);
+        [[__nodiscard__]] static size_t blockCurSize(size_t index);
+        [[__nodiscard__]] couple<size_t, size_t> toInnerIdx(size_t index) const;
         void moveElements(size_t index, size_t len, int offset);
         void grow(bool first);
         void squeeze(bool first);
     public:
         explicit blocksList();
         TYPE get(int index) const override;
-        _GLIBCXX_NODISCARD std::string className() const override;
+        [[__nodiscard__]] std::string className() const override;
     };
 }// namespace original
 

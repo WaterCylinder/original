@@ -4,6 +4,7 @@
 #include <filter.h>
 #include <limits>
 #include "iterator.h"
+#include "error.h"
 
 namespace original
 {

@@ -9,10 +9,10 @@ namespace original{
     template<typename TYPE>
     class iterationStream : public printable, public iterable<TYPE>{
     protected:
-        _GLIBCXX_NODISCARD std::string elementsString() const;
+        [[__nodiscard__]] std::string elementsString() const;
     public:
-        _GLIBCXX_NODISCARD std::string className() const override;
-        _GLIBCXX_NODISCARD std::string toString(bool enter) const override;
+        [[__nodiscard__]] std::string className() const override;
+        [[__nodiscard__]] std::string toString(bool enter) const override;
     };
 }
 

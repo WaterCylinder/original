@@ -7,8 +7,8 @@ namespace original{
     template <typename TYPE>
     class serial : public container<TYPE>{
     protected:
-        _GLIBCXX_NODISCARD bool indexOutOfBound(int index) const;
-        _GLIBCXX_NODISCARD int parseNegIndex(int index) const;
+        [[__nodiscard__]] bool indexOutOfBound(int index) const;
+        [[__nodiscard__]] int parseNegIndex(int index) const;
     public:
         void add(TYPE e) override;
         void clear() override;
