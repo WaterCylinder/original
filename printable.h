@@ -3,7 +3,6 @@
 #pragma once
 
 #include <memory>
-#include "config.h"
 #include "sstream"
 
 namespace original {

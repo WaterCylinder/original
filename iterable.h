@@ -1,6 +1,7 @@
 #ifndef ITERABLE_H
 #define ITERABLE_H
 
+#include <error.h>
 #include <functional>
 #include <transform.h>
 
@@ -13,10 +14,11 @@ namespace original{
         virtual ~iterable() = default;
         virtual iterator<TYPE>* begins() const = 0;
         virtual iterator<TYPE>* ends() const = 0;
-        iterator<TYPE> begin();
-        iterator<TYPE> end();
-        iterator<TYPE> begin() const;
-        iterator<TYPE> end() const;
+
+        iterAdaptor<TYPE> begin();
+        iterAdaptor<TYPE> end();
+        iterAdaptor<TYPE> begin() const;
+        iterAdaptor<TYPE> end() const;
 
         template<typename Callback = std::function<void(TYPE&)>>
         void forEach(Callback operation = transform<TYPE>());
@@ -24,27 +26,27 @@ namespace original{
 }
 
     template <typename TYPE>
-    auto original::iterable<TYPE>::begin() -> iterator<TYPE>
-    {
-        return *this->begins();
+    auto original::iterable<TYPE>::begin() -> iterAdaptor<TYPE> {
+        return iterAdaptor(this->begins());
     }
 
     template <typename TYPE>
-    auto original::iterable<TYPE>::end() -> iterator<TYPE>
-    {
-        return *this->ends()->getNext();
+    auto original::iterable<TYPE>::end() -> iterAdaptor<TYPE> {
+        auto* it = this->ends();
+        it->next();
+        return iterAdaptor(it);
     }
 
     template <typename TYPE>
-    auto original::iterable<TYPE>::begin() const -> iterator<TYPE>
-    {
-        return *this->begins();
+    auto original::iterable<TYPE>::begin() const -> iterAdaptor<TYPE> {
+        return iterAdaptor(this->begins());
     }
 
     template <typename TYPE>
-    auto original::iterable<TYPE>::end() const -> iterator<TYPE>
-    {
-        return *this->ends()->getNext();
+    auto original::iterable<TYPE>::end() const -> iterAdaptor<TYPE> {
+        auto* it = this->ends();
+        it->next();
+        return iterAdaptor(it);
     }
 
     template <typename TYPE>
@@ -52,7 +54,7 @@ namespace original{
     auto original::iterable<TYPE>::forEach(Callback operation) -> void
     {
         callBackChecker<Callback, void, TYPE&>::check();
-        for (auto* it = this->begins(); !it->isNull(); it->next()) {
+        for (auto* it = this->begins(); it->isValid(); it->next()) {
             operation(it->get());
         }
     }

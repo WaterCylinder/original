@@ -3,7 +3,6 @@
 
 #include <exception>
 #include <cxxabi.h>
-#include "config.h"
 #include "type_traits"
 
 namespace original{

@@ -12,7 +12,7 @@ namespace original{
         _GLIBCXX_NODISCARD std::string elementsString() const;
     public:
         _GLIBCXX_NODISCARD std::string className() const override;
-        std::string toString(bool enter) const override;
+        _GLIBCXX_NODISCARD std::string toString(bool enter) const override;
     };
 }
 
@@ -22,11 +22,11 @@ namespace original{
         std::stringstream ss;
         ss << "(";
         bool first = true;
-        for (const iterator<TYPE> it = this->begin(); !it.isNull(); it.next()) {
+        for (auto it = this->begin(); it.isValid(); ++it) {
             if (!first) {
                 ss << ", ";
             }
-            ss << formatString(it.get());
+            ss << formatString(*it);
             first = false;
         }
         ss << ")";

@@ -4,7 +4,6 @@
 #include <sstream>
 
 #include "string"
-#include "config.h"
 #include "printable.h"
 
 namespace original

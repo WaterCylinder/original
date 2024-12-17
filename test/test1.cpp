@@ -4,8 +4,7 @@
 #include "chain.h"
 #include "maths.h"
 #include "vector.h"
-#include "_iterator.h"
-#include "randomAccessIterator.h"
+#include "iterator.h"
 #include "singleDirectionIterator.h"
 
 int main(){
@@ -30,16 +29,16 @@ int main(){
     for (int i = 0; i < chain1.size(); ++i) {
         printf("chain1[%d] = %d\n", i, chain1[i]);
     }
-    for (original::iterator<int>* it = chain1.begins(); !it->isNull(); it->next()) {
+    for (auto* it = chain1.begins(); it->isValid(); it->next()) {
         printf("chain1 element = %d, Iterator: %s\n", it->get(), it->toCString(false));
     }
     printf("\n");
-    for (original::iterator<int>* it = chain1.ends(); !it->isNull(); it->prev()) {
+    for (auto* it = chain1.ends(); it->isValid(); it->prev()) {
         printf("chain1 element = %d, Iterator: %s\n", it->get(), it->toCString(false));
     }
     printf("\n");
     auto chain2 = original::chain({6, 7, 3, 9, 4, 2, 10, 14, -5});
-    for (original::iterator<int> *l = chain2.begins(), *r = chain2.ends(); !l->equal(r) && !l->atNext(r); l->next(), r->prev()) {
+    for (auto* l = chain2.begins(), *r = chain2.ends(); !l->equal(r) && !l->atNext(r); l->next(), r->prev()) {
         const int val = l->get();
         l->set(r->get());
         r->set(val);
@@ -124,7 +123,7 @@ int main(){
     printf("chain4: %s", chain4.toCString(true));
     for (const auto& ch: chain4) {
         printf("chain: %s", ch.toCString(true));
-        for (auto e: ch) {
+        for (const auto e: ch) {
             printf("%d ", e);
         }
         printf("\n");
@@ -147,9 +146,9 @@ int main(){
         arr6[i] = original::chain({E*i, PI*i});
     }
     printf("arr6: %s", arr6.toCString(true));
-    for (int i = 0; i < arr6.size(); ++i) {
-        printf("chain: %s", arr6[i].toCString(true));
-        for (auto e: arr6[i]) {
+    for (auto & i : arr6) {
+        printf("chain: %s", i.toCString(true));
+        for (const auto e: i) {
             printf("%lf ", e);
         }
         printf("\n");
@@ -168,7 +167,7 @@ int main(){
         arr7[i] = arr;
     }
     std::cout << arr7 << std::endl;
-    original::vector<int> vector4 = {1, 2, 3, 4, 5, 6};
+    const original::vector vector4 = {1, 2, 3, 4, 5, 6};
     std::cout << "vector4: " << vector4 << std::endl;
     return 0;
 }

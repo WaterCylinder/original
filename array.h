@@ -7,7 +7,6 @@
 #include <iterationStream.h>
 #include <randomAccessIterator.h>
 
-#include "config.h"
 #include <sstream>
 #include "error.h"
 #include "serial.h"
@@ -20,13 +19,15 @@ namespace original{
         TYPE* body;
 
         public:
-        class iterator<TYPE> final : public randomAccessIterator<TYPE>
+        class Iterator final : public randomAccessIterator<TYPE>
         {
-            iterator(TYPE* ptr, const array* container, long long pos);
+            explicit Iterator(TYPE* ptr, const array* container, long long pos);
         public:
             friend array;
-            iterator(const iterator& other);
-            iterator& operator=(const iterator& other);
+            Iterator(const Iterator& other);
+            Iterator& operator=(const Iterator& other);
+            bool atPrev(const iterator<TYPE> *other) const override;
+            bool atNext(const iterator<TYPE> *other) const override;
         };
 
         explicit array(size_t size = 0);
@@ -47,36 +48,44 @@ namespace original{
         TYPE popBegin() override;
         TYPE pop(int index) override;
         TYPE popEnd() override;
-        iterator<>* begins() const override; //TODO
-        iterator<>* ends() const override;  //TODO
+        Iterator* begins() const override;
+        Iterator* ends() const override;
         _GLIBCXX_NODISCARD std::string className() const override;
-        _GLIBCXX_NODISCARD std::string toString(bool enter) const override;
     };
 
 }
 
     template <typename TYPE>
-    template <>
-    original::array<TYPE>::iterator<>::iterator(TYPE* ptr, const array* container, long long pos)
+    original::array<TYPE>::Iterator::Iterator(TYPE* ptr, const array* container, long long pos)
         : randomAccessIterator<TYPE>(ptr, container, pos) {}
 
     template <typename TYPE>
-    template <>
-    original::array<TYPE>::iterator<>::iterator(const iterator& other)
+    original::array<TYPE>::Iterator::Iterator(const Iterator& other)
         : randomAccessIterator<TYPE>(nullptr, nullptr, 0)
     {
         this->operator=(other);
     }
 
     template <typename TYPE>
-    template <>
-    auto original::array<TYPE>::iterator<>::operator=(const iterator& other) -> iterator&
+    auto original::array<TYPE>::Iterator::operator=(const Iterator& other) -> Iterator&
     {
-        if (this != &other) {
+        if (this == &other) {
             return *this;
         }
         randomAccessIterator<TYPE>::operator=(other);
         return *this;
+    }
+
+    template<typename TYPE>
+    auto original::array<TYPE>::Iterator::atPrev(const iterator<TYPE> *other) const -> bool {
+        auto other_it = dynamic_cast<const Iterator*>(other);
+        return ++this->_ptr == other_it->_ptr;
+    }
+
+    template<typename TYPE>
+    auto original::array<TYPE>::Iterator::atNext(const iterator<TYPE> *other) const -> bool {
+        auto other_it = dynamic_cast<const Iterator*>(other);
+        return ++other_it->_ptr == this->_ptr;
     }
 
     template <typename TYPE>
@@ -229,28 +238,20 @@ namespace original{
         throw unSupportedMethodError();
     }
 
+    template<typename TYPE>
+    auto original::array<TYPE>::begins() const -> Iterator* {
+        return new Iterator(this->body, this, 0);
+    }
+
+    template<typename TYPE>
+    auto original::array<TYPE>::ends() const -> Iterator* {
+        return new Iterator(this->body, this, this->size() - 1);
+    }
+
     template <typename TYPE>
     std::string original::array<TYPE>::className() const
     {
         return "array";
-    }
-
-    template <typename TYPE>
-    auto original::array<TYPE>::toString(const bool enter) const -> std::string
-    {
-        std::stringstream ss;
-        ss << this->className() << "(";
-        for (size_t i = 0; i < this->size_; ++i) {
-            ss << formatString(this->body[i]);
-            if (i < this->size_ - 1) {
-                ss << ", ";
-            }
-        }
-        ss << ")";
-        if (enter) {
-            ss << "\n";
-        }
-        return ss.str();
     }
 
 #endif //ARRAY_H

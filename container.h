@@ -2,7 +2,6 @@
 #define CONTAINER_H
 #pragma once
 
-#include "config.h"
 
 namespace original {
 

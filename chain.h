@@ -2,6 +2,7 @@
 #define CHAIN_H
 #pragma once
 
+#include "doubleDirectionIterator.h"
 #include "array.h"
 #include "serial.h"
 #include "iterationStream.h"
@@ -37,6 +38,17 @@ namespace original {
         chainNode* end_;
 
     public:
+        class Iterator final : public doubleDirectionIterator<TYPE>
+        {
+            explicit Iterator(chainNode* ptr);
+        public:
+            friend chain;
+            Iterator(const Iterator& other);
+            Iterator& operator=(const Iterator& other);
+            bool atPrev(const iterator<TYPE> *other) const override;
+            bool atNext(const iterator<TYPE> *other) const override;
+        };
+
         explicit chain();
         chain(const chain& other);
         chain(std::initializer_list<TYPE> list);
@@ -55,8 +67,8 @@ namespace original {
         TYPE popBegin() override;
         TYPE pop(int index) override;
         TYPE popEnd() override;
-        iterator<TYPE>* begins() const override;
-        iterator<TYPE>* ends() const override;
+        Iterator* begins() const override;
+        Iterator* ends() const override;
         _GLIBCXX_NODISCARD std::string className() const override;
         ~chain() override;
     };
@@ -123,6 +135,35 @@ namespace original {
     {
         if (prev != nullptr) prev->setPNext(next);
         if (next != nullptr) next->setPPrev(prev);
+    }
+
+    template<typename TYPE>
+    original::chain<TYPE>::Iterator::Iterator(chainNode* ptr)
+        : doubleDirectionIterator<TYPE>::doubleDirectionIterator(ptr) {}
+
+    template<typename TYPE>
+    original::chain<TYPE>::Iterator::Iterator(const Iterator& other)
+        : doubleDirectionIterator<TYPE>::doubleDirectionIterator(nullptr) {
+        this->operator=(other);
+    }
+
+    template<typename TYPE>
+    auto original::chain<TYPE>::Iterator::operator=(const Iterator& other) -> Iterator& {
+        if (this == &other) return *this;
+        doubleDirectionIterator<TYPE>::operator=(other);
+        return *this;
+    }
+
+    template<typename TYPE>
+    auto original::chain<TYPE>::Iterator::atPrev(const iterator<TYPE> *other) const -> bool {
+        auto other_it = dynamic_cast<const Iterator*>(other);
+        return this->_ptr->getPNext() == other_it->_ptr;
+    }
+
+    template<typename TYPE>
+    auto original::chain<TYPE>::Iterator::atNext(const iterator<TYPE> *other) const -> bool {
+        auto other_it = dynamic_cast<const Iterator*>(other);
+        return other_it->_ptr->getPNext() == this->_ptr;
     }
 
     template <typename TYPE>
@@ -230,18 +271,6 @@ namespace original {
         return this->size_;
     }
 
-    template<typename TYPE>
-    auto original::chain<TYPE>::begins() const -> iterator<TYPE>*
-    {
-        return new iterator(begin_);
-    }
-
-    template<typename TYPE>
-    auto original::chain<TYPE>::ends() const -> iterator<TYPE>*
-    {
-        return new iterator(end_);
-    }
-
     template <typename TYPE>
     auto original::chain<TYPE>::className() const -> std::string
     {
@@ -252,7 +281,7 @@ namespace original {
     auto original::chain<TYPE>::get(int index) const -> TYPE
     {
         if (this->indexOutOfBound(index)){
-            throw indexError();
+            throw outOfBoundError();
         }
         const int reverse_visit = this->parseNegIndex(index) <= this->size() / 2 ? 0 : 1;
         chainNode* cur;
@@ -276,7 +305,7 @@ namespace original {
     auto original::chain<TYPE>::operator[](const int index) -> TYPE&
     {
         if (this->indexOutOfBound(index)){
-            throw indexError();
+            throw outOfBoundError();
         }
         const int reverse_visit = this->parseNegIndex(index) <= this->size() / 2 ? 0 : 1;
         chainNode* cur;
@@ -300,7 +329,7 @@ namespace original {
     auto original::chain<TYPE>::set(int index, TYPE e) -> void
     {
         if (this->indexOutOfBound(index)){
-            throw indexError();
+            throw outOfBoundError();
         }
         auto* new_node = new chainNode(e);
         const int reverse_visit = this->parseNegIndex(index) <= this->size() / 2 ? 0 : 1;
@@ -361,7 +390,7 @@ template <typename TYPE>
             this->pushEnd(e);
         } else{
             if (this->indexOutOfBound(index)){
-                throw indexError();
+                throw outOfBoundError();
             }
             auto* new_node = new chainNode(e);
             const int reverse_visit = index <= this->size() / 2 ? 0 : 1;
@@ -434,7 +463,7 @@ template <typename TYPE>
             return this->popEnd();
         }
         if (this->indexOutOfBound(index)){
-            throw indexError();
+            throw outOfBoundError();
         }
         TYPE res;
         const int reverse_visit = index <= this->size() / 2 ? 0 : 1;
@@ -482,6 +511,16 @@ template <typename TYPE>
         }
         this->size_ -= 1;
         return res;
+    }
+
+    template<typename TYPE>
+    auto original::chain<TYPE>::begins() const -> Iterator* {
+        return new Iterator(this->begin_);
+    }
+
+    template<typename TYPE>
+    auto original::chain<TYPE>::ends() const -> Iterator* {
+        return new Iterator(this->end_);
     }
 
     template <typename TYPE>

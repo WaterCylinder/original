@@ -8,52 +8,30 @@
 namespace original{
     template <typename TYPE>
     class vector final : public serial<TYPE>, public iterationStream<TYPE>{
-        class vectorNode final : public wrapper<TYPE>{
-            public:
-                friend class iterator<TYPE>;
-                friend class vector;
-            private:
-                TYPE data_;
-                vectorNode* prev;
-                vectorNode* next;
-            protected:
-                explicit vectorNode(TYPE data = TYPE{}, vectorNode* prev = nullptr, vectorNode* next = nullptr);
-                vectorNode(const vectorNode& other);
-                vectorNode& operator=(const vectorNode& other);
-                TYPE& getVal() override;
-                const TYPE& getVal() const override;
-                void setVal(TYPE data) override;
-                vectorNode* getPPrev() const override;
-                vectorNode* getPNext() const override;
-                void setPPrev(vectorNode* new_prev);
-                void setPNext(vectorNode* new_next);
-                ~vectorNode() override;
-                static void connect(vectorNode* prev, vectorNode* next);
-        };
-
         size_t size_;
         const size_t INNER_SIZE_INIT = 16;
         size_t max_size;
         size_t inner_begin;
-        vectorNode** body;
+        TYPE* body;
 
-        static vectorNode** vectorNodeArrayInit(size_t size);
-        static void moveElements(vectorNode** old_body, size_t inner_idx,
-                          size_t len, vectorNode** new_body, int offset);
+        static TYPE* vectorArrayInit(size_t size);
+        static void moveElements(TYPE* old_body, size_t inner_idx,
+                          size_t len, TYPE* new_body, int offset);
         _GLIBCXX_NODISCARD size_t toInnerIdx(int index) const;
         _GLIBCXX_NODISCARD bool outOfMaxSize(size_t increment) const;
-        void connectAll();
         void grow(size_t new_size);
         void adjust(size_t increment);
 
     public:
-        class iterator<TYPE> final : public randomAccessIterator<TYPE>
+        class Iterator final : public randomAccessIterator<TYPE>
         {
-                iterator(TYPE* ptr, const vector* container, long long pos);
+                explicit Iterator(TYPE* ptr, const vector* container, long long pos);
             public:
                 friend vector;
-                iterator(const iterator& other);
-                iterator& operator=(const iterator& other);
+                Iterator(const Iterator& other);
+                Iterator& operator=(const Iterator& other);
+                bool atPrev(const iterator<TYPE> *other) const override;
+                bool atNext(const iterator<TYPE> *other) const override;
         };
 
         explicit vector();
@@ -73,110 +51,31 @@ namespace original{
         TYPE popBegin() override;
         TYPE pop(int index) override;
         TYPE popEnd() override;
-        iterator<>* begins() const override;
-        iterator<>* ends() const override;
+        Iterator* begins() const override;
+        Iterator* ends() const override;
         _GLIBCXX_NODISCARD std::string className() const override;
         ~vector() override;
     };
 }
-
-    template<typename TYPE>
-    original::vector<TYPE>::vectorNode::vectorNode(TYPE data, vectorNode* prev, vectorNode* next)
-        : data_(data), prev(prev), next(next) {}
-
-    template<typename TYPE>
-    original::vector<TYPE>::vectorNode::vectorNode(const vectorNode& other)
-        : data_(other.data_), prev(other.prev), next(other.next) {}
-
-    template<typename TYPE>
-    auto original::vector<TYPE>::vectorNode::operator=(const vectorNode& other) -> vectorNode& {
-        if (this != &other) {
-            data_ = other.data_;
-            prev = other.prev;
-            next = other.next;
-        }
-        return *this;
+    template <typename TYPE>
+    auto original::vector<TYPE>::vectorArrayInit(const size_t size) -> TYPE* {
+        return new TYPE[size];
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::vectorNode::getVal() -> TYPE&
-    {
-        return this->data_;
-    }
-
-    template <typename TYPE>
-    auto original::vector<TYPE>::vectorNode::getVal() const -> const TYPE&
-    {
-        return this->data_;
-    }
-
-    template <typename TYPE>
-    auto original::vector<TYPE>::vectorNode::setVal(TYPE data) -> void
-    {
-        this->data_ = data;
-    }
-
-    template <typename TYPE>
-    auto original::vector<TYPE>::vectorNode::getPPrev() const -> vectorNode* {
-        return this->prev;
-    }
-
-    template <typename TYPE>
-    auto original::vector<TYPE>::vectorNode::getPNext() const -> vectorNode* {
-        return this->next;
-    }
-
-    template <typename TYPE>
-    auto original::vector<TYPE>::vectorNode::setPPrev(vectorNode* new_prev) -> void
-    {
-        this->prev = new_prev;
-    }
-
-    template <typename TYPE>
-    auto original::vector<TYPE>::vectorNode::setPNext(vectorNode* new_next) -> void
-    {
-        this->next = new_next;
-    }
-
-    template <typename TYPE>
-    original::vector<TYPE>::vectorNode::~vectorNode()= default;
-
-    template <typename TYPE>
-    auto original::vector<TYPE>::vectorNode::connect(vectorNode* prev, vectorNode* next) -> void
-    {
-        if (prev != nullptr) prev->setPNext(next);
-        if (next != nullptr) next->setPPrev(prev);
-    }
-
-    template <typename TYPE>
-    auto original::vector<TYPE>::vectorNodeArrayInit(const size_t size) -> vectorNode**
-    {
-        auto** arr = new vectorNode*[size];
-        for (int i = 0; i < size; i += 1)
-        {
-            arr[i] = nullptr;
-        }
-        return arr;
-    }
-
-    template <typename TYPE>
-    auto original::vector<TYPE>::moveElements(vectorNode** old_body, const size_t inner_idx,
-        const size_t len, vectorNode** new_body, const int offset) -> void{
+    auto original::vector<TYPE>::moveElements(TYPE* old_body, const size_t inner_idx,
+        const size_t len, TYPE* new_body, const int offset) -> void{
         if (offset > 0)
         {
             for (int i = 0; i < len; i += 1)
             {
                 new_body[inner_idx + offset + len - 1 - i] = old_body[inner_idx + len - 1 - i];
-                if (old_body == new_body)
-                    old_body[inner_idx + len - 1 - i] = nullptr;
             }
         }else
         {
             for (int i = 0; i < len; i += 1)
             {
                 new_body[inner_idx + offset + i] = old_body[inner_idx + i];
-                if (old_body == new_body)
-                    old_body[inner_idx + i] = nullptr;
             }
         }
     }
@@ -194,18 +93,9 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::connectAll() -> void
-    {
-        for (int i = 0; i < static_cast<int>(this->size() - 1); ++i) {
-            vectorNode::connect(this->body[this->toInnerIdx(i)],
-                                this->body[this->toInnerIdx(i + 1)]);
-        }
-    }
-
-    template <typename TYPE>
     auto original::vector<TYPE>::grow(const size_t new_size) -> void
     {
-        vectorNode** new_body = vector::vectorNodeArrayInit(new_size);
+        TYPE* new_body = vector::vectorArrayInit(new_size);
         size_t new_begin = (new_size - 1) / 4;
         vector::moveElements(this->body, this->inner_begin,
                              this->size(), new_body, new_begin - this->inner_begin);
@@ -213,7 +103,6 @@ namespace original{
         this->body = new_body;
         this->max_size = new_size;
         this->inner_begin = new_begin;
-        this->connectAll();
     }
 
     template <typename TYPE>
@@ -226,40 +115,48 @@ namespace original{
             vector::moveElements(this->body, this->inner_begin, this->size(), this->body,
                                  new_begin - this->inner_begin);
             this->inner_begin = new_begin;
-            this->connectAll();
         } else {
-            size_t new_max_size = (this->size() + increment) * 2;
+            const size_t new_max_size = (this->size() + increment) * 2;
             this->grow(new_max_size);
         }
     }
 
     template <typename TYPE>
-    template <>
-    original::vector<TYPE>::iterator<>::iterator(TYPE* ptr, const vector* container, long long pos)
+    original::vector<TYPE>::Iterator::Iterator(TYPE* ptr, const vector* container, long long pos)
         : randomAccessIterator<TYPE>(ptr, container, pos) {}
 
     template <typename TYPE>
-    template <>
-    original::vector<TYPE>::iterator<>::iterator(const iterator& other)
+    original::vector<TYPE>::Iterator::Iterator(const Iterator& other)
         : randomAccessIterator<TYPE>(nullptr, nullptr, 0)
     {
         this->operator=(other);
     }
 
     template <typename TYPE>
-    template <>
-    auto original::vector<TYPE>::iterator<>::operator=(const iterator& other) -> iterator&
+    auto original::vector<TYPE>::Iterator::operator=(const Iterator& other) -> Iterator&
     {
-        if (this != &other) {
+        if (this == &other) {
             return *this;
         }
         randomAccessIterator<TYPE>::operator=(other);
         return *this;
     }
 
+    template<typename TYPE>
+    auto original::vector<TYPE>::Iterator::atPrev(const iterator<TYPE> *other) const -> bool {
+        auto other_it = dynamic_cast<const Iterator*>(other);
+        return ++this->_ptr == other_it->_ptr;
+    }
+
+    template<typename TYPE>
+    auto original::vector<TYPE>::Iterator::atNext(const iterator<TYPE> *other) const -> bool {
+        auto other_it = dynamic_cast<const Iterator*>(other);
+        return ++other_it->_ptr == this->_ptr;
+    }
+
     template <typename TYPE>
     original::vector<TYPE>::vector() : size_(0), max_size(this->INNER_SIZE_INIT),
-        inner_begin((this->INNER_SIZE_INIT - 1)/2), body(vector::vectorNodeArrayInit(this->INNER_SIZE_INIT)) {}
+        inner_begin((this->INNER_SIZE_INIT - 1)/2), body(vector::vectorArrayInit(this->INNER_SIZE_INIT)) {}
 
     template<typename TYPE>
     original::vector<TYPE>::vector(const vector& other) : vector(){
@@ -270,33 +167,26 @@ namespace original{
     original::vector<TYPE>::vector(std::initializer_list<TYPE> list) : vector()
     {
         this->adjust(list.size());
-        for (TYPE e : list)
+        for (const TYPE& e: list)
         {
-            this->body[this->inner_begin + this->size()] = new vectorNode(e);
+            this->body[this->inner_begin + this->size()] = e;
             this->size_ += 1;
         }
-        this->connectAll();
     }
 
     template<typename TYPE>
     auto original::vector<TYPE>::operator=(const vector& other) -> vector&
     {
         if (this == &other) return *this;
-        for (size_t i = 0; i < this->max_size; ++i) {
-            if (this->body[i] != nullptr) {
-                delete this->body[i];
-            }
-        }
         delete[] this->body;
         this->max_size = other.max_size;
         this->inner_begin = other.inner_begin;
         this->size_ = other.size_;
-        this->body = vector::vectorNodeArrayInit(this->max_size);
+        this->body = vector::vectorArrayInit(this->max_size);
         for (int i = 0; i < this->size(); ++i) {
-            TYPE data = other.body[this->toInnerIdx(i)]->getVal();
-            this->body[this->toInnerIdx(i)] = new vectorNode(data);
+            const TYPE& data = other.body[this->toInnerIdx(i)];
+            this->body[this->toInnerIdx(i)] = data;
         }
-        this->connectAll();
         return *this;
     }
 
@@ -307,7 +197,7 @@ namespace original{
         if (this->size() != other.size()) return false;
         for (int i = 0; i < this->size(); ++i) {
             size_t index = this->toInnerIdx(i);
-            if (this->body[index]->getVal() != other.body[index]->getVal()){
+            if (this->body[index] != other.body[index]){
                 return false;
             }
         }
@@ -320,10 +210,9 @@ namespace original{
         this->adjust(arr.size());
         for (int i = 0; i < arr.size(); i += 1)
         {
-            this->body[this->toInnerIdx(i)] = new vectorNode(arr.get(i));
+            this->body[this->toInnerIdx(i)] = arr.get(i);
             this->size_ += 1;
         }
-        this->connectAll();
     }
 
     template <typename TYPE>
@@ -340,7 +229,7 @@ namespace original{
             throw outOfBoundError();
         }
         index = this->toInnerIdx(this->parseNegIndex(index));
-        return this->body[index]->getVal();
+        return this->body[index];
     }
 
     template <typename TYPE>
@@ -351,7 +240,7 @@ namespace original{
             throw outOfBoundError();
         }
         index = this->toInnerIdx(this->parseNegIndex(index));
-        return this->body[index]->getVal();
+        return this->body[index];
     }
 
     template <typename TYPE>
@@ -362,7 +251,7 @@ namespace original{
             throw outOfBoundError();
         }
         index = this->toInnerIdx(this->parseNegIndex(index));
-        this->body[index]->setVal(e);
+        this->body[index] = e;
     }
 
     template <typename TYPE>
@@ -383,10 +272,8 @@ namespace original{
     {
         this->adjust(1);
         this->inner_begin -= 1;
-        this->body[this->toInnerIdx(0)] = new vectorNode(e);
+        this->body[this->toInnerIdx(0)] = e;
         this->size_ += 1;
-        vectorNode::connect(this->body[this->toInnerIdx(0)],
-                            this->body[this->toInnerIdx(1)]);
     }
 
     template <typename TYPE>
@@ -417,10 +304,8 @@ namespace original{
                 vector::moveElements(this->body, index,
                     this->size() - 1 - rel_idx, this->body, 1);
             }
-            this->body[index] = new vectorNode(e);
+            this->body[index] = e;
             this->size_ += 1;
-            vectorNode::connect(this->body[index - 1], this->body[index]);
-            vectorNode::connect(this->body[index], this->body[index + 1]);
         }
     }
 
@@ -428,10 +313,8 @@ namespace original{
     auto original::vector<TYPE>::pushEnd(TYPE e) -> void
     {
         this->adjust(1);
-        this->body[this->toInnerIdx(this->size())] = new vectorNode(e);
+        this->body[this->toInnerIdx(this->size())] = e;
         this->size_ += 1;
-        vectorNode::connect(this->body[this->toInnerIdx(this->size() - 2)],
-                            this->body[this->toInnerIdx(this->size() - 1)]);
     }
 
     template <typename TYPE>
@@ -440,13 +323,9 @@ namespace original{
         if (this->size() == 0){
             throw noElementError();
         }
-        size_t index = this->toInnerIdx(0);
         TYPE res = this->get(0);
-        delete this->body[index];
-        this->body[index] = nullptr;
         this->inner_begin += 1;
         this->size_ -= 1;
-        vectorNode::connect(nullptr, this->body[this->toInnerIdx(0)]);
         return res;
     }
 
@@ -466,20 +345,16 @@ namespace original{
         }
         TYPE res = this->get(index);
         index = this->toInnerIdx(this->parseNegIndex(index));
-        delete this->body[index];
-        this->body[index] = nullptr;
         size_t rel_idx = index - this->inner_begin;
         if (index - this->inner_begin <= (this->size() - 1) / 2)
         {
             vector::moveElements(this->body, this->inner_begin,
                                  rel_idx, this->body, 1);
             this->inner_begin += 1;
-            vectorNode::connect(this->body[index], this->body[index + 1]);
         }else
         {
             vector::moveElements(this->body, index + 1,
                 this->size() - 1 - rel_idx, this->body, -1);
-            vectorNode::connect(this->body[index - 1], this->body[index]);
         }
         this->size_ -= 1;
         return res;
@@ -491,13 +366,19 @@ namespace original{
         if (this->size() == 0){
             throw noElementError();
         }
-        size_t index = this->toInnerIdx(this->size() - 1);
         TYPE res = this->get(this->size() - 1);
-        delete this->body[index];
-        this->body[index] = nullptr;
         this->size_ -= 1;
-        vectorNode::connect(this->body[this->toInnerIdx(this->size() - 1)], nullptr);
         return res;
+    }
+
+    template<typename TYPE>
+    auto original::vector<TYPE>::begins() const -> Iterator* {
+        return new Iterator(this->body, this, 0);
+    }
+
+    template<typename TYPE>
+    auto original::vector<TYPE>::ends() const -> Iterator* {
+        return new Iterator(this->body, this, this->size() - 1);
     }
 
     template <typename TYPE>
@@ -508,11 +389,6 @@ namespace original{
 
     template <typename TYPE>
     original::vector<TYPE>::~vector() {
-        for (size_t i = 0; i < this->max_size; ++i) {
-            if (this->body[i] != nullptr) {
-                delete this->body[i];
-            }
-        }
         delete[] this->body;
     }
 

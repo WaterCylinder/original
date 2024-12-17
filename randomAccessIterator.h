@@ -3,11 +3,11 @@
 
 #include <container.h>
 #include <error.h>
-#include <_iterator.h>
+#include <iterator.h>
 
 namespace original{
     template<typename TYPE>
-    class randomAccessIterator : public Iterator<TYPE>{
+    class randomAccessIterator : public iterator<TYPE>{
     protected:
         mutable TYPE* _ptr;
         mutable const container<TYPE>* _container;
@@ -19,14 +19,15 @@ namespace original{
         randomAccessIterator& operator=(const randomAccessIterator& other);
         _GLIBCXX_NODISCARD bool hasNext() const override;
         _GLIBCXX_NODISCARD bool hasPrev() const override;
-        bool atPrev(const Iterator<TYPE>* other) const override;
-        bool atNext(const Iterator<TYPE>* other) const override;
+        bool atPrev(const iterator<TYPE>* other) const override;
+        bool atNext(const iterator<TYPE>* other) const override;
         void next() const override;
         void prev() const override;
         void operator+=(long long steps) const;
         void operator-=(long long steps) const;
-        std::unique_ptr<randomAccessIterator> getNext() override;
-        std::unique_ptr<randomAccessIterator> getPrev() override;
+
+        randomAccessIterator* getNext() override;
+        randomAccessIterator* getPrev() override;
         TYPE& get() override;
         const TYPE& get() const override;
         void set(const TYPE& data) override;
@@ -48,7 +49,7 @@ namespace original{
     template<typename TYPE>
     auto original::randomAccessIterator<TYPE>::operator=(
         const randomAccessIterator &other) -> randomAccessIterator& {
-        if (this != &other) {
+        if (this == &other) {
             return *this;
         }
         this->_ptr = other._ptr;
@@ -68,15 +69,13 @@ namespace original{
     }
 
     template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::atPrev(const Iterator<TYPE> *other) const -> bool {
-        const auto other_it = static_cast<const randomAccessIterator>(*other);
-        return this->_pos + 1 == other_it->_pos;
+    auto original::randomAccessIterator<TYPE>::atPrev(const iterator<TYPE> *other) const -> bool {
+        throw unSupportedMethodError();
     }
 
     template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::atNext(const Iterator<TYPE> *other) const -> bool {
-        const auto other_it = static_cast<const randomAccessIterator>(*other);
-        return this->_pos - 1 == other_it._pos;
+    auto original::randomAccessIterator<TYPE>::atNext(const iterator<TYPE> *other) const -> bool {
+        throw unSupportedMethodError();
     }
 
     template<typename TYPE>
@@ -104,17 +103,15 @@ namespace original{
     }
 
     template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::getNext() -> std::unique_ptr<randomAccessIterator> {
+    auto original::randomAccessIterator<TYPE>::getNext() -> randomAccessIterator* {
         if (!this->isValid()) throw outOfBoundError();
-        return std::make_unique<randomAccessIterator>(
-            randomAccessIterator(this->_ptr + 1, this->_container, this->_pos + 1));
+        return new randomAccessIterator(this->_ptr + 1, this->_container, this->_pos + 1);
     }
 
     template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::getPrev() -> std::unique_ptr<randomAccessIterator> {
+    auto original::randomAccessIterator<TYPE>::getPrev() -> randomAccessIterator* {
         if (!this->isValid()) throw outOfBoundError();
-        return std::make_unique<randomAccessIterator>(
-            randomAccessIterator(this->_ptr, this->_container, this->_pos - 1));
+        return new randomAccessIterator(this->_ptr, this->_container, this->_pos - 1);
     }
 
     template<typename TYPE>
