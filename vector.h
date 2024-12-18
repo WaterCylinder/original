@@ -30,7 +30,7 @@ namespace original{
                 friend vector;
                 Iterator(const Iterator& other);
                 Iterator& operator=(const Iterator& other);
-                Iterator* clone() const;
+                Iterator* clone() const override;
                 bool atPrev(const iterator<TYPE> *other) const override;
                 bool atNext(const iterator<TYPE> *other) const override;
         };

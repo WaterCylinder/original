@@ -91,7 +91,7 @@ namespace original {
         return *it;
     }
 
-template<typename TYPE>
+    template<typename TYPE>
     auto original::iterator<TYPE>::operator==(const iterator &other) const -> bool {
         return this->equal(other);
     }
