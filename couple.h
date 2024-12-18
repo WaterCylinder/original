@@ -20,8 +20,8 @@ namespace original
         F_TYPE& first();
         S_TYPE& second();
         ~couple() override;
-        _GLIBCXX_NODISCARD std::string className() const override;
-        _GLIBCXX_NODISCARD std::string toString(bool enter) const override;
+        [[__nodiscard__]] std::string className() const override;
+        [[__nodiscard__]] std::string toString(bool enter) const override;
     };
 }
 

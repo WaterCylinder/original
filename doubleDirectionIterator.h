@@ -10,6 +10,7 @@ namespace original {
     public:
         doubleDirectionIterator(const doubleDirectionIterator& other);
         doubleDirectionIterator& operator=(const doubleDirectionIterator& other);
+        doubleDirectionIterator* clone() const override;
         [[__nodiscard__]] bool hasPrev() const override;
         void prev() const override;
     };
@@ -44,6 +45,11 @@ namespace original {
     void original::doubleDirectionIterator<TYPE>::prev() const {
         if (!this->isValid()) throw nullPointerError();
         this->_ptr = this->_ptr->getPPrev();
+    }
+
+    template<typename TYPE>
+    auto original::doubleDirectionIterator<TYPE>::clone() const -> doubleDirectionIterator* {
+        return new doubleDirectionIterator(*this);
     }
 
 #endif //DOUBLEDIRECTIONITERATOR_H

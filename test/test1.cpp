@@ -6,6 +6,8 @@
 #include "vector.h"
 #include "iterator.h"
 #include "singleDirectionIterator.h"
+#include "doubleDirectionIterator.h"
+
 
 int main(){
     auto arr1 = original::array<int>(4);
@@ -169,5 +171,10 @@ int main(){
     std::cout << arr7 << std::endl;
     const original::vector vector4 = {1, 2, 3, 4, 5, 6};
     std::cout << "vector4: " << vector4 << std::endl;
+    auto arr8 = original::array<int>(vector4.size());
+    for (auto& e: arr8) {
+        e = 10;
+    }
+    std::cout << "arr8: " << arr8 << std::endl;
     return 0;
 }

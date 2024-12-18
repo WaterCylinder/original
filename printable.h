@@ -7,6 +7,7 @@
 
 namespace original {
     class printable {
+        mutable std::string cache_string_;
     public:
         virtual ~printable() = 0;
         [[__nodiscard__]] virtual std::string className() const;
@@ -45,9 +46,8 @@ namespace original {
 
     inline auto original::printable::toCString(const bool enter) const -> const char*
     {
-        static auto result =
-            std::make_unique<std::string>(this->toString(enter));
-        return result->c_str();
+        this->cache_string_ = this->toString(enter);
+        return this->cache_string_.c_str();
     }
 
     template<typename TYPE>

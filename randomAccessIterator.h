@@ -14,9 +14,11 @@ namespace original{
         mutable long long _pos;
 
         explicit randomAccessIterator(TYPE* ptr, const container<TYPE>* container, long long pos);
+        bool equalPtr(const iterator<TYPE> * other) const override;
     public:
         randomAccessIterator(const randomAccessIterator& other);
         randomAccessIterator& operator=(const randomAccessIterator& other);
+        randomAccessIterator* clone() const override;
         [[__nodiscard__]] bool hasNext() const override;
         [[__nodiscard__]] bool hasPrev() const override;
         bool atPrev(const iterator<TYPE>* other) const override;
@@ -25,7 +27,6 @@ namespace original{
         void prev() const override;
         void operator+=(long long steps) const;
         void operator-=(long long steps) const;
-
         randomAccessIterator* getNext() override;
         randomAccessIterator* getPrev() override;
         TYPE& get() override;
@@ -42,6 +43,12 @@ namespace original{
         : _ptr{ptr}, _container{container}, _pos(pos) {}
 
     template<typename TYPE>
+    auto original::randomAccessIterator<TYPE>::equalPtr(const iterator<TYPE> *other) const -> bool {
+        auto* other_it = dynamic_cast<const randomAccessIterator*>(other);
+        return other_it != nullptr && _ptr == other_it->_ptr;
+    }
+
+    template<typename TYPE>
     original::randomAccessIterator<TYPE>::randomAccessIterator(const randomAccessIterator &other) : _pos(0) {
         this->operator=(other);
     }
@@ -56,6 +63,11 @@ namespace original{
         this->_container = other._container;
         this->_pos = other._pos;
         return *this;
+    }
+
+    template<typename TYPE>
+    auto original::randomAccessIterator<TYPE>::clone() const -> randomAccessIterator* {
+        return new randomAccessIterator{_ptr, _container, _pos};
     }
 
     template<typename TYPE>

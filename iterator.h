@@ -6,6 +6,8 @@
 namespace original {
     template<typename TYPE>
     class iterator : public printable {
+        protected:
+            virtual bool equalPtr(const iterator* other) const = 0;
         public:
             TYPE& operator*();
             const TYPE& operator*() const;
@@ -15,6 +17,7 @@ namespace original {
             iterator& operator--(int);
             bool operator==(const iterator& other) const;
             bool operator!=(const iterator& other) const;
+            virtual iterator* clone() const = 0;
             explicit operator bool() const;
             [[__nodiscard__]] virtual bool hasNext() const = 0;
             [[__nodiscard__]] virtual bool hasPrev() const = 0;
@@ -47,7 +50,7 @@ namespace original {
             iterAdaptor& operator++();
             bool operator!=(const iterAdaptor& other) const;
 
-            bool isValid() const;
+            [[nodiscard]] bool isValid() const;
             ~iterAdaptor() override;
     };
 }
@@ -115,7 +118,7 @@ template<typename TYPE>
 
     template<typename TYPE>
     auto original::iterator<TYPE>::equal(const iterator *other) const -> bool {
-        return &this->get() == &other->get();
+        return this->equalPtr(other);
     }
 
     template<typename TYPE>
@@ -161,7 +164,7 @@ template<typename TYPE>
 
     template<typename TYPE>
     auto original::iterAdaptor<TYPE>::operator!=(const iterAdaptor& other) const -> bool {
-        return this->it_->operator!=(*other.it_);
+        return !this->it_->equal(other.it_);
     }
 
     template<typename TYPE>

@@ -11,6 +11,7 @@ namespace original {
         public:
             singleDirectionIterator(const singleDirectionIterator& other);
             singleDirectionIterator& operator=(const singleDirectionIterator& other);
+            singleDirectionIterator* clone() const override;
             [[__nodiscard__]] bool hasPrev() const override = delete;
             void prev() const override = delete;
             std::unique_ptr<stepIterator<TYPE>> getPrev() override = delete;
@@ -34,6 +35,11 @@ namespace original {
         }
         stepIterator<TYPE>::operator=(other);
         return *this;
+    }
+
+    template<typename TYPE>
+    auto original::singleDirectionIterator<TYPE>::clone() const -> singleDirectionIterator* {
+        return new singleDirectionIterator(*this);
     }
 
 #endif //SINGLEDIRECTIONITERATOR_H

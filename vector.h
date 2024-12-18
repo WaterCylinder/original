@@ -30,6 +30,7 @@ namespace original{
                 friend vector;
                 Iterator(const Iterator& other);
                 Iterator& operator=(const Iterator& other);
+                Iterator* clone() const;
                 bool atPrev(const iterator<TYPE> *other) const override;
                 bool atNext(const iterator<TYPE> *other) const override;
         };
@@ -59,7 +60,11 @@ namespace original{
 }
     template <typename TYPE>
     auto original::vector<TYPE>::vectorArrayInit(const size_t size) -> TYPE* {
-        return new TYPE[size];
+        auto arr = new TYPE[size];
+        for (size_t i = 0; i < size; i++) {
+            arr[i] = TYPE{};
+        }
+        return arr;
     }
 
     template <typename TYPE>
@@ -140,6 +145,11 @@ namespace original{
         }
         randomAccessIterator<TYPE>::operator=(other);
         return *this;
+    }
+
+    template<typename TYPE>
+    auto original::vector<TYPE>::Iterator::clone() const -> Iterator* {
+        return new Iterator(*this);
     }
 
     template<typename TYPE>
@@ -373,12 +383,12 @@ namespace original{
 
     template<typename TYPE>
     auto original::vector<TYPE>::begins() const -> Iterator* {
-        return new Iterator(this->body, this, 0);
+        return new Iterator(&this->body[this->toInnerIdx(0)], this, 0);
     }
 
     template<typename TYPE>
     auto original::vector<TYPE>::ends() const -> Iterator* {
-        return new Iterator(this->body, this, this->size() - 1);
+        return new Iterator(&this->body[this->toInnerIdx(this->size() - 1)], this, this->size() - 1);
     }
 
     template <typename TYPE>

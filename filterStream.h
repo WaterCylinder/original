@@ -126,10 +126,10 @@ namespace original{
         auto it_stream = this->stream.begins();
         auto it_ops = this->ops.begins();
 
-        while (!it_stream->isNull()){
+        while (it_stream->isValid()){
             if (it_stream->get() != nullptr){
                 stream_post.pushEnd(it_stream->get());
-            } else if (!it_ops->isNull()){
+            } else if (it_ops->isValid()){
                 switch (it_ops->get()) {
                     case opts::LEFT_BRACKET:
                         ops_tmp.pushEnd(opts::LEFT_BRACKET);
@@ -280,10 +280,10 @@ namespace original{
         auto it_stream = this->stream.begins();
         auto it_ops = this->ops.begins();
 
-        while (!it_stream->isNull()){
+        while (it_stream->isValid()){
             if (it_stream->get() != nullptr){
                 value_stack.pushEnd((*it_stream->get())(t));
-            } else if (!it_ops->isNull()){
+            } else if (it_ops->isValid()){
                 switch (it_ops->get()) {
                     case opts::NOT:
                         value_stack[-1] = !value_stack[-1];

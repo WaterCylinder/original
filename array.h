@@ -26,6 +26,7 @@ namespace original{
             friend array;
             Iterator(const Iterator& other);
             Iterator& operator=(const Iterator& other);
+            Iterator* clone() const;
             bool atPrev(const iterator<TYPE> *other) const override;
             bool atNext(const iterator<TYPE> *other) const override;
         };
@@ -35,7 +36,7 @@ namespace original{
         array(const array& other);
         array& operator=(const array& other);
         bool operator==(const array& other) const;
-        array(array&& other) _GLIBCXX_NOEXCEPT;
+        array(array&& other) noexcept;
         ~array() override;
         [[__nodiscard__]] size_t size() const override;
         TYPE get(int index) const override;
@@ -74,6 +75,11 @@ namespace original{
         }
         randomAccessIterator<TYPE>::operator=(other);
         return *this;
+    }
+
+    template<typename TYPE>
+    typename original::array<TYPE>::Iterator * original::array<TYPE>::Iterator::clone() const {
+        return new Iterator(*this);
     }
 
     template<typename TYPE>
@@ -240,12 +246,12 @@ namespace original{
 
     template<typename TYPE>
     auto original::array<TYPE>::begins() const -> Iterator* {
-        return new Iterator(this->body, this, 0);
+        return new Iterator(&this->body[0], this, 0);
     }
 
     template<typename TYPE>
     auto original::array<TYPE>::ends() const -> Iterator* {
-        return new Iterator(this->body, this, this->size() - 1);
+        return new Iterator(&this->body[this->size() - 1], this, this->size() - 1);
     }
 
     template <typename TYPE>

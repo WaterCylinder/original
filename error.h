@@ -16,35 +16,35 @@ namespace original{
     };
 
     class outOfBoundError final : public std::exception{
-        [[__nodiscard__]] auto what() const _GLIBCXX_NOEXCEPT -> const char* override
+        [[__nodiscard__]] auto what() const noexcept -> const char* override
         {
             return "Out of the bound of thw object.";
         }
     };
 
     class valueError final : public  std::exception{
-        [[__nodiscard__]] auto what() const _GLIBCXX_NOEXCEPT -> const char* override
+        [[__nodiscard__]] auto what() const noexcept -> const char* override
         {
             return "Wrong value given.";
         }
     };
 
     class nullPointerError final : public std::exception{
-        [[__nodiscard__]] auto what() const _GLIBCXX_NOEXCEPT -> const char* override
+        [[__nodiscard__]] auto what() const noexcept -> const char* override
         {
             return "Attempting to access null pointer.";
         }
     };
 
     class unSupportedMethodError final : public std::exception{
-        [[__nodiscard__]] auto what() const _GLIBCXX_NOEXCEPT -> const char* override
+        [[__nodiscard__]] auto what() const noexcept -> const char* override
         {
             return "Unsupported Method for class.";
         }
     };
 
     class noElementError final : public std::exception{
-        [[__nodiscard__]] auto what() const _GLIBCXX_NOEXCEPT -> const char* override
+        [[__nodiscard__]] auto what() const noexcept -> const char* override
         {
             return "No such element.";
         }

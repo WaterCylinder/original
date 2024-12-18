@@ -14,29 +14,36 @@ namespace original
             mutable wrapper<TYPE>* _ptr;
 
             explicit stepIterator(wrapper<TYPE>* ptr);
+            bool equalPtr(const iterator<TYPE> * other) const override;
         public:
             stepIterator(const stepIterator& other);
             stepIterator& operator=(const stepIterator& other);
-            [[__nodiscard__]] bool hasNext() const override;
-            [[__nodiscard__]] bool hasPrev() const override;
+            stepIterator* clone() const override;
+            _GLIBCXX_NODISCARD bool hasNext() const override;
+            _GLIBCXX_NODISCARD bool hasPrev() const override;
             bool atPrev(const iterator<TYPE>* other) const override;
             bool atNext(const iterator<TYPE>* other) const override;
             void next() const override;
             void prev() const override;
-
             stepIterator* getNext() override;
             iterator<TYPE>* getPrev() override;
             TYPE& get() override;
             const TYPE& get() const override;
             void set(const TYPE& data) override;
-            [[__nodiscard__]] bool isValid() const override;
-            [[__nodiscard__]] std::string className() const override;
+            _GLIBCXX_NODISCARD bool isValid() const override;
+            _GLIBCXX_NODISCARD std::string className() const override;
     };
 }
 
     template <typename TYPE>
     original::stepIterator<TYPE>::stepIterator(wrapper<TYPE>* ptr)
         : _ptr(ptr) {}
+
+    template<typename TYPE>
+    auto original::stepIterator<TYPE>::equalPtr(const iterator<TYPE> *other) const -> bool {
+        auto* other_it = dynamic_cast<const stepIterator*>(other);
+        return other_it != nullptr && _ptr == other_it->_ptr;
+    }
 
     template <typename TYPE>
     original::stepIterator<TYPE>::stepIterator(const stepIterator& other)
@@ -54,6 +61,11 @@ namespace original
         }
         this->_ptr = other._ptr;
         return *this;
+    }
+
+    template<typename TYPE>
+    auto original::stepIterator<TYPE>::clone() const -> stepIterator* {
+        return new stepIterator(*this);
     }
 
     template <typename TYPE>
