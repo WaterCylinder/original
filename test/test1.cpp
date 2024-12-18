@@ -5,8 +5,6 @@
 #include "maths.h"
 #include "vector.h"
 #include "iterator.h"
-#include "singleDirectionIterator.h"
-#include "doubleDirectionIterator.h"
 
 
 int main(){
@@ -176,5 +174,14 @@ int main(){
         e = 10;
     }
     std::cout << "arr8: " << arr8 << std::endl;
+    const original::chain chain5 = {3, 5, 6, 8, 11, 10, 19, 12, 14, 7, 2, 1};
+    auto arr9 = original::array<bool>(15);
+    std::cout << "arr9 before: " << arr9 << std::endl;
+    int i = 0;
+    for (auto& e: arr9) {
+        e = chain5.contains(i);
+        i += 1;
+    }
+    std::cout << "arr9 after: " << arr9 << std::endl;
     return 0;
 }

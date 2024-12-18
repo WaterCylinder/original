@@ -43,12 +43,6 @@ namespace original{
         TYPE& operator[](int index) override;
         void set(int index, const TYPE &e) override;
         size_t indexOf(const TYPE &e) const override;
-        void pushBegin(const TYPE &e) override;
-        void push(int index, const TYPE &e) override;
-        void pushEnd(const TYPE &e) override;
-        TYPE popBegin() override;
-        TYPE pop(int index) override;
-        TYPE popEnd() override;
         Iterator* begins() const override;
         Iterator* ends() const override;
         [[__nodiscard__]] std::string className() const override;
@@ -206,42 +200,6 @@ namespace original{
             }
         }
         return this->size();
-    }
-
-    template <typename TYPE>
-    auto original::array<TYPE>::pushBegin(const TYPE &e) -> void
-    {
-        throw unSupportedMethodError();
-    }
-
-    template <typename TYPE>
-    auto original::array<TYPE>::push(int index, const TYPE &e) -> void
-    {
-        throw unSupportedMethodError();
-    }
-
-    template <typename TYPE>
-    auto original::array<TYPE>::pushEnd(const TYPE &e) -> void
-    {
-        throw unSupportedMethodError();
-    }
-
-    template <typename TYPE>
-    auto original::array<TYPE>::popBegin() -> TYPE
-    {
-        throw unSupportedMethodError();
-    }
-
-    template <typename TYPE>
-    auto original::array<TYPE>::pop(int index) -> TYPE
-    {
-        throw unSupportedMethodError();
-    }
-
-    template <typename TYPE>
-    auto original::array<TYPE>::popEnd() -> TYPE
-    {
-        throw unSupportedMethodError();
     }
 
     template<typename TYPE>
