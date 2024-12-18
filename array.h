@@ -41,11 +41,11 @@ namespace original{
         [[__nodiscard__]] size_t size() const override;
         TYPE get(int index) const override;
         TYPE& operator[](int index) override;
-        void set(int index, TYPE e) override;
-        size_t indexOf(TYPE e) const override;
-        void pushBegin(TYPE e) override;
-        void push(int index, TYPE e) override;
-        void pushEnd(TYPE e) override;
+        void set(int index, const TYPE &e) override;
+        size_t indexOf(const TYPE &e) const override;
+        void pushBegin(const TYPE &e) override;
+        void push(int index, const TYPE &e) override;
+        void pushEnd(const TYPE &e) override;
         TYPE popBegin() override;
         TYPE pop(int index) override;
         TYPE popEnd() override;
@@ -187,7 +187,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::array<TYPE>::set(int index, TYPE e) -> void
+    auto original::array<TYPE>::set(int index, const TYPE &e) -> void
     {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
@@ -196,7 +196,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::array<TYPE>::indexOf(TYPE e) const -> size_t
+    auto original::array<TYPE>::indexOf(const TYPE &e) const -> size_t
     {
         for (int i = 0; i < this->size(); i += 1)
         {
@@ -209,19 +209,19 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::array<TYPE>::pushBegin(TYPE e) -> void
+    auto original::array<TYPE>::pushBegin(const TYPE &e) -> void
     {
         throw unSupportedMethodError();
     }
 
     template <typename TYPE>
-    auto original::array<TYPE>::push(int index, TYPE e) -> void
+    auto original::array<TYPE>::push(int index, const TYPE &e) -> void
     {
         throw unSupportedMethodError();
     }
 
     template <typename TYPE>
-    auto original::array<TYPE>::pushEnd(TYPE e) -> void
+    auto original::array<TYPE>::pushEnd(const TYPE &e) -> void
     {
         throw unSupportedMethodError();
     }

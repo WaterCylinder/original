@@ -60,11 +60,11 @@ namespace original {
         [[__nodiscard__]] size_t size() const override;
         TYPE get(int index) const override;
         TYPE& operator[](int index) override;
-        void set(int index, TYPE e) override;
-        size_t indexOf(TYPE e) const override;
-        void pushBegin(TYPE e) override;
-        void push(int index, TYPE e) override;
-        void pushEnd(TYPE e) override;
+        void set(int index, const TYPE &e) override;
+        size_t indexOf(const TYPE &e) const override;
+        void pushBegin(const TYPE &e) override;
+        void push(int index, const TYPE &e) override;
+        void pushEnd(const TYPE &e) override;
         TYPE popBegin() override;
         TYPE pop(int index) override;
         TYPE popEnd() override;
@@ -332,7 +332,7 @@ namespace original {
     }
 
     template <typename TYPE>
-    auto original::chain<TYPE>::set(int index, TYPE e) -> void
+    auto original::chain<TYPE>::set(int index, const TYPE &e) -> void
     {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
@@ -361,7 +361,7 @@ namespace original {
     }
 
     template <typename TYPE>
-    auto original::chain<TYPE>::indexOf(TYPE e) const -> size_t {
+    auto original::chain<TYPE>::indexOf(const TYPE &e) const -> size_t {
         size_t i = 0;
         for (chainNode* current = this->begin_; current != nullptr; current = current->getPNext()) {
             if (current->getVal() == e) {
@@ -373,7 +373,7 @@ namespace original {
     }
 
 template <typename TYPE>
-    auto original::chain<TYPE>::pushBegin(TYPE e) -> void
+    auto original::chain<TYPE>::pushBegin(const TYPE &e) -> void
     {
         auto* new_node = new chainNode(e);
         if (this->size() == 0){
@@ -387,7 +387,7 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
-    auto original::chain<TYPE>::push(int index, TYPE e) -> void
+    auto original::chain<TYPE>::push(int index, const TYPE &e) -> void
     {
         index = this->parseNegIndex(index);
         if (index == 0){
@@ -422,7 +422,7 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
-    auto original::chain<TYPE>::pushEnd(TYPE e) -> void
+    auto original::chain<TYPE>::pushEnd(const TYPE &e) -> void
     {
         auto* new_node = new chainNode(e);
         if (this->size() == 0){

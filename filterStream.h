@@ -292,7 +292,7 @@ namespace original{
                         const bool right = value_stack.popEnd();
                         const bool left = value_stack.popEnd();
                         value_stack.pushEnd(it_ops->get() == opts::AND ?
-                                            left && right : left || right);
+                                                left && right : left || right);
                         break;
                 }
                 it_ops->next();

@@ -1,7 +1,7 @@
 #ifndef SERIAL_H
 #define SERIAL_H
 
-#include "container.h"
+#include <container.h>
 
 namespace original{
     template <typename TYPE>
@@ -10,19 +10,19 @@ namespace original{
         [[__nodiscard__]] bool indexOutOfBound(int index) const;
         [[__nodiscard__]] int parseNegIndex(int index) const;
     public:
-        void add(TYPE e) override;
+        void add(const TYPE& e) override;
         void clear() override;
         virtual TYPE get(int index) const = 0;
         virtual TYPE operator[](int index) const;
         virtual TYPE& operator[](int index) = 0;
-        virtual void set(int index, TYPE e) = 0;
-        virtual size_t indexOf(TYPE e) const = 0;
-        bool contains(TYPE e) const override;
-        virtual void push(int index, TYPE e) = 0;
+        virtual void set(int index, const TYPE& e) = 0;
+        virtual size_t indexOf(const TYPE& e) const = 0;
+        bool contains(const TYPE& e) const override;
+        virtual void push(int index, const TYPE& e) = 0;
         virtual TYPE pop(int index) = 0;
-        virtual void pushBegin(TYPE e) = 0;
+        virtual void pushBegin(const TYPE& e) = 0;
         virtual TYPE popBegin() = 0;
-        virtual void pushEnd(TYPE e) = 0;
+        virtual void pushEnd(const TYPE& e) = 0;
         virtual TYPE popEnd() = 0;
     };
 }
@@ -41,7 +41,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::serial<TYPE>::add(TYPE e) -> void
+    auto original::serial<TYPE>::add(const TYPE &e) -> void
     {
         this->pushEnd(e);
     }
@@ -60,7 +60,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::serial<TYPE>::contains(TYPE e) const -> bool
+    auto original::serial<TYPE>::contains(const TYPE &e) const -> bool
     {
         return this->indexOf(e) != this->size();
     }
