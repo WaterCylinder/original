@@ -1,0 +1,91 @@
+\doxysection{original\+::wrapper\texorpdfstring{$<$}{<} TYPE \texorpdfstring{$>$}{>} Class Template Reference}
+\hypertarget{classoriginal_1_1wrapper}{}\label{classoriginal_1_1wrapper}\index{original::wrapper$<$ TYPE $>$@{original::wrapper$<$ TYPE $>$}}
+
+
+Inheritance diagram for original\+::wrapper\texorpdfstring{$<$}{<} TYPE \texorpdfstring{$>$}{>}\+:
+% FIG 0
+
+
+Collaboration diagram for original\+::wrapper\texorpdfstring{$<$}{<} TYPE \texorpdfstring{$>$}{>}\+:
+% FIG 1
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classoriginal_1_1wrapper_a8e5efb63f7b0b427852361b639e07e66}\label{classoriginal_1_1wrapper_a8e5efb63f7b0b427852361b639e07e66} 
+virtual TYPE \& {\bfseries get\+Val} ()=0
+\item 
+\Hypertarget{classoriginal_1_1wrapper_a85e09950b3b2e529b8d15d49de84c87d}\label{classoriginal_1_1wrapper_a85e09950b3b2e529b8d15d49de84c87d} 
+virtual const TYPE \& {\bfseries get\+Val} () const =0
+\item 
+\Hypertarget{classoriginal_1_1wrapper_aaa126bf90e2dccf8763b519d5f8f1366}\label{classoriginal_1_1wrapper_aaa126bf90e2dccf8763b519d5f8f1366} 
+virtual void {\bfseries set\+Val} (TYPE data)=0
+\item 
+\Hypertarget{classoriginal_1_1wrapper_a7dc6ed4bd6205fa33273aa15b3adf489}\label{classoriginal_1_1wrapper_a7dc6ed4bd6205fa33273aa15b3adf489} 
+virtual \mbox{\hyperlink{classoriginal_1_1wrapper}{wrapper}} \texorpdfstring{$\ast$}{*} {\bfseries get\+PPrev} () const =0
+\item 
+\Hypertarget{classoriginal_1_1wrapper_a5603d6e6e5b2f810396306b6171ce389}\label{classoriginal_1_1wrapper_a5603d6e6e5b2f810396306b6171ce389} 
+virtual \mbox{\hyperlink{classoriginal_1_1wrapper}{wrapper}} \texorpdfstring{$\ast$}{*} {\bfseries get\+PNext} () const =0
+\item 
+std\+::string \mbox{\hyperlink{classoriginal_1_1wrapper_abae067a41940041d18f05280ca1adb88}{class\+Name}} () const override
+\item 
+std\+::string \mbox{\hyperlink{classoriginal_1_1wrapper_ad77733528e24869c342773f0b67d0b67}{to\+String}} (bool enter) const override
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1printable}{original\+::printable}}}
+\begin{DoxyCompactItemize}
+\item 
+const char \texorpdfstring{$\ast$}{*} {\bfseries to\+CString} (bool enter) const
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries format\+String} (const TYPE \&t) -\/$>$ std\+::string
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries format\+CString} (const TYPE \&t) -\/$>$ const char \texorpdfstring{$\ast$}{*}
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries format\+Enum} (const TYPE \&t) -\/$>$ std\+::string
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries format\+String} (TYPE \texorpdfstring{$\ast$}{*}const \&ptr) -\/$>$ std\+::string
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Additional Inherited Members}
+\doxysubsection*{Static Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1printable}{original\+::printable}}}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\static std\+::string {\bfseries format\+String} (const TYPE \&t)
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\static std\+::string {\bfseries format\+String} (TYPE \texorpdfstring{$\ast$}{*}const \&ptr)
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\static const char \texorpdfstring{$\ast$}{*} {\bfseries format\+CString} (const TYPE \&t)
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\static std\+::string {\bfseries format\+Enum} (const TYPE \&t)
+\item 
+template$<$$>$ auto {\bfseries format\+String} (const char \&t) -\/$>$ std\+::string
+\item 
+template$<$$>$ auto {\bfseries format\+String} (const bool \&t) -\/$>$ std\+::string
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classoriginal_1_1wrapper_abae067a41940041d18f05280ca1adb88}\index{original::wrapper$<$ TYPE $>$@{original::wrapper$<$ TYPE $>$}!className@{className}}
+\index{className@{className}!original::wrapper$<$ TYPE $>$@{original::wrapper$<$ TYPE $>$}}
+\doxysubsubsection{\texorpdfstring{className()}{className()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1wrapper_abae067a41940041d18f05280ca1adb88} 
+template$<$typename TYPE $>$ \\
+auto \mbox{\hyperlink{classoriginal_1_1wrapper}{original\+::wrapper}}$<$ TYPE $>$\+::class\+Name (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Reimplemented from \mbox{\hyperlink{classoriginal_1_1printable}{original\+::printable}}.
+
+\Hypertarget{classoriginal_1_1wrapper_ad77733528e24869c342773f0b67d0b67}\index{original::wrapper$<$ TYPE $>$@{original::wrapper$<$ TYPE $>$}!toString@{toString}}
+\index{toString@{toString}!original::wrapper$<$ TYPE $>$@{original::wrapper$<$ TYPE $>$}}
+\doxysubsubsection{\texorpdfstring{toString()}{toString()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1wrapper_ad77733528e24869c342773f0b67d0b67} 
+template$<$typename TYPE $>$ \\
+auto \mbox{\hyperlink{classoriginal_1_1wrapper}{original\+::wrapper}}$<$ TYPE $>$\+::to\+String (\begin{DoxyParamCaption}\item[{bool}]{enter}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Reimplemented from \mbox{\hyperlink{classoriginal_1_1printable}{original\+::printable}}.
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+wrapper.\+h\end{DoxyCompactItemize}

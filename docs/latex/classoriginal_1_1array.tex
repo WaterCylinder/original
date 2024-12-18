@@ -1,0 +1,305 @@
+\doxysection{original\+::array\texorpdfstring{$<$}{<} TYPE \texorpdfstring{$>$}{>} Class Template Reference}
+\hypertarget{classoriginal_1_1array}{}\label{classoriginal_1_1array}\index{original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}}
+
+
+Inheritance diagram for original\+::array\texorpdfstring{$<$}{<} TYPE \texorpdfstring{$>$}{>}\+:
+% FIG 0
+
+
+Collaboration diagram for original\+::array\texorpdfstring{$<$}{<} TYPE \texorpdfstring{$>$}{>}\+:
+% FIG 1
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classoriginal_1_1array_1_1_iterator}{Iterator}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classoriginal_1_1array_af3bacd961974f194efd507223b39d2c4}\label{classoriginal_1_1array_af3bacd961974f194efd507223b39d2c4} 
+{\bfseries array} (size\+\_\+t size=0)
+\item 
+\Hypertarget{classoriginal_1_1array_aedee2dd55167fb10adcb30dbe486d003}\label{classoriginal_1_1array_aedee2dd55167fb10adcb30dbe486d003} 
+{\bfseries array} (std\+::initializer\+\_\+list$<$ TYPE $>$ lst)
+\item 
+\Hypertarget{classoriginal_1_1array_a156c3b57c6c49830e23984cb5a3b0bd3}\label{classoriginal_1_1array_a156c3b57c6c49830e23984cb5a3b0bd3} 
+{\bfseries array} (const \mbox{\hyperlink{classoriginal_1_1array}{array}} \&other)
+\item 
+\Hypertarget{classoriginal_1_1array_a1d21cd76a6990ea0ca823ad426f3c315}\label{classoriginal_1_1array_a1d21cd76a6990ea0ca823ad426f3c315} 
+\mbox{\hyperlink{classoriginal_1_1array}{array}} \& {\bfseries operator=} (const \mbox{\hyperlink{classoriginal_1_1array}{array}} \&other)
+\item 
+\Hypertarget{classoriginal_1_1array_a37d679c855e86d8ef716efb2cd8bc608}\label{classoriginal_1_1array_a37d679c855e86d8ef716efb2cd8bc608} 
+bool {\bfseries operator==} (const \mbox{\hyperlink{classoriginal_1_1array}{array}} \&other) const
+\item 
+\Hypertarget{classoriginal_1_1array_a71a3d9eab34ca34d812abe1cc60c9f23}\label{classoriginal_1_1array_a71a3d9eab34ca34d812abe1cc60c9f23} 
+{\bfseries array} (\mbox{\hyperlink{classoriginal_1_1array}{array}} \&\&other) noexcept
+\item 
+size\+\_\+t \mbox{\hyperlink{classoriginal_1_1array_aa19f6e9662eb7bbe8e3815ce21716cfe}{size}} () const override
+\item 
+TYPE \mbox{\hyperlink{classoriginal_1_1array_abd969ed40f6d97a0c131c24caeea4a17}{get}} (int index) const override
+\item 
+TYPE \& \mbox{\hyperlink{classoriginal_1_1array_a8b7b95f08c7d9e4ec198422e831aea95}{operator\mbox{[}$\,$\mbox{]}}} (int index) override
+\item 
+void \mbox{\hyperlink{classoriginal_1_1array_a0f5150b04a9f197accddd26a343c1a10}{set}} (int index, const TYPE \&e) override
+\item 
+size\+\_\+t \mbox{\hyperlink{classoriginal_1_1array_a491654f0b1a9453223297c8b7784dfb9}{index\+Of}} (const TYPE \&e) const override
+\item 
+void \mbox{\hyperlink{classoriginal_1_1array_a90a686ba9de49a38c3cd13ff62626cac}{push\+Begin}} (const TYPE \&e) override
+\item 
+void \mbox{\hyperlink{classoriginal_1_1array_a613263f58c6652b485f3805523f7ec5e}{push}} (int index, const TYPE \&e) override
+\item 
+void \mbox{\hyperlink{classoriginal_1_1array_ac503743de5b0b5885551d481cf9632d0}{push\+End}} (const TYPE \&e) override
+\item 
+TYPE \mbox{\hyperlink{classoriginal_1_1array_a09412dcd5d8d3e22e5ed493d91da7694}{pop\+Begin}} () override
+\item 
+TYPE \mbox{\hyperlink{classoriginal_1_1array_a1b73f23d7b6b4f1c6c98055e1f48b2db}{pop}} (int index) override
+\item 
+TYPE \mbox{\hyperlink{classoriginal_1_1array_a172eb77753824d95a817b12c477fc7d1}{pop\+End}} () override
+\item 
+\mbox{\hyperlink{classoriginal_1_1array_1_1_iterator}{Iterator}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classoriginal_1_1array_a291f02014c659fd19173ac53615b3046}{begins}} () const override
+\item 
+\mbox{\hyperlink{classoriginal_1_1array_1_1_iterator}{Iterator}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classoriginal_1_1array_adcdf0ac1c61c578308ee4bb9e5c075ca}{ends}} () const override
+\item 
+std\+::string \mbox{\hyperlink{classoriginal_1_1array_a6a16dbbb3954ff165bb0e3a10803a541}{class\+Name}} () const override
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1iteration_stream}{original\+::iteration\+Stream$<$ TYPE $>$}}}
+\begin{DoxyCompactItemize}
+\item 
+std\+::string \mbox{\hyperlink{classoriginal_1_1iteration_stream_a7541e2a6dc42214fe9e00ef965dc30b4}{class\+Name}} () const override
+\item 
+std\+::string \mbox{\hyperlink{classoriginal_1_1iteration_stream_adc17b45187aa82d68ad52bf4290189ca}{to\+String}} (bool enter) const override
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1printable}{original\+::printable}}}
+\begin{DoxyCompactItemize}
+\item 
+const char \texorpdfstring{$\ast$}{*} {\bfseries to\+CString} (bool enter) const
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries format\+String} (const TYPE \&t) -\/$>$ std\+::string
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries format\+CString} (const TYPE \&t) -\/$>$ const char \texorpdfstring{$\ast$}{*}
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries format\+Enum} (const TYPE \&t) -\/$>$ std\+::string
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries format\+String} (TYPE \texorpdfstring{$\ast$}{*}const \&ptr) -\/$>$ std\+::string
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1iterable}{original\+::iterable$<$ TYPE $>$}}}
+\begin{DoxyCompactItemize}
+\item 
+\mbox{\hyperlink{classoriginal_1_1iter_adaptor}{iter\+Adaptor}}$<$ TYPE $>$ {\bfseries begin} ()
+\item 
+\mbox{\hyperlink{classoriginal_1_1iter_adaptor}{iter\+Adaptor}}$<$ TYPE $>$ {\bfseries end} ()
+\item 
+\mbox{\hyperlink{classoriginal_1_1iter_adaptor}{iter\+Adaptor}}$<$ TYPE $>$ {\bfseries begin} () const
+\item 
+\mbox{\hyperlink{classoriginal_1_1iter_adaptor}{iter\+Adaptor}}$<$ TYPE $>$ {\bfseries end} () const
+\item 
+{\footnotesize template$<$typename Callback  = std\+::function$<$void(\+TYPE\&)$>$$>$ }\\void {\bfseries for\+Each} (Callback operation=\mbox{\hyperlink{classoriginal_1_1transform}{transform}}$<$ TYPE $>$())
+\item 
+{\footnotesize template$<$typename Callback $>$ }\\auto {\bfseries for\+Each} (Callback operation) -\/$>$ void
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1serial}{original\+::serial$<$ TYPE $>$}}}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{classoriginal_1_1serial_a3feda36ac9a78536fb524764caf2a243}{add}} (const TYPE \&e) override
+\item 
+void \mbox{\hyperlink{classoriginal_1_1serial_a6ddd09ee27cdf21272725562d92e855a}{clear}} () override
+\item 
+virtual TYPE {\bfseries operator\mbox{[}$\,$\mbox{]}} (int index) const
+\item 
+bool \mbox{\hyperlink{classoriginal_1_1serial_a689a824c570acbc125c5b7ee3e10581b}{contains}} (const TYPE \&e) const override
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1container}{original\+::container$<$ TYPE $>$}}}
+\begin{DoxyCompactItemize}
+\item 
+bool {\bfseries empty} () const
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Additional Inherited Members}
+\doxysubsection*{Static Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1printable}{original\+::printable}}}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\static std\+::string {\bfseries format\+String} (const TYPE \&t)
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\static std\+::string {\bfseries format\+String} (TYPE \texorpdfstring{$\ast$}{*}const \&ptr)
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\static const char \texorpdfstring{$\ast$}{*} {\bfseries format\+CString} (const TYPE \&t)
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\static std\+::string {\bfseries format\+Enum} (const TYPE \&t)
+\item 
+template$<$$>$ auto {\bfseries format\+String} (const char \&t) -\/$>$ std\+::string
+\item 
+template$<$$>$ auto {\bfseries format\+String} (const bool \&t) -\/$>$ std\+::string
+\end{DoxyCompactItemize}
+\doxysubsection*{Protected Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1iteration_stream}{original\+::iteration\+Stream$<$ TYPE $>$}}}
+\begin{DoxyCompactItemize}
+\item 
+std\+::string {\bfseries elements\+String} () const
+\end{DoxyCompactItemize}
+\doxysubsection*{Protected Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1serial}{original\+::serial$<$ TYPE $>$}}}
+\begin{DoxyCompactItemize}
+\item 
+bool {\bfseries index\+Out\+Of\+Bound} (int index) const
+\item 
+int {\bfseries parse\+Neg\+Index} (int index) const
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classoriginal_1_1array_a291f02014c659fd19173ac53615b3046}\index{original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}!begins@{begins}}
+\index{begins@{begins}!original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}}
+\doxysubsubsection{\texorpdfstring{begins()}{begins()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1array_a291f02014c659fd19173ac53615b3046} 
+template$<$typename TYPE $>$ \\
+auto \mbox{\hyperlink{classoriginal_1_1array}{original\+::array}}$<$ TYPE $>$\+::begins (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{classoriginal_1_1iterable}{original\+::iterable$<$ TYPE $>$}}.
+
+\Hypertarget{classoriginal_1_1array_a6a16dbbb3954ff165bb0e3a10803a541}\index{original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}!className@{className}}
+\index{className@{className}!original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}}
+\doxysubsubsection{\texorpdfstring{className()}{className()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1array_a6a16dbbb3954ff165bb0e3a10803a541} 
+template$<$typename TYPE $>$ \\
+std\+::string \mbox{\hyperlink{classoriginal_1_1array}{original\+::array}}$<$ TYPE $>$\+::class\+Name (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Reimplemented from \mbox{\hyperlink{classoriginal_1_1printable}{original\+::printable}}.
+
+\Hypertarget{classoriginal_1_1array_adcdf0ac1c61c578308ee4bb9e5c075ca}\index{original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}!ends@{ends}}
+\index{ends@{ends}!original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}}
+\doxysubsubsection{\texorpdfstring{ends()}{ends()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1array_adcdf0ac1c61c578308ee4bb9e5c075ca} 
+template$<$typename TYPE $>$ \\
+auto \mbox{\hyperlink{classoriginal_1_1array}{original\+::array}}$<$ TYPE $>$\+::ends (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{classoriginal_1_1iterable}{original\+::iterable$<$ TYPE $>$}}.
+
+\Hypertarget{classoriginal_1_1array_abd969ed40f6d97a0c131c24caeea4a17}\index{original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}!get@{get}}
+\index{get@{get}!original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1array_abd969ed40f6d97a0c131c24caeea4a17} 
+template$<$typename TYPE $>$ \\
+auto \mbox{\hyperlink{classoriginal_1_1array}{original\+::array}}$<$ TYPE $>$\+::get (\begin{DoxyParamCaption}\item[{int}]{index}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{classoriginal_1_1serial}{original\+::serial$<$ TYPE $>$}}.
+
+\Hypertarget{classoriginal_1_1array_a491654f0b1a9453223297c8b7784dfb9}\index{original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}!indexOf@{indexOf}}
+\index{indexOf@{indexOf}!original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}}
+\doxysubsubsection{\texorpdfstring{indexOf()}{indexOf()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1array_a491654f0b1a9453223297c8b7784dfb9} 
+template$<$typename TYPE $>$ \\
+auto \mbox{\hyperlink{classoriginal_1_1array}{original\+::array}}$<$ TYPE $>$\+::index\+Of (\begin{DoxyParamCaption}\item[{const TYPE \&}]{e}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{classoriginal_1_1serial}{original\+::serial$<$ TYPE $>$}}.
+
+\Hypertarget{classoriginal_1_1array_a8b7b95f08c7d9e4ec198422e831aea95}\index{original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}!operator\mbox{[}\mbox{]}@{operator[]}}
+\index{operator\mbox{[}\mbox{]}@{operator[]}!original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}}
+\doxysubsubsection{\texorpdfstring{operator[]()}{operator[]()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1array_a8b7b95f08c7d9e4ec198422e831aea95} 
+template$<$typename TYPE $>$ \\
+auto \mbox{\hyperlink{classoriginal_1_1array}{original\+::array}}$<$ TYPE $>$\+::operator\mbox{[}$\,$\mbox{]} (\begin{DoxyParamCaption}\item[{int}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{classoriginal_1_1serial}{original\+::serial$<$ TYPE $>$}}.
+
+\Hypertarget{classoriginal_1_1array_a1b73f23d7b6b4f1c6c98055e1f48b2db}\index{original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}!pop@{pop}}
+\index{pop@{pop}!original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}}
+\doxysubsubsection{\texorpdfstring{pop()}{pop()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1array_a1b73f23d7b6b4f1c6c98055e1f48b2db} 
+template$<$typename TYPE $>$ \\
+auto \mbox{\hyperlink{classoriginal_1_1array}{original\+::array}}$<$ TYPE $>$\+::pop (\begin{DoxyParamCaption}\item[{int}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{classoriginal_1_1serial}{original\+::serial$<$ TYPE $>$}}.
+
+\Hypertarget{classoriginal_1_1array_a09412dcd5d8d3e22e5ed493d91da7694}\index{original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}!popBegin@{popBegin}}
+\index{popBegin@{popBegin}!original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}}
+\doxysubsubsection{\texorpdfstring{popBegin()}{popBegin()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1array_a09412dcd5d8d3e22e5ed493d91da7694} 
+template$<$typename TYPE $>$ \\
+auto \mbox{\hyperlink{classoriginal_1_1array}{original\+::array}}$<$ TYPE $>$\+::pop\+Begin (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{classoriginal_1_1serial}{original\+::serial$<$ TYPE $>$}}.
+
+\Hypertarget{classoriginal_1_1array_a172eb77753824d95a817b12c477fc7d1}\index{original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}!popEnd@{popEnd}}
+\index{popEnd@{popEnd}!original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}}
+\doxysubsubsection{\texorpdfstring{popEnd()}{popEnd()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1array_a172eb77753824d95a817b12c477fc7d1} 
+template$<$typename TYPE $>$ \\
+auto \mbox{\hyperlink{classoriginal_1_1array}{original\+::array}}$<$ TYPE $>$\+::pop\+End (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{classoriginal_1_1serial}{original\+::serial$<$ TYPE $>$}}.
+
+\Hypertarget{classoriginal_1_1array_a613263f58c6652b485f3805523f7ec5e}\index{original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}!push@{push}}
+\index{push@{push}!original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}}
+\doxysubsubsection{\texorpdfstring{push()}{push()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1array_a613263f58c6652b485f3805523f7ec5e} 
+template$<$typename TYPE $>$ \\
+auto \mbox{\hyperlink{classoriginal_1_1array}{original\+::array}}$<$ TYPE $>$\+::push (\begin{DoxyParamCaption}\item[{int}]{index}{, }\item[{const TYPE \&}]{e}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{classoriginal_1_1serial}{original\+::serial$<$ TYPE $>$}}.
+
+\Hypertarget{classoriginal_1_1array_a90a686ba9de49a38c3cd13ff62626cac}\index{original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}!pushBegin@{pushBegin}}
+\index{pushBegin@{pushBegin}!original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}}
+\doxysubsubsection{\texorpdfstring{pushBegin()}{pushBegin()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1array_a90a686ba9de49a38c3cd13ff62626cac} 
+template$<$typename TYPE $>$ \\
+auto \mbox{\hyperlink{classoriginal_1_1array}{original\+::array}}$<$ TYPE $>$\+::push\+Begin (\begin{DoxyParamCaption}\item[{const TYPE \&}]{e}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{classoriginal_1_1serial}{original\+::serial$<$ TYPE $>$}}.
+
+\Hypertarget{classoriginal_1_1array_ac503743de5b0b5885551d481cf9632d0}\index{original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}!pushEnd@{pushEnd}}
+\index{pushEnd@{pushEnd}!original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}}
+\doxysubsubsection{\texorpdfstring{pushEnd()}{pushEnd()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1array_ac503743de5b0b5885551d481cf9632d0} 
+template$<$typename TYPE $>$ \\
+auto \mbox{\hyperlink{classoriginal_1_1array}{original\+::array}}$<$ TYPE $>$\+::push\+End (\begin{DoxyParamCaption}\item[{const TYPE \&}]{e}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{classoriginal_1_1serial}{original\+::serial$<$ TYPE $>$}}.
+
+\Hypertarget{classoriginal_1_1array_a0f5150b04a9f197accddd26a343c1a10}\index{original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}!set@{set}}
+\index{set@{set}!original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}}
+\doxysubsubsection{\texorpdfstring{set()}{set()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1array_a0f5150b04a9f197accddd26a343c1a10} 
+template$<$typename TYPE $>$ \\
+auto \mbox{\hyperlink{classoriginal_1_1array}{original\+::array}}$<$ TYPE $>$\+::set (\begin{DoxyParamCaption}\item[{int}]{index}{, }\item[{const TYPE \&}]{e}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{classoriginal_1_1serial}{original\+::serial$<$ TYPE $>$}}.
+
+\Hypertarget{classoriginal_1_1array_aa19f6e9662eb7bbe8e3815ce21716cfe}\index{original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}!size@{size}}
+\index{size@{size}!original::array$<$ TYPE $>$@{original::array$<$ TYPE $>$}}
+\doxysubsubsection{\texorpdfstring{size()}{size()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1array_aa19f6e9662eb7bbe8e3815ce21716cfe} 
+template$<$typename TYPE $>$ \\
+auto \mbox{\hyperlink{classoriginal_1_1array}{original\+::array}}$<$ TYPE $>$\+::size (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{classoriginal_1_1container}{original\+::container$<$ TYPE $>$}}.
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+array.\+h\end{DoxyCompactItemize}

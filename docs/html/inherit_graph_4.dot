@@ -1,0 +1,23 @@
+digraph "Graphical Class Hierarchy"
+{
+ // LATEX_PDF_SIZE
+  bgcolor="transparent";
+  edge [fontname=Helvetica,fontsize=10,labelfontname=Helvetica,labelfontsize=10];
+  node [fontname=Helvetica,fontsize=10,shape=box,height=0.2,width=0.4];
+  rankdir="LR";
+  Node0 [id="Node000000",label="original::filter\< TYPE \>",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classoriginal_1_1filter.html",tooltip=" "];
+  Node0 -> Node1 [id="edge45_Node000000_Node000001",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node1 [id="Node000001",label="original::equalFilter\l\< TYPE \>",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classoriginal_1_1equal_filter.html",tooltip=" "];
+  Node0 -> Node2 [id="edge46_Node000000_Node000002",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node2 [id="Node000002",label="original::greaterFilter\l\< TYPE \>",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classoriginal_1_1greater_filter.html",tooltip=" "];
+  Node0 -> Node3 [id="edge47_Node000000_Node000003",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node3 [id="Node000003",label="original::lessFilter\l\< TYPE \>",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classoriginal_1_1less_filter.html",tooltip=" "];
+  Node0 -> Node4 [id="edge48_Node000000_Node000004",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node4 [id="Node000004",label="original::notEqualFilter\l\< TYPE \>",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classoriginal_1_1not_equal_filter.html",tooltip=" "];
+  Node0 -> Node5 [id="edge49_Node000000_Node000005",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node5 [id="Node000005",label="original::notGreaterFilter\l\< TYPE \>",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classoriginal_1_1not_greater_filter.html",tooltip=" "];
+  Node0 -> Node6 [id="edge50_Node000000_Node000006",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node6 [id="Node000006",label="original::notLessFilter\l\< TYPE \>",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classoriginal_1_1not_less_filter.html",tooltip=" "];
+  Node0 -> Node7 [id="edge51_Node000000_Node000007",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node7 [id="Node000007",label="original::rangeFilter\l\< TYPE \>",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classoriginal_1_1range_filter.html",tooltip=" "];
+}

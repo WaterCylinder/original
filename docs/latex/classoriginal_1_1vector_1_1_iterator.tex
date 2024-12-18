@@ -1,0 +1,188 @@
+\doxysection{original\+::vector\texorpdfstring{$<$}{<} TYPE \texorpdfstring{$>$}{>}\+::Iterator Class Reference}
+\hypertarget{classoriginal_1_1vector_1_1_iterator}{}\label{classoriginal_1_1vector_1_1_iterator}\index{original::vector$<$ TYPE $>$::Iterator@{original::vector$<$ TYPE $>$::Iterator}}
+
+
+Inheritance diagram for original\+::vector\texorpdfstring{$<$}{<} TYPE \texorpdfstring{$>$}{>}\+::Iterator\+:
+% FIG 0
+
+
+Collaboration diagram for original\+::vector\texorpdfstring{$<$}{<} TYPE \texorpdfstring{$>$}{>}\+::Iterator\+:
+% FIG 1
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classoriginal_1_1vector_1_1_iterator_a73b1618dcdeea59a39e4d200c4850d5d}\label{classoriginal_1_1vector_1_1_iterator_a73b1618dcdeea59a39e4d200c4850d5d} 
+{\bfseries Iterator} (const \mbox{\hyperlink{classoriginal_1_1vector_1_1_iterator}{Iterator}} \&other)
+\item 
+\Hypertarget{classoriginal_1_1vector_1_1_iterator_a6fff6fae1e551ac60d461b850d94aebf}\label{classoriginal_1_1vector_1_1_iterator_a6fff6fae1e551ac60d461b850d94aebf} 
+\mbox{\hyperlink{classoriginal_1_1vector_1_1_iterator}{Iterator}} \& {\bfseries operator=} (const \mbox{\hyperlink{classoriginal_1_1vector_1_1_iterator}{Iterator}} \&other)
+\item 
+\mbox{\hyperlink{classoriginal_1_1vector_1_1_iterator}{Iterator}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classoriginal_1_1vector_1_1_iterator_a74218f1f2e675f9d1fb6d2ee96c1986c}{clone}} () const override
+\item 
+bool \mbox{\hyperlink{classoriginal_1_1vector_1_1_iterator_a3c29ace0f0fb1b14bd5dc82236ea75ae}{at\+Prev}} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \texorpdfstring{$\ast$}{*}other) const override
+\item 
+bool \mbox{\hyperlink{classoriginal_1_1vector_1_1_iterator_ac83b7433908ce3f64794fff7be3792df}{at\+Next}} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \texorpdfstring{$\ast$}{*}other) const override
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1random_access_iterator}{original\+::random\+Access\+Iterator$<$ TYPE $>$}}}
+\begin{DoxyCompactItemize}
+\item 
+{\bfseries random\+Access\+Iterator} (const \mbox{\hyperlink{classoriginal_1_1random_access_iterator}{random\+Access\+Iterator}} \&other)
+\item 
+\mbox{\hyperlink{classoriginal_1_1random_access_iterator}{random\+Access\+Iterator}} \& {\bfseries operator=} (const \mbox{\hyperlink{classoriginal_1_1random_access_iterator}{random\+Access\+Iterator}} \&other)
+\item 
+\mbox{\hyperlink{classoriginal_1_1random_access_iterator}{random\+Access\+Iterator}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classoriginal_1_1random_access_iterator_a0bf6956be1d0216c432cd86b220c1c28}{clone}} () const override
+\item 
+bool \mbox{\hyperlink{classoriginal_1_1random_access_iterator_a8c1fe7cd2a3ababdce814f24d83c493c}{has\+Next}} () const override
+\item 
+bool \mbox{\hyperlink{classoriginal_1_1random_access_iterator_aa0de92674eae2f2864065b995ac36cc0}{has\+Prev}} () const override
+\item 
+bool \mbox{\hyperlink{classoriginal_1_1random_access_iterator_a863ed371f7d5b7a5f8626ec9f92ba40b}{at\+Prev}} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \texorpdfstring{$\ast$}{*}other) const override
+\item 
+bool \mbox{\hyperlink{classoriginal_1_1random_access_iterator_aaecc66e3925ea8c2b942613e04665159}{at\+Next}} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \texorpdfstring{$\ast$}{*}other) const override
+\item 
+void \mbox{\hyperlink{classoriginal_1_1random_access_iterator_aa94be04858824e8b472d5925574f4624}{next}} () const override
+\item 
+void \mbox{\hyperlink{classoriginal_1_1random_access_iterator_a51246c7622af53c5a34c8f67f0cecf02}{prev}} () const override
+\item 
+void {\bfseries operator+=} (long long steps) const
+\item 
+void {\bfseries operator-\/=} (long long steps) const
+\item 
+\mbox{\hyperlink{classoriginal_1_1random_access_iterator}{random\+Access\+Iterator}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classoriginal_1_1random_access_iterator_a6168a759cfa7f60cac823800110a9070}{get\+Next}} () override
+\item 
+\mbox{\hyperlink{classoriginal_1_1random_access_iterator}{random\+Access\+Iterator}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classoriginal_1_1random_access_iterator_aca5fdc0a783bad8542ce19bf21f571bf}{get\+Prev}} () override
+\item 
+TYPE \& \mbox{\hyperlink{classoriginal_1_1random_access_iterator_acb971011bf01b412fe0e1a9acc56db28}{get}} () override
+\item 
+const TYPE \& \mbox{\hyperlink{classoriginal_1_1random_access_iterator_a7e85ecf254414a5321fcdf8499eae2c3}{get}} () const override
+\item 
+void \mbox{\hyperlink{classoriginal_1_1random_access_iterator_adcbd7ae0af63b9c8ab56c4422c8ab2ac}{set}} (const TYPE \&data) override
+\item 
+bool \mbox{\hyperlink{classoriginal_1_1random_access_iterator_a7f28d252d0ca834bfaa17179d80c9ed9}{is\+Valid}} () const override
+\item 
+std\+::string \mbox{\hyperlink{classoriginal_1_1random_access_iterator_af47f6230496e34c7eb7f426b8c83f975}{class\+Name}} () const override
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1iterator}{original\+::iterator$<$ TYPE $>$}}}
+\begin{DoxyCompactItemize}
+\item 
+TYPE \& {\bfseries operator\texorpdfstring{$\ast$}{*}} ()
+\item 
+const TYPE \& {\bfseries operator\texorpdfstring{$\ast$}{*}} () const
+\item 
+\mbox{\hyperlink{classoriginal_1_1iterator}{iterator}} \& {\bfseries operator++} ()
+\item 
+\mbox{\hyperlink{classoriginal_1_1iterator}{iterator}} \& {\bfseries operator++} (int)
+\item 
+\mbox{\hyperlink{classoriginal_1_1iterator}{iterator}} \& {\bfseries operator-\/-\/} ()
+\item 
+\mbox{\hyperlink{classoriginal_1_1iterator}{iterator}} \& {\bfseries operator-\/-\/} (int)
+\item 
+bool {\bfseries operator==} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}} \&other) const
+\item 
+bool {\bfseries operator!=} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}} \&other) const
+\item 
+{\bfseries operator bool} () const
+\item 
+bool {\bfseries at\+Prev} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}} \&other) const
+\item 
+bool {\bfseries at\+Next} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}} \&other) const
+\item 
+bool {\bfseries equal} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}} \texorpdfstring{$\ast$}{*}other) const
+\item 
+bool {\bfseries equal} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}} \&other) const
+\item 
+std\+::string \mbox{\hyperlink{classoriginal_1_1iterator_a45bd687bfc25784c8d6b61425c066b4d}{to\+String}} (bool enter) const override
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1printable}{original\+::printable}}}
+\begin{DoxyCompactItemize}
+\item 
+const char \texorpdfstring{$\ast$}{*} {\bfseries to\+CString} (bool enter) const
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries format\+String} (const TYPE \&t) -\/$>$ std\+::string
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries format\+CString} (const TYPE \&t) -\/$>$ const char \texorpdfstring{$\ast$}{*}
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries format\+Enum} (const TYPE \&t) -\/$>$ std\+::string
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries format\+String} (TYPE \texorpdfstring{$\ast$}{*}const \&ptr) -\/$>$ std\+::string
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classoriginal_1_1vector_1_1_iterator_a0f5f10d95903eb56dfa858186565f58d}\label{classoriginal_1_1vector_1_1_iterator_a0f5f10d95903eb56dfa858186565f58d} 
+friend {\bfseries vector}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Additional Inherited Members}
+\doxysubsection*{Static Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1printable}{original\+::printable}}}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\static std\+::string {\bfseries format\+String} (const TYPE \&t)
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\static std\+::string {\bfseries format\+String} (TYPE \texorpdfstring{$\ast$}{*}const \&ptr)
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\static const char \texorpdfstring{$\ast$}{*} {\bfseries format\+CString} (const TYPE \&t)
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\static std\+::string {\bfseries format\+Enum} (const TYPE \&t)
+\item 
+template$<$$>$ auto {\bfseries format\+String} (const char \&t) -\/$>$ std\+::string
+\item 
+template$<$$>$ auto {\bfseries format\+String} (const bool \&t) -\/$>$ std\+::string
+\end{DoxyCompactItemize}
+\doxysubsection*{Protected Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1random_access_iterator}{original\+::random\+Access\+Iterator$<$ TYPE $>$}}}
+\begin{DoxyCompactItemize}
+\item 
+{\bfseries random\+Access\+Iterator} (TYPE \texorpdfstring{$\ast$}{*}ptr, const \mbox{\hyperlink{classoriginal_1_1container}{container}}$<$ TYPE $>$ \texorpdfstring{$\ast$}{*}\mbox{\hyperlink{classoriginal_1_1container}{container}}, long long pos)
+\item 
+bool \mbox{\hyperlink{classoriginal_1_1random_access_iterator_a23002c898ad6d0b34b13303c0d19f7b8}{equal\+Ptr}} (const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \texorpdfstring{$\ast$}{*}other) const override
+\end{DoxyCompactItemize}
+\doxysubsection*{Protected Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1iterator}{original\+::iterator$<$ TYPE $>$}}}
+\doxysubsection*{Protected Attributes inherited from \mbox{\hyperlink{classoriginal_1_1random_access_iterator}{original\+::random\+Access\+Iterator$<$ TYPE $>$}}}
+\begin{DoxyCompactItemize}
+\item 
+TYPE \texorpdfstring{$\ast$}{*} {\bfseries \+\_\+ptr}
+\item 
+const \mbox{\hyperlink{classoriginal_1_1container}{container}}$<$ TYPE $>$ \texorpdfstring{$\ast$}{*} {\bfseries \+\_\+container}
+\item 
+long long {\bfseries \+\_\+pos}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classoriginal_1_1vector_1_1_iterator_ac83b7433908ce3f64794fff7be3792df}\index{original::vector$<$ TYPE $>$::Iterator@{original::vector$<$ TYPE $>$::Iterator}!atNext@{atNext}}
+\index{atNext@{atNext}!original::vector$<$ TYPE $>$::Iterator@{original::vector$<$ TYPE $>$::Iterator}}
+\doxysubsubsection{\texorpdfstring{atNext()}{atNext()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1vector_1_1_iterator_ac83b7433908ce3f64794fff7be3792df} 
+template$<$typename TYPE $>$ \\
+auto \mbox{\hyperlink{classoriginal_1_1vector}{original\+::vector}}$<$ TYPE $>$\+::\+Iterator\+::at\+Next (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \texorpdfstring{$\ast$}{*}}]{other}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{classoriginal_1_1iterator}{original\+::iterator$<$ TYPE $>$}}.
+
+\Hypertarget{classoriginal_1_1vector_1_1_iterator_a3c29ace0f0fb1b14bd5dc82236ea75ae}\index{original::vector$<$ TYPE $>$::Iterator@{original::vector$<$ TYPE $>$::Iterator}!atPrev@{atPrev}}
+\index{atPrev@{atPrev}!original::vector$<$ TYPE $>$::Iterator@{original::vector$<$ TYPE $>$::Iterator}}
+\doxysubsubsection{\texorpdfstring{atPrev()}{atPrev()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1vector_1_1_iterator_a3c29ace0f0fb1b14bd5dc82236ea75ae} 
+template$<$typename TYPE $>$ \\
+auto \mbox{\hyperlink{classoriginal_1_1vector}{original\+::vector}}$<$ TYPE $>$\+::\+Iterator\+::at\+Prev (\begin{DoxyParamCaption}\item[{const \mbox{\hyperlink{classoriginal_1_1iterator}{iterator}}$<$ TYPE $>$ \texorpdfstring{$\ast$}{*}}]{other}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{classoriginal_1_1iterator}{original\+::iterator$<$ TYPE $>$}}.
+
+\Hypertarget{classoriginal_1_1vector_1_1_iterator_a74218f1f2e675f9d1fb6d2ee96c1986c}\index{original::vector$<$ TYPE $>$::Iterator@{original::vector$<$ TYPE $>$::Iterator}!clone@{clone}}
+\index{clone@{clone}!original::vector$<$ TYPE $>$::Iterator@{original::vector$<$ TYPE $>$::Iterator}}
+\doxysubsubsection{\texorpdfstring{clone()}{clone()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1vector_1_1_iterator_a74218f1f2e675f9d1fb6d2ee96c1986c} 
+template$<$typename TYPE $>$ \\
+auto \mbox{\hyperlink{classoriginal_1_1vector}{original\+::vector}}$<$ TYPE $>$\+::\+Iterator\+::clone (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{classoriginal_1_1iterator}{original\+::iterator$<$ TYPE $>$}}.
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+vector.\+h\end{DoxyCompactItemize}
