@@ -29,6 +29,7 @@ namespace original{
             Iterator* clone() const override;
             bool atPrev(const iterator<TYPE> *other) const override;
             bool atNext(const iterator<TYPE> *other) const override;
+            [[nodiscard]] std::string className() const override;
         };
 
         explicit array(size_t size = 0);
@@ -86,6 +87,11 @@ namespace original{
     auto original::array<TYPE>::Iterator::atNext(const iterator<TYPE> *other) const -> bool {
         auto other_it = dynamic_cast<const Iterator*>(other);
         return other_it->_ptr + 1 == this->_ptr;
+    }
+
+    template<typename TYPE>
+    auto original::array<TYPE>::Iterator::className() const -> std::string {
+        return "array::Iterator";
     }
 
     template <typename TYPE>

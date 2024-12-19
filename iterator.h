@@ -136,7 +136,7 @@ namespace original {
     auto original::iterator<TYPE>::toString(const bool enter) const -> std::string {
         std::stringstream ss;
         ss << this->className() << "(" << formatString(&this->get());
-        if (!this->isValid()) ss << ", " << formatString(this->get());
+        if (this->isValid()) ss << ", " << formatString(this->get());
         ss << ")";
         if (enter) {
             ss << "\n";
