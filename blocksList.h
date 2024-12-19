@@ -50,7 +50,7 @@ namespace original {
         void squeeze(bool first);
     public:
         explicit blocksList();
-        TYPE get(int index) const override;
+        TYPE get(long long index) const override;
         [[__nodiscard__]] std::string className() const override;
     };
 }// namespace original
@@ -223,7 +223,7 @@ namespace original {
         : map(), size_(0), first(BLOCK_EMPTY), last(BLOCK_EMPTY) {}
 
     template <typename TYPE>
-    auto original::blocksList<TYPE>::get(int index) const -> TYPE
+    auto original::blocksList<TYPE>::get(long long index) const -> TYPE
     {
         index = this->parseNegIndex(index);
         auto idx = this->toInnerIdx(index);

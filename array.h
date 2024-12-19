@@ -39,9 +39,9 @@ namespace original{
         array(array&& other) noexcept;
         ~array() override;
         [[__nodiscard__]] size_t size() const override;
-        TYPE get(int index) const override;
-        TYPE& operator[](int index) override;
-        void set(int index, const TYPE &e) override;
+        TYPE get(long long index) const override;
+        TYPE& operator[](long long index) override;
+        void set(long long index, const TYPE &e) override;
         size_t indexOf(const TYPE &e) const override;
         Iterator* begins() const override;
         Iterator* ends() const override;
@@ -79,13 +79,13 @@ namespace original{
     template<typename TYPE>
     auto original::array<TYPE>::Iterator::atPrev(const iterator<TYPE> *other) const -> bool {
         auto other_it = dynamic_cast<const Iterator*>(other);
-        return ++this->_ptr == other_it->_ptr;
+        return this->_ptr + 1 == other_it->_ptr;
     }
 
     template<typename TYPE>
     auto original::array<TYPE>::Iterator::atNext(const iterator<TYPE> *other) const -> bool {
         auto other_it = dynamic_cast<const Iterator*>(other);
-        return ++other_it->_ptr == this->_ptr;
+        return other_it->_ptr + 1 == this->_ptr;
     }
 
     template <typename TYPE>
@@ -163,7 +163,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::array<TYPE>::get(int index) const -> TYPE
+    auto original::array<TYPE>::get(long long index) const -> TYPE
     {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
@@ -172,7 +172,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::array<TYPE>::operator[](int index) -> TYPE&
+    auto original::array<TYPE>::operator[](long long index) -> TYPE&
     {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
@@ -181,7 +181,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::array<TYPE>::set(int index, const TYPE &e) -> void
+    auto original::array<TYPE>::set(long long index, const TYPE &e) -> void
     {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();

@@ -42,15 +42,15 @@ namespace original{
         vector& operator=(const vector& other);
         bool operator==(const vector& other) const;
         [[__nodiscard__]] size_t size() const override;
-        TYPE get(int index) const override;
-        TYPE& operator[](int index) override;
-        void set(int index, const TYPE &e) override;
+        TYPE get(long long index) const override;
+        TYPE& operator[](long long index) override;
+        void set(long long index, const TYPE &e) override;
         size_t indexOf(const TYPE &e) const override;
         void pushBegin(const TYPE &e) override;
-        void push(int index, const TYPE &e) override;
+        void push(long long index, const TYPE &e) override;
         void pushEnd(const TYPE &e) override;
         TYPE popBegin() override;
-        TYPE pop(int index) override;
+        TYPE pop(long long index) override;
         TYPE popEnd() override;
         Iterator* begins() const override;
         Iterator* ends() const override;
@@ -155,13 +155,13 @@ namespace original{
     template<typename TYPE>
     auto original::vector<TYPE>::Iterator::atPrev(const iterator<TYPE> *other) const -> bool {
         auto other_it = dynamic_cast<const Iterator*>(other);
-        return ++this->_ptr == other_it->_ptr;
+        return this->_ptr + 1 == other_it->_ptr;
     }
 
     template<typename TYPE>
     auto original::vector<TYPE>::Iterator::atNext(const iterator<TYPE> *other) const -> bool {
         auto other_it = dynamic_cast<const Iterator*>(other);
-        return ++other_it->_ptr == this->_ptr;
+        return other_it->_ptr + 1 == this->_ptr;
     }
 
     template <typename TYPE>
@@ -232,7 +232,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::get(int index) const -> TYPE
+    auto original::vector<TYPE>::get(long long index) const -> TYPE
     {
         if (this->indexOutOfBound(index))
         {
@@ -243,7 +243,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::operator[](int index) -> TYPE&
+    auto original::vector<TYPE>::operator[](long long index) -> TYPE&
     {
         if (this->indexOutOfBound(index))
         {
@@ -254,7 +254,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::set(int index, const TYPE &e) -> void
+    auto original::vector<TYPE>::set(long long index, const TYPE &e) -> void
     {
         if (this->indexOutOfBound(index))
         {
@@ -287,7 +287,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::push(int index, const TYPE &e) -> void
+    auto original::vector<TYPE>::push(long long index, const TYPE &e) -> void
     {
         if (this->parseNegIndex(index) == this->size())
         {
@@ -340,7 +340,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::pop(int index) -> TYPE
+    auto original::vector<TYPE>::pop(long long index) -> TYPE
     {
         if (this->parseNegIndex(index) == 0)
         {
