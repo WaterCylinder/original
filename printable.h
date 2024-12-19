@@ -10,9 +10,9 @@ namespace original {
         mutable std::string cache_string_;
     public:
         virtual ~printable() = 0;
-        [[__nodiscard__]] virtual std::string className() const;
-        [[__nodiscard__]] virtual std::string toString(bool enter) const;
-        [[__nodiscard__]] const char* toCString(bool enter) const;
+        [[nodiscard]] virtual std::string className() const;
+        [[nodiscard]] virtual std::string toString(bool enter) const;
+        [[nodiscard]] const char* toCString(bool enter) const;
 
         template<typename TYPE>
         static std::string formatString(const TYPE& t);

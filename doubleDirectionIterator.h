@@ -11,7 +11,7 @@ namespace original {
         doubleDirectionIterator(const doubleDirectionIterator& other);
         doubleDirectionIterator& operator=(const doubleDirectionIterator& other);
         doubleDirectionIterator* clone() const override;
-        [[__nodiscard__]] bool hasPrev() const override;
+        [[nodiscard]] bool hasPrev() const override;
         void prev() const override;
     };
 }

@@ -17,8 +17,8 @@ namespace original
         virtual wrapper* getPPrev() const = 0;
         virtual wrapper* getPNext() const = 0;
         ~wrapper() override = default;
-        [[__nodiscard__]] std::string className() const override;
-        [[__nodiscard__]] std::string toString(bool enter) const override;
+        [[nodiscard]] std::string className() const override;
+        [[nodiscard]] std::string toString(bool enter) const override;
     };
 
 }

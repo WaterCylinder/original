@@ -17,8 +17,8 @@ namespace original{
         static TYPE* vectorArrayInit(size_t size);
         static void moveElements(TYPE* old_body, size_t inner_idx,
                           size_t len, TYPE* new_body, int offset);
-        [[__nodiscard__]] size_t toInnerIdx(int index) const;
-        [[__nodiscard__]] bool outOfMaxSize(size_t increment) const;
+        [[nodiscard]] size_t toInnerIdx(int index) const;
+        [[nodiscard]] bool outOfMaxSize(size_t increment) const;
         void grow(size_t new_size);
         void adjust(size_t increment);
 
@@ -41,7 +41,7 @@ namespace original{
         explicit vector(array<TYPE> arr);
         vector& operator=(const vector& other);
         bool operator==(const vector& other) const;
-        [[__nodiscard__]] size_t size() const override;
+        [[nodiscard]] size_t size() const override;
         TYPE get(long long index) const override;
         TYPE& operator[](long long index) override;
         void set(long long index, const TYPE &e) override;
@@ -54,7 +54,7 @@ namespace original{
         TYPE popEnd() override;
         Iterator* begins() const override;
         Iterator* ends() const override;
-        [[__nodiscard__]] std::string className() const override;
+        [[nodiscard]] std::string className() const override;
         ~vector() override;
     };
 }

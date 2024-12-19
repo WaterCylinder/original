@@ -12,7 +12,7 @@ namespace original {
             singleDirectionIterator(const singleDirectionIterator& other);
             singleDirectionIterator& operator=(const singleDirectionIterator& other);
             singleDirectionIterator* clone() const override;
-            [[__nodiscard__]] bool hasPrev() const override = delete;
+            [[nodiscard]] bool hasPrev() const override = delete;
             void prev() const override = delete;
             std::unique_ptr<stepIterator<TYPE>> getPrev() override = delete;
     };

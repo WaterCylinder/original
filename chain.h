@@ -57,7 +57,7 @@ namespace original {
         chain& operator=(const chain& other);
         bool operator==(const chain& other) const;
         void operator+=(chain& other);
-        [[__nodiscard__]] size_t size() const override;
+        [[nodiscard]] size_t size() const override;
         TYPE get(long long index) const override;
         TYPE& operator[](long long index) override;
         void set(long long index, const TYPE &e) override;
@@ -70,7 +70,7 @@ namespace original {
         TYPE popEnd() override;
         Iterator* begins() const override;
         Iterator* ends() const override;
-        [[__nodiscard__]] std::string className() const override;
+        [[nodiscard]] std::string className() const override;
         ~chain() override;
     };
 }

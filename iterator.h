@@ -19,8 +19,8 @@ namespace original {
             bool operator!=(const iterator& other) const;
             virtual iterator* clone() const = 0;
             explicit operator bool() const;
-            [[__nodiscard__]] virtual bool hasNext() const = 0;
-            [[__nodiscard__]] virtual bool hasPrev() const = 0;
+            [[nodiscard]] virtual bool hasNext() const = 0;
+            [[nodiscard]] virtual bool hasPrev() const = 0;
             virtual bool atPrev(const iterator* other) const = 0;
             virtual bool atNext(const iterator* other) const = 0;
             bool atPrev(const iterator& other) const;
@@ -34,9 +34,9 @@ namespace original {
             virtual void set(const TYPE& data) = 0;
             bool equal(const iterator* other) const;
             bool equal(const iterator& other) const;
-            [[__nodiscard__]] virtual bool isValid() const = 0;
-            [[__nodiscard__]] std::string className() const override;
-            [[__nodiscard__]] std::string toString(bool enter) const override;
+            [[nodiscard]] virtual bool isValid() const = 0;
+            [[nodiscard]] std::string className() const override;
+            [[nodiscard]] std::string toString(bool enter) const override;
             ~iterator() override = default;
     };
 
@@ -49,8 +49,9 @@ namespace original {
             const TYPE& operator*() const;
             iterAdaptor& operator++();
             bool operator!=(const iterAdaptor& other) const;
-
             [[nodiscard]] bool isValid() const;
+            [[nodiscard]] std::string className() const override;
+            [[nodiscard]] std::string toString(bool enter) const override;
             ~iterAdaptor() override;
     };
 }
@@ -170,6 +171,20 @@ namespace original {
     template<typename TYPE>
     bool original::iterAdaptor<TYPE>::isValid() const {
         return this->it_->isValid();
+    }
+
+    template<typename TYPE>
+    auto original::iterAdaptor<TYPE>::className() const -> std::string {
+        return "iterAdaptor";
+    }
+
+    template<typename TYPE>
+    auto original::iterAdaptor<TYPE>::toString(const bool enter) const -> std::string {
+        std::stringstream ss;
+        ss << this->className();
+        ss << "(" << *this->it_ << ")";
+        if (enter) ss << "\n";
+        return ss.str();
     }
 
     template<typename TYPE>

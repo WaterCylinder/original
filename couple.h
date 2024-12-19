@@ -20,8 +20,8 @@ namespace original
         F_TYPE& first();
         S_TYPE& second();
         ~couple() override;
-        [[__nodiscard__]] std::string className() const override;
-        [[__nodiscard__]] std::string toString(bool enter) const override;
+        [[nodiscard]] std::string className() const override;
+        [[nodiscard]] std::string toString(bool enter) const override;
     };
 }
 

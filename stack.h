@@ -13,15 +13,15 @@ namespace original {
         stack(const stack& other);
         stack& operator=(const stack& other);
         bool operator==(const stack& other) const;
-        [[__nodiscard__]] size_t size() const;
-        [[__nodiscard__]] bool empty() const;
+        [[nodiscard]] size_t size() const;
+        [[nodiscard]] bool empty() const;
         void clear();
         void push(TYPE e);
         TYPE pop();
         TYPE top() const;
         iterator<TYPE>* begins() const override;
         iterator<TYPE>* ends() const override;
-        [[__nodiscard__]] std::string className() const override;
+        [[nodiscard]] std::string className() const override;
     };
 } // namespace original
 
