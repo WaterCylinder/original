@@ -12,6 +12,7 @@ namespace original {
         explicit stack(const SERIAL& serial = SERIAL{});
         stack(const stack& other);
         stack& operator=(const stack& other);
+        bool operator==(const stack& other) const;
         [[__nodiscard__]] size_t size() const;
         [[__nodiscard__]] bool empty() const;
         void clear();
@@ -37,6 +38,11 @@ namespace original {
         if (this == &other) return *this;
         serial_ = other.serial_;
         return *this;
+    }
+
+    template<typename TYPE, typename SERIAL>
+    auto original::stack<TYPE, SERIAL>::operator==(const stack &other) const -> bool {
+        return this->serial_ == other.serial_;
     }
 
     template<typename TYPE, typename SERIAL>

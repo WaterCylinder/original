@@ -12,6 +12,7 @@ namespace original {
         explicit queue(const SERIAL& serial = SERIAL{});
         queue(const queue& other);
         queue& operator=(const queue& other);
+        bool operator==(const queue& other) const;
         [[__nodiscard__]] size_t size() const;
         [[__nodiscard__]] bool empty() const;
         void clear();
@@ -38,6 +39,11 @@ namespace original {
         if (this == &other) return *this;
         serial_ = other.serial_;
         return *this;
+    }
+
+    template<typename TYPE, typename SERIAL>
+    auto original::queue<TYPE, SERIAL>::operator==(const queue &other) const -> bool {
+        return serial_ == other.serial_;
     }
 
     template<typename TYPE, typename SERIAL>

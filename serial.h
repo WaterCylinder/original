@@ -13,6 +13,8 @@ namespace original{
         void add(const TYPE& e) override;
         void clear() override;
         virtual TYPE get(long long index) const = 0;
+        virtual TYPE getBegin() const;
+        virtual TYPE getEnd() const;
         virtual TYPE operator[](long long index) const;
         virtual TYPE& operator[](long long index) = 0;
         virtual void set(long long index, const TYPE& e) = 0;
@@ -51,6 +53,16 @@ namespace original{
         while (!this->empty()) {
             this->popEnd();
         }
+    }
+
+    template<typename TYPE>
+    auto original::serial<TYPE>::getBegin() const -> TYPE {
+        return this->get(0);
+    }
+
+    template<typename TYPE>
+    auto original::serial<TYPE>::getEnd() const -> TYPE {
+        return this->get(-1);
     }
 
     template <typename TYPE>

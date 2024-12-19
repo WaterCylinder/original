@@ -66,5 +66,26 @@ int main(){
     c2 += c3;
     std::cout << c2 << " size: " << c2.size() << std::endl;
     std::cout << c3 << " size: " << c3.size() << std::endl;
+    original::stack<original::stack<int>> s3;
+    for (int i = 0; i < 10; ++i) {
+        auto ss = original::stack<int>();
+        ss.push(i);
+        s3.push(ss);
+    }
+    std::cout << "s3 before: " << s3 << std::endl;
+    s3.pop();
+    s3.pop();
+    std::cout << "s3 after: " << s3 << std::endl;
+    original::queue<original::queue<int>> q3;
+    for (int i = 0; i < 10; ++i) {
+        auto qq = original::queue<int>();
+        qq.push(i);
+        q3.push(qq);
+    }
+    std::cout << "q3 before: " << q3 << std::endl;
+    q3.pop();
+    q3.pop();
+    std::cout << "q3 after: " << q3 << std::endl;
+    original::stack<original::queue<int>> s4;
     return 0;
 }
