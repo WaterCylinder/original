@@ -96,7 +96,7 @@ namespace original{
     template <typename TYPE>
     original::array<TYPE>::array(const size_t size)
         : size_(size), body(new TYPE[size_]) {
-        for (int i = 0; i < this->size(); ++i) {
+        for (size_t i = 0; i < this->size(); ++i) {
             this->body[i] = TYPE{};
         }
     }

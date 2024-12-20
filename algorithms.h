@@ -221,7 +221,7 @@ namespace original
     auto original::algorithms::fill(const iterator<TYPE>& begin,
                                     const size_t n, const TYPE& value) -> iterator<TYPE>* {
         auto it = begin.clone();
-        for (int i = 0; i < n; ++i) {
+        for (size_t i = 0; i < n; ++i) {
             it->set(value);
             it->next();
         }

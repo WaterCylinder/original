@@ -256,7 +256,7 @@ namespace original {
         if (this->size() != other.size()) return false;
         auto* this_ = this->begin_;
         auto* other_ = other.begin_;
-        for (int i = 0; i < this->size(); ++i) {
+        for (size_t i = 0; i < this->size(); ++i) {
             if (this_->getVal() != other_->getVal()){
                 return false;
             }
