@@ -59,15 +59,15 @@ namespace original {
         bool operator==(const chain& other) const;
         void operator+=(chain& other);
         [[nodiscard]] size_t size() const override;
-        TYPE get(long long index) const override;
-        TYPE& operator[](long long index) override;
-        void set(long long index, const TYPE &e) override;
+        TYPE get(int64_t index) const override;
+        TYPE& operator[](int64_t index) override;
+        void set(int64_t index, const TYPE &e) override;
         size_t indexOf(const TYPE &e) const override;
         void pushBegin(const TYPE &e) override;
-        void push(long long index, const TYPE &e) override;
+        void push(int64_t index, const TYPE &e) override;
         void pushEnd(const TYPE &e) override;
         TYPE popBegin() override;
-        TYPE pop(long long index) override;
+        TYPE pop(int64_t index) override;
         TYPE popEnd() override;
         Iterator* begins() const override;
         Iterator* ends() const override;
@@ -290,7 +290,7 @@ namespace original {
     }
 
     template <typename TYPE>
-    auto original::chain<TYPE>::get(long long index) const -> TYPE
+    auto original::chain<TYPE>::get(int64_t index) const -> TYPE
     {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
@@ -314,7 +314,7 @@ namespace original {
     }
 
     template <typename TYPE>
-    auto original::chain<TYPE>::operator[](long long index) -> TYPE&
+    auto original::chain<TYPE>::operator[](int64_t index) -> TYPE&
     {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
@@ -338,7 +338,7 @@ namespace original {
     }
 
     template <typename TYPE>
-    auto original::chain<TYPE>::set(long long index, const TYPE &e) -> void
+    auto original::chain<TYPE>::set(int64_t index, const TYPE &e) -> void
     {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
@@ -393,7 +393,7 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
-    auto original::chain<TYPE>::push(long long index, const TYPE &e) -> void
+    auto original::chain<TYPE>::push(int64_t index, const TYPE &e) -> void
     {
         index = this->parseNegIndex(index);
         if (index == 0){
@@ -465,7 +465,7 @@ template <typename TYPE>
     }
 
     template <typename TYPE>
-    auto original::chain<TYPE>::pop(long long index) -> TYPE
+    auto original::chain<TYPE>::pop(int64_t index) -> TYPE
     {
         index = this->parseNegIndex(index);
         if (index == 0){

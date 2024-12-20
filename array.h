@@ -7,7 +7,6 @@
 #include <iterationStream.h>
 #include <randomAccessIterator.h>
 
-#include <sstream>
 #include "error.h"
 #include "serial.h"
 
@@ -21,7 +20,7 @@ namespace original{
         public:
         class Iterator final : public randomAccessIterator<TYPE>
         {
-            explicit Iterator(TYPE* ptr, const array* container, long long pos);
+            explicit Iterator(TYPE* ptr, const array* container, int64_t pos);
         public:
             friend array;
             Iterator(const Iterator& other);
@@ -39,9 +38,9 @@ namespace original{
         bool operator==(const array& other) const;
         array(array&& other) noexcept;
         [[nodiscard]] size_t size() const override;
-        TYPE get(long long index) const override;
-        TYPE& operator[](long long index) override;
-        void set(long long index, const TYPE &e) override;
+        TYPE get(int64_t index) const override;
+        TYPE& operator[](int64_t index) override;
+        void set(int64_t index, const TYPE &e) override;
         size_t indexOf(const TYPE &e) const override;
         Iterator* begins() const override;
         Iterator* ends() const override;
@@ -52,7 +51,7 @@ namespace original{
 }
 
     template <typename TYPE>
-    original::array<TYPE>::Iterator::Iterator(TYPE* ptr, const array* container, long long pos)
+    original::array<TYPE>::Iterator::Iterator(TYPE* ptr, const array* container, int64_t pos)
         : randomAccessIterator<TYPE>(ptr, container, pos) {}
 
     template <typename TYPE>
@@ -169,7 +168,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::array<TYPE>::get(long long index) const -> TYPE
+    auto original::array<TYPE>::get(int64_t index) const -> TYPE
     {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
@@ -178,7 +177,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::array<TYPE>::operator[](long long index) -> TYPE&
+    auto original::array<TYPE>::operator[](int64_t index) -> TYPE&
     {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
@@ -187,7 +186,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::array<TYPE>::set(long long index, const TYPE &e) -> void
+    auto original::array<TYPE>::set(int64_t index, const TYPE &e) -> void
     {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();

@@ -7,21 +7,21 @@ namespace original{
     template <typename TYPE>
     class serial : public container<TYPE>{
     protected:
-        [[nodiscard]] bool indexOutOfBound(long long index) const;
-        [[nodiscard]] long long parseNegIndex(long long index) const;
+        [[nodiscard]] bool indexOutOfBound(int64_t index) const;
+        [[nodiscard]] int64_t parseNegIndex(int64_t index) const;
     public:
         void add(const TYPE& e) override;
         void clear() override;
-        virtual TYPE get(long long index) const = 0;
+        virtual TYPE get(int64_t index) const = 0;
         virtual TYPE getBegin() const;
         virtual TYPE getEnd() const;
-        virtual TYPE operator[](long long index) const;
-        virtual TYPE& operator[](long long index) = 0;
-        virtual void set(long long index, const TYPE& e) = 0;
+        virtual TYPE operator[](int64_t index) const;
+        virtual TYPE& operator[](int64_t index) = 0;
+        virtual void set(int64_t index, const TYPE& e) = 0;
         virtual size_t indexOf(const TYPE& e) const = 0;
         bool contains(const TYPE& e) const override;
-        virtual void push(long long index, const TYPE& e);
-        virtual TYPE pop(long long index);
+        virtual void push(int64_t index, const TYPE& e);
+        virtual TYPE pop(int64_t index);
         virtual void pushBegin(const TYPE& e);
         virtual TYPE popBegin();
         virtual void pushEnd(const TYPE& e);
@@ -30,15 +30,14 @@ namespace original{
 }
 
     template<typename TYPE>
-    auto original::serial<TYPE>::indexOutOfBound(long long index) const -> bool
+    auto original::serial<TYPE>::indexOutOfBound(const int64_t index) const -> bool
     {
-        int parsedIndex = this->parseNegIndex(index);
+        int64_t parsedIndex = this->parseNegIndex(index);
         return parsedIndex < 0 || parsedIndex >= this->size();
     }
 
     template<typename TYPE>
-    auto original::serial<TYPE>::parseNegIndex(long long index) const -> long long
-        {
+    auto original::serial<TYPE>::parseNegIndex(int64_t index) const -> int64_t {
         return index >= 0 ? index : this->size() + index;
     }
 
@@ -66,7 +65,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::serial<TYPE>::operator[](const long long index) const -> TYPE
+    auto original::serial<TYPE>::operator[](const int64_t index) const -> TYPE
     {
         return this->get(index);
     }
@@ -78,12 +77,12 @@ namespace original{
     }
 
     template<typename TYPE>
-    void original::serial<TYPE>::push(long long index, const TYPE &e) {
+    void original::serial<TYPE>::push(int64_t index, const TYPE &e) {
         throw unSupportedMethodError();
     }
 
     template<typename TYPE>
-    TYPE original::serial<TYPE>::pop(long long index) {
+    TYPE original::serial<TYPE>::pop(int64_t index) {
         throw unSupportedMethodError();
     }
 

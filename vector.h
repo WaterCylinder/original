@@ -17,7 +17,7 @@ namespace original{
         static TYPE* vectorArrayInit(size_t size);
         static void moveElements(TYPE* old_body, size_t inner_idx,
                           size_t len, TYPE* new_body, int offset);
-        [[nodiscard]] size_t toInnerIdx(long long index) const;
+        [[nodiscard]] size_t toInnerIdx(int64_t index) const;
         [[nodiscard]] bool outOfMaxSize(size_t increment) const;
         void grow(size_t new_size);
         void adjust(size_t increment);
@@ -25,7 +25,7 @@ namespace original{
     public:
         class Iterator final : public randomAccessIterator<TYPE>
         {
-                explicit Iterator(TYPE* ptr, const vector* container, long long pos);
+                explicit Iterator(TYPE* ptr, const vector* container, int64_t pos);
             public:
                 friend vector;
                 Iterator(const Iterator& other);
@@ -43,15 +43,15 @@ namespace original{
         vector& operator=(const vector& other);
         bool operator==(const vector& other) const;
         [[nodiscard]] size_t size() const override;
-        TYPE get(long long index) const override;
-        TYPE& operator[](long long index) override;
-        void set(long long index, const TYPE &e) override;
+        TYPE get(int64_t index) const override;
+        TYPE& operator[](int64_t index) override;
+        void set(int64_t index, const TYPE &e) override;
         size_t indexOf(const TYPE &e) const override;
         void pushBegin(const TYPE &e) override;
-        void push(long long index, const TYPE &e) override;
+        void push(int64_t index, const TYPE &e) override;
         void pushEnd(const TYPE &e) override;
         TYPE popBegin() override;
-        TYPE pop(long long index) override;
+        TYPE pop(int64_t index) override;
         TYPE popEnd() override;
         Iterator* begins() const override;
         Iterator* ends() const override;
@@ -87,7 +87,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::toInnerIdx(long long index) const -> size_t
+    auto original::vector<TYPE>::toInnerIdx(int64_t index) const -> size_t
     {
         return this->inner_begin + index;
     }
@@ -128,7 +128,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    original::vector<TYPE>::Iterator::Iterator(TYPE* ptr, const vector* container, long long pos)
+    original::vector<TYPE>::Iterator::Iterator(TYPE* ptr, const vector* container, int64_t pos)
         : randomAccessIterator<TYPE>(ptr, container, pos) {}
 
     template <typename TYPE>
@@ -238,7 +238,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::get(long long index) const -> TYPE
+    auto original::vector<TYPE>::get(int64_t index) const -> TYPE
     {
         if (this->indexOutOfBound(index))
         {
@@ -249,7 +249,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::operator[](long long index) -> TYPE&
+    auto original::vector<TYPE>::operator[](int64_t index) -> TYPE&
     {
         if (this->indexOutOfBound(index))
         {
@@ -260,7 +260,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::set(long long index, const TYPE &e) -> void
+    auto original::vector<TYPE>::set(int64_t index, const TYPE &e) -> void
     {
         if (this->indexOutOfBound(index))
         {
@@ -293,7 +293,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::push(long long index, const TYPE &e) -> void
+    auto original::vector<TYPE>::push(int64_t index, const TYPE &e) -> void
     {
         if (this->parseNegIndex(index) == this->size())
         {
@@ -346,7 +346,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::pop(long long index) -> TYPE
+    auto original::vector<TYPE>::pop(int64_t index) -> TYPE
     {
         if (this->parseNegIndex(index) == 0)
         {

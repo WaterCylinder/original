@@ -11,9 +11,9 @@ namespace original{
     protected:
         mutable TYPE* _ptr;
         mutable const container<TYPE>* _container;
-        mutable long long _pos;
+        mutable int64_t _pos;
 
-        explicit randomAccessIterator(TYPE* ptr, const container<TYPE>* container, long long pos);
+        explicit randomAccessIterator(TYPE* ptr, const container<TYPE>* container, int64_t pos);
         bool equalPtr(const iterator<TYPE> * other) const override;
     public:
         randomAccessIterator(const randomAccessIterator& other);
@@ -25,8 +25,8 @@ namespace original{
         bool atNext(const iterator<TYPE>* other) const override;
         void next() const override;
         void prev() const override;
-        void operator+=(long long steps) const;
-        void operator-=(long long steps) const;
+        void operator+=(int64_t steps) const;
+        void operator-=(int64_t steps) const;
         randomAccessIterator* getNext() override;
         randomAccessIterator* getPrev() override;
         TYPE& get() override;
@@ -39,7 +39,7 @@ namespace original{
 
     template<typename TYPE>
     original::randomAccessIterator<TYPE>::randomAccessIterator(TYPE* ptr, const container<TYPE>* container,
-                                                               const long long pos)
+                                                               const int64_t pos)
         : _ptr{ptr}, _container{container}, _pos(pos) {}
 
     template<typename TYPE>
@@ -103,13 +103,13 @@ namespace original{
     }
 
     template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::operator+=(long long steps) const -> void {
+    auto original::randomAccessIterator<TYPE>::operator+=(int64_t steps) const -> void {
         this->_pos += steps;
         this->_ptr += steps;
     }
 
     template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::operator-=(long long steps) const -> void {
+    auto original::randomAccessIterator<TYPE>::operator-=(int64_t steps) const -> void {
         this->_pos -= steps;
         this->_ptr -= steps;
     }
