@@ -8,6 +8,7 @@
 #include "comparator.h"
 #include "container.h"
 #include "couple.h"
+#include "deque.h"
 #include "doubleDirectionIterator.h"
 #include "error.h"
 #include "filter.h"
