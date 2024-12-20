@@ -1,9 +1,10 @@
 #ifndef ERROR_H
 #define ERROR_H
 
-#include <exception>
+#include <stdexcept>
 #include <cxxabi.h>
 #include "type_traits"
+#include "string"
 
 namespace original{
 
