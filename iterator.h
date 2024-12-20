@@ -39,21 +39,6 @@ namespace original {
             [[nodiscard]] std::string toString(bool enter) const override;
             ~iterator() override = default;
     };
-
-    template<typename TYPE>
-    class iterAdaptor final : public printable{
-            iterator<TYPE>* it_;
-        public:
-            explicit iterAdaptor(iterator<TYPE>* it);
-            TYPE& operator*();
-            const TYPE& operator*() const;
-            iterAdaptor& operator++();
-            bool operator!=(const iterAdaptor& other) const;
-            [[nodiscard]] bool isValid() const;
-            [[nodiscard]] std::string className() const override;
-            [[nodiscard]] std::string toString(bool enter) const override;
-            ~iterAdaptor() override;
-    };
 }
 
     template<typename TYPE>
@@ -142,54 +127,6 @@ namespace original {
             ss << "\n";
         }
         return ss.str();
-    }
-
-    template<typename TYPE>
-    original::iterAdaptor<TYPE>::iterAdaptor(iterator<TYPE>* it) : it_(it) {}
-
-    template<typename TYPE>
-    auto original::iterAdaptor<TYPE>::operator*() -> TYPE& {
-        return this->it_->operator*();
-    }
-
-    template<typename TYPE>
-    auto original::iterAdaptor<TYPE>::operator*() const -> const TYPE& {
-        return this->it_->operator*();
-    }
-
-    template<typename TYPE>
-    auto original::iterAdaptor<TYPE>::operator++() -> iterAdaptor& {
-        this->it_->next();
-        return *this;
-    }
-
-    template<typename TYPE>
-    auto original::iterAdaptor<TYPE>::operator!=(const iterAdaptor& other) const -> bool {
-        return !this->it_->equal(other.it_);
-    }
-
-    template<typename TYPE>
-    bool original::iterAdaptor<TYPE>::isValid() const {
-        return this->it_->isValid();
-    }
-
-    template<typename TYPE>
-    auto original::iterAdaptor<TYPE>::className() const -> std::string {
-        return "iterAdaptor";
-    }
-
-    template<typename TYPE>
-    auto original::iterAdaptor<TYPE>::toString(const bool enter) const -> std::string {
-        std::stringstream ss;
-        ss << this->className();
-        ss << "(" << *this->it_ << ")";
-        if (enter) ss << "\n";
-        return ss.str();
-    }
-
-    template<typename TYPE>
-    original::iterAdaptor<TYPE>::~iterAdaptor() {
-        delete this->it_;
     }
 
 #endif //ITERATOR_H
