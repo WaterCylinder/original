@@ -123,7 +123,7 @@ namespace original{
     template<typename TYPE>
     auto original::randomAccessIterator<TYPE>::getPrev() -> randomAccessIterator* {
         if (!this->isValid()) throw outOfBoundError();
-        return new randomAccessIterator(this->_ptr, this->_container, this->_pos - 1);
+        return new randomAccessIterator(this->_ptr - 1, this->_container, this->_pos - 1);
     }
 
     template<typename TYPE>

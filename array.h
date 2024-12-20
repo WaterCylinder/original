@@ -38,7 +38,6 @@ namespace original{
         array& operator=(const array& other);
         bool operator==(const array& other) const;
         array(array&& other) noexcept;
-        ~array() override;
         [[nodiscard]] size_t size() const override;
         TYPE get(long long index) const override;
         TYPE& operator[](long long index) override;
@@ -47,6 +46,7 @@ namespace original{
         Iterator* begins() const override;
         Iterator* ends() const override;
         [[nodiscard]] std::string className() const override;
+        ~array() override;
     };
 
 }

@@ -87,5 +87,6 @@ int main(){
     q3.pop();
     std::cout << "q3 after: " << q3 << std::endl;
     original::stack<original::queue<int>> s4;
+    original::stack<int, original::array<int>> s5; // 这种情况不应该通过编译
     return 0;
 }

@@ -75,7 +75,7 @@ namespace original
             return std::numeric_limits<size_t>::max();
         }
 
-        int dis = 0;
+        size_t dis = 0;
         auto it = begin.clone();
         while (!it->equal(end)) {
             if (!it->isValid())

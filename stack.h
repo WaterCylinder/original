@@ -16,7 +16,7 @@ namespace original {
         [[nodiscard]] size_t size() const;
         [[nodiscard]] bool empty() const;
         void clear();
-        void push(TYPE e);
+        void push(const TYPE &e);
         TYPE pop();
         TYPE top() const;
         iterator<TYPE>* begins() const override;
@@ -61,7 +61,7 @@ namespace original {
     }
 
     template<typename TYPE, typename SERIAL>
-    auto original::stack<TYPE, SERIAL>::push(TYPE e) -> void {
+    auto original::stack<TYPE, SERIAL>::push(const TYPE &e) -> void {
         serial_.pushEnd(e);
     }
 
@@ -72,7 +72,7 @@ namespace original {
 
     template<typename TYPE, typename SERIAL>
     auto original::stack<TYPE, SERIAL>::top() const -> TYPE {
-        return serial_.get(-1);
+        return serial_.getEnd();
     }
 
     template<typename TYPE, typename SERIAL>

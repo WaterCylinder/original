@@ -16,7 +16,7 @@ namespace original {
         [[nodiscard]] size_t size() const;
         [[nodiscard]] bool empty() const;
         void clear();
-        void push(TYPE e);
+        void push(const TYPE &e);
         TYPE pop();
         TYPE head() const;
         TYPE tail() const;
@@ -62,7 +62,7 @@ namespace original {
     }
 
     template<typename TYPE, typename SERIAL>
-    auto original::queue<TYPE, SERIAL>::push(TYPE e) -> void {
+    auto original::queue<TYPE, SERIAL>::push(const TYPE &e) -> void {
         serial_.pushEnd(e);
     }
 
@@ -73,12 +73,12 @@ namespace original {
 
     template<typename TYPE, typename SERIAL>
     auto original::queue<TYPE, SERIAL>::head() const -> TYPE {
-        return serial_.get(0);
+        return serial_.getBegin();
     }
 
     template<typename TYPE, typename SERIAL>
     auto original::queue<TYPE, SERIAL>::tail() const -> TYPE {
-        return serial_.get(-1);
+        return serial_.getEnd();
     }
 
     template<typename TYPE, typename SERIAL>
