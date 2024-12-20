@@ -57,12 +57,12 @@ namespace original {
     }
 
     template<typename TYPE>
-    auto original::blocksList<TYPE>::toInnerIdx(int64_t index) const -> couple<size_t, size_t> { // test: index = 16, size_ = 17, first = 15
-        const size_t first_size = BLOCK_MAX_SIZE - this->first; // test: 1
+    auto original::blocksList<TYPE>::toInnerIdx(int64_t index) const -> couple<size_t, size_t> {
+        const size_t first_size = BLOCK_MAX_SIZE - this->first;
         if (this->map.size() == 1 || index + 1 <= first_size) return {0, this->first + index};
 
-        const size_t remains = index + 1 - first_size; // test: 16
-        return {1 + remains / (BLOCK_MAX_SIZE + 1), remains % (BLOCK_MAX_SIZE + 1) - 1}; // test: {1, 15}
+        const size_t remains = index + 1 - first_size;
+        return {1 + remains / (BLOCK_MAX_SIZE + 1), remains % (BLOCK_MAX_SIZE + 1) - 1};
     }
 
     template<typename TYPE>
