@@ -20,6 +20,7 @@ namespace original {
         [[nodiscard]] couple<size_t, size_t> toInnerIdx(int64_t index) const;
         void moveElements(size_t index, size_t len, int offset);
         void grow(bool first);
+        void shrink(bool first);
     public:
         class Iterator final : public randomAccessIterator<TYPE>
         {
@@ -114,7 +115,19 @@ namespace original {
     auto original::blocksList<TYPE>::get(int64_t index) const -> TYPE {
         if (this->indexOutOfBound(this->parseNegIndex(index))) throw outOfBoundError();
         auto inner_idx = this->toInnerIdx(this->parseNegIndex(index));
-        return this->map.body[inner_idx.first()][inner_idx.second()];
+        return this->map.get(inner_idx.first())[inner_idx.second()];
+    }
+
+    template<typename TYPE>
+    auto original::blocksList<TYPE>::size() const -> size_t {
+        return this->size_;
+    }
+
+    template<typename TYPE>
+    auto original::blocksList<TYPE>::set(int64_t index, const TYPE &e) -> void {
+        if (this->indexOutOfBound(index)) throw outOfBoundError();
+        auto inner_idx = this->toInnerIdx(this->parseNegIndex(index));
+        this->map.get(inner_idx.first())[inner_idx.second()] = e;
     }
 
     template<typename TYPE>
