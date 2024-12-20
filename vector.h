@@ -16,7 +16,7 @@ namespace original{
 
         static TYPE* vectorArrayInit(size_t size);
         static void moveElements(TYPE* old_body, size_t inner_idx,
-                          size_t len, TYPE* new_body, size_t offset);
+                                 size_t len, TYPE* new_body, int64_t offset);
         [[nodiscard]] size_t toInnerIdx(int64_t index) const;
         [[nodiscard]] bool outOfMaxSize(size_t increment) const;
         void grow(size_t new_size);
@@ -70,7 +70,7 @@ namespace original{
 
     template <typename TYPE>
     auto original::vector<TYPE>::moveElements(TYPE* old_body, const size_t inner_idx,
-        const size_t len, TYPE* new_body, const size_t offset) -> void{
+                                              const size_t len, TYPE* new_body, const int64_t offset) -> void{
         if (offset > 0)
         {
             for (size_t i = 0; i < len; i += 1)
@@ -199,7 +199,7 @@ namespace original{
         this->inner_begin = other.inner_begin;
         this->size_ = other.size_;
         this->body = vector::vectorArrayInit(this->max_size);
-        for (int i = 0; i < this->size(); ++i) {
+        for (size_t i = 0; i < this->size(); ++i) {
             const TYPE& data = other.body[this->toInnerIdx(i)];
             this->body[this->toInnerIdx(i)] = data;
         }
@@ -211,7 +211,7 @@ namespace original{
     {
         if (this == &other) return true;
         if (this->size() != other.size()) return false;
-        for (int i = 0; i < this->size(); ++i) {
+        for (size_t i = 0; i < this->size(); ++i) {
             size_t index = this->toInnerIdx(i);
             if (this->body[index] != other.body[index]){
                 return false;
@@ -224,7 +224,7 @@ namespace original{
     original::vector<TYPE>::vector(array<TYPE> arr) : vector()
     {
         this->adjust(arr.size());
-        for (int i = 0; i < arr.size(); i += 1)
+        for (size_t i = 0; i < arr.size(); i += 1)
         {
             this->body[this->toInnerIdx(i)] = arr.get(i);
             this->size_ += 1;
@@ -273,7 +273,7 @@ namespace original{
     template <typename TYPE>
     auto original::vector<TYPE>::indexOf(const TYPE &e) const -> size_t
     {
-        for (int i = 0; i < this->size(); i += 1)
+        for (size_t i = 0; i < this->size(); i += 1)
         {
             if (this->get(i) == e)
             {
@@ -318,7 +318,7 @@ namespace original{
             }else
             {
                 vector::moveElements(this->body, index,
-                    this->size() - 1 - rel_idx, this->body, 1);
+                                     this->size() - 1 - rel_idx, this->body, 1);
             }
             this->body[index] = e;
             this->size_ += 1;
@@ -370,7 +370,7 @@ namespace original{
         }else
         {
             vector::moveElements(this->body, index + 1,
-                this->size() - 1 - rel_idx, this->body, -1);
+                                 this->size() - 1 - rel_idx, this->body, -1);
         }
         this->size_ -= 1;
         return res;

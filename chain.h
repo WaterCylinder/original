@@ -295,7 +295,7 @@ namespace original {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
         }
-        const int reverse_visit = this->parseNegIndex(index) <= this->size() / 2 ? 0 : 1;
+        const bool reverse_visit = this->parseNegIndex(index) <= this->size() / 2 ? 0 : 1;
         chainNode* cur;
         if (!reverse_visit){
             cur = this->begin_;
@@ -319,7 +319,7 @@ namespace original {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
         }
-        const int reverse_visit = this->parseNegIndex(index) <= this->size() / 2 ? 0 : 1;
+        const bool reverse_visit = this->parseNegIndex(index) <= this->size() / 2 ? 0 : 1;
         chainNode* cur;
         if (!reverse_visit){
             cur = this->begin_;
@@ -344,7 +344,7 @@ namespace original {
             throw outOfBoundError();
         }
         auto* new_node = new chainNode(e);
-        const int reverse_visit = this->parseNegIndex(index) <= this->size() / 2 ? 0 : 1;
+        const bool reverse_visit = this->parseNegIndex(index) <= this->size() / 2 ? 0 : 1;
         chainNode* cur;
         if (!reverse_visit){
             cur = this->begin_;
@@ -405,7 +405,7 @@ template <typename TYPE>
                 throw outOfBoundError();
             }
             auto* new_node = new chainNode(e);
-            const int reverse_visit = index <= this->size() / 2 ? 0 : 1;
+            const bool reverse_visit = index <= this->size() / 2 ? 0 : 1;
             chainNode* cur;
             if (!reverse_visit){
                 cur = this->begin_;
@@ -478,7 +478,7 @@ template <typename TYPE>
             throw outOfBoundError();
         }
         TYPE res;
-        const int reverse_visit = index <= this->size() / 2 ? 0 : 1;
+        const bool reverse_visit = index <= this->size() / 2 ? 0 : 1;
         chainNode* cur;
         if (!reverse_visit){
             cur = this->begin_;
