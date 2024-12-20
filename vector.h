@@ -17,7 +17,7 @@ namespace original{
         static TYPE* vectorArrayInit(size_t size);
         static void moveElements(TYPE* old_body, size_t inner_idx,
                           size_t len, TYPE* new_body, int offset);
-        [[nodiscard]] size_t toInnerIdx(int index) const;
+        [[nodiscard]] size_t toInnerIdx(long long index) const;
         [[nodiscard]] bool outOfMaxSize(size_t increment) const;
         void grow(size_t new_size);
         void adjust(size_t increment);
@@ -87,7 +87,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::toInnerIdx(int index) const -> size_t
+    auto original::vector<TYPE>::toInnerIdx(long long index) const -> size_t
     {
         return this->inner_begin + index;
     }
