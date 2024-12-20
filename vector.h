@@ -95,7 +95,7 @@ namespace original{
     template <typename TYPE>
     auto original::vector<TYPE>::outOfMaxSize(size_t increment) const -> bool
     {
-        return this->inner_begin + this->size() + increment > this->max_size || this->inner_begin - increment < 1;
+        return this->inner_begin + this->size() + increment > this->max_size - 1 || this->inner_begin - increment < 0;
     }
 
     template <typename TYPE>
