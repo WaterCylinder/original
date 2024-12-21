@@ -18,7 +18,7 @@ namespace original{
         virtual TYPE operator[](int64_t index) const;
         virtual TYPE& operator[](int64_t index) = 0;
         virtual void set(int64_t index, const TYPE& e) = 0;
-        virtual size_t indexOf(const TYPE& e) const = 0;
+        virtual uint32_t indexOf(const TYPE& e) const = 0;
         bool contains(const TYPE& e) const override;
         virtual void push(int64_t index, const TYPE& e);
         virtual TYPE pop(int64_t index);

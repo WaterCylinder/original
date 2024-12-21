@@ -8,19 +8,19 @@
 namespace original{
     template <typename TYPE>
     class vector final : public serial<TYPE>, public iterationStream<TYPE>{
-        size_t size_;
-        const size_t INNER_SIZE_INIT = 16;
-        size_t max_size;
-        size_t inner_begin;
+        uint32_t size_;
+        const uint32_t INNER_SIZE_INIT = 16;
+        uint32_t max_size;
+        uint32_t inner_begin;
         TYPE* body;
 
-        static TYPE* vectorArrayInit(size_t size);
-        static void moveElements(TYPE* old_body, size_t inner_idx,
-                                 size_t len, TYPE* new_body, int64_t offset);
-        [[nodiscard]] size_t toInnerIdx(int64_t index) const;
-        [[nodiscard]] bool outOfMaxSize(size_t increment) const;
-        void grow(size_t new_size);
-        void adjust(size_t increment);
+        static TYPE* vectorArrayInit(uint32_t size);
+        static void moveElements(TYPE* old_body, uint32_t inner_idx,
+                                 uint32_t len, TYPE* new_body, int64_t offset);
+        [[nodiscard]] uint32_t toInnerIdx(int64_t index) const;
+        [[nodiscard]] bool outOfMaxSize(uint32_t increment) const;
+        void grow(uint32_t new_size);
+        void adjust(uint32_t increment);
 
     public:
         class Iterator final : public randomAccessIterator<TYPE>
@@ -42,11 +42,11 @@ namespace original{
         explicit vector(array<TYPE> arr);
         vector& operator=(const vector& other);
         bool operator==(const vector& other) const;
-        [[nodiscard]] size_t size() const override;
+        [[nodiscard]] uint32_t size() const override;
         TYPE get(int64_t index) const override;
         TYPE& operator[](int64_t index) override;
         void set(int64_t index, const TYPE &e) override;
-        size_t indexOf(const TYPE &e) const override;
+        uint32_t indexOf(const TYPE &e) const override;
         void pushBegin(const TYPE &e) override;
         void push(int64_t index, const TYPE &e) override;
         void pushEnd(const TYPE &e) override;
@@ -60,26 +60,26 @@ namespace original{
     };
 }
     template <typename TYPE>
-    auto original::vector<TYPE>::vectorArrayInit(const size_t size) -> TYPE* {
+    auto original::vector<TYPE>::vectorArrayInit(const uint32_t size) -> TYPE* {
         auto arr = new TYPE[size];
-        for (size_t i = 0; i < size; i++) {
+        for (uint32_t i = 0; i < size; i++) {
             arr[i] = TYPE{};
         }
         return arr;
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::moveElements(TYPE* old_body, const size_t inner_idx,
-                                              const size_t len, TYPE* new_body, const int64_t offset) -> void{
+    auto original::vector<TYPE>::moveElements(TYPE* old_body, const uint32_t inner_idx,
+                                              const uint32_t len, TYPE* new_body, const int64_t offset) -> void{
         if (offset > 0)
         {
-            for (size_t i = 0; i < len; i += 1)
+            for (uint32_t i = 0; i < len; i += 1)
             {
                 new_body[inner_idx + offset + len - 1 - i] = old_body[inner_idx + len - 1 - i];
             }
         }else
         {
-            for (size_t i = 0; i < len; i += 1)
+            for (uint32_t i = 0; i < len; i += 1)
             {
                 new_body[inner_idx + offset + i] = old_body[inner_idx + i];
             }
@@ -87,19 +87,19 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::toInnerIdx(int64_t index) const -> size_t
+    auto original::vector<TYPE>::toInnerIdx(int64_t index) const -> uint32_t
     {
         return this->inner_begin + index;
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::outOfMaxSize(size_t increment) const -> bool
+    auto original::vector<TYPE>::outOfMaxSize(uint32_t increment) const -> bool
     {
         return this->inner_begin + this->size() + increment > this->max_size - 1 || this->inner_begin - increment < 0;
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::grow(const size_t new_size) -> void
+    auto original::vector<TYPE>::grow(const uint32_t new_size) -> void
     {
         TYPE* new_body = vector::vectorArrayInit(new_size);
         size_t new_begin = (new_size - 1) / 4;
@@ -112,7 +112,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::adjust(size_t increment) -> void {
+    auto original::vector<TYPE>::adjust(uint32_t increment) -> void {
         if (!this->outOfMaxSize(increment)) {
             return;
         }
@@ -199,7 +199,7 @@ namespace original{
         this->inner_begin = other.inner_begin;
         this->size_ = other.size_;
         this->body = vector::vectorArrayInit(this->max_size);
-        for (size_t i = 0; i < this->size(); ++i) {
+        for (uint32_t i = 0; i < this->size(); ++i) {
             const TYPE& data = other.body[this->toInnerIdx(i)];
             this->body[this->toInnerIdx(i)] = data;
         }
@@ -211,8 +211,8 @@ namespace original{
     {
         if (this == &other) return true;
         if (this->size() != other.size()) return false;
-        for (size_t i = 0; i < this->size(); ++i) {
-            size_t index = this->toInnerIdx(i);
+        for (uint32_t i = 0; i < this->size(); ++i) {
+            uint32_t index = this->toInnerIdx(i);
             if (this->body[index] != other.body[index]){
                 return false;
             }
@@ -224,7 +224,7 @@ namespace original{
     original::vector<TYPE>::vector(array<TYPE> arr) : vector()
     {
         this->adjust(arr.size());
-        for (size_t i = 0; i < arr.size(); i += 1)
+        for (uint32_t i = 0; i < arr.size(); i += 1)
         {
             this->body[this->toInnerIdx(i)] = arr.get(i);
             this->size_ += 1;
@@ -232,7 +232,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::size() const -> size_t
+    auto original::vector<TYPE>::size() const -> uint32_t
     {
         return this->size_;
     }
@@ -271,9 +271,9 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::indexOf(const TYPE &e) const -> size_t
+    auto original::vector<TYPE>::indexOf(const TYPE &e) const -> uint32_t
     {
-        for (size_t i = 0; i < this->size(); i += 1)
+        for (uint32_t i = 0; i < this->size(); i += 1)
         {
             if (this->get(i) == e)
             {
@@ -309,7 +309,7 @@ namespace original{
             }
             this->adjust(1);
             index = this->toInnerIdx(this->parseNegIndex(index));
-            size_t rel_idx = index - this->inner_begin;
+            uint32_t rel_idx = index - this->inner_begin;
             if (index - this->inner_begin <= (this->size() - 1) / 2)
             {
                 vector::moveElements(this->body, this->inner_begin,
@@ -361,7 +361,7 @@ namespace original{
         }
         TYPE res = this->get(index);
         index = this->toInnerIdx(this->parseNegIndex(index));
-        size_t rel_idx = index - this->inner_begin;
+        uint32_t rel_idx = index - this->inner_begin;
         if (index - this->inner_begin <= (this->size() - 1) / 2)
         {
             vector::moveElements(this->body, this->inner_begin,

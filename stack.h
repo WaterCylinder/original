@@ -13,7 +13,7 @@ namespace original {
         stack(const stack& other);
         stack& operator=(const stack& other);
         bool operator==(const stack& other) const;
-        [[nodiscard]] size_t size() const;
+        [[nodiscard]] uint32_t size() const;
         [[nodiscard]] bool empty() const;
         void clear();
         void push(const TYPE &e);
@@ -46,7 +46,7 @@ namespace original {
     }
 
     template<typename TYPE, typename SERIAL>
-    auto original::stack<TYPE, SERIAL>::size() const -> size_t {
+    auto original::stack<TYPE, SERIAL>::size() const -> uint32_t {
         return serial_.size();
     }
 

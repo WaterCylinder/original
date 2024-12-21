@@ -13,7 +13,7 @@ namespace original{
         deque(const deque& other);
         deque& operator=(const deque& other);
         bool operator==(const deque& other) const;
-        [[nodiscard]] size_t size() const;
+        [[nodiscard]] uint32_t size() const;
         [[nodiscard]] bool empty() const;
         void clear();
         void pushBegin(const TYPE &e);
@@ -49,7 +49,7 @@ namespace original{
     }
 
     template<typename TYPE, typename SERIAL>
-    auto original::deque<TYPE, SERIAL>::size() const -> size_t {
+    auto original::deque<TYPE, SERIAL>::size() const -> uint32_t {
         return serial_.size();
     }
 

@@ -65,7 +65,7 @@ namespace original{
 
     template<typename Callback, typename Ret_TYPE, typename... Args_TYPE>
     void original::callBackChecker<Callback, Ret_TYPE, Args_TYPE...>::check() {
-        constexpr bool is_valid = std::is_invocable_r<Ret_TYPE, Callback, Args_TYPE...>::value;
+        constexpr bool is_valid = std::is_invocable_r_v<Ret_TYPE, Callback, Args_TYPE...>;
         if constexpr (is_valid){
             return;
         }

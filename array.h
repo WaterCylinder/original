@@ -14,7 +14,7 @@ namespace original{
 
     template<typename TYPE>
     class array final : public iterationStream<TYPE>, public serial<TYPE>{
-        size_t size_;
+        uint32_t size_;
         TYPE* body;
 
         public:
@@ -31,17 +31,17 @@ namespace original{
             [[nodiscard]] std::string className() const override;
         };
 
-        explicit array(size_t size = 0);
+        explicit array(uint32_t size = 0);
         array(std::initializer_list<TYPE> lst);
         array(const array& other);
         array& operator=(const array& other);
         bool operator==(const array& other) const;
         array(array&& other) noexcept;
-        [[nodiscard]] size_t size() const override;
+        [[nodiscard]] uint32_t size() const override;
         TYPE get(int64_t index) const override;
         TYPE& operator[](int64_t index) override;
         void set(int64_t index, const TYPE &e) override;
-        size_t indexOf(const TYPE &e) const override;
+        uint32_t indexOf(const TYPE &e) const override;
         Iterator* begins() const override;
         Iterator* ends() const override;
         [[nodiscard]] std::string className() const override;
@@ -72,7 +72,7 @@ namespace original{
     }
 
     template<typename TYPE>
-    typename original::array<TYPE>::Iterator * original::array<TYPE>::Iterator::clone() const {
+    auto original::array<TYPE>::Iterator::clone() const -> Iterator* {
         return new Iterator(*this);
     }
 
@@ -94,9 +94,9 @@ namespace original{
     }
 
     template <typename TYPE>
-    original::array<TYPE>::array(const size_t size)
+    original::array<TYPE>::array(const uint32_t size)
         : size_(size), body(new TYPE[size_]) {
-        for (size_t i = 0; i < this->size(); ++i) {
+        for (uint32_t i = 0; i < this->size(); ++i) {
             this->body[i] = TYPE{};
         }
     }
@@ -104,7 +104,7 @@ namespace original{
     template <typename TYPE>
     original::array<TYPE>::array(std::initializer_list<TYPE> lst)
         : size_(lst.size()), body(new TYPE[size_]) {
-        size_t i = 0;
+        uint32_t i = 0;
         for (auto e : lst) {
             this->body[i] = e;
             i += 1;
@@ -114,7 +114,7 @@ namespace original{
     template <typename TYPE>
     original::array<TYPE>::array(const array& other)
         : size_(other.size_), body(new TYPE[size_]) {
-        for (size_t i = 0; i < size_; i++) {
+        for (uint32_t i = 0; i < size_; i++) {
             body[i] = other.body[i];
         }
     }
@@ -128,7 +128,7 @@ namespace original{
 
         this->size_ = other.size_;
         this->body = new TYPE[this->size_];
-        for (size_t i = 0; i < this->size_; i++) {
+        for (uint32_t i = 0; i < this->size_; i++) {
             this->body[i] = other.body[i];
         }
         return *this;
@@ -139,7 +139,7 @@ namespace original{
     {
         if (this == &other) return true;
         if (this->size() != other.size()) return false;
-        for (size_t i = 0; i < this->size(); i ++)
+        for (uint32_t i = 0; i < this->size(); i ++)
         {
             if (this->body[i] != other.body[i])
             {
@@ -162,7 +162,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::array<TYPE>::size() const -> size_t
+    auto original::array<TYPE>::size() const -> uint32_t
     {
         return this->size_;
     }
@@ -195,9 +195,9 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::array<TYPE>::indexOf(const TYPE &e) const -> size_t
+    auto original::array<TYPE>::indexOf(const TYPE &e) const -> uint32_t
     {
-        for (size_t i = 0; i < this->size(); i += 1)
+        for (uint32_t i = 0; i < this->size(); i += 1)
         {
             if (this->get(i) == e)
             {

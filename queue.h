@@ -13,7 +13,7 @@ namespace original {
         queue(const queue& other);
         queue& operator=(const queue& other);
         bool operator==(const queue& other) const;
-        [[nodiscard]] size_t size() const;
+        [[nodiscard]] uint32_t size() const;
         [[nodiscard]] bool empty() const;
         void clear();
         void push(const TYPE &e);
@@ -47,7 +47,7 @@ namespace original {
     }
 
     template<typename TYPE, typename SERIAL>
-    auto original::queue<TYPE, SERIAL>::size() const -> size_t {
+    auto original::queue<TYPE, SERIAL>::size() const -> uint32_t {
         return serial_.size();
     }
 

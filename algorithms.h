@@ -12,26 +12,26 @@ namespace original
     {
         public:
         template<typename TYPE>
-        static size_t distance(const iterator<TYPE>& begin, const iterator<TYPE>& end);
+        static uint32_t distance(const iterator<TYPE>& begin, const iterator<TYPE>& end);
 
         template<typename TYPE>
         static iterator<TYPE>* find(const iterator<TYPE> &begin, const iterator<TYPE> &end, const TYPE &target);
 
         template<typename TYPE>
-        static iterator<TYPE>* find(const iterator<TYPE> &begin, size_t n, const TYPE &target);
+        static iterator<TYPE>* find(const iterator<TYPE> &begin, uint32_t n, const TYPE &target);
 
         template<typename TYPE, typename Callback>
         static iterator<TYPE>* find(const iterator<TYPE> &begin,
                                     const iterator<TYPE> &end, Callback condition);
 
         template<typename TYPE, typename Callback>
-        static iterator<TYPE>* find(const iterator<TYPE> &begin, size_t n, Callback condition);
+        static iterator<TYPE>* find(const iterator<TYPE> &begin, uint32_t n, Callback condition);
 
         template<typename TYPE>
-        static size_t count(const iterator<TYPE>& begin, const iterator<TYPE>& end, const TYPE& target);
+        static uint32_t count(const iterator<TYPE>& begin, const iterator<TYPE>& end, const TYPE& target);
 
         template<typename TYPE, typename Callback>
-        static size_t count(const iterator<TYPE>& begin,
+        static uint32_t count(const iterator<TYPE>& begin,
                             const iterator<TYPE>& end, Callback condition);
 
         template<typename TYPE>
@@ -43,14 +43,14 @@ namespace original
                             const iterator<TYPE>& end, Callback operation);
 
         template<typename TYPE, typename Callback>
-        static iterator<TYPE>* forEach(const iterator<TYPE> &begin, size_t n, Callback operation);
+        static iterator<TYPE>* forEach(const iterator<TYPE> &begin, uint32_t n, Callback operation);
 
         template<typename TYPE>
         static void fill(const iterator<TYPE>& begin,
                          const iterator<TYPE>& end, const TYPE& value = TYPE{});
 
         template<typename TYPE>
-        static iterator<TYPE>* fill(const iterator<TYPE> &begin, size_t n, const TYPE &value = TYPE{});
+        static iterator<TYPE>* fill(const iterator<TYPE> &begin, uint32_t n, const TYPE &value = TYPE{});
 
         template<typename TYPE>
         static void swap(iterator<TYPE>& it1, iterator<TYPE>& it2) noexcept;
@@ -69,18 +69,18 @@ namespace original
 }
 
     template <typename TYPE>
-    auto original::algorithms::distance(const iterator<TYPE>& begin, const iterator<TYPE>& end) -> size_t
+    auto original::algorithms::distance(const iterator<TYPE>& begin, const iterator<TYPE>& end) -> uint32_t
     {
         if (!begin.isValid() || !end.isValid()) {
-            return std::numeric_limits<size_t>::max();
+            return std::numeric_limits<uint32_t>::max();
         }
 
-        size_t dis = 0;
+        uint32_t dis = 0;
         auto it = begin.clone();
         while (!it->equal(end)) {
             if (!it->isValid())
             {
-                return std::numeric_limits<size_t>::max();
+                return std::numeric_limits<uint32_t>::max();
             }
             dis += 1;
             it->next();
@@ -102,9 +102,9 @@ namespace original
     }
 
     template <typename TYPE>
-    auto original::algorithms::find(const iterator<TYPE>& begin, const size_t n, const TYPE& target) -> iterator<TYPE>* {
+    auto original::algorithms::find(const iterator<TYPE>& begin, const uint32_t n, const TYPE& target) -> iterator<TYPE>* {
         auto it = begin.clone();
-        for (size_t i = 0; i < n; i += 1, it->next())
+        for (uint32_t i = 0; i < n; i += 1, it->next())
         {
             if (it->get() == target) return it;
         }
@@ -126,10 +126,10 @@ namespace original
     }
 
     template <typename TYPE, typename Callback>
-    auto original::algorithms::find(const iterator<TYPE>& begin, const size_t n, Callback condition) -> iterator<TYPE>* {
+    auto original::algorithms::find(const iterator<TYPE>& begin, const uint32_t n, Callback condition) -> iterator<TYPE>* {
         callBackChecker<Callback, bool, const TYPE&>::check();
         auto it = begin.clone();
-        for (size_t i = 0; i < n; i += 1, it->next())
+        for (uint32_t i = 0; i < n; i += 1, it->next())
         {
             if (condition(it->get())) return it;
         }
@@ -138,9 +138,9 @@ namespace original
 
     template <typename TYPE>
     auto original::algorithms::count(const iterator<TYPE>& begin, const iterator<TYPE>& end,
-        const TYPE& target) -> size_t
+        const TYPE& target) -> uint32_t
     {
-        size_t cnt = 0;
+        uint32_t cnt = 0;
         auto it = begin.clone();
         while (it->isValid() && !end.atPrev(it)) {
             if (it->get() == target) {
@@ -153,10 +153,10 @@ namespace original
 
     template <typename TYPE, typename Callback>
     auto original::algorithms::count(const iterator<TYPE>& begin, const iterator<TYPE>& end,
-                                     const Callback condition) -> size_t
+                                     const Callback condition) -> uint32_t
     {
         callBackChecker<Callback, bool, const TYPE&>::check();
-        size_t cnt = 0;
+        uint32_t cnt = 0;
         auto it = begin.clone();
         while (it->isValid() && !end.atPrev(it)) {
             if (condition(it->get())) {
@@ -194,11 +194,11 @@ namespace original
     }
 
     template <typename TYPE, typename Callback>
-    auto original::algorithms::forEach(const iterator<TYPE>& begin, const size_t n,
+    auto original::algorithms::forEach(const iterator<TYPE>& begin, const uint32_t n,
                                        Callback operation) -> iterator<TYPE> * {
         callBackChecker<Callback, void, TYPE&>::check();
         auto it = begin.clone();
-        for (size_t i = 0; i < n; i += 1, it->next())
+        for (uint32_t i = 0; i < n; i += 1, it->next())
         {
             operation(it->get());
         }
@@ -219,9 +219,9 @@ namespace original
 
     template<typename TYPE>
     auto original::algorithms::fill(const iterator<TYPE>& begin,
-                                    const size_t n, const TYPE& value) -> iterator<TYPE>* {
+                                    const uint32_t n, const TYPE& value) -> iterator<TYPE>* {
         auto it = begin.clone();
-        for (size_t i = 0; i < n; ++i) {
+        for (uint32_t i = 0; i < n; ++i) {
             it->set(value);
             it->next();
         }

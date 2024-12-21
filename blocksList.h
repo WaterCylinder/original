@@ -9,16 +9,16 @@ namespace original {
     // todo
     template<typename TYPE>
     class blocksList final : public serial<TYPE>, public iterationStream<TYPE>{
-        vector<TYPE*> map;
-        size_t size_;
-        static constexpr size_t BLOCK_MAX_SIZE = 16;
-        static constexpr size_t POS_INIT = (BLOCK_MAX_SIZE - 1) / 2 + 1;
-        size_t first;
-        size_t last;
+        vector<TYPE*> map{};
+        uint32_t size_;
+        static constexpr uint32_t BLOCK_MAX_SIZE = 16;
+        static constexpr uint32_t POS_INIT = (BLOCK_MAX_SIZE - 1) / 2 + 1;
+        uint32_t first;
+        uint32_t last;
 
         static TYPE* blockArrayInit();
-        [[nodiscard]] couple<size_t, size_t> toInnerIdx(int64_t index) const;
-        void moveElements(size_t index, size_t len, int offset);
+        [[nodiscard]] couple<uint32_t, uint32_t> toInnerIdx(int64_t index) const;
+        void moveElements(uint32_t index, uint32_t len, int offset);
         void grow(bool first);
         void shrink(bool first);
     public:
@@ -37,12 +37,12 @@ namespace original {
 
         explicit blocksList();
         TYPE get(int64_t index) const override;
-        [[nodiscard]] size_t size() const override;
+        [[nodiscard]] uint32_t size() const override;
         iterator<TYPE>* begins() const override;
         iterator<TYPE>* ends() const override;
         TYPE& operator[](int64_t index) override;
         void set(int64_t index, const TYPE &e) override;
-        size_t indexOf(const TYPE &e) const override;
+        uint32_t indexOf(const TYPE &e) const override;
         [[nodiscard]] std::string className() const override;
     };
 }// namespace original
@@ -50,18 +50,18 @@ namespace original {
     template<typename TYPE>
     auto original::blocksList<TYPE>::blockArrayInit() -> TYPE* {
         auto arr = new TYPE[BLOCK_MAX_SIZE];
-        for (size_t i = 0; i < BLOCK_MAX_SIZE; i++) {
+        for (uint32_t i = 0; i < BLOCK_MAX_SIZE; i++) {
             arr[i] = TYPE{};
         }
         return arr;
     }
 
     template<typename TYPE>
-    auto original::blocksList<TYPE>::toInnerIdx(int64_t index) const -> couple<size_t, size_t> {
-        const size_t first_size = BLOCK_MAX_SIZE - this->first;
+    auto original::blocksList<TYPE>::toInnerIdx(int64_t index) const -> couple<uint32_t, uint32_t> {
+        const uint32_t first_size = BLOCK_MAX_SIZE - this->first;
         if (this->map.size() == 1 || index + 1 <= first_size) return {0, this->first + index};
 
-        const size_t remains = index + 1 - first_size;
+        const uint32_t remains = index + 1 - first_size;
         return {1 + remains / (BLOCK_MAX_SIZE + 1), remains % (BLOCK_MAX_SIZE + 1) - 1};
     }
 
@@ -119,7 +119,7 @@ namespace original {
     }
 
     template<typename TYPE>
-    auto original::blocksList<TYPE>::size() const -> size_t {
+    auto original::blocksList<TYPE>::size() const -> uint32_t {
         return this->size_;
     }
 
