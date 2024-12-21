@@ -12,6 +12,7 @@ namespace original {
         virtual ~printable() = 0;
         [[nodiscard]] virtual std::string className() const;
         [[nodiscard]] virtual std::string toString(bool enter) const;
+        explicit operator std::string() const;
         [[nodiscard]] const char* toCString(bool enter) const;
 
         template<typename TYPE>
@@ -42,6 +43,10 @@ namespace original {
         ss << this->className() << "(" << formatString(this) << ")";
         if (enter) ss << "\n";
         return ss.str();
+    }
+
+    inline original::printable::operator std::string() const {
+        return this->toString(false);
     }
 
     inline auto original::printable::toCString(const bool enter) const -> const char*
@@ -108,7 +113,7 @@ namespace original {
     }
 
     inline std::ostream& original::operator<<(std::ostream& os, const printable& p){
-        os << p.toString(false);
+        os << static_cast<std::string>(p);
         return os;
     }
 

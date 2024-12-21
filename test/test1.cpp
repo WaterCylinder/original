@@ -84,7 +84,7 @@ int main(){
     }
     auto vector1 = original::vector<double>({1.3, 2.7, 5, 8.9, 4.1, 8, 9.5, 11.45, -0.7, -2, -5.8, 6.4, 23, 56, 65, 0.03, 2.07});
     printf("vector1: %s", vector1.toCString(true));
-    printf("index of 9.5 in vector1: %zu\n", vector1.indexOf(9.5));
+    printf("index of 9.5 in vector1: %u\n", vector1.indexOf(9.5));
      for (auto &e : vector1)
      {
          e *= 3.5;
@@ -103,7 +103,7 @@ int main(){
     vector1.pushBegin(1);
     vector1.pushEnd(6);
     printf("vector1: %s", vector1.toCString(true));
-    printf("index of 6 in vector1: %zu\n", vector1.indexOf(6));
+    printf("index of 6 in vector1: %u\n", vector1.indexOf(6));
     auto vector2 = original::vector<original::vector<int>>();
     for (int i = 0; i < 10; ++i) {
         vector2.pushEnd(original::vector({1*i, 2*i, 3*i}));
