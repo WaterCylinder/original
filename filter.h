@@ -1,15 +1,16 @@
 #ifndef FILTER_H
 #define FILTER_H
+#include <cloneable.h>
 
 namespace original {
 
     template<typename TYPE>
-    class filter {
+    class filter : public cloneable{
     protected:
         virtual bool match(const TYPE& t) const;
     public:
-        virtual ~filter() = default;
-        virtual filter* clone() const;
+        ~filter() override = default;
+        filter* clone() const override;
         explicit filter() = default;
         bool operator()(const TYPE& t) const;
     };

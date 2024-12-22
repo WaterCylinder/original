@@ -5,6 +5,7 @@
 #include "array.h"
 #include "blocksList.h"
 #include "chain.h"
+#include "cloneable.h"
 #include "combinedIterator.h"
 #include "comparator.h"
 #include "container.h"

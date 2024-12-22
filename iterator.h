@@ -1,11 +1,13 @@
 #ifndef ITERATOR_H
 #define ITERATOR_H
 
+#include <cloneable.h>
+
 #include "printable.h"
 
 namespace original {
     template<typename TYPE>
-    class iterator : public printable {
+    class iterator : public printable, public cloneable{
         protected:
             virtual bool equalPtr(const iterator* other) const = 0;
         public:
@@ -17,7 +19,7 @@ namespace original {
             iterator& operator--(int);
             bool operator==(const iterator& other) const;
             bool operator!=(const iterator& other) const;
-            virtual iterator* clone() const = 0;
+            iterator* clone() const override = 0;
             explicit operator bool() const;
             [[nodiscard]] virtual bool hasNext() const = 0;
             [[nodiscard]] virtual bool hasPrev() const = 0;

@@ -1,18 +1,20 @@
 #ifndef TRANSFORM_H
 #define TRANSFORM_H
 
+#include <cloneable.h>
+
 #include "maths.h"
 #include "container.h"
 
 namespace original{
 
     template<typename TYPE>
-    class transform{
+    class transform : public cloneable{
         protected:
             virtual void apply(TYPE& t);
         public:
-            virtual ~transform() = default;
-            virtual transform* clone() const;
+            ~transform() override = default;
+            transform* clone() const override;
             explicit transform() = default;
             virtual void operator()(TYPE& t);
     };
