@@ -40,7 +40,7 @@ int main(){
     std::cout << "q1 after2: " << q1 << std::endl;
     const auto q2 = original::queue(q1);
     std::cout << "q2: " << q2 << std::endl;
-    auto s2 = original::stack<int, original::vector<int>>();
+    auto s2 = original::stack<int, original::vector>();
     std::cout << "s2: " << s2 << std::endl;
     for (int i = 0; i < 50; ++i) {
         s2.push(i);
@@ -76,7 +76,7 @@ int main(){
     s3.pop();
     s3.pop();
     std::cout << "s3 after: " << s3 << std::endl;
-    original::queue<original::queue<int>> q3;
+    original::queue<original::queue<int>, original::vector> q3;
     for (int i = 0; i < 10; ++i) {
         auto qq = original::queue<int>();
         qq.push(i);
@@ -87,6 +87,6 @@ int main(){
     q3.pop();
     std::cout << "q3 after: " << q3 << std::endl;
     original::stack<original::queue<int>> s4;
-    original::stack<int, original::array<int>> s5; // 这种情况不应该通过编译
+    original::stack<int, original::array> s5; // 这种情况不应该通过编译
     return 0;
 }
