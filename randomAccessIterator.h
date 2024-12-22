@@ -117,13 +117,17 @@ namespace original{
     template<typename TYPE>
     auto original::randomAccessIterator<TYPE>::getNext() -> randomAccessIterator* {
         if (!this->isValid()) throw outOfBoundError();
-        return new randomAccessIterator(this->_ptr + 1, this->_container, this->_pos + 1);
+        auto it = this->clone();
+        it->next();
+        return it;
     }
 
     template<typename TYPE>
     auto original::randomAccessIterator<TYPE>::getPrev() -> randomAccessIterator* {
         if (!this->isValid()) throw outOfBoundError();
-        return new randomAccessIterator(this->_ptr - 1, this->_container, this->_pos - 1);
+        auto it = this->clone();
+        it->prev();
+        return it;
     }
 
     template<typename TYPE>

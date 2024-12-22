@@ -2,6 +2,7 @@
 #define ITERATOR_H
 
 #include <cloneable.h>
+#include <error.h>
 
 #include "printable.h"
 
@@ -29,7 +30,7 @@ namespace original {
             bool atNext(const iterator& other) const;
             virtual void next() const = 0;
             virtual void prev() const = 0;
-            virtual iterator* getNext() = 0;
+            virtual iterator* getNext();
             virtual iterator* getPrev() = 0;
             virtual TYPE& get() = 0;
             virtual const TYPE& get() const = 0;
@@ -102,6 +103,14 @@ namespace original {
     template<typename TYPE>
     auto original::iterator<TYPE>::atNext(const iterator &other) const -> bool {
         return this->atNext(&other);
+    }
+
+    template<typename TYPE>
+    auto original::iterator<TYPE>::getNext() -> iterator* {
+        if (!this->isValid()) throw outOfBoundError();
+        auto it = this->clone();
+        it->next();
+        return it;
     }
 
     template<typename TYPE>
