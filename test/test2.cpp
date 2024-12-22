@@ -142,19 +142,19 @@ int main()
     << std::endl;
     std::cout << "numbers of v6 in range [1, 2) or (2, 4]: "
     << original::algorithms::count(*v6.begins(), *v6.ends(),
-        original::group(original::group(original::rangeFilter<int>(1, 3))
+        group(group(original::rangeFilter(1, 3))
                 || original::equalFilter(4))
-                && original::group(!original::equalFilter(2)))
+                && group(!original::equalFilter(2)))
     << std::endl;
     std::cout << "numbers of v6 in range [1, 2) or (2, 4]: "
     << original::algorithms::count(*v6.begins(), *v6.ends(),
-              original::group(original::rangeFilter(1, 3)
+              group(original::rangeFilter(1, 3)
               || original::equalFilter(4))
               && !original::equalFilter(2))
     << std::endl;
     std::cout << "numbers of v6 in range [1, 3]: "
     << original::algorithms::count(*v6.begins(), *v6.ends(),
-               original::group(original::rangeFilter(1, 3)))
+               group(original::rangeFilter(1, 3)))
     << std::endl;
     return 0;
 }
