@@ -2,17 +2,25 @@
 #define CLONABLE_H
 
 namespace original {
-    class cloneable {
+    template<typename DERIVED>
+    class baseCloneable {
+        protected:
+            baseCloneable() = default;
+        public:
+            [[nodiscard]] virtual DERIVED* clone() const;
+            virtual ~baseCloneable() = default;
+    };
+
+    class cloneable : public baseCloneable<cloneable> {
         protected:
             cloneable() = default;
         public:
-            [[nodiscard]] virtual cloneable* clone() const;
-            virtual ~cloneable() = default;
+            ~cloneable() override = default;
     };
 }
 
-    inline auto original::cloneable::clone() const -> cloneable* {
-        return new cloneable(*this);
+    template<typename DERIVED>
+    auto original::baseCloneable<DERIVED>::clone() const -> DERIVED* {
+        return new DERIVED(static_cast<const DERIVED&>(*this));
     }
-
 #endif //CLONABLE_H
