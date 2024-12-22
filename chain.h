@@ -37,6 +37,7 @@ namespace original {
         chainNode* begin_;
         chainNode* end_;
 
+        chainNode* findNode(int64_t index) const;
     public:
         class Iterator final : public doubleDirectionIterator<TYPE>
         {
@@ -137,6 +138,26 @@ namespace original {
     {
         if (prev != nullptr) prev->setPNext(next);
         if (next != nullptr) next->setPPrev(prev);
+    }
+
+    template<typename TYPE>
+    auto original::chain<TYPE>::findNode(int64_t index) const -> chainNode* {
+        const bool reverse_visit = index <= this->size() / 2 ? 0 : 1;
+        chainNode* cur;
+        if (!reverse_visit){
+            cur = this->begin_;
+            for(uint32_t i = 0; i < index; i++)
+            {
+                cur = cur->getPNext();
+            }
+        } else{
+            cur = this->end_;
+            for(uint32_t i = this->size() - 1; i > index; i -= 1)
+            {
+                cur = cur->getPPrev();
+            }
+        }
+        return cur;
     }
 
     template<typename TYPE>
@@ -295,45 +316,17 @@ namespace original {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
         }
-        const bool reverse_visit = this->parseNegIndex(index) <= this->size() / 2 ? 0 : 1;
-        chainNode* cur;
-        if (!reverse_visit){
-            cur = this->begin_;
-            for(uint32_t i = 0; i < this->parseNegIndex(index); i++)
-            {
-                cur = cur->getPNext();
-            }
-        } else{
-            cur = this->end_;
-            for(uint32_t i = this->size() - 1; i > this->parseNegIndex(index); i-= 1)
-            {
-                cur = cur->getPPrev();
-            }
-        }
+        chainNode* cur = this->findNode(this->parseNegIndex(index));
         return cur->getVal();
     }
 
     template <typename TYPE>
-    auto original::chain<TYPE>::operator[](int64_t index) -> TYPE&
+    auto original::chain<TYPE>::operator[](const int64_t index) -> TYPE&
     {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
         }
-        const bool reverse_visit = this->parseNegIndex(index) <= this->size() / 2 ? 0 : 1;
-        chainNode* cur;
-        if (!reverse_visit){
-            cur = this->begin_;
-            for(uint32_t i = 0; i < this->parseNegIndex(index); i++)
-            {
-                cur = cur->getPNext();
-            }
-        } else{
-            cur = this->end_;
-            for(uint32_t i = this->size() - 1; i > this->parseNegIndex(index); i-= 1)
-            {
-                cur = cur->getPPrev();
-            }
-        }
+        chainNode* cur = this->findNode(this->parseNegIndex(index));
         return cur->getVal();
     }
 
@@ -344,26 +337,12 @@ namespace original {
             throw outOfBoundError();
         }
         auto* new_node = new chainNode(e);
-        const bool reverse_visit = this->parseNegIndex(index) <= this->size() / 2 ? 0 : 1;
-        chainNode* cur;
-        if (!reverse_visit){
-            cur = this->begin_;
-            for(uint32_t i = 0; i < this->parseNegIndex(index); i++)
-            {
-                cur = cur->getPNext();
-            }
-        } else{
-            cur = this->end_;
-            for(uint32_t i = this->size() - 1; i > this->parseNegIndex(index); i -= 1)
-            {
-                cur = cur->getPPrev();
-            }
-        }
-         auto* prev = cur->getPPrev();
-         auto* next = cur->getPNext();
-         chainNode::connect(prev, new_node);
-         chainNode::connect(new_node, next);
-         delete cur;
+        chainNode* cur = this->findNode(this->parseNegIndex(index));
+        auto* prev = cur->getPPrev();
+        auto* next = cur->getPNext();
+        chainNode::connect(prev, new_node);
+        chainNode::connect(new_node, next);
+        delete cur;
     }
 
     template <typename TYPE>
@@ -405,21 +384,7 @@ namespace original {
                 throw outOfBoundError();
             }
             auto* new_node = new chainNode(e);
-            const bool reverse_visit = index <= this->size() / 2 ? 0 : 1;
-            chainNode* cur;
-            if (!reverse_visit){
-                cur = this->begin_;
-                for(uint32_t i = 0; i < index; i++)
-                {
-                    cur = cur->getPNext();
-                }
-            } else{
-                cur = this->end_;
-                for(uint32_t i = this->size() - 1; i > index; i -= 1)
-                {
-                    cur = cur->getPPrev();
-                }
-            }
+            chainNode* cur = this->findNode(index);
             auto* prev = cur->getPPrev();
             chainNode::connect(prev, new_node);
             chainNode::connect(new_node, cur);
@@ -478,21 +443,7 @@ namespace original {
             throw outOfBoundError();
         }
         TYPE res;
-        const bool reverse_visit = index <= this->size() / 2 ? 0 : 1;
-        chainNode* cur;
-        if (!reverse_visit){
-            cur = this->begin_;
-            for(size_t i = 0; i < index; i++)
-            {
-                cur = cur->getPNext();
-            }
-        } else{
-            cur = this->end_;
-            for(size_t i = this->size() - 1; i > index; i -= 1)
-            {
-                cur = cur->getPPrev();
-            }
-        }
+        chainNode* cur = this->findNode(index);
         res = cur->getVal();
         auto* prev = cur->getPPrev();
         auto* next = cur->getPNext();
