@@ -7,7 +7,7 @@
 
 namespace original {
     template<typename TYPE>
-    class iterator : public printable, public cloneable{
+    class iterator : public printable, public cloneable {
         protected:
             virtual bool equalPtr(const iterator* other) const = 0;
         public:

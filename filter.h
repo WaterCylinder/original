@@ -5,7 +5,7 @@
 namespace original {
 
     template<typename TYPE>
-    class filter : public cloneable{
+    class filter : public cloneable {
     protected:
         virtual bool match(const TYPE& t) const;
     public:

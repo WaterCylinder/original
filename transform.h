@@ -9,7 +9,7 @@
 namespace original{
 
     template<typename TYPE>
-    class transform : public cloneable{
+    class transform : public cloneable {
         protected:
             virtual void apply(TYPE& t);
         public:
