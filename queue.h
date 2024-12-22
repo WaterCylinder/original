@@ -5,7 +5,7 @@
 #include <string>
 
 namespace original {
-    template<typename TYPE, template <typename> class SERIAL = chain>
+    template<typename TYPE, template <typename> typename SERIAL = chain>
     class queue : public iterationStream<TYPE> {
         SERIAL<TYPE> serial_;
     public:
