@@ -26,70 +26,70 @@ namespace original {
     };
 }
 
-    template<typename TYPE, template <typename> class SERIAL>
+    template<typename TYPE, template <typename> typename SERIAL>
     original::queue<TYPE, SERIAL>::queue(const SERIAL<TYPE>& serial) : serial_{serial} {}
 
-    template<typename TYPE, template <typename> class SERIAL>
+    template<typename TYPE, template <typename> typename SERIAL>
     original::queue<TYPE, SERIAL>::queue(const queue& other) : serial_{other.serial_} {}
 
-    template<typename TYPE, template <typename> class SERIAL>
+    template<typename TYPE, template <typename> typename SERIAL>
     auto original::queue<TYPE, SERIAL>::operator=(const queue& other) -> queue& {
         if (this == &other) return *this;
         serial_ = other.serial_;
         return *this;
     }
 
-    template<typename TYPE, template <typename> class SERIAL>
+    template<typename TYPE, template <typename> typename SERIAL>
     auto original::queue<TYPE, SERIAL>::operator==(const queue& other) const -> bool {
         return serial_ == other.serial_;
     }
 
-    template<typename TYPE, template <typename> class SERIAL>
+    template<typename TYPE, template <typename> typename SERIAL>
     auto original::queue<TYPE, SERIAL>::size() const -> uint32_t {
         return serial_.size();
     }
 
-    template<typename TYPE, template <typename> class SERIAL>
+    template<typename TYPE, template <typename> typename SERIAL>
     auto original::queue<TYPE, SERIAL>::empty() const -> bool {
         return serial_.empty();
     }
 
-    template<typename TYPE, template <typename> class SERIAL>
+    template<typename TYPE, template <typename> typename SERIAL>
     auto original::queue<TYPE, SERIAL>::clear() -> void {
         serial_.clear();
     }
 
-    template<typename TYPE, template <typename> class SERIAL>
+    template<typename TYPE, template <typename> typename SERIAL>
     auto original::queue<TYPE, SERIAL>::push(const TYPE& e) -> void {
         serial_.pushEnd(e);
     }
 
-    template<typename TYPE, template <typename> class SERIAL>
+    template<typename TYPE, template <typename> typename SERIAL>
     auto original::queue<TYPE, SERIAL>::pop() -> TYPE {
         return serial_.popBegin();
     }
 
-    template<typename TYPE, template <typename> class SERIAL>
+    template<typename TYPE, template <typename> typename SERIAL>
     auto original::queue<TYPE, SERIAL>::head() const -> TYPE {
         return serial_.getBegin();
     }
 
-    template<typename TYPE, template <typename> class SERIAL>
+    template<typename TYPE, template <typename> typename SERIAL>
     auto original::queue<TYPE, SERIAL>::tail() const -> TYPE {
         return serial_.getEnd();
     }
 
-    template<typename TYPE, template <typename> class SERIAL>
+    template<typename TYPE, template <typename> typename SERIAL>
     auto original::queue<TYPE, SERIAL>::begins() const -> iterator<TYPE>* {
         return serial_.begins();
     }
 
-    template<typename TYPE, template <typename> class SERIAL>
+    template<typename TYPE, template <typename> typename SERIAL>
     auto original::queue<TYPE, SERIAL>::ends() const -> iterator<TYPE>* {
         return serial_.ends();
     }
 
-    template<typename TYPE, template <typename> class SERIAL>
+    template<typename TYPE, template <typename> typename SERIAL>
     std::string original::queue<TYPE, SERIAL>::className() const {
         return "queue";
     }
