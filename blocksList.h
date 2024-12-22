@@ -16,20 +16,59 @@ namespace original {
         uint32_t first;
         uint32_t last;
 
+        class blockState final : public container<TYPE> {
+                bool first_;
+                bool last_;
+                uint32_t first_ptr;
+                uint32_t last_ptr;
+
+                explicit blockState(bool first, bool last, uint32_t first_ptr, uint32_t last_ptr);
+                [[nodiscard]] uint32_t size() const override;
+                bool contains(const TYPE &e) const override;
+                void add(const TYPE &e) override;
+                void clear() override;
+            public:
+                friend class blocksList::Iterator;
+                friend class blocksList::blockItr;
+        };
+
+        class blockItr final : public randomAccessIterator<TYPE> {
+            explicit blockItr(TYPE* ptr, blockState* container, int64_t pos);
+            blockItr(const blockItr& other);
+            blockItr& operator=(const blockItr& other);
+            blockItr* clone() const override;
+        };
+
         static TYPE* blockArrayInit();
         [[nodiscard]] couple<uint32_t, uint32_t> toInnerIdx(int64_t index) const;
         void moveElements(uint32_t index, uint32_t len, int offset);
         void grow(bool first);
         void shrink(bool first);
     public:
-        class Iterator final : public randomAccessIterator<TYPE>
+        class Iterator final : public iterator<TYPE> // todo: will merge it to combinedIterator
         {
-            explicit Iterator(TYPE* ptr, const blocksList* container, int64_t pos);
+            mutable randomAccessIterator<TYPE*>* base_;
+            mutable blockItr* cur_;
+
+            explicit Iterator(TYPE** ptr, const blocksList* container);
+            bool equalPtr(const iterator<TYPE> *other) const override;
         public:
             friend blocksList;
+            friend class blockItr;
+            friend class Iterator;
             Iterator(const Iterator& other);
             Iterator& operator=(const Iterator& other);
             Iterator* clone() const override;
+            [[nodiscard]] bool hasNext() const override;
+            [[nodiscard]] bool hasPrev() const override;
+            void next() const override;
+            void prev() const override;
+            Iterator* getPrev() override;
+            Iterator* getNext() override;
+            TYPE& get() override;
+            const TYPE& get() const override;
+            void set(const TYPE &data) override;
+            [[nodiscard]] bool isValid() const override;
             bool atPrev(const iterator<TYPE> *other) const override;
             bool atNext(const iterator<TYPE> *other) const override;
             [[nodiscard]] std::string className() const override;
@@ -38,8 +77,8 @@ namespace original {
         explicit blocksList();
         TYPE get(int64_t index) const override;
         [[nodiscard]] uint32_t size() const override;
-        iterator<TYPE>* begins() const override;
-        iterator<TYPE>* ends() const override;
+        Iterator* begins() const override;
+        Iterator* ends() const override;
         TYPE& operator[](int64_t index) override;
         void set(int64_t index, const TYPE &e) override;
         uint32_t indexOf(const TYPE &e) const override;
@@ -66,8 +105,66 @@ namespace original {
     }
 
     template<typename TYPE>
-    original::blocksList<TYPE>::Iterator::Iterator(TYPE *ptr, const blocksList *container, int64_t pos)
-        : randomAccessIterator<TYPE>::Iterator(ptr, container, pos) {}
+    original::blocksList<TYPE>::blockState::blockState(
+        const bool first, const bool last, const uint32_t first_ptr, const uint32_t last_ptr)
+        : first_(first), last_(last), first_ptr(first_ptr), last_ptr(last_ptr) {}
+
+    template<typename TYPE>
+    auto original::blocksList<TYPE>::blockState::size() const -> uint32_t {
+        if (this->first_ && this->last_)
+            return this->last_ptr + 1 - this->first_ptr;
+        if (this->first_)
+            return BLOCK_MAX_SIZE - this->first_ptr + 1;
+        if (this->last_)
+            return this->last_ptr + 1;
+        return BLOCK_MAX_SIZE;
+    }
+
+    template<typename TYPE>
+    auto original::blocksList<TYPE>::blockState::contains(const TYPE&) const -> bool {
+        return false;
+    }
+
+    template<typename TYPE>
+    auto original::blocksList<TYPE>::blockState::add(const TYPE &) -> void {}
+
+    template<typename TYPE>
+    auto original::blocksList<TYPE>::blockState::clear() -> void {}
+
+    template<typename TYPE>
+    original::blocksList<TYPE>::blockItr::blockItr(TYPE *ptr, blockState *container, int64_t pos)
+        : randomAccessIterator<TYPE>(ptr, container, pos) {}
+
+    template<typename TYPE>
+    original::blocksList<TYPE>::blockItr::blockItr(const blockItr &other)
+        : randomAccessIterator<TYPE>(nullptr, nullptr, 0) {
+        this.operator=(other);
+    }
+
+    template<typename TYPE>
+    auto original::blocksList<TYPE>::blockItr::operator=(const blockItr &other) -> blockItr& {
+        if (this == &other) return *this;
+        this->_ptr = other._ptr;
+        this->_container = other._container;
+        this->_pos = other._pos;
+        return *this;
+    }
+
+    template<typename TYPE>
+    auto original::blocksList<TYPE>::blockItr::clone() const -> blockItr* {
+        return new blockItr(*this);
+    }
+
+    template<typename TYPE>
+    original::blocksList<TYPE>::Iterator::Iterator(TYPE **ptr, const blocksList *container)
+        : base_{ptr, container, 0}, cur_{*ptr, new blockState(
+          true, blocksList::size() == 1, blocksList::first, blocksList::last)} {}
+
+    template<typename TYPE>
+    auto original::blocksList<TYPE>::Iterator::equalPtr(const iterator<TYPE> *other) const -> bool {
+        auto other_it = dynamic_cast<const blocksList*>(other);
+        return other_it != nullptr && this->base_ == other->base_ && this->cur_ == other->cur_;
+    }
 
     template<typename TYPE>
     original::blocksList<TYPE>::Iterator::Iterator(const Iterator &other)
@@ -88,6 +185,75 @@ namespace original {
     template<typename TYPE>
     auto original::blocksList<TYPE>::Iterator::clone() const -> Iterator* {
         return new Iterator(*this);;
+    }
+
+    template<typename TYPE>
+    auto original::blocksList<TYPE>::Iterator::hasNext() const -> bool {
+        return this->base_.hasNext();
+    }
+
+    template<typename TYPE>
+    auto original::blocksList<TYPE>::Iterator::hasPrev() const -> bool {
+        return this->base_.hasPrev();
+    }
+
+    template<typename TYPE>
+    auto original::blocksList<TYPE>::Iterator::next() const -> void {
+        if (this->cur_->hasNext()) {
+            this->cur_->next();
+        } else {
+            this->base_->next();
+            delete this->cur_;
+            this->cur_ = new blockItr(this->base_->get(), this->base_->_container, 0);
+        }
+    }
+
+    template<typename TYPE>
+    auto original::blocksList<TYPE>::Iterator::prev() const -> void {
+        if (this->cur_->hasPrev()) {
+            this->cur_->prev();
+        } else {
+            this->base_->prev();
+            delete this->cur_;
+            this->cur_ = new blockItr(&this->base_->get()[BLOCK_MAX_SIZE - 1], this->base_->_container, BLOCK_MAX_SIZE - 1);
+        }
+    }
+
+    template<typename TYPE>
+    auto original::blocksList<TYPE>::Iterator::getPrev() -> Iterator* {
+        auto* it = this->clone();
+        it->next();
+        return it;
+    }
+
+    template<typename TYPE>
+    auto original::blocksList<TYPE>::Iterator::getNext() -> Iterator* {
+        auto* it = this->clone();
+        it->prev();
+        return it;
+    }
+
+    template<typename TYPE>
+    auto original::blocksList<TYPE>::Iterator::get() -> TYPE& {
+        if (!this->isValid()) throw outOfBoundError();
+        return this->cur_->get();
+    }
+
+    template<typename TYPE>
+    auto original::blocksList<TYPE>::Iterator::get() const -> const TYPE& {
+        if (!this->isValid()) throw outOfBoundError();
+        return this->cur_->get();
+    }
+
+    template<typename TYPE>
+    auto original::blocksList<TYPE>::Iterator::set(const TYPE &data) -> void {
+        if (!this->isValid()) throw outOfBoundError();
+        this->cur_.set(data);
+    }
+
+    template<typename TYPE>
+    auto original::blocksList<TYPE>::Iterator::isValid() const -> bool {
+        return this->base_->isValid();
     }
 
     template<typename TYPE>
@@ -124,10 +290,33 @@ namespace original {
     }
 
     template<typename TYPE>
+    auto original::blocksList<TYPE>::begins() const -> Iterator* {
+        return new Iterator(&this->map.getBegin(), this); // todo: problem?
+    }
+
+    template<typename TYPE>
+    auto original::blocksList<TYPE>::ends() const -> Iterator* {
+        return new Iterator(&this->map.getEnd(), this); // todo: may be also a problem
+    }
+
+    template<typename TYPE>
+    auto original::blocksList<TYPE>::operator[](int64_t index) -> TYPE& {
+        return this->get(index);
+    }
+
+    template<typename TYPE>
     auto original::blocksList<TYPE>::set(int64_t index, const TYPE &e) -> void {
         if (this->indexOutOfBound(index)) throw outOfBoundError();
         auto inner_idx = this->toInnerIdx(this->parseNegIndex(index));
         this->map.get(inner_idx.first())[inner_idx.second()] = e;
+    }
+
+    template<typename TYPE>
+    auto original::blocksList<TYPE>::indexOf(const TYPE &e) const -> uint32_t {
+        for (uint32_t i = 0; i < this->size(); ++i) {
+            if (this->get(i) == e) return i;
+        }
+        return this->size();
     }
 
     template<typename TYPE>
