@@ -1,3 +1,5 @@
+#include <deque.h>
+
 #include "stack.h"
 #include <iostream>
 #include <queue.h>
@@ -88,5 +90,18 @@ int main(){
     std::cout << "q3 after: " << q3 << std::endl;
     original::stack<original::queue<int>> s4;
     original::stack<int, original::array> s5; // 这种情况不应该通过编译
+    original::deque<int> d1;
+    for (int i = 0; i < 10; ++i) {
+        d1.pushBegin(i);
+        d1.pushEnd(i);
+    }
+    std::cout << "d1 before: " << d1 << std::endl;
+    for (int i = 0; i < 4; ++i) {
+        d1.popBegin();
+    }
+    for (int i = 0; i < 3; ++i) {
+        d1.popEnd();
+    }
+    std::cout << "d1 after: " << d1 << std::endl;
     return 0;
 }
