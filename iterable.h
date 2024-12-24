@@ -17,6 +17,7 @@ namespace original{
             friend class iterable;
             TYPE& operator*();
             const TYPE& operator*() const;
+            TYPE get() const;
             iterAdaptor& operator++();
             bool operator!=(const iterAdaptor& other) const;
             [[nodiscard]] bool isValid() const;
@@ -50,6 +51,11 @@ namespace original{
     template<typename TYPE>
     auto original::iterable<TYPE>::iterAdaptor::operator*() const -> const TYPE& {
         return this->it_->operator*();
+    }
+
+    template<typename TYPE>
+    auto original::iterable<TYPE>::iterAdaptor::get() const -> TYPE {
+        return this->it_->getElem();
     }
 
     template<typename TYPE>

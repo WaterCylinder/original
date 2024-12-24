@@ -26,7 +26,7 @@ namespace original{
             if (!first) {
                 ss << ", ";
             }
-            ss << formatString(*it);
+            ss << formatString(it.get());
             first = false;
         }
         ss << ")";

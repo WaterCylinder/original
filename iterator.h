@@ -33,6 +33,7 @@ namespace original {
             virtual iterator* getNext();
             virtual iterator* getPrev() = 0;
             virtual TYPE& get() = 0;
+            virtual TYPE getElem() const;
             virtual const TYPE& get() const = 0;
             virtual void set(const TYPE& data) = 0;
             bool equal(const iterator* other) const;
@@ -111,6 +112,11 @@ namespace original {
         auto it = this->clone();
         it->next();
         return it;
+    }
+
+    template<typename TYPE>
+    auto original::iterator<TYPE>::getElem() const -> TYPE {
+        return this->get();
     }
 
     template<typename TYPE>
