@@ -3,6 +3,7 @@
 
 #include "algorithms.h"
 #include "array.h"
+#include "bitSet.h"
 #include "blocksList.h"
 #include "chain.h"
 #include "cloneable.h"
