@@ -119,10 +119,34 @@ int main(){
     b3.set(88, true);
     b3.set(86, false);
     std::cout << "b3 after: " << b3 << std::endl;
+    std::cout << "b3.get(67) = " << b3.get(67) << std::endl;
     std::cout << "b3.get(88) = " << b3.get(88) << std::endl;
     // for (auto e: b1) {
     //     std::cout << e << std::endl;
     // } // Unsupported Method for class
     // b3.forEach(); //deleted
+    b3.set(99, true);
+    std::cout << "b3.get(99) = " << b3.get(99) << std::endl;
+    auto b4 = b3.resize(129);
+    std::cout << "b4: " << b4 << std::endl;
+    std::cout << "b4.get(67) = " << b4.get(67) << std::endl;
+    std::cout << "b4.get(88) = " << b4.get(88) << std::endl;
+    std::cout << "b4.get(99) = " << b4.get(99) << std::endl;
+    auto b5 = original::bitSet({true, false, true, false, true, false, true, false, true});
+    auto b6 = original::bitSet({false, true, false, true, false, true, false, true, false});
+    auto b7 = b5 | b6;
+    auto b8 = b5 & b6;
+    auto b9 = b5 ^ b6;
+    auto b10 = ~b5;
+    std::cout << "b5: " << b5 << std::endl;
+    std::cout << "b6: " << b6 << std::endl;
+    std::cout << "b7: " << b7 << std::endl;
+    std::cout << "b8: " << b8 << std::endl;
+    std::cout << "b9: " << b9 << std::endl;
+    std::cout << "b10: " << b10 << std::endl;
+    auto b11 = b4 | b5;
+    std::cout << "b11: " << b11 << std::endl;
+    auto b12 = (b4 | b5) & b6;
+    std::cout << "b12: " << b12 << std::endl;
     return 0;
 }
