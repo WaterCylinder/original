@@ -8,9 +8,9 @@
 
 namespace original {
     class bitSet final : public serial<bool>, public iterationStream<bool>{
-            using underlying_type = std::size_t;
+            using underlying_type = uint64_t;
 
-            static constexpr int BLOCK_MAX_SIZE = sizeof(underlying_type) * 8;
+            static constexpr int64_t BLOCK_MAX_SIZE = sizeof(underlying_type) * 8;
             array<underlying_type> map;
             uint32_t size_;
 
@@ -55,6 +55,7 @@ namespace original {
             bitSet(const bitSet& other);
             bitSet& operator=(const bitSet& other);
             bool operator==(const bitSet& other) const;
+            bitSet resize(uint32_t new_size) const;
             [[nodiscard]] uint32_t size() const override;
             Iterator* begins() const override;
             Iterator* ends() const override;
@@ -62,23 +63,36 @@ namespace original {
             bool& operator[](int64_t index) override;
             void set(int64_t index, const bool &e) override;
             uint32_t indexOf(const bool &e) const override;
+            bitSet& operator&=(const bitSet& other);
+            bitSet& operator|=(const bitSet& other);
+            bitSet& operator^=(const bitSet& other);
             [[nodiscard]] std::string className() const override;
 
             template<typename Callback = transform<bool>>
             void forEach(Callback operation = Callback{}) = delete;
+
+            friend bitSet operator&(const bitSet& lbs, const bitSet& rbs);
+            friend bitSet operator|(const bitSet& lbs, const bitSet& rbs);
+            friend bitSet operator^(const bitSet& lbs, const bitSet& rbs);
+            friend bitSet operator~(const bitSet& bs);
     };
+
+    bitSet operator&(const bitSet& lbs, const bitSet& rbs);
+    bitSet operator|(const bitSet& lbs, const bitSet& rbs);
+    bitSet operator^(const bitSet& lbs, const bitSet& rbs);
+    bitSet operator~(const bitSet& bs);
 }
 
     inline auto original::bitSet::getBitFromBlock(const underlying_type block_value, const int64_t bit) -> bool {
-        return block_value & 1 << bit;
+        return block_value & static_cast<underlying_type>(1) << static_cast<underlying_type>(bit);
     }
 
     inline auto original::bitSet::setBitFromBlock(const underlying_type block_value, const int64_t bit) -> underlying_type {
-        return block_value | 1 << bit;
+        return block_value | static_cast<underlying_type>(1) << static_cast<underlying_type>(bit);
     }
 
     inline auto original::bitSet::clearBitFromBlock(const underlying_type block_value, const int64_t bit) -> underlying_type {
-        return block_value & ~(1 << bit);
+        return block_value & ~(static_cast<underlying_type>(1) << static_cast<underlying_type>(bit));
     }
 
     inline auto original::bitSet::getBit(const int64_t bit, const int64_t block) const -> bool {
@@ -98,7 +112,7 @@ namespace original {
     }
 
     inline auto original::bitSet::toInnerIdx(const int64_t index) -> couple<uint32_t, int64_t> {
-        return {static_cast<unsigned>(index / BLOCK_MAX_SIZE), index % BLOCK_MAX_SIZE};
+        return {static_cast<uint32_t>(index / BLOCK_MAX_SIZE), index % BLOCK_MAX_SIZE};
     }
 
     inline original::bitSet::Iterator::Iterator(const int64_t bit, const int64_t block, underlying_type* block_p, const bitSet* container)
@@ -235,6 +249,21 @@ namespace original {
         return this->map == other.map && this->size_ == other.size_;
     }
 
+    inline auto original::bitSet::resize(const uint32_t new_size) const -> bitSet {
+        if (this->size() == new_size) {
+            return *this;
+        }
+
+        auto nb = bitSet(new_size);
+        const int64_t new_blocks = (new_size + BLOCK_MAX_SIZE - 1) / BLOCK_MAX_SIZE;
+        const uint32_t blocks_min = min(static_cast<uint32_t>(new_blocks),
+                                        this->map.size());
+        for (uint32_t i = 0; i < blocks_min; i++) {
+            nb.map.set(i, this->map.get(i));
+        }
+        return nb;
+    }
+
     inline auto original::bitSet::size() const -> uint32_t {
         return this->size_;
     }
@@ -267,17 +296,82 @@ namespace original {
     }
 
     inline auto original::bitSet::indexOf(const bool &e) const -> uint32_t {
-        for (uint32_t i = 0; i < BLOCK_MAX_SIZE; i++) {
+        for (uint32_t i = 0; i < this->size(); i++) {
             if (auto idx = toInnerIdx(i);
                 e == this->getBit(idx.second(), idx.first())) {
                 return i;
             }
         }
-        return BLOCK_MAX_SIZE;
+        return this->size();
+    }
+
+    inline auto original::bitSet::operator&=(const bitSet &other) -> bitSet& {
+        if (this->size() != other.size()) {
+            const auto resized = other.resize(this->size());
+            for (uint32_t i = 0; i < this->map.size(); i++) {
+                this->map.set(i, this->map.get(i) & resized.map.get(i));
+            }
+        }else {
+            for (uint32_t i = 0; i < this->map.size(); i++) {
+                this->map.set(i, this->map.get(i) & other.map.get(i));
+            }
+        }
+        return *this;
+    }
+
+    inline auto original::bitSet::operator|=(const bitSet &other) -> bitSet& {
+        if (this->size() != other.size()) {
+            const auto resized = other.resize(this->size());
+            for (uint32_t i = 0; i < this->map.size(); i++) {
+                this->map.set(i, this->map.get(i) | resized.map.get(i));
+            }
+        }else {
+            for (uint32_t i = 0; i < this->map.size(); i++) {
+                this->map.set(i, this->map.get(i) | other.map.get(i));
+            }
+        }
+        return *this;
+    }
+
+    inline auto original::bitSet::operator^=(const bitSet &other) -> bitSet& {
+        if (this->size() != other.size()) {
+            const auto resized = other.resize(this->size());
+            for (uint32_t i = 0; i < this->map.size(); i++) {
+                this->map.set(i, this->map.get(i) ^ resized.map.get(i));
+            }
+        }else {
+            for (uint32_t i = 0; i < this->map.size(); i++) {
+                this->map.set(i, this->map.get(i) ^ other.map.get(i));
+            }
+        }
+        return *this;
     }
 
     inline auto original::bitSet::className() const -> std::string {
         return "bitSet";
+    }
+
+    inline original::bitSet original::operator&(const bitSet &lbs, const bitSet &rbs) {
+        bitSet bs(lbs);
+        return bs &= rbs;
+    }
+
+    inline original::bitSet original::operator|(const bitSet &lbs, const bitSet &rbs) {
+        bitSet bs(lbs);
+        return bs |= rbs;
+    }
+
+    inline original::bitSet original::operator^(const bitSet &lbs, const bitSet &rbs) {
+        bitSet bs(lbs);
+        return bs ^= rbs;
+    }
+
+    inline original::bitSet original::operator~(const bitSet &bs) {
+        bitSet nbs(bs);
+        for (uint32_t i = 0; i < nbs.map.size(); i++) {
+            nbs.map.set(i, ~nbs.map.get(i));
+        }
+        return nbs;
     }
 
 #endif //BITSET_H
