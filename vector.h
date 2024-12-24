@@ -43,6 +43,7 @@ namespace original{
         vector& operator=(const vector& other);
         bool operator==(const vector& other) const;
         [[nodiscard]] uint32_t size() const override;
+        TYPE& data() const;
         TYPE get(int64_t index) const override;
         TYPE& operator[](int64_t index) override;
         void set(int64_t index, const TYPE &e) override;
@@ -235,6 +236,11 @@ namespace original{
     auto original::vector<TYPE>::size() const -> uint32_t
     {
         return this->size_;
+    }
+
+    template<typename TYPE>
+    auto original::vector<TYPE>::data() const -> TYPE& {
+        return this->body[this->toInnerIdx(0)];
     }
 
     template <typename TYPE>

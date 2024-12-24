@@ -36,8 +36,8 @@ namespace original{
         array(const array& other);
         array& operator=(const array& other);
         bool operator==(const array& other) const;
-        array(array&& other) noexcept;
         [[nodiscard]] uint32_t size() const override;
+        TYPE& data() const;
         TYPE get(int64_t index) const override;
         TYPE& operator[](int64_t index) override;
         void set(int64_t index, const TYPE &e) override;
@@ -150,13 +150,6 @@ namespace original{
     }
 
     template <typename TYPE>
-    original::array<TYPE>::array(array&& other) _GLIBCXX_NOEXCEPT
-        : size_(other.size_), body(other.body) {
-        other.size_ = 0;
-        other.body = nullptr;
-    }
-
-    template <typename TYPE>
     original::array<TYPE>::~array() {
         delete[] this->body;
     }
@@ -165,6 +158,11 @@ namespace original{
     auto original::array<TYPE>::size() const -> uint32_t
     {
         return this->size_;
+    }
+
+    template<typename TYPE>
+    TYPE& original::array<TYPE>::data() const {
+        return this->body[0];
     }
 
     template <typename TYPE>
