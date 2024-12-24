@@ -45,7 +45,7 @@ namespace original {
         void grow(bool first);
         void shrink(bool first);
     public:
-        class Iterator final : public iterator<TYPE> // todo: will merge it to combinedIterator
+        class Iterator final : public iterator<TYPE>
         {
             mutable randomAccessIterator<TYPE*>* base_;
             mutable blockItr* cur_;
@@ -55,7 +55,6 @@ namespace original {
         public:
             friend blocksList;
             friend class blockItr;
-            friend class Iterator;
             Iterator(const Iterator& other);
             Iterator& operator=(const Iterator& other);
             Iterator* clone() const override;
@@ -74,6 +73,8 @@ namespace original {
             [[nodiscard]] std::string className() const override;
         };
 
+        friend class blockItr;
+        friend class Iterator;
         explicit blocksList();
         TYPE get(int64_t index) const override;
         [[nodiscard]] uint32_t size() const override;
@@ -158,7 +159,7 @@ namespace original {
     template<typename TYPE>
     original::blocksList<TYPE>::Iterator::Iterator(TYPE **ptr, const blocksList *container)
         : base_{ptr, container, 0}, cur_{*ptr, new blockState(
-          true, blocksList::size() == 1, blocksList::first, blocksList::last)} {}
+          true, blocksList::size() == 1, container->first, container->last)} {}
 
     template<typename TYPE>
     auto original::blocksList<TYPE>::Iterator::equalPtr(const iterator<TYPE> *other) const -> bool {
@@ -291,12 +292,12 @@ namespace original {
 
     template<typename TYPE>
     auto original::blocksList<TYPE>::begins() const -> Iterator* {
-        return new Iterator(&this->map.getBegin(), this); // todo: problem?
+        return new Iterator(this->map.data(), this);
     }
 
     template<typename TYPE>
     auto original::blocksList<TYPE>::ends() const -> Iterator* {
-        return new Iterator(&this->map.getEnd(), this); // todo: may be also a problem
+        return new Iterator(this->map.data() + this->map.size() - 1, this);
     }
 
     template<typename TYPE>
