@@ -1,3 +1,4 @@
+#include <bitSet.h>
 #include <deque.h>
 
 #include "stack.h"
@@ -103,5 +104,25 @@ int main(){
         d1.popEnd();
     }
     std::cout << "d1 after: " << d1 << std::endl;
+    auto b1 = original::bitSet(std::initializer_list{true, false, false, true, true, false, true});
+    std::cout << "b1: " << b1 << std::endl;
+    auto b2 = original::bitSet(20);
+    std::cout << "b2 before: " << b2 << std::endl;
+    for (int i = 1, index = 1; index < b2.size(); i++, index <<= 1) {
+        b2.set(index - 1, true);
+    }
+    std::cout << "b2 after: " << b2 << std::endl;
+    std::cout << "b2.get(3) = " << b2.get(3) << std::endl;
+    std::cout << "b2.get(4) = " << b2.get(4) << std::endl;
+    auto b3 = original::bitSet(100);
+    std::cout << "b3 before: " << b3 << std::endl;
+    b3.set(88, true);
+    b3.set(86, false);
+    std::cout << "b3 after: " << b3 << std::endl;
+    std::cout << "b3.get(88) = " << b3.get(88) << std::endl;
+    // for (auto e: b1) {
+    //     std::cout << e << std::endl;
+    // } // Unsupported Method for class
+    // b3.forEach(); //deleted
     return 0;
 }
