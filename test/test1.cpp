@@ -183,5 +183,6 @@ int main(){
         i += 1;
     }
     std::cout << "arr9 after: " << arr9 << std::endl;
+    // delete &arr9.data(); // ok
     return 0;
 }
