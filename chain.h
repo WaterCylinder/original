@@ -185,13 +185,13 @@ namespace original {
     template<typename TYPE>
     auto original::chain<TYPE>::Iterator::atPrev(const iterator<TYPE> *other) const -> bool {
         auto other_it = dynamic_cast<const Iterator*>(other);
-        return this->_ptr->getPNext() == other_it->_ptr;
+        return other_it != nullptr && this->_ptr->getPNext() == other_it->_ptr;
     }
 
     template<typename TYPE>
     auto original::chain<TYPE>::Iterator::atNext(const iterator<TYPE> *other) const -> bool {
         auto other_it = dynamic_cast<const Iterator*>(other);
-        return other_it->_ptr->getPNext() == this->_ptr;
+        return other_it != nullptr && other_it->_ptr->getPNext() == this->_ptr;
     }
 
     template<typename TYPE>
@@ -337,12 +337,8 @@ namespace original {
             throw outOfBoundError();
         }
         auto* new_node = new chainNode(e);
-        chainNode* cur = this->findNode(this->parseNegIndex(index));
-        auto* prev = cur->getPPrev();
-        auto* next = cur->getPNext();
-        chainNode::connect(prev, new_node);
-        chainNode::connect(new_node, next);
-        delete cur;
+        auto* cur = this->findNode(this->parseNegIndex(index));
+        cur->setVal(e);
     }
 
     template <typename TYPE>

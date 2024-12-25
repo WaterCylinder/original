@@ -351,22 +351,22 @@ namespace original {
         return "bitSet";
     }
 
-    inline original::bitSet original::operator&(const bitSet &lbs, const bitSet &rbs) {
+    inline auto original::operator&(const bitSet &lbs, const bitSet &rbs) -> bitSet {
         bitSet bs(lbs);
         return bs &= rbs;
     }
 
-    inline original::bitSet original::operator|(const bitSet &lbs, const bitSet &rbs) {
+    inline auto original::operator|(const bitSet &lbs, const bitSet &rbs) -> bitSet {
         bitSet bs(lbs);
         return bs |= rbs;
     }
 
-    inline original::bitSet original::operator^(const bitSet &lbs, const bitSet &rbs) {
+    inline auto original::operator^(const bitSet &lbs, const bitSet &rbs) -> bitSet {
         bitSet bs(lbs);
         return bs ^= rbs;
     }
 
-    inline original::bitSet original::operator~(const bitSet &bs) {
+    inline auto original::operator~(const bitSet &bs) -> bitSet {
         bitSet nbs(bs);
         for (uint32_t i = 0; i < nbs.map.size(); i++) {
             nbs.map.set(i, ~nbs.map.get(i));
