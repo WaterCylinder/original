@@ -25,7 +25,7 @@ namespace original
     };
 }
 
-template <typename F_TYPE, typename S_TYPE>
+    template <typename F_TYPE, typename S_TYPE>
     original::couple<F_TYPE, S_TYPE>::couple() : first_(), second_() {}
 
     template <typename F_TYPE, typename S_TYPE>
