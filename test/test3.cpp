@@ -148,5 +148,7 @@ int main(){
     std::cout << "b11: " << b11 << std::endl;
     auto b12 = (b4 | b5) & b6;
     std::cout << "b12: " << b12 << std::endl;
+    std::cout << "b11.count() = " << b11.count() << std::endl;
+    std::cout << "b12.count() = " << b12.count() << std::endl;
     return 0;
 }
