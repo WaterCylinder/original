@@ -17,6 +17,7 @@ namespace original {
             static bool getBitFromBlock(underlying_type block_value, int64_t bit);
             static underlying_type setBitFromBlock(underlying_type block_value, int64_t bit);
             static underlying_type clearBitFromBlock(underlying_type block_value, int64_t bit);
+            static underlying_type clearAllBitsFromBlock(underlying_type block_value, int64_t bit);
             bool getBit(int64_t bit, int64_t block) const;
             void setBit(int64_t bit, int64_t block);
             void clearBit(int64_t bit, int64_t block);
@@ -55,6 +56,7 @@ namespace original {
             bitSet(const bitSet& other);
             bitSet& operator=(const bitSet& other);
             bool operator==(const bitSet& other) const;
+            uint32_t count() const;
             bitSet resize(uint32_t new_size) const;
             [[nodiscard]] uint32_t size() const override;
             Iterator* begins() const override;
@@ -93,6 +95,13 @@ namespace original {
 
     inline auto original::bitSet::clearBitFromBlock(const underlying_type block_value, const int64_t bit) -> underlying_type {
         return block_value & ~(static_cast<underlying_type>(1) << static_cast<underlying_type>(bit));
+    }
+
+    inline auto original::bitSet::clearAllBitsFromBlock(const underlying_type block_value, const int64_t bit) -> underlying_type {
+        constexpr underlying_type mask1 = ~static_cast<underlying_type>(0);
+        const underlying_type mask2 = bit <= BLOCK_MAX_SIZE - 1 ? (1 << static_cast<underlying_type>(bit + 1)) - static_cast<underlying_type>(1) : mask1;
+        const underlying_type mask = mask1 ^ mask2;
+        return block_value & mask;
     }
 
     inline auto original::bitSet::getBit(const int64_t bit, const int64_t block) const -> bool {
@@ -249,6 +258,18 @@ namespace original {
         return this->map == other.map && this->size_ == other.size_;
     }
 
+    inline auto original::bitSet::count() const -> uint32_t {
+        uint32_t count = 0;
+        for (const auto& e : this->map) {
+            auto n = e;
+            while (n) {
+                n &= n - 1;
+                count += 1;
+            }
+        }
+        return count;
+    }
+
     inline auto original::bitSet::resize(const uint32_t new_size) const -> bitSet {
         if (this->size() == new_size) {
             return *this;
@@ -261,6 +282,8 @@ namespace original {
         for (uint32_t i = 0; i < blocks_min; i++) {
             nb.map.set(i, this->map.get(i));
         }
+        const int64_t bits_remaining = nb.size() - blocks_min * BLOCK_MAX_SIZE;
+        nb.map.set(blocks_min - 1, clearAllBitsFromBlock(nb.map.get(blocks_min - 1), BLOCK_MAX_SIZE - bits_remaining));
         return nb;
     }
 
@@ -371,6 +394,9 @@ namespace original {
         for (uint32_t i = 0; i < nbs.map.size(); i++) {
             nbs.map.set(i, ~nbs.map.get(i));
         }
+        const int64_t bits_remaining = nbs.size() - nbs.map.size() * bitSet::BLOCK_MAX_SIZE;
+        nbs.map.set(nbs.map.size() - 1, bitSet::clearAllBitsFromBlock(nbs.map.get(nbs.map.size() - 1),
+            bitSet::BLOCK_MAX_SIZE - bits_remaining));
         return nbs;
     }
 
