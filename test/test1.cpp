@@ -31,18 +31,18 @@ int main(){
     }
     for (auto* it = chain1.begins(); it->isValid(); it->next()) {
         printf("chain1 element = %d, Iterator: %s\n", it->get(), it->toCString(false));
-    }
+    } // memory leaked
     printf("\n");
     for (auto* it = chain1.ends(); it->isValid(); it->prev()) {
         printf("chain1 element = %d, Iterator: %s\n", it->get(), it->toCString(false));
-    }
+    } // memory leaked
     printf("\n");
     auto chain2 = original::chain({6, 7, 3, 9, 4, 2, 10, 14, -5});
     for (auto* l = chain2.begins(), *r = chain2.ends(); !l->equal(r) && !l->atNext(r); l->next(), r->prev()) {
         const int val = l->get();
         l->set(r->get());
         r->set(val);
-    }
+    } // memory leaked
     for (int i = 0; i < chain2.size(); ++i) {
         printf("chain2[%d] = %d\n", i, chain2[i]);
     }
