@@ -20,8 +20,8 @@ namespace original {
         TYPE pop();
         TYPE head() const;
         TYPE tail() const;
-        iterator<TYPE>* begins() const override;
-        iterator<TYPE>* ends() const override;
+        baseIterator<TYPE>* begins() const override;
+        baseIterator<TYPE>* ends() const override;
         [[nodiscard]] std::string className() const override;
     };
 }
@@ -80,12 +80,12 @@ namespace original {
     }
 
     template<typename TYPE, template <typename> typename SERIAL>
-    auto original::queue<TYPE, SERIAL>::begins() const -> iterator<TYPE>* {
+    auto original::queue<TYPE, SERIAL>::begins() const -> baseIterator<TYPE>* {
         return serial_.begins();
     }
 
     template<typename TYPE, template <typename> typename SERIAL>
-    auto original::queue<TYPE, SERIAL>::ends() const -> iterator<TYPE>* {
+    auto original::queue<TYPE, SERIAL>::ends() const -> baseIterator<TYPE>* {
         return serial_.ends();
     }
 

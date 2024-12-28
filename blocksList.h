@@ -45,7 +45,7 @@ namespace original {
         void grow(bool first);
         void shrink(bool first);
     public:
-        class Iterator final : public iterator<TYPE>
+        class Iterator final : public baseIterator<TYPE>
         {
             mutable randomAccessIterator<TYPE*>* base_;
             mutable blockItr* cur_;
@@ -62,10 +62,10 @@ namespace original {
             [[nodiscard]] bool hasPrev() const override;
             void next() const override;
             void prev() const override;
-            Iterator* getPrev() override;
-            Iterator* getNext() override;
+            Iterator* getPrev() const override;
+            Iterator* getNext() const override;
             TYPE& get() override;
-            const TYPE& get() const override;
+            TYPE get() const override;
             void set(const TYPE &data) override;
             [[nodiscard]] bool isValid() const override;
             bool atPrev(const iterator<TYPE> *other) const override;
@@ -221,14 +221,14 @@ namespace original {
     }
 
     template<typename TYPE>
-    auto original::blocksList<TYPE>::Iterator::getPrev() -> Iterator* {
+    auto original::blocksList<TYPE>::Iterator::getPrev() const -> Iterator* {
         auto* it = this->clone();
         it->next();
         return it;
     }
 
     template<typename TYPE>
-    auto original::blocksList<TYPE>::Iterator::getNext() -> Iterator* {
+    auto original::blocksList<TYPE>::Iterator::getNext() const -> Iterator* {
         auto* it = this->clone();
         it->prev();
         return it;
@@ -241,7 +241,8 @@ namespace original {
     }
 
     template<typename TYPE>
-    auto original::blocksList<TYPE>::Iterator::get() const -> const TYPE& {
+    auto original::blocksList<TYPE>::Iterator::get() const -> TYPE
+    {
         if (!this->isValid()) throw outOfBoundError();
         return this->cur_->get();
     }

@@ -13,11 +13,11 @@ namespace original {
             virtual bool equalPtr(const iterator* other) const = 0;
         public:
             TYPE& operator*();
-            const TYPE& operator*() const;
-            iterator& operator++();
-            iterator& operator++(int);
-            iterator& operator--();
-            iterator& operator--(int);
+            TYPE operator*() const;
+            void operator++() const;
+            void operator++(int) const;
+            void operator--() const;
+            void operator--(int) const;
             bool operator==(const iterator& other) const;
             bool operator!=(const iterator& other) const;
             iterator* clone() const override = 0;
@@ -30,11 +30,11 @@ namespace original {
             bool atNext(const iterator& other) const;
             virtual void next() const = 0;
             virtual void prev() const = 0;
-            virtual iterator* getNext();
-            virtual iterator* getPrev() = 0;
+            virtual iterator* getNext() const;
+            virtual iterator* getPrev() const = 0;
             virtual TYPE& get() = 0;
+            virtual TYPE get() const = 0;
             virtual TYPE getElem() const;
-            virtual const TYPE& get() const = 0;
             virtual void set(const TYPE& data) = 0;
             bool equal(const iterator* other) const;
             bool equal(const iterator& other) const;
@@ -42,6 +42,14 @@ namespace original {
             [[nodiscard]] std::string className() const override;
             [[nodiscard]] std::string toString(bool enter) const override;
             ~iterator() override = default;
+    };
+
+    template <typename TYPE>
+    class baseIterator : public iterator<TYPE>
+    {
+        public:
+            baseIterator* clone() const override = 0;
+            ~baseIterator() override = default;
     };
 }
 
@@ -51,34 +59,28 @@ namespace original {
     }
 
     template<typename TYPE>
-    auto original::iterator<TYPE>::operator*() const -> const TYPE& {
+    auto original::iterator<TYPE>::operator*() const -> TYPE {
         return this->get();
     }
 
     template<typename TYPE>
-    auto original::iterator<TYPE>::operator++() -> iterator& {
+    auto original::iterator<TYPE>::operator++() const -> void {
         this->next();
-        return *this;
     }
 
     template<typename TYPE>
-    auto original::iterator<TYPE>::operator++(int) -> iterator& {
-        iterator* it = this;
-        this->next();
-        return *it;
+    auto original::iterator<TYPE>::operator++(int) const -> void {
+        this->operator++();
     }
 
     template<typename TYPE>
-    auto original::iterator<TYPE>::operator--() -> iterator& {
+    auto original::iterator<TYPE>::operator--() const -> void {
         this->prev();
-        return *this;
     }
 
     template<typename TYPE>
-    auto original::iterator<TYPE>::operator--(int) -> iterator& {
-        iterator* it = this;
-        this->prev();
-        return *it;
+    auto original::iterator<TYPE>::operator--(int) const -> void {
+        this->operator--();
     }
 
     template<typename TYPE>
@@ -107,15 +109,16 @@ namespace original {
     }
 
     template<typename TYPE>
-    auto original::iterator<TYPE>::getNext() -> iterator* {
+    auto original::iterator<TYPE>::getNext() const -> iterator* {
         if (!this->isValid()) throw outOfBoundError();
         auto it = this->clone();
         it->next();
         return it;
     }
 
-    template<typename TYPE>
-    auto original::iterator<TYPE>::getElem() const -> TYPE {
+    template <typename TYPE>
+    auto original::iterator<TYPE>::getElem() const -> TYPE
+    {
         return this->get();
     }
 
@@ -137,8 +140,8 @@ namespace original {
     template<typename TYPE>
     auto original::iterator<TYPE>::toString(const bool enter) const -> std::string {
         std::stringstream ss;
-        ss << this->className() << "(" << formatString(&this->get());
-        if (this->isValid()) ss << ", " << formatString(this->get());
+        ss << this->className() << "(";
+        if (this->isValid()) ss << formatString(this->get());
         ss << ")";
         if (enter) {
             ss << "\n";

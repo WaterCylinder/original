@@ -18,13 +18,13 @@ namespace original {
             static underlying_type setBitFromBlock(underlying_type block_value, int64_t bit);
             static underlying_type clearBitFromBlock(underlying_type block_value, int64_t bit);
             static underlying_type clearAllBitsFromBlock(underlying_type block_value, int64_t bit);
-            bool getBit(int64_t bit, int64_t block) const;
+            [[nodiscard]] bool getBit(int64_t bit, int64_t block) const;
             void setBit(int64_t bit, int64_t block);
             void clearBit(int64_t bit, int64_t block);
             void writeBit(int64_t bit, int64_t block, bool value);
             static couple<uint32_t, int64_t> toInnerIdx(int64_t index);
         public:
-            class Iterator final : public iterator<bool> {
+            class Iterator final : public baseIterator<bool> {
                     mutable int64_t cur_bit;
                     mutable int64_t cur_block;
                     mutable underlying_type* block_;
@@ -41,12 +41,11 @@ namespace original {
                     bool atNext(const iterator *other) const override;
                     void next() const override;
                     void prev() const override;
-                    Iterator* getPrev() override;
-                    Iterator* getNext() override;
+                    Iterator* getPrev() const override;
+                    Iterator* getNext() const override;
                     bool& get() override;
-                    bool getElem() const override;
                     [[nodiscard]] std::string className() const override;
-                    const bool& get() const override;
+                    bool get() const override;
                     void set(const bool &data) override;
                     [[nodiscard]] bool isValid() const override;
             };
@@ -56,15 +55,15 @@ namespace original {
             bitSet(const bitSet& other);
             bitSet& operator=(const bitSet& other);
             bool operator==(const bitSet& other) const;
-            uint32_t count() const;
-            bitSet resize(uint32_t new_size) const;
+            [[nodiscard]] uint32_t count() const;
+            [[nodiscard]] bitSet resize(uint32_t new_size) const;
             [[nodiscard]] uint32_t size() const override;
-            Iterator* begins() const override;
-            Iterator* ends() const override;
-            bool get(int64_t index) const override;
+            [[nodiscard]] Iterator* begins() const override;
+            [[nodiscard]] Iterator* ends() const override;
+            [[nodiscard]] bool get(int64_t index) const override;
             bool& operator[](int64_t index) override;
             void set(int64_t index, const bool &e) override;
-            uint32_t indexOf(const bool &e) const override;
+            [[nodiscard]] uint32_t indexOf(const bool &e) const override;
             bitSet& operator&=(const bitSet& other);
             bitSet& operator|=(const bitSet& other);
             bitSet& operator^=(const bitSet& other);
@@ -188,14 +187,14 @@ namespace original {
         }
     }
 
-    inline auto original::bitSet::Iterator::getPrev() -> Iterator* {
+    inline auto original::bitSet::Iterator::getPrev() const -> Iterator* {
         if (!this->isValid()) throw outOfBoundError();
         auto* it = this->clone();
         it->prev();
         return it;
     }
 
-    inline auto original::bitSet::Iterator::getNext() -> Iterator* {
+    inline auto original::bitSet::Iterator::getNext() const -> Iterator* {
         if (!this->isValid()) throw outOfBoundError();
         auto* it = this->clone();
         it->next();
@@ -206,17 +205,14 @@ namespace original {
         throw unSupportedMethodError();
     }
 
-    inline bool original::bitSet::Iterator::getElem() const {
-        if (!this->isValid()) throw outOfBoundError();
-        return getBitFromBlock(*this->block_, this->cur_bit);
-    }
-
     inline auto original::bitSet::Iterator::className() const -> std::string {
         return "bitSet::Iterator";
     }
 
-    inline auto original::bitSet::Iterator::get() const -> const bool& {
-        throw unSupportedMethodError();
+    inline auto original::bitSet::Iterator::get() const -> bool
+    {
+        if (!this->isValid()) throw outOfBoundError();
+        return getBitFromBlock(*this->block_, this->cur_bit);
     }
 
     inline void original::bitSet::Iterator::set(const bool &data) {

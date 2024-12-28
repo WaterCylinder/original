@@ -22,7 +22,7 @@ namespace original{
         std::stringstream ss;
         ss << "(";
         bool first = true;
-        for (auto it = this->begin(); it.isValid(); ++it) {
+        for (const auto it = this->begin(); it.isValid(); ++it) {
             if (!first) {
                 ss << ", ";
             }

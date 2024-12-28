@@ -9,59 +9,163 @@
 namespace original{
     template <typename TYPE>
     class iterable{
-        class iterAdaptor final : public printable{
-            iterator<TYPE>* it_;
-
-            explicit iterAdaptor(iterator<TYPE>* it);
+    public:
+        class iterAdaptor final : public iterator<TYPE>{
+            baseIterator<TYPE>* it_;
+            explicit iterAdaptor(baseIterator<TYPE>* it);
+        protected:
+            bool equalPtr(const iterator<TYPE>* other) const override;
+            iterAdaptor* clone() const override;
+            iterAdaptor* getPrev() const override;
+            iterAdaptor* getNext() const override;
         public:
             friend class iterable;
-            TYPE& operator*();
-            const TYPE& operator*() const;
-            TYPE get() const;
-            iterAdaptor& operator++();
+            iterAdaptor(const iterAdaptor& other);
+            iterAdaptor& operator=(const iterAdaptor& other);
+            const iterator<TYPE>& getIt() const;
+            [[nodiscard]] bool hasNext() const override;
+            [[nodiscard]] bool hasPrev() const override;
+            bool atPrev(const iterator<TYPE>* other) const override;
+            bool atNext(const iterator<TYPE>* other) const override;
+            void next() const override;
+            void prev() const override;
+            TYPE& get() override;
+            void set(const TYPE& data) override;
+            TYPE get() const override;
             bool operator!=(const iterAdaptor& other) const;
-            [[nodiscard]] bool isValid() const;
+            [[nodiscard]] bool isValid() const override;
             [[nodiscard]] std::string className() const override;
             [[nodiscard]] std::string toString(bool enter) const override;
             ~iterAdaptor() override;
         };
-    public:
+
         virtual ~iterable() = default;
-        virtual iterator<TYPE>* begins() const = 0;
-        virtual iterator<TYPE>* ends() const = 0;
+        virtual baseIterator<TYPE>* begins() const = 0;
+        virtual baseIterator<TYPE>* ends() const = 0;
 
         iterAdaptor begin();
         iterAdaptor end();
         iterAdaptor begin() const;
         iterAdaptor end() const;
 
+        iterAdaptor first();
+        iterAdaptor last();
+        iterAdaptor first() const;
+        iterAdaptor last() const;
+
         template<typename Callback = transform<TYPE>>
         void forEach(Callback operation = Callback{});
     };
 }
 
-    template<typename TYPE>
-    original::iterable<TYPE>::iterAdaptor::iterAdaptor(iterator<TYPE>* it) : it_(it) {}
+    template <typename TYPE>
+    original::iterable<TYPE>::iterAdaptor::iterAdaptor(baseIterator<TYPE>* it) : it_(it) {}
 
-    template<typename TYPE>
-    auto original::iterable<TYPE>::iterAdaptor::operator*() -> TYPE& {
-        return this->it_->operator*();
+    template <typename TYPE>
+    auto original::iterable<TYPE>::iterAdaptor::equalPtr(const iterator<TYPE>* other) const -> bool
+    {
+        auto* other_it = dynamic_cast<const iterAdaptor*>(other);
+        return other_it != nullptr && this->it_ == other_it->it_;
     }
 
-    template<typename TYPE>
-    auto original::iterable<TYPE>::iterAdaptor::operator*() const -> const TYPE& {
-        return this->it_->operator*();
+    template <typename TYPE>
+    auto original::iterable<TYPE>::iterAdaptor::clone() const -> iterAdaptor*
+    {
+        return new iterAdaptor(*this);
     }
 
-    template<typename TYPE>
-    auto original::iterable<TYPE>::iterAdaptor::get() const -> TYPE {
-        return this->it_->getElem();
+    template <typename TYPE>
+    auto original::iterable<TYPE>::iterAdaptor::getPrev() const -> iterAdaptor*
+    {
+        auto* it = this->clone();
+        it->next();
+        return it;
     }
 
-    template<typename TYPE>
-    auto original::iterable<TYPE>::iterAdaptor::operator++() -> iterAdaptor& {
-        this->it_->next();
+    template <typename TYPE>
+    auto original::iterable<TYPE>::iterAdaptor::getNext() const -> iterAdaptor*
+    {
+        auto* it = this->clone();
+        it->prev();
+        return it;
+    }
+
+    template <typename TYPE>
+    original::iterable<TYPE>::iterAdaptor::iterAdaptor(const iterAdaptor& other) : iterAdaptor(nullptr)
+    {
+        this->operator=(other);
+    }
+
+    template <typename TYPE>
+    auto original::iterable<TYPE>::iterAdaptor::operator=(const iterAdaptor& other) -> iterAdaptor&
+    {
+        if (this == &other) return *this;
+
+        delete this->it_;
+        this->it_ = other.it_->clone();
         return *this;
+    }
+
+    template <typename TYPE>
+    auto original::iterable<TYPE>::iterAdaptor::getIt() const -> const iterator<TYPE>&
+    {
+        return *this->it_;
+    }
+
+    template <typename TYPE>
+    auto original::iterable<TYPE>::iterAdaptor::hasNext() const -> bool
+    {
+        return this->it_->hasNext();
+    }
+
+    template <typename TYPE>
+    auto original::iterable<TYPE>::iterAdaptor::hasPrev() const -> bool
+    {
+        return this->it_->hasPrev();
+    }
+
+    template <typename TYPE>
+    auto original::iterable<TYPE>::iterAdaptor::atPrev(const iterator<TYPE>* other) const -> bool
+    {
+        auto* other_it = dynamic_cast<const iterAdaptor*>(other);
+        return other_it != nullptr && this->it_->atPrev(other_it->it_);
+    }
+
+    template <typename TYPE>
+    auto original::iterable<TYPE>::iterAdaptor::atNext(const iterator<TYPE>* other) const -> bool
+    {
+        auto* other_it = dynamic_cast<const iterAdaptor*>(other);
+        return other_it != nullptr && this->it_->atNext(other_it->it_);
+    }
+
+    template <typename TYPE>
+    auto original::iterable<TYPE>::iterAdaptor::next() const -> void
+    {
+        this->it_->next();
+    }
+
+    template <typename TYPE>
+    auto original::iterable<TYPE>::iterAdaptor::prev() const -> void
+    {
+        this->it_->prev();
+    }
+
+    template <typename TYPE>
+    auto original::iterable<TYPE>::iterAdaptor::get() -> TYPE&
+    {
+        return this->it_->get();
+    }
+
+    template <typename TYPE>
+    auto original::iterable<TYPE>::iterAdaptor::set(const TYPE& data) -> void
+    {
+        this->it_->set(data);
+    }
+
+    template<typename TYPE>
+    auto original::iterable<TYPE>::iterAdaptor::get() const -> TYPE
+    {
+        return this->it_->getElem();
     }
 
     template<typename TYPE>
@@ -111,10 +215,34 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::iterable<TYPE>::end() const -> iterAdaptor {
+    auto original::iterable<TYPE>::end() const -> iterAdaptor{
         auto* it = this->ends();
         it->next();
         return iterAdaptor(it);
+    }
+
+    template <typename TYPE>
+    auto original::iterable<TYPE>::first() -> iterAdaptor
+    {
+        return this->begin();
+    }
+
+    template <typename TYPE>
+    auto original::iterable<TYPE>::last() -> iterAdaptor
+    {
+        return iterAdaptor(this->ends());
+    }
+
+    template <typename TYPE>
+    auto original::iterable<TYPE>::first() const -> iterAdaptor
+    {
+        return this->begin();
+    }
+
+    template <typename TYPE>
+    auto original::iterable<TYPE>::last() const -> iterAdaptor
+    {
+        return iterAdaptor(this->ends());
     }
 
     template <typename TYPE>

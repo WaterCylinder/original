@@ -14,7 +14,7 @@ namespace original {
             singleDirectionIterator* clone() const override;
             [[nodiscard]] bool hasPrev() const override = delete;
             void prev() const override = delete;
-            std::unique_ptr<stepIterator<TYPE>> getPrev() override = delete;
+            std::unique_ptr<stepIterator<TYPE>> getPrev() const override = delete;
     };
 }
 

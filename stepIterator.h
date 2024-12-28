@@ -8,7 +8,7 @@
 namespace original
 {
     template<typename TYPE>
-    class stepIterator : public iterator<TYPE>
+    class stepIterator : public baseIterator<TYPE>
     {
         protected:
             mutable wrapper<TYPE>* _ptr;
@@ -25,10 +25,10 @@ namespace original
             bool atNext(const iterator<TYPE>* other) const override;
             void next() const override;
             void prev() const override;
-            stepIterator* getNext() override;
-            iterator<TYPE>* getPrev() override;
+            stepIterator* getNext() const override;
+            iterator<TYPE>* getPrev() const override;
             TYPE& get() override;
-            const TYPE& get() const override;
+            TYPE get() const override;
             void set(const TYPE& data) override;
             [[nodiscard]] bool isValid() const override;
             [[nodiscard]] std::string className() const override;
@@ -104,12 +104,12 @@ namespace original
     }
 
     template <typename TYPE>
-    auto original::stepIterator<TYPE>::getNext() -> stepIterator* {
+    auto original::stepIterator<TYPE>::getNext() const -> stepIterator* {
         return new stepIterator(this->_ptr->getPNext());
     }
 
     template<typename TYPE>
-    auto original::stepIterator<TYPE>::getPrev() -> iterator<TYPE> *{
+    auto original::stepIterator<TYPE>::getPrev() const -> iterator<TYPE> *{
         throw unSupportedMethodError();
     }
 
@@ -121,7 +121,7 @@ namespace original
     }
 
     template <typename TYPE>
-    auto original::stepIterator<TYPE>::get() const -> const TYPE&
+    auto original::stepIterator<TYPE>::get() const -> TYPE
     {
         if (!this->isValid()) throw nullPointerError();
         return this->_ptr->getVal();

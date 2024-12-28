@@ -5,7 +5,7 @@
 namespace original {
     // todo
     template<typename E_TYPE, typename B_TYPE>
-    class combinedIterator : public iterator<E_TYPE> {
+    class combinedIterator : public baseIterator<E_TYPE> {
         protected:
             mutable randomAccessIterator<B_TYPE>* base_;
             mutable iterator<E_TYPE>* cur_it_;
@@ -25,7 +25,7 @@ namespace original {
             void next() const override;
             void prev() const override;
             E_TYPE& get() override;
-            const E_TYPE& get() const override;
+            TYPE get() const override;
             void set(const E_TYPE &data) override;
             [[nodiscard]] bool isValid() const override;
             ~combinedIterator() override;
@@ -81,7 +81,8 @@ namespace original {
     }
 
     template<typename E_TYPE, typename B_TYPE>
-    auto original::combinedIterator<E_TYPE, B_TYPE>::get() const -> const E_TYPE& {
+    auto original::combinedIterator<E_TYPE, B_TYPE>::get() const -> TYPE
+    {
         if (!this->isValid()) throw outOfBoundError();
         return this->cur_it_->get();
     }

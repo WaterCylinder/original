@@ -2,6 +2,7 @@
 #define CONTAINER_H
 #pragma once
 
+#include "cstdint"
 
 namespace original {
 

@@ -7,7 +7,7 @@
 
 namespace original{
     template<typename TYPE>
-    class randomAccessIterator : public iterator<TYPE>{
+    class randomAccessIterator : public baseIterator<TYPE>{
     protected:
         mutable TYPE* _ptr;
         mutable const container<TYPE>* _container;
@@ -27,10 +27,10 @@ namespace original{
         void prev() const override;
         void operator+=(int64_t steps) const;
         void operator-=(int64_t steps) const;
-        randomAccessIterator* getNext() override;
-        randomAccessIterator* getPrev() override;
+        randomAccessIterator* getNext() const override;
+        randomAccessIterator* getPrev() const override;
         TYPE& get() override;
-        const TYPE& get() const override;
+        TYPE get() const override;
         void set(const TYPE& data) override;
         [[nodiscard]] bool isValid() const override;
         [[nodiscard]] std::string className() const override;
@@ -115,7 +115,7 @@ namespace original{
     }
 
     template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::getNext() -> randomAccessIterator* {
+    auto original::randomAccessIterator<TYPE>::getNext() const -> randomAccessIterator* {
         if (!this->isValid()) throw outOfBoundError();
         auto it = this->clone();
         it->next();
@@ -123,7 +123,7 @@ namespace original{
     }
 
     template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::getPrev() -> randomAccessIterator* {
+    auto original::randomAccessIterator<TYPE>::getPrev() const -> randomAccessIterator* {
         if (!this->isValid()) throw outOfBoundError();
         auto it = this->clone();
         it->prev();
@@ -143,7 +143,8 @@ namespace original{
     }
 
     template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::get() const -> const TYPE& {
+    auto original::randomAccessIterator<TYPE>::get() const -> TYPE
+    {
         if (!this->isValid()) throw outOfBoundError();
         return *this->_ptr;
     }
