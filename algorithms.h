@@ -31,8 +31,7 @@ namespace original
         static uint32_t count(const iterator<TYPE>& begin, const iterator<TYPE>& end, const TYPE& target);
 
         template<typename TYPE, typename Callback>
-        static uint32_t count(const iterator<TYPE>& begin,
-                            const iterator<TYPE>& end, Callback condition);
+        static uint32_t count(const iterator<TYPE>& begin, const iterator<TYPE>& end, Callback condition);
 
         template<typename TYPE>
         static bool equal(const iterator<TYPE>& begin1, const iterator<TYPE>& end1,
@@ -53,7 +52,7 @@ namespace original
         static iterator<TYPE>* fill(const iterator<TYPE> &begin, uint32_t n, const TYPE &value = TYPE{});
 
         template<typename TYPE>
-        static void swap(iterator<TYPE>& it1, iterator<TYPE>& it2) noexcept;
+        static void swap(const iterator<TYPE>& it1, const iterator<TYPE>& it2) noexcept;
 
         template<typename TYPE>
         static iterator<TYPE>* copy(const iterator<TYPE> &begin_src, const iterator<TYPE> &end_src,
@@ -85,6 +84,7 @@ namespace original
             dis += 1;
             it->next();
         }
+        delete it;
         return dis;
     }
 
@@ -98,6 +98,7 @@ namespace original
             }
             it->next();
         }
+        delete it;
         return end.clone();
     }
 
@@ -122,6 +123,7 @@ namespace original
             }
             it->next();
         }
+        delete it;
         return end.clone();
     }
 
@@ -148,6 +150,7 @@ namespace original
             }
             it->next();
         }
+        delete it;
         return cnt;
     }
 
@@ -164,6 +167,7 @@ namespace original
             }
             it->next();
         }
+        delete it;
         return cnt;
     }
 
@@ -178,7 +182,10 @@ namespace original
             it1->next();
             it2->next();
         }
-        return it1->equal(end1) && it2->equal(end2) && it1->get() == it2->get();
+        const bool res = it1->equal(end1) && it2->equal(end2) && it1->get() == it2->get();
+        delete it1;
+        delete it2;
+        return res;
     }
 
     template <typename TYPE, typename Callback>
@@ -191,11 +198,12 @@ namespace original
             operation(it->get());
         }
         operation(it->get());
+        delete it;
     }
 
     template <typename TYPE, typename Callback>
     auto original::algorithms::forEach(const iterator<TYPE>& begin, const uint32_t n,
-                                       Callback operation) -> iterator<TYPE> * {
+                                       Callback operation) -> iterator<TYPE>* {
         callBackChecker<Callback, void, TYPE&>::check();
         auto it = begin.clone();
         for (uint32_t i = 0; i < n; i += 1, it->next())
@@ -215,6 +223,7 @@ namespace original
             it->next();
         }
         it->set(value);
+        delete it;
     }
 
     template<typename TYPE>
@@ -229,11 +238,15 @@ namespace original
     }
 
     template <typename TYPE>
-    auto original::algorithms::swap(iterator<TYPE>& it1, iterator<TYPE>& it2) noexcept -> void
+    auto original::algorithms::swap(const iterator<TYPE>& it1, const iterator<TYPE>& it2) noexcept -> void
     {
-        TYPE tmp = it2.get();
-        it2.set(it1.get());
-        it1.set(tmp);
+        auto it_1 = it1.clone();
+        auto it_2 = it2.clone();
+        TYPE tmp = it_2->get();
+        it_2->set(it_1->get());
+        it_1->set(tmp);
+        delete it_1;
+        delete it_2;
     }
 
     template <typename TYPE>
@@ -248,6 +261,7 @@ namespace original
         }
         it_tar->set(it_src->get());
         it_tar->next();
+        delete it_src;
         return it_tar;
     }
 
@@ -268,6 +282,7 @@ namespace original
             it_tar->set(it_src->get());
         }
         it_tar->next();
+        delete it_src;
         return it_tar;
     }
 
@@ -281,6 +296,7 @@ namespace original
             left->next();
             right->prev();
         }
+        delete right;
         return left;
     }
 
