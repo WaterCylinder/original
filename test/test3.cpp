@@ -15,15 +15,15 @@ int main(){
     original::chain<std::string> c1 = {"a", "aa", "bc", "vg", "rtqy", "upn"};
     original::vector<std::string> v1 = {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"};
     std::cout << "v1 before1: " << v1 << std::endl;
-    original::algorithms::copy(*c1.begins(), *c1.ends(), *v1.begins());
+    original::algorithms::copy(c1.first(), c1.last(), v1.first());
     std::cout << "v1 after1: " << v1 << std::endl;
-    original::algorithms::fill(*v1.begins(), *v1.ends());
+    original::algorithms::fill(v1.first(), v1.last());
     std::cout << "v1 before2: " << v1 << std::endl;
-    original::algorithms::copy(*c1.begins(), *c1.ends(), *v1.begins(),
+    original::algorithms::copy(c1.first(), c1.last(), v1.first(),
                                original::greaterFilter(std::string("bc")));
     std::cout << "v1 after2: " << v1 << std::endl;
     std::cout << "c1 before1: " << c1 << std::endl;
-    original::algorithms::reverse(*c1.begins(), *c1.ends());
+    original::algorithms::reverse(c1.first(), c1.last());
     std::cout << "c1 after1: " << c1 << std::endl;
     original::stack<int> s1;
     std::cout << "s1 before1: " << s1 << std::endl;
@@ -54,13 +54,13 @@ int main(){
     }
     std::cout << "s2.top(): " << s2.top() << std::endl;
     std::cout << "s2: " << s2 << std::endl;
-    original::algorithms::forEach(*s2.begins(), *s2.ends(), original::addOptTransform(1));
+    original::algorithms::forEach(s2.first(), s2.last(), original::addOptTransform(1));
     std::cout << "s2: " << s2 << std::endl;
-    original::algorithms::forEach(*s2.begins(), 0, original::addOptTransform(-1));
+    original::algorithms::forEach(s2.first(), 0, original::addOptTransform(-1));
     std::cout << "s2: " << s2 << std::endl;
-    original::algorithms::forEach(*s2.begins(), s2.size(), original::addOptTransform(1) + original::multiOptTransform(2));
+    original::algorithms::forEach(s2.first(), s2.size(), original::addOptTransform(1) + original::multiOptTransform(2));
     std::cout << "s2: " << s2 << std::endl;
-    original::algorithms::fill(*s2.begins(), *s2.begins());
+    original::algorithms::fill(s2.first(), s2.first());
     std::cout << "s2: " << s2 << std::endl;
     auto c2 = original::chain({1, 3, 6, 9, 8, 4, 2});
     auto c3 = original::chain({7, 5});

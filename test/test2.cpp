@@ -15,18 +15,18 @@ int main()
     const auto v1 = original::vector({1, 2, 6, 2, 5, 3, 2});
     const auto c1 = original::chain({1, 2, 6, 2, 5, 3, 2});
     std::cout << "distance between v1.begin() and v1.end(): " << original::algorithms::distance(
-            *v1.begins(), *v1.ends()) << std::endl;
+            v1.first(), v1.last()) << std::endl;
     std::cout << "find the iterator pointing at 6: " << original::algorithms::find(
-        *v1.begins(), *v1.ends(), 6) << std::endl;
+        v1.first(), v1.last(), 6) << std::endl;
     std::cout << "number of 2 in v1: " << original::algorithms::count(
-        *v1.begins(), *v1.ends(), 2) << std::endl;
+        v1.first(), v1.last(), 2) << std::endl;
     std::cout << "does sequence of v1 equals itself: " << original::printable::formatCString(original::algorithms::equal(
-        *v1.begins(), *v1.ends(), *v1.begins(), *v1.ends())) << std::endl;
+        v1.first(), v1.last(), v1.first(), v1.last())) << std::endl;
     std::cout << "does sequence of v1 equals c1: " << original::printable::formatCString(original::algorithms::equal(
-    *v1.begins(), *v1.ends(), *c1.begins(), *c1.ends())) << std::endl;
+    v1.first(), v1.last(), c1.first(), c1.last())) << std::endl;
     const auto c2 = original::chain({3, 1});
     std::cout << "c2 before swap: " << c2 << std::endl;
-    original::algorithms::swap(*c2.begins(), *c2.ends());
+    original::algorithms::swap(c2.first(), c2.last());
     std::cout << "c2 after swap: " << c2 << std::endl;
     auto a1 = original::array<original::couple<char, int>>(10);
     for (int i = 0; i < a1.size(); i++)
@@ -44,39 +44,39 @@ int main()
         v2.pushEnd(double{});
     }
     std::cout << "before: " << v2 << std::endl;
-    original::algorithms::fill(*v2.begins(), *v2.ends(), PI);
+    original::algorithms::fill(v2.first(), v2.last(), PI);
     std::cout << "after: " << v2 << std::endl;
     std::cout << "number of elements less than 3 in v1: "
-    << original::algorithms::count(*v1.begins(), *v1.ends(), [](int e) {
+    << original::algorithms::count(v1.first(), v1.last(), [](int e) {
         return e < 3;
     }) << std::endl;
     std::cout << "find the element greater than 4 and less than 6 in c1: "
-    << original::algorithms::find(*c1.begins(), *c1.ends(), [](int e) {
+    << original::algorithms::find(c1.first(), c1.last(), [](int e) {
         return e > 4 && e < 6;
     }) << std::endl;
     std::cout << "count the elements in c1, range in [1,5]: "
         << original::algorithms::count(
-                *c1.begins(), *c1.ends(), original::rangeFilter(1,5)) << std::endl;
+                c1.first(), c1.last(), original::rangeFilter(1,5)) << std::endl;
     auto c3 = original::chain<int>();
     for (int i = 0; i < 8; ++i) {
         c3.pushEnd(i);
     }
     std::cout << "before: " << c3 << std::endl;
-    original::algorithms::fill(*c3.begins(), *c3.ends());
+    original::algorithms::fill(c3.first(), c3.last());
     std::cout << "after1: " << c3 << std::endl;
-    original::algorithms::fill(*c3.begins(), 3, 233);
+    original::algorithms::fill(c3.first(), 3, 233);
     std::cout << "after2: " << c3 << std::endl;
-    original::algorithms::fill(*c3.begins(), *c3.ends());
+    original::algorithms::fill(c3.first(), c3.last());
     c3.forEach(original::addOptTransform(3));
     std::cout << "after3: " << c3 << std::endl;
-    original::algorithms::fill(*c3.begins(), *c3.ends());
+    original::algorithms::fill(c3.first(), c3.last());
     c3.forEach(
         original::addOptTransform(3)
                 + original::addOptTransform(7)
                 + original::addOptTransform(10)
                 + original::addOptTransform(10));
     std::cout << "after4: " << c3 << std::endl;
-    original::algorithms::fill(*c3.begins(), *c3.ends());
+    original::algorithms::fill(c3.first(), c3.last());
     c3.forEach(
     original::addOptTransform(3)
             + original::addOptTransform(7)
@@ -96,10 +96,10 @@ int main()
     std::cout << "v4: " << v4 << std::endl;
     v4.forEach(original::assignOptTransform(std::string("QwQ")));
     std::cout << "v4: " << v4 << std::endl;
-    original::algorithms::fill(*c3.begins(), *c3.ends());
+    original::algorithms::fill(c3.first(), c3.last());
     c3.forEach();
     std::cout << "after6: " << c3 << std::endl;
-    original::algorithms::fill(*c3.begins(), *c3.ends(), 10);
+    original::algorithms::fill(c3.first(), c3.last(), 10);
     c3.forEach(
         original::multiOptTransform<int>(5)
         + (original::addOptTransform<int>(3)
@@ -110,50 +110,50 @@ int main()
     std::cout << "after7: " << c3 << std::endl;
     const auto v5 = original::vector({1, 2, 6, 2, 5, 3, 2});
     std::cout << "numbers of v5 equal to 5 or 6: "
-        << original::algorithms::count(*v5.begins(), *v5.ends(),
+        << original::algorithms::count(v5.first(), v5.last(),
             original::equalFilter(5) || original::equalFilter(6))
         << std::endl;
     std::cout << "numbers of v5 equal to 5 and 6(impossible): "
-        << original::algorithms::count(*v5.begins(), *v5.ends(),
+        << original::algorithms::count(v5.first(), v5.last(),
             original::equalFilter(5) && original::equalFilter(6))
         << std::endl;
     std::cout << "numbers of v5 in range [1, 6): "
-    << original::algorithms::count(*v5.begins(), *v5.ends(),
+    << original::algorithms::count(v5.first(), v5.last(),
         original::rangeFilter(1, 6) && original::notEqualFilter(6))
     << std::endl;
     std::cout << "numbers of v5 in range (1, 6): "
-    << original::algorithms::count(*v5.begins(), *v5.ends(),
+    << original::algorithms::count(v5.first(), v5.last(),
         original::rangeFilter(1, 6)
         && original::notEqualFilter(6)
         && original::notEqualFilter(1))
     << std::endl;
     std::cout << "numbers of v5 in range (1, 6): "
-    << original::algorithms::count(*v5.begins(), *v5.ends(),
+    << original::algorithms::count(v5.first(), v5.last(),
         original::rangeFilter(1, 6)
         && !original::equalFilter(6)
         && !original::equalFilter(1))
     << std::endl;
     auto v6 = original::vector({1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
     std::cout << "numbers of v6 in range [1, 4]: "
-    << original::algorithms::count(*v6.begins(), *v6.ends(),
+    << original::algorithms::count(v6.first(), v6.last(),
         original::rangeFilter(1, 3)
         || original::equalFilter(4)
         && !original::equalFilter(2))
     << std::endl;
     std::cout << "numbers of v6 in range [1, 2) or (2, 4]: "
-    << original::algorithms::count(*v6.begins(), *v6.ends(),
+    << original::algorithms::count(v6.first(), v6.last(),
         group(group(original::rangeFilter(1, 3))
                 || original::equalFilter(4))
                 && group(!original::equalFilter(2)))
     << std::endl;
     std::cout << "numbers of v6 in range [1, 2) or (2, 4]: "
-    << original::algorithms::count(*v6.begins(), *v6.ends(),
+    << original::algorithms::count(v6.first(), v6.last(),
               group(original::rangeFilter(1, 3)
               || original::equalFilter(4))
               && !original::equalFilter(2))
     << std::endl;
     std::cout << "numbers of v6 in range [1, 3]: "
-    << original::algorithms::count(*v6.begins(), *v6.ends(),
+    << original::algorithms::count(v6.first(), v6.last(),
                group(original::rangeFilter(1, 3)))
     << std::endl;
     return 0;
