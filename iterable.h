@@ -65,7 +65,7 @@ namespace original{
     auto original::iterable<TYPE>::iterAdaptor::equalPtr(const iterator<TYPE>* other) const -> bool
     {
         auto* other_it = dynamic_cast<const iterAdaptor*>(other);
-        return other_it != nullptr && this->it_ == other_it->it_;
+        return other_it != nullptr && this->it_->equal(other_it->it_);
     }
 
     template <typename TYPE>
