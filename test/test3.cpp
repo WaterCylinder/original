@@ -3,6 +3,7 @@
 
 #include "stack.h"
 #include <iostream>
+#include <prique.h>
 #include <queue.h>
 #include "chain.h"
 #include "vector.h"
@@ -150,5 +151,27 @@ int main(){
     std::cout << "b12: " << b12 << std::endl;
     std::cout << "b11.count() = " << b11.count() << std::endl;
     std::cout << "b12.count() = " << b12.count() << std::endl;
+    std::cout << "b12.size() = " << b12.size() << std::endl;
+    std::cout << "b12.last() - b12.first() = " << original::algorithms::distance(b12.last(), b12.first()) << std::endl;
+    std::cout << "b12.end() - b12.begin() = " << original::algorithms::distance(b12.end(), b12.begin()) << std::endl;
+    auto p1 = original::prique({10, 4, 5, 7, 6, 3, 2});
+    auto p2 = original::prique(p1);
+    std::cout << "p1: " << p1 << std::endl;
+    while (!p1.empty())
+    {
+        std::cout << p1.pop() << std::endl;
+        std::cout << "p1: " << p1 << std::endl;
+    }
+    for (const auto v2 = original::vector({11, 8, 13, 16, 15}); const auto e : v2)
+    {
+        std::cout << "p2: " << p2 << std::endl;
+        p2.push(e);
+    }
+    std::cout << "p2: " << p2 << std::endl;
+    while (!p2.empty())
+    {
+        std::cout << p2.pop() << std::endl;
+        std::cout << "p2: " << p2 << std::endl;
+    }
     return 0;
 }
