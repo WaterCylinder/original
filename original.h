@@ -22,6 +22,7 @@
 #include "iterator.h"
 #include "maths.h"
 #include "printable.h"
+#include "prique.h"
 #include "queue.h"
 #include "randomAccessIterator.h"
 #include "serial.h"
