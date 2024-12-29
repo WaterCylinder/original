@@ -2,7 +2,6 @@
 #define ALGORITHMS_H
 
 #include <filter.h>
-#include <limits>
 #include "iterator.h"
 #include "error.h"
 
@@ -12,7 +11,7 @@ namespace original
     {
         public:
         template<typename TYPE>
-        static uint32_t distance(const iterator<TYPE>& begin, const iterator<TYPE>& end);
+        static int64_t distance(const iterator<TYPE>& end, const iterator<TYPE>& begin);
 
         template<typename TYPE>
         static iterator<TYPE>* find(const iterator<TYPE> &begin, const iterator<TYPE> &end, const TYPE &target);
@@ -22,16 +21,16 @@ namespace original
 
         template<typename TYPE, typename Callback>
         static iterator<TYPE>* find(const iterator<TYPE> &begin,
-                                    const iterator<TYPE> &end, Callback condition);
+                                    const iterator<TYPE> &end, const Callback& condition);
 
         template<typename TYPE, typename Callback>
-        static iterator<TYPE>* find(const iterator<TYPE> &begin, uint32_t n, Callback condition);
+        static iterator<TYPE>* find(const iterator<TYPE> &begin, uint32_t n, const Callback& condition);
 
         template<typename TYPE>
         static uint32_t count(const iterator<TYPE>& begin, const iterator<TYPE>& end, const TYPE& target);
 
         template<typename TYPE, typename Callback>
-        static uint32_t count(const iterator<TYPE>& begin, const iterator<TYPE>& end, Callback condition);
+        static uint32_t count(const iterator<TYPE>& begin, const iterator<TYPE>& end, const Callback& condition);
 
         template<typename TYPE>
         static bool equal(const iterator<TYPE>& begin1, const iterator<TYPE>& end1,
@@ -64,27 +63,37 @@ namespace original
 
         template<typename TYPE>
         static iterator<TYPE>* reverse(const iterator<TYPE> &begin, const iterator<TYPE> &end);
+
+        template<typename TYPE, typename Callback>
+        static bool compare(const iterator<TYPE>& it1, const iterator<TYPE>& it2, const Callback& compares);
+
+        template<typename TYPE, typename Callback>
+        static void heapAdjustDown(const iterator<TYPE>& begin, const iterator<TYPE>& range,
+                                   const iterator<TYPE>& current, const Callback& compares);
+
+        template<typename TYPE, typename Callback>
+        static void heapAdjustUp(const iterator<TYPE>& begin, const iterator<TYPE>& current,
+                                 const Callback& compares);
+
+        template<typename TYPE, typename Callback>
+        static void heapInit(const iterator<TYPE> &begin, const iterator<TYPE> &end,
+                             const Callback& compares);
+
+        protected:
+        template<typename TYPE, typename Callback>
+        static iterator<TYPE>* heapGetPrior(const iterator<TYPE>& begin, const iterator<TYPE>& range,
+                                            const iterator<TYPE>& parent, const Callback& compares);
     };
 }
 
     template <typename TYPE>
-    auto original::algorithms::distance(const iterator<TYPE>& begin, const iterator<TYPE>& end) -> uint32_t
+    auto original::algorithms::distance(const iterator<TYPE>& end, const iterator<TYPE>& begin) -> int64_t
     {
-        if (!begin.isValid() || !end.isValid()) {
-            return std::numeric_limits<uint32_t>::max();
-        }
-
-        uint32_t dis = 0;
-        auto it = begin.clone();
-        while (!it->equal(end)) {
-            if (!it->isValid())
-            {
-                return std::numeric_limits<uint32_t>::max();
-            }
-            dis += 1;
-            it->next();
-        }
-        delete it;
+        auto* it1 = end.clone();
+        auto* it2 = begin.clone();
+        auto dis = it1->operator-(*it2);
+        delete it1;
+        delete it2;
         return dis;
     }
 
@@ -114,7 +123,7 @@ namespace original
 
     template<typename TYPE, typename Callback>
     auto original::algorithms::find(const iterator<TYPE> &begin, const iterator<TYPE> &end,
-                                    const Callback condition) -> iterator<TYPE>* {
+                                    const Callback& condition) -> iterator<TYPE>* {
         callBackChecker<Callback, bool, const TYPE&>::check();
         auto it = begin.clone();
         while (it->isValid() && !it->equal(end)) {
@@ -128,7 +137,7 @@ namespace original
     }
 
     template <typename TYPE, typename Callback>
-    auto original::algorithms::find(const iterator<TYPE>& begin, const uint32_t n, Callback condition) -> iterator<TYPE>* {
+    auto original::algorithms::find(const iterator<TYPE>& begin, const uint32_t n, const Callback& condition) -> iterator<TYPE>* {
         callBackChecker<Callback, bool, const TYPE&>::check();
         auto it = begin.clone();
         for (uint32_t i = 0; i < n; i += 1, it->next())
@@ -156,7 +165,7 @@ namespace original
 
     template <typename TYPE, typename Callback>
     auto original::algorithms::count(const iterator<TYPE>& begin, const iterator<TYPE>& end,
-                                     const Callback condition) -> uint32_t
+                                     const Callback& condition) -> uint32_t
     {
         callBackChecker<Callback, bool, const TYPE&>::check();
         uint32_t cnt = 0;
@@ -298,6 +307,87 @@ namespace original
         }
         delete right;
         return left;
+    }
+
+    template <typename TYPE, typename Callback>
+    auto original::algorithms::compare(const iterator<TYPE>& it1, const iterator<TYPE>& it2,
+                                       const Callback& compares) -> bool
+    {
+        callBackChecker<Callback, bool,const TYPE&, const TYPE&>::check();
+        return compares(it1.get(), it2.get());
+    }
+
+    template <typename TYPE, typename Callback>
+    auto original::algorithms::heapAdjustDown(const iterator<TYPE>& begin, const iterator<TYPE>& range,
+                                              const iterator<TYPE>& current, const Callback& compares) -> void
+    {
+        auto* it = current.clone();
+        while (distance(*it, begin) * 2 + 1 <= distance(range, begin))
+        {
+            auto* child = heapGetPrior(begin, range, *it, compares);
+            if (compare(*it, *child, compares))
+            {
+                delete child;
+                break;
+            }
+            swap(*it, *child);
+            delete it;
+            it = child->clone();
+            delete child;
+        }
+        delete it;
+    }
+
+    template <typename TYPE, typename Callback>
+    auto original::algorithms::heapAdjustUp(const iterator<TYPE>& begin, const iterator<TYPE>& current,
+                                            const Callback& compares) -> void
+    {
+        auto* it = current.clone();
+        while (distance(*it, begin) > 0)
+        {
+            auto* parent = begin + (distance(*it, begin) - 1) / 2;
+            if (compare(*it, *parent, compares))
+            {
+                swap(*it, *parent);
+            }else
+            {
+                delete parent;
+                break;
+            }
+            delete parent;
+        }
+        delete it;
+    }
+
+    template <typename TYPE, typename Callback>
+    auto original::algorithms::heapInit(const iterator<TYPE>& begin, const iterator<TYPE>& end,
+                                        const Callback& compares) -> void
+    {
+        auto* it = begin + ((distance(end, begin) + 1) / 2 - 1);
+        for (; distance(*it, begin) >= 0; it->prev())
+        {
+            heapAdjustDown(begin, end, *it, compares);
+        }
+        delete it;
+    }
+
+    template <typename TYPE, typename Callback>
+    auto original::algorithms::heapGetPrior(const iterator<TYPE>& begin, const iterator<TYPE>& range,
+                                            const iterator<TYPE>& parent, const Callback& compares) -> iterator<TYPE>*
+    {
+        if (distance(parent, begin) * 2 + 2 <= distance(range, begin))
+        {
+            auto* left = begin + (distance(parent, begin) * 2 + 1);
+            auto* right = begin + (distance(parent, begin) * 2 + 2);
+            if (compare(*left, *right, compares))
+            {
+                delete right;
+                return left;
+            }
+            delete left;
+            return right;
+        }
+        return begin + (distance(parent, begin) * 2 + 1);
     }
 
 #endif // ALGORITHMS_H
