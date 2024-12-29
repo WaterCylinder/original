@@ -14,8 +14,8 @@ int main()
 {
     const auto v1 = original::vector({1, 2, 6, 2, 5, 3, 2});
     const auto c1 = original::chain({1, 2, 6, 2, 5, 3, 2});
-    std::cout << "distance between v1.begin() and v1.end(): " << original::algorithms::distance(
-            v1.first(), v1.last()) << std::endl;
+    std::cout << "distance between v1.last() and v1.first(): " << original::algorithms::distance(
+            v1.last(), v1.first()) << std::endl;
     std::cout << "find the iterator pointing at 6: " << original::algorithms::find(
         v1.first(), v1.last(), 6) << std::endl;
     std::cout << "number of 2 in v1: " << original::algorithms::count(
@@ -56,7 +56,7 @@ int main()
     }) << std::endl;
     std::cout << "count the elements in c1, range in [1,5]: "
         << original::algorithms::count(
-                c1.first(), c1.last(), original::rangeFilter(1,5)) << std::endl;
+            c1.first(), c1.last(), original::rangeFilter(1,5)) << std::endl;
     auto c3 = original::chain<int>();
     for (int i = 0; i < 8; ++i) {
         c3.pushEnd(i);
@@ -111,50 +111,50 @@ int main()
     const auto v5 = original::vector({1, 2, 6, 2, 5, 3, 2});
     std::cout << "numbers of v5 equal to 5 or 6: "
         << original::algorithms::count(v5.first(), v5.last(),
-            original::equalFilter(5) || original::equalFilter(6))
+                                       original::equalFilter(5) || original::equalFilter(6))
         << std::endl;
     std::cout << "numbers of v5 equal to 5 and 6(impossible): "
         << original::algorithms::count(v5.first(), v5.last(),
-            original::equalFilter(5) && original::equalFilter(6))
+                                       original::equalFilter(5) && original::equalFilter(6))
         << std::endl;
     std::cout << "numbers of v5 in range [1, 6): "
     << original::algorithms::count(v5.first(), v5.last(),
-        original::rangeFilter(1, 6) && original::notEqualFilter(6))
+                                   original::rangeFilter(1, 6) && original::notEqualFilter(6))
     << std::endl;
     std::cout << "numbers of v5 in range (1, 6): "
     << original::algorithms::count(v5.first(), v5.last(),
-        original::rangeFilter(1, 6)
-        && original::notEqualFilter(6)
-        && original::notEqualFilter(1))
+                                   original::rangeFilter(1, 6)
+                                   && original::notEqualFilter(6)
+                                   && original::notEqualFilter(1))
     << std::endl;
     std::cout << "numbers of v5 in range (1, 6): "
     << original::algorithms::count(v5.first(), v5.last(),
-        original::rangeFilter(1, 6)
-        && !original::equalFilter(6)
-        && !original::equalFilter(1))
+                                   original::rangeFilter(1, 6)
+                                   && !original::equalFilter(6)
+                                   && !original::equalFilter(1))
     << std::endl;
     auto v6 = original::vector({1, 2, 3, 4, 5, 6, 7, 8, 9, 10});
     std::cout << "numbers of v6 in range [1, 4]: "
     << original::algorithms::count(v6.first(), v6.last(),
-        original::rangeFilter(1, 3)
-        || original::equalFilter(4)
-        && !original::equalFilter(2))
+                                   original::rangeFilter(1, 3)
+                                   || original::equalFilter(4)
+                                   && !original::equalFilter(2))
     << std::endl;
     std::cout << "numbers of v6 in range [1, 2) or (2, 4]: "
     << original::algorithms::count(v6.first(), v6.last(),
-        group(group(original::rangeFilter(1, 3))
-                || original::equalFilter(4))
-                && group(!original::equalFilter(2)))
+                                   group(group(original::rangeFilter(1, 3))
+                                       || original::equalFilter(4))
+                                   && group(!original::equalFilter(2)))
     << std::endl;
     std::cout << "numbers of v6 in range [1, 2) or (2, 4]: "
     << original::algorithms::count(v6.first(), v6.last(),
-              group(original::rangeFilter(1, 3)
-              || original::equalFilter(4))
-              && !original::equalFilter(2))
+                                   group(original::rangeFilter(1, 3)
+                                       || original::equalFilter(4))
+                                   && !original::equalFilter(2))
     << std::endl;
     std::cout << "numbers of v6 in range [1, 3]: "
     << original::algorithms::count(v6.first(), v6.last(),
-               group(original::rangeFilter(1, 3)))
+                                   group(original::rangeFilter(1, 3)))
     << std::endl;
     return 0;
 }
