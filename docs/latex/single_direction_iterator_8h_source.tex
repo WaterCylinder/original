@@ -15,9 +15,9 @@
 \DoxyCodeLine{00012\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classoriginal_1_1single_direction_iterator}{singleDirectionIterator}}(\textcolor{keyword}{const}\ \mbox{\hyperlink{classoriginal_1_1single_direction_iterator}{singleDirectionIterator}}\&\ other);}
 \DoxyCodeLine{00013\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classoriginal_1_1single_direction_iterator}{singleDirectionIterator}}\&\ operator=(\textcolor{keyword}{const}\ \mbox{\hyperlink{classoriginal_1_1single_direction_iterator}{singleDirectionIterator}}\&\ other);}
 \DoxyCodeLine{00014\ \ \ \ \ \ \ \ \ \ \ \ \ \mbox{\hyperlink{classoriginal_1_1single_direction_iterator}{singleDirectionIterator}}*\ clone()\ \textcolor{keyword}{const\ override};}
-\DoxyCodeLine{00015\ \ \ \ \ \ \ \ \ \ \ \ \ [[\_\_nodiscard\_\_]]\ \textcolor{keywordtype}{bool}\ hasPrev()\ \textcolor{keyword}{const\ override}\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00015\ \ \ \ \ \ \ \ \ \ \ \ \ [[nodiscard]]\ \textcolor{keywordtype}{bool}\ hasPrev()\ \textcolor{keyword}{const\ override}\ =\ \textcolor{keyword}{delete};}
 \DoxyCodeLine{00016\ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{void}\ prev()\ \textcolor{keyword}{const\ override}\ =\ \textcolor{keyword}{delete};}
-\DoxyCodeLine{00017\ \ \ \ \ \ \ \ \ \ \ \ \ std::unique\_ptr<stepIterator<TYPE>>\ getPrev()\ \textcolor{keyword}{override}\ =\ \textcolor{keyword}{delete};}
+\DoxyCodeLine{00017\ \ \ \ \ \ \ \ \ \ \ \ \ std::unique\_ptr<stepIterator<TYPE>>\ getPrev()\ \textcolor{keyword}{const\ override}\ =\ \textcolor{keyword}{delete};}
 \DoxyCodeLine{00018\ \ \ \ \ \};}
 \DoxyCodeLine{00019\ \}}
 \DoxyCodeLine{00020\ }

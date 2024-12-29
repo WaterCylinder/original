@@ -3,11 +3,23 @@
 
 
 Inheritance diagram for original\+::serial\texorpdfstring{$<$}{<} TYPE \texorpdfstring{$>$}{>}\+:
-% FIG 0
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{classoriginal_1_1serial__inherit__graph}
+\end{center}
+\end{figure}
 
 
 Collaboration diagram for original\+::serial\texorpdfstring{$<$}{<} TYPE \texorpdfstring{$>$}{>}\+:
-% FIG 1
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=192pt]{classoriginal_1_1serial__coll__graph}
+\end{center}
+\end{figure}
 \doxysubsubsection*{Public Member Functions}
 \begin{DoxyCompactItemize}
 \item 
@@ -15,56 +27,62 @@ void \mbox{\hyperlink{classoriginal_1_1serial_a3feda36ac9a78536fb524764caf2a243}
 \item 
 void \mbox{\hyperlink{classoriginal_1_1serial_a6ddd09ee27cdf21272725562d92e855a}{clear}} () override
 \item 
-\Hypertarget{classoriginal_1_1serial_a0d6e0047c58dc3b59090850070a57176}\label{classoriginal_1_1serial_a0d6e0047c58dc3b59090850070a57176} 
-virtual TYPE {\bfseries get} (int index) const =0
+\Hypertarget{classoriginal_1_1serial_a78abe0a415dd59ddd648e8a028051fca}\label{classoriginal_1_1serial_a78abe0a415dd59ddd648e8a028051fca} 
+virtual TYPE {\bfseries get} (int64\+\_\+t index) const =0
 \item 
-\Hypertarget{classoriginal_1_1serial_a39ad16cb3f39d150e9d0cf4f78acf0ca}\label{classoriginal_1_1serial_a39ad16cb3f39d150e9d0cf4f78acf0ca} 
-virtual TYPE {\bfseries operator\mbox{[}$\,$\mbox{]}} (int index) const
+\Hypertarget{classoriginal_1_1serial_a19a71d93a0f454addb14b03b5173e621}\label{classoriginal_1_1serial_a19a71d93a0f454addb14b03b5173e621} 
+virtual TYPE {\bfseries get\+Begin} () const
 \item 
-\Hypertarget{classoriginal_1_1serial_aad8a39aa2cc55c915d9e58c7efbb0393}\label{classoriginal_1_1serial_aad8a39aa2cc55c915d9e58c7efbb0393} 
-virtual TYPE \& {\bfseries operator\mbox{[}$\,$\mbox{]}} (int index)=0
+\Hypertarget{classoriginal_1_1serial_ac74ad50a9fb7eae3fcec7780ca73cc00}\label{classoriginal_1_1serial_ac74ad50a9fb7eae3fcec7780ca73cc00} 
+virtual TYPE {\bfseries get\+End} () const
 \item 
-\Hypertarget{classoriginal_1_1serial_adb38b667f5bba7e458345ca5f40ef0bc}\label{classoriginal_1_1serial_adb38b667f5bba7e458345ca5f40ef0bc} 
-virtual void {\bfseries set} (int index, const TYPE \&e)=0
+\Hypertarget{classoriginal_1_1serial_ad4784c38d09067e976ef9bf40ccc7385}\label{classoriginal_1_1serial_ad4784c38d09067e976ef9bf40ccc7385} 
+virtual TYPE {\bfseries operator\mbox{[}$\,$\mbox{]}} (int64\+\_\+t index) const
 \item 
-\Hypertarget{classoriginal_1_1serial_a4a6fd9c49efb42db9a4dd2804b98bfed}\label{classoriginal_1_1serial_a4a6fd9c49efb42db9a4dd2804b98bfed} 
-virtual size\+\_\+t {\bfseries index\+Of} (const TYPE \&e) const =0
+\Hypertarget{classoriginal_1_1serial_a6aedb4da5bf9c8524088ea8a1f0f662c}\label{classoriginal_1_1serial_a6aedb4da5bf9c8524088ea8a1f0f662c} 
+virtual TYPE \& {\bfseries operator\mbox{[}$\,$\mbox{]}} (int64\+\_\+t index)=0
+\item 
+\Hypertarget{classoriginal_1_1serial_a5a6aeda0aff18e4596fbec8295b81adb}\label{classoriginal_1_1serial_a5a6aeda0aff18e4596fbec8295b81adb} 
+virtual void {\bfseries set} (int64\+\_\+t index, const TYPE \&e)=0
+\item 
+\Hypertarget{classoriginal_1_1serial_a52d30588c2517ea4fc4ba5bce5189cc1}\label{classoriginal_1_1serial_a52d30588c2517ea4fc4ba5bce5189cc1} 
+virtual uint32\+\_\+t {\bfseries index\+Of} (const TYPE \&e) const =0
 \item 
 bool \mbox{\hyperlink{classoriginal_1_1serial_a689a824c570acbc125c5b7ee3e10581b}{contains}} (const TYPE \&e) const override
 \item 
-\Hypertarget{classoriginal_1_1serial_ae01f500c5b9586bf1575079a31c9e807}\label{classoriginal_1_1serial_ae01f500c5b9586bf1575079a31c9e807} 
-virtual void {\bfseries push} (int index, const TYPE \&e)=0
+\Hypertarget{classoriginal_1_1serial_a92cbbd43bc453fe6accfca171e2c3fac}\label{classoriginal_1_1serial_a92cbbd43bc453fe6accfca171e2c3fac} 
+virtual void {\bfseries push} (int64\+\_\+t index, const TYPE \&e)
 \item 
-\Hypertarget{classoriginal_1_1serial_a6ef6e23dfc326a21060b5643f8866ee7}\label{classoriginal_1_1serial_a6ef6e23dfc326a21060b5643f8866ee7} 
-virtual TYPE {\bfseries pop} (int index)=0
+\Hypertarget{classoriginal_1_1serial_a9729ef26d936da81b9b43a5c1488c4e0}\label{classoriginal_1_1serial_a9729ef26d936da81b9b43a5c1488c4e0} 
+virtual TYPE {\bfseries pop} (int64\+\_\+t index)
 \item 
-\Hypertarget{classoriginal_1_1serial_aa0b55ea37ca4881749fbe6a22565edd4}\label{classoriginal_1_1serial_aa0b55ea37ca4881749fbe6a22565edd4} 
-virtual void {\bfseries push\+Begin} (const TYPE \&e)=0
+\Hypertarget{classoriginal_1_1serial_abea4eb94d288990dde42958e6cb865f8}\label{classoriginal_1_1serial_abea4eb94d288990dde42958e6cb865f8} 
+virtual void {\bfseries push\+Begin} (const TYPE \&e)
 \item 
-\Hypertarget{classoriginal_1_1serial_af339d7e434426e0d74b8f04dc02d6da9}\label{classoriginal_1_1serial_af339d7e434426e0d74b8f04dc02d6da9} 
-virtual TYPE {\bfseries pop\+Begin} ()=0
+\Hypertarget{classoriginal_1_1serial_a46822e3808cd424b7bc7df5cbf945ed9}\label{classoriginal_1_1serial_a46822e3808cd424b7bc7df5cbf945ed9} 
+virtual TYPE {\bfseries pop\+Begin} ()
 \item 
-\Hypertarget{classoriginal_1_1serial_ae88f279d42b9c24d56ea36e28a47233a}\label{classoriginal_1_1serial_ae88f279d42b9c24d56ea36e28a47233a} 
-virtual void {\bfseries push\+End} (const TYPE \&e)=0
+\Hypertarget{classoriginal_1_1serial_a2722242b2dfded88318645057deeea1f}\label{classoriginal_1_1serial_a2722242b2dfded88318645057deeea1f} 
+virtual void {\bfseries push\+End} (const TYPE \&e)
 \item 
-\Hypertarget{classoriginal_1_1serial_ae2fcaeb87b06eabf550a58e94dc3d935}\label{classoriginal_1_1serial_ae2fcaeb87b06eabf550a58e94dc3d935} 
-virtual TYPE {\bfseries pop\+End} ()=0
+\Hypertarget{classoriginal_1_1serial_a86275f8cd406a8e60f205055d9774db3}\label{classoriginal_1_1serial_a86275f8cd406a8e60f205055d9774db3} 
+virtual TYPE {\bfseries pop\+End} ()
 \end{DoxyCompactItemize}
 \doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1container}{original\+::container$<$ TYPE $>$}}}
 \begin{DoxyCompactItemize}
 \item 
-virtual size\+\_\+t {\bfseries size} () const =0
+virtual uint32\+\_\+t {\bfseries size} () const =0
 \item 
 bool {\bfseries empty} () const
 \end{DoxyCompactItemize}
 \doxysubsubsection*{Protected Member Functions}
 \begin{DoxyCompactItemize}
 \item 
-\Hypertarget{classoriginal_1_1serial_a53f4f699d3980a676fd652ecc162e0ef}\label{classoriginal_1_1serial_a53f4f699d3980a676fd652ecc162e0ef} 
-bool {\bfseries index\+Out\+Of\+Bound} (int index) const
+\Hypertarget{classoriginal_1_1serial_ac6e3e5c0c827ea92f53a180174d2abbb}\label{classoriginal_1_1serial_ac6e3e5c0c827ea92f53a180174d2abbb} 
+bool {\bfseries index\+Out\+Of\+Bound} (int64\+\_\+t index) const
 \item 
-\Hypertarget{classoriginal_1_1serial_af1e1008f7957c77c8d2b4d0158def4ab}\label{classoriginal_1_1serial_af1e1008f7957c77c8d2b4d0158def4ab} 
-int {\bfseries parse\+Neg\+Index} (int index) const
+\Hypertarget{classoriginal_1_1serial_a4062062539a06c07d8bedf976704cf81}\label{classoriginal_1_1serial_a4062062539a06c07d8bedf976704cf81} 
+int64\+\_\+t {\bfseries parse\+Neg\+Index} (int64\+\_\+t index) const
 \end{DoxyCompactItemize}
 
 

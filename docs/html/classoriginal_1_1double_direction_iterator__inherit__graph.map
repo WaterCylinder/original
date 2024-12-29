@@ -1,0 +1,17 @@
+<map id="original::doubleDirectionIterator&lt; TYPE &gt;" name="original::doubleDirectionIterator&lt; TYPE &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="70,1509,233,1701"/>
+<area shape="rect" id="Node000008" href="$classoriginal_1_1chain_1_1_iterator.html" title=" " alt="" coords="84,1749,220,1941"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="154,1716,154,1749,149,1749,149,1716"/>
+<area shape="rect" id="Node000002" href="$classoriginal_1_1step_iterator.html" title=" " alt="" coords="89,1120,215,1461"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="154,1476,154,1510,149,1510,149,1476"/>
+<area shape="rect" id="Node000003" href="$classoriginal_1_1base_iterator.html" title=" " alt="" coords="88,965,216,1072"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="154,1087,154,1121,149,1121,149,1087"/>
+<area shape="rect" id="Node000004" href="$classoriginal_1_1iterator.html" title=" " alt="" coords="98,597,206,917"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="154,933,154,966,149,966,149,933"/>
+<area shape="rect" id="Node000005" href="$classoriginal_1_1printable.html" title=" " alt="" coords="5,181,146,549"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="117,563,123,597,118,598,112,564"/>
+<area shape="rect" id="Node000006" href="$classoriginal_1_1cloneable.html" title=" " alt="" coords="170,320,285,411"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="219,426,185,598,180,597,214,425"/>
+<area shape="rect" id="Node000007" href="$classoriginal_1_1base_cloneable.html" title=" " alt="" coords="155,5,301,133"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="230,148,230,320,225,320,225,148"/>
+</map>

@@ -1,0 +1,13 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,107,109,133"/>
+<area shape="rect" id="Node000001" href="$classoriginal_1_1no_element_error.html" title=" " alt="" coords="170,5,330,32"/>
+<area shape="poly" id="edge87_Node000000_Node000001" title=" " alt="" coords="82,94,115,67,155,42,185,30,187,35,158,46,118,71,85,98"/>
+<area shape="rect" id="Node000002" href="$classoriginal_1_1null_pointer_error.html" title=" " alt="" coords="170,56,330,83"/>
+<area shape="poly" id="edge88_Node000000_Node000002" title=" " alt="" coords="123,100,195,81,197,86,125,105"/>
+<area shape="rect" id="Node000003" href="$classoriginal_1_1out_of_bound_error.html" title=" " alt="" coords="166,107,334,133"/>
+<area shape="poly" id="edge89_Node000000_Node000003" title=" " alt="" coords="124,117,166,117,166,123,124,123"/>
+<area shape="rect" id="Node000004" href="$classoriginal_1_1un_supported_method_error.html" title=" " alt="" coords="157,157,343,200"/>
+<area shape="poly" id="edge90_Node000000_Node000004" title=" " alt="" coords="119,136,178,154,177,159,117,141"/>
+<area shape="rect" id="Node000005" href="$classoriginal_1_1value_error.html" title=" " alt="" coords="185,224,314,251"/>
+<area shape="poly" id="edge91_Node000000_Node000005" title=" " alt="" coords="81,143,115,178,158,210,186,222,184,227,155,214,111,182,77,147"/>
+</map>

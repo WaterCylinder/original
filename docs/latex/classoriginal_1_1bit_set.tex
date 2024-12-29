@@ -1,0 +1,287 @@
+\doxysection{original\+::bit\+Set Class Reference}
+\hypertarget{classoriginal_1_1bit_set}{}\label{classoriginal_1_1bit_set}\index{original::bitSet@{original::bitSet}}
+
+
+Inheritance diagram for original\+::bit\+Set\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=550pt]{classoriginal_1_1bit_set__inherit__graph}
+\end{center}
+\end{figure}
+
+
+Collaboration diagram for original\+::bit\+Set\+:
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=550pt]{classoriginal_1_1bit_set__coll__graph}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \mbox{\hyperlink{classoriginal_1_1bit_set_1_1_iterator}{Iterator}}
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classoriginal_1_1bit_set_a776e25e3fa8ef5a3f23d689ed3ecf615}\label{classoriginal_1_1bit_set_a776e25e3fa8ef5a3f23d689ed3ecf615} 
+{\bfseries bit\+Set} (uint32\+\_\+t size)
+\item 
+\Hypertarget{classoriginal_1_1bit_set_a41e1f231e5706299426889089b574c67}\label{classoriginal_1_1bit_set_a41e1f231e5706299426889089b574c67} 
+{\bfseries bit\+Set} (std\+::initializer\+\_\+list$<$ bool $>$ lst)
+\item 
+\Hypertarget{classoriginal_1_1bit_set_a40a32a65d1104d013c544cf3e71de45e}\label{classoriginal_1_1bit_set_a40a32a65d1104d013c544cf3e71de45e} 
+{\bfseries bit\+Set} (const \mbox{\hyperlink{classoriginal_1_1bit_set}{bit\+Set}} \&other)
+\item 
+\Hypertarget{classoriginal_1_1bit_set_a3aba6b50049b2deab9edd31cf98310a8}\label{classoriginal_1_1bit_set_a3aba6b50049b2deab9edd31cf98310a8} 
+\mbox{\hyperlink{classoriginal_1_1bit_set}{bit\+Set}} \& {\bfseries operator=} (const \mbox{\hyperlink{classoriginal_1_1bit_set}{bit\+Set}} \&other)
+\item 
+\Hypertarget{classoriginal_1_1bit_set_a80c53fb49b429f64ed9d82aa614ffe5b}\label{classoriginal_1_1bit_set_a80c53fb49b429f64ed9d82aa614ffe5b} 
+bool {\bfseries operator==} (const \mbox{\hyperlink{classoriginal_1_1bit_set}{bit\+Set}} \&other) const
+\item 
+\Hypertarget{classoriginal_1_1bit_set_a95aeeb4486e54729b93a3c7e79211187}\label{classoriginal_1_1bit_set_a95aeeb4486e54729b93a3c7e79211187} 
+uint32\+\_\+t {\bfseries count} () const
+\item 
+\Hypertarget{classoriginal_1_1bit_set_af1aa3dce52945a2aee5164c51e8cb3a0}\label{classoriginal_1_1bit_set_af1aa3dce52945a2aee5164c51e8cb3a0} 
+\mbox{\hyperlink{classoriginal_1_1bit_set}{bit\+Set}} {\bfseries resize} (uint32\+\_\+t new\+\_\+size) const
+\item 
+uint32\+\_\+t \mbox{\hyperlink{classoriginal_1_1bit_set_aeeaf35e49d068e13698ee6f6923d282e}{size}} () const override
+\item 
+\mbox{\hyperlink{classoriginal_1_1bit_set_1_1_iterator}{Iterator}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classoriginal_1_1bit_set_a78003368972abd019d7ce951be0ae278}{begins}} () const override
+\item 
+\mbox{\hyperlink{classoriginal_1_1bit_set_1_1_iterator}{Iterator}} \texorpdfstring{$\ast$}{*} \mbox{\hyperlink{classoriginal_1_1bit_set_ac2f2fa2fc88703985fc14b430fc1ddf8}{ends}} () const override
+\item 
+bool \mbox{\hyperlink{classoriginal_1_1bit_set_a6576c14c2e9b717dce58269be489ee9e}{get}} (int64\+\_\+t index) const override
+\item 
+bool \& \mbox{\hyperlink{classoriginal_1_1bit_set_a39f438bb0773fc0efdcf8075e76d2027}{operator\mbox{[}$\,$\mbox{]}}} (int64\+\_\+t index) override
+\item 
+void \mbox{\hyperlink{classoriginal_1_1bit_set_a35fedf4042acba5d1703bf4b384644bf}{set}} (int64\+\_\+t index, const bool \&e) override
+\item 
+uint32\+\_\+t \mbox{\hyperlink{classoriginal_1_1bit_set_ac6602cbe1a0f218f588cf32a027e02cd}{index\+Of}} (const bool \&e) const override
+\item 
+\Hypertarget{classoriginal_1_1bit_set_a23687728356dbbc1339f69834e9be8ab}\label{classoriginal_1_1bit_set_a23687728356dbbc1339f69834e9be8ab} 
+\mbox{\hyperlink{classoriginal_1_1bit_set}{bit\+Set}} \& {\bfseries operator\&=} (const \mbox{\hyperlink{classoriginal_1_1bit_set}{bit\+Set}} \&other)
+\item 
+\Hypertarget{classoriginal_1_1bit_set_a6facbdeb8b3c7b6049961a283e05d423}\label{classoriginal_1_1bit_set_a6facbdeb8b3c7b6049961a283e05d423} 
+\mbox{\hyperlink{classoriginal_1_1bit_set}{bit\+Set}} \& {\bfseries operator\texorpdfstring{$\vert$}{|}=} (const \mbox{\hyperlink{classoriginal_1_1bit_set}{bit\+Set}} \&other)
+\item 
+\Hypertarget{classoriginal_1_1bit_set_a088b9d8d271eb599ad69811f27d09c78}\label{classoriginal_1_1bit_set_a088b9d8d271eb599ad69811f27d09c78} 
+\mbox{\hyperlink{classoriginal_1_1bit_set}{bit\+Set}} \& {\bfseries operator\texorpdfstring{$^\wedge$}{\string^}=} (const \mbox{\hyperlink{classoriginal_1_1bit_set}{bit\+Set}} \&other)
+\item 
+std\+::string \mbox{\hyperlink{classoriginal_1_1bit_set_a99509cffd5a2176d8435e5165ef313d0}{class\+Name}} () const override
+\item 
+\Hypertarget{classoriginal_1_1bit_set_a45ab2a045d2f952b3386a22450de7d05}\label{classoriginal_1_1bit_set_a45ab2a045d2f952b3386a22450de7d05} 
+{\footnotesize template$<$typename Callback  = transform$<$bool$>$$>$ }\\void {\bfseries for\+Each} (Callback operation=Callback\{\})=delete
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1serial}{original\+::serial$<$ bool $>$}}}
+\begin{DoxyCompactItemize}
+\item 
+void \mbox{\hyperlink{classoriginal_1_1serial_a3feda36ac9a78536fb524764caf2a243}{add}} (const bool \&e) override
+\item 
+void \mbox{\hyperlink{classoriginal_1_1serial_a6ddd09ee27cdf21272725562d92e855a}{clear}} () override
+\item 
+virtual bool {\bfseries get\+Begin} () const
+\item 
+virtual bool {\bfseries get\+End} () const
+\item 
+virtual bool {\bfseries operator\mbox{[}$\,$\mbox{]}} (int64\+\_\+t index) const
+\item 
+bool \mbox{\hyperlink{classoriginal_1_1serial_a689a824c570acbc125c5b7ee3e10581b}{contains}} (const bool \&e) const override
+\item 
+virtual void {\bfseries push} (int64\+\_\+t index, const bool \&e)
+\item 
+virtual bool {\bfseries pop} (int64\+\_\+t index)
+\item 
+virtual void {\bfseries push\+Begin} (const bool \&e)
+\item 
+virtual bool {\bfseries pop\+Begin} ()
+\item 
+virtual void {\bfseries push\+End} (const bool \&e)
+\item 
+virtual bool {\bfseries pop\+End} ()
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1container}{original\+::container$<$ bool $>$}}}
+\begin{DoxyCompactItemize}
+\item 
+bool {\bfseries empty} () const
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1iteration_stream}{original\+::iteration\+Stream$<$ bool $>$}}}
+\begin{DoxyCompactItemize}
+\item 
+std\+::string \mbox{\hyperlink{classoriginal_1_1iteration_stream_a7541e2a6dc42214fe9e00ef965dc30b4}{class\+Name}} () const override
+\item 
+std\+::string \mbox{\hyperlink{classoriginal_1_1iteration_stream_adc17b45187aa82d68ad52bf4290189ca}{to\+String}} (bool enter) const override
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1printable}{original\+::printable}}}
+\begin{DoxyCompactItemize}
+\item 
+{\bfseries operator std\+::string} () const
+\item 
+const char \texorpdfstring{$\ast$}{*} {\bfseries to\+CString} (bool enter) const
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries format\+String} (const TYPE \&t) -\/$>$ std\+::string
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries format\+CString} (const TYPE \&t) -\/$>$ const char \texorpdfstring{$\ast$}{*}
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries format\+Enum} (const TYPE \&t) -\/$>$ std\+::string
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\auto {\bfseries format\+String} (TYPE \texorpdfstring{$\ast$}{*}const \&ptr) -\/$>$ std\+::string
+\end{DoxyCompactItemize}
+\doxysubsection*{Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1iterable}{original\+::iterable$<$ bool $>$}}}
+\begin{DoxyCompactItemize}
+\item 
+iter\+Adaptor {\bfseries begin} ()
+\item 
+iter\+Adaptor {\bfseries begin} () const
+\item 
+iter\+Adaptor {\bfseries end} ()
+\item 
+iter\+Adaptor {\bfseries end} () const
+\item 
+iter\+Adaptor {\bfseries first} ()
+\item 
+iter\+Adaptor {\bfseries first} () const
+\item 
+iter\+Adaptor {\bfseries last} ()
+\item 
+iter\+Adaptor {\bfseries last} () const
+\item 
+void {\bfseries for\+Each} (Callback operation=Callback\{\})
+\item 
+auto {\bfseries for\+Each} (Callback operation) -\/$>$ void
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Friends}
+\begin{DoxyCompactItemize}
+\item 
+\Hypertarget{classoriginal_1_1bit_set_aa4a076f4ab16df86366d16b10a6e1ee5}\label{classoriginal_1_1bit_set_aa4a076f4ab16df86366d16b10a6e1ee5} 
+\mbox{\hyperlink{classoriginal_1_1bit_set}{bit\+Set}} {\bfseries operator\&} (const \mbox{\hyperlink{classoriginal_1_1bit_set}{bit\+Set}} \&lbs, const \mbox{\hyperlink{classoriginal_1_1bit_set}{bit\+Set}} \&rbs)
+\item 
+\Hypertarget{classoriginal_1_1bit_set_a5922154e930b9dfc23c4ec1d03ed938a}\label{classoriginal_1_1bit_set_a5922154e930b9dfc23c4ec1d03ed938a} 
+\mbox{\hyperlink{classoriginal_1_1bit_set}{bit\+Set}} {\bfseries operator\texorpdfstring{$\vert$}{|}} (const \mbox{\hyperlink{classoriginal_1_1bit_set}{bit\+Set}} \&lbs, const \mbox{\hyperlink{classoriginal_1_1bit_set}{bit\+Set}} \&rbs)
+\item 
+\Hypertarget{classoriginal_1_1bit_set_a96df1a2cc153dd8464eea3999525a0f3}\label{classoriginal_1_1bit_set_a96df1a2cc153dd8464eea3999525a0f3} 
+\mbox{\hyperlink{classoriginal_1_1bit_set}{bit\+Set}} {\bfseries operator\texorpdfstring{$^\wedge$}{\string^}} (const \mbox{\hyperlink{classoriginal_1_1bit_set}{bit\+Set}} \&lbs, const \mbox{\hyperlink{classoriginal_1_1bit_set}{bit\+Set}} \&rbs)
+\item 
+\Hypertarget{classoriginal_1_1bit_set_a1295989bdc0bcd5ec14b0901f146cdab}\label{classoriginal_1_1bit_set_a1295989bdc0bcd5ec14b0901f146cdab} 
+\mbox{\hyperlink{classoriginal_1_1bit_set}{bit\+Set}} {\bfseries operator\texorpdfstring{$\sim$}{\string~}} (const \mbox{\hyperlink{classoriginal_1_1bit_set}{bit\+Set}} \&bs)
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Additional Inherited Members}
+\doxysubsection*{Static Public Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1printable}{original\+::printable}}}
+\begin{DoxyCompactItemize}
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\static std\+::string {\bfseries format\+String} (const TYPE \&t)
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\static std\+::string {\bfseries format\+String} (TYPE \texorpdfstring{$\ast$}{*}const \&ptr)
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\static const char \texorpdfstring{$\ast$}{*} {\bfseries format\+CString} (const TYPE \&t)
+\item 
+{\footnotesize template$<$typename TYPE $>$ }\\static std\+::string {\bfseries format\+Enum} (const TYPE \&t)
+\item 
+template$<$$>$ auto {\bfseries format\+String} (const char \&t) -\/$>$ std\+::string
+\item 
+template$<$$>$ auto {\bfseries format\+String} (const bool \&t) -\/$>$ std\+::string
+\end{DoxyCompactItemize}
+\doxysubsection*{Protected Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1serial}{original\+::serial$<$ bool $>$}}}
+\begin{DoxyCompactItemize}
+\item 
+bool {\bfseries index\+Out\+Of\+Bound} (int64\+\_\+t index) const
+\item 
+int64\+\_\+t {\bfseries parse\+Neg\+Index} (int64\+\_\+t index) const
+\end{DoxyCompactItemize}
+\doxysubsection*{Protected Member Functions inherited from \mbox{\hyperlink{classoriginal_1_1iteration_stream}{original\+::iteration\+Stream$<$ bool $>$}}}
+\begin{DoxyCompactItemize}
+\item 
+std\+::string {\bfseries elements\+String} () const
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Member Function Documentation}
+\Hypertarget{classoriginal_1_1bit_set_a78003368972abd019d7ce951be0ae278}\index{original::bitSet@{original::bitSet}!begins@{begins}}
+\index{begins@{begins}!original::bitSet@{original::bitSet}}
+\doxysubsubsection{\texorpdfstring{begins()}{begins()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1bit_set_a78003368972abd019d7ce951be0ae278} 
+auto original\+::bit\+Set\+::begins (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [nodiscard]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{classoriginal_1_1iterable}{original\+::iterable$<$ bool $>$}}.
+
+\Hypertarget{classoriginal_1_1bit_set_a99509cffd5a2176d8435e5165ef313d0}\index{original::bitSet@{original::bitSet}!className@{className}}
+\index{className@{className}!original::bitSet@{original::bitSet}}
+\doxysubsubsection{\texorpdfstring{className()}{className()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1bit_set_a99509cffd5a2176d8435e5165ef313d0} 
+auto original\+::bit\+Set\+::class\+Name (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [nodiscard]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Reimplemented from \mbox{\hyperlink{classoriginal_1_1printable}{original\+::printable}}.
+
+\Hypertarget{classoriginal_1_1bit_set_ac2f2fa2fc88703985fc14b430fc1ddf8}\index{original::bitSet@{original::bitSet}!ends@{ends}}
+\index{ends@{ends}!original::bitSet@{original::bitSet}}
+\doxysubsubsection{\texorpdfstring{ends()}{ends()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1bit_set_ac2f2fa2fc88703985fc14b430fc1ddf8} 
+auto original\+::bit\+Set\+::ends (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [nodiscard]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{classoriginal_1_1iterable}{original\+::iterable$<$ bool $>$}}.
+
+\Hypertarget{classoriginal_1_1bit_set_a6576c14c2e9b717dce58269be489ee9e}\index{original::bitSet@{original::bitSet}!get@{get}}
+\index{get@{get}!original::bitSet@{original::bitSet}}
+\doxysubsubsection{\texorpdfstring{get()}{get()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1bit_set_a6576c14c2e9b717dce58269be489ee9e} 
+auto original\+::bit\+Set\+::get (\begin{DoxyParamCaption}\item[{int64\+\_\+t}]{index}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [nodiscard]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{classoriginal_1_1serial}{original\+::serial$<$ bool $>$}}.
+
+\Hypertarget{classoriginal_1_1bit_set_ac6602cbe1a0f218f588cf32a027e02cd}\index{original::bitSet@{original::bitSet}!indexOf@{indexOf}}
+\index{indexOf@{indexOf}!original::bitSet@{original::bitSet}}
+\doxysubsubsection{\texorpdfstring{indexOf()}{indexOf()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1bit_set_ac6602cbe1a0f218f588cf32a027e02cd} 
+auto original\+::bit\+Set\+::index\+Of (\begin{DoxyParamCaption}\item[{const bool \&}]{e}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [nodiscard]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{classoriginal_1_1serial}{original\+::serial$<$ bool $>$}}.
+
+\Hypertarget{classoriginal_1_1bit_set_a39f438bb0773fc0efdcf8075e76d2027}\index{original::bitSet@{original::bitSet}!operator\mbox{[}\mbox{]}@{operator[]}}
+\index{operator\mbox{[}\mbox{]}@{operator[]}!original::bitSet@{original::bitSet}}
+\doxysubsubsection{\texorpdfstring{operator[]()}{operator[]()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1bit_set_a39f438bb0773fc0efdcf8075e76d2027} 
+auto original\+::bit\+Set\+::operator\mbox{[}$\,$\mbox{]} (\begin{DoxyParamCaption}\item[{int64\+\_\+t}]{index}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{classoriginal_1_1serial}{original\+::serial$<$ bool $>$}}.
+
+\Hypertarget{classoriginal_1_1bit_set_a35fedf4042acba5d1703bf4b384644bf}\index{original::bitSet@{original::bitSet}!set@{set}}
+\index{set@{set}!original::bitSet@{original::bitSet}}
+\doxysubsubsection{\texorpdfstring{set()}{set()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1bit_set_a35fedf4042acba5d1703bf4b384644bf} 
+auto original\+::bit\+Set\+::set (\begin{DoxyParamCaption}\item[{int64\+\_\+t}]{index}{, }\item[{const bool \&}]{e}{}\end{DoxyParamCaption})\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{classoriginal_1_1serial}{original\+::serial$<$ bool $>$}}.
+
+\Hypertarget{classoriginal_1_1bit_set_aeeaf35e49d068e13698ee6f6923d282e}\index{original::bitSet@{original::bitSet}!size@{size}}
+\index{size@{size}!original::bitSet@{original::bitSet}}
+\doxysubsubsection{\texorpdfstring{size()}{size()}}
+{\footnotesize\ttfamily \label{classoriginal_1_1bit_set_aeeaf35e49d068e13698ee6f6923d282e} 
+auto original\+::bit\+Set\+::size (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption}) const\hspace{0.3cm}{\ttfamily [inline]}, {\ttfamily [nodiscard]}, {\ttfamily [override]}, {\ttfamily [virtual]}}
+
+
+
+Implements \mbox{\hyperlink{classoriginal_1_1container}{original\+::container$<$ bool $>$}}.
+
+
+
+The documentation for this class was generated from the following file\+:\begin{DoxyCompactItemize}
+\item 
+bit\+Set.\+h\end{DoxyCompactItemize}

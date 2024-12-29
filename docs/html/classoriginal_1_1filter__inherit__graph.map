@@ -1,0 +1,21 @@
+<map id="original::filter&lt; TYPE &gt;" name="original::filter&lt; TYPE &gt;">
+<area shape="rect" id="Node000001" title=" " alt="" coords="438,320,580,475"/>
+<area shape="rect" id="Node000004" href="$classoriginal_1_1equal_filter.html" title=" " alt="" coords="5,523,125,629"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="424,422,287,463,211,492,138,525,126,532,124,527,136,520,209,487,286,458,423,417"/>
+<area shape="rect" id="Node000005" href="$classoriginal_1_1greater_filter.html" title=" " alt="" coords="149,523,278,629"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="426,447,292,525,279,533,276,529,289,520,424,442"/>
+<area shape="rect" id="Node000006" href="$classoriginal_1_1less_filter.html" title=" " alt="" coords="302,523,415,629"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="436,488,405,525,401,521,432,484"/>
+<area shape="rect" id="Node000007" href="$classoriginal_1_1not_equal_filter.html" title=" " alt="" coords="439,523,579,629"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="512,489,512,523,506,523,506,489"/>
+<area shape="rect" id="Node000008" href="$classoriginal_1_1not_greater_filter.html" title=" " alt="" coords="604,523,753,629"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="593,482,631,521,627,525,589,485"/>
+<area shape="rect" id="Node000009" href="$classoriginal_1_1not_less_filter.html" title=" " alt="" coords="778,523,912,629"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="595,434,679,474,766,520,779,528,777,532,764,525,677,479,593,439"/>
+<area shape="rect" id="Node000010" href="$classoriginal_1_1range_filter.html" title=" " alt="" coords="937,523,1058,629"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="595,413,753,454,841,484,926,520,938,527,936,532,924,525,839,489,751,459,594,418"/>
+<area shape="rect" id="Node000002" href="$classoriginal_1_1cloneable.html" title=" " alt="" coords="452,181,566,272"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="512,287,512,321,506,321,506,287"/>
+<area shape="rect" id="Node000003" href="$classoriginal_1_1base_cloneable.html" title=" " alt="" coords="436,5,582,133"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="512,148,512,182,506,182,506,148"/>
+</map>
