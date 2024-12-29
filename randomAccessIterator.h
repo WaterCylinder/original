@@ -4,6 +4,7 @@
 #include <container.h>
 #include <error.h>
 #include <iterator.h>
+#include <limits>
 
 namespace original{
     template<typename TYPE>
@@ -25,8 +26,9 @@ namespace original{
         bool atNext(const iterator<TYPE>* other) const override;
         void next() const override;
         void prev() const override;
-        void operator+=(int64_t steps) const;
-        void operator-=(int64_t steps) const;
+        void operator+=(int64_t steps) const override;
+        void operator-=(int64_t steps) const override;
+        int64_t operator-(const iterator<TYPE>& other) const override;
         randomAccessIterator* getNext() const override;
         randomAccessIterator* getPrev() const override;
         TYPE& get() override;
@@ -112,6 +114,21 @@ namespace original{
     auto original::randomAccessIterator<TYPE>::operator-=(int64_t steps) const -> void {
         this->_pos -= steps;
         this->_ptr -= steps;
+    }
+
+    template <typename TYPE>
+    auto original::randomAccessIterator<TYPE>::operator-(const iterator<TYPE>& other) const -> int64_t
+    {
+        auto* other_it = dynamic_cast<const randomAccessIterator*>(&other);
+        if (other_it == nullptr)
+            return this > &other ?
+                std::numeric_limits<int64_t>::max() :
+                std::numeric_limits<int64_t>::min();
+        if (this->_container != other_it->_container)
+            return this->_container > other_it->_container ?
+                std::numeric_limits<int64_t>::max() :
+                std::numeric_limits<int64_t>::min();
+        return this->_ptr - other_it->_ptr;
     }
 
     template<typename TYPE>

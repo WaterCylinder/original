@@ -2,6 +2,7 @@
 #define ITERABLE_H
 
 #include <error.h>
+#include <limits>
 #include <transform.h>
 
 #include "iterator.h"
@@ -29,6 +30,9 @@ namespace original{
             bool atNext(const iterator<TYPE>* other) const override;
             void next() const override;
             void prev() const override;
+            void operator+=(int64_t steps) const override;
+            void operator-=(int64_t steps) const override;
+            int64_t operator-(const iterator<TYPE>& other) const override;
             TYPE& get() override;
             void set(const TYPE& data) override;
             TYPE get() const override;
@@ -148,6 +152,29 @@ namespace original{
     auto original::iterable<TYPE>::iterAdaptor::prev() const -> void
     {
         this->it_->prev();
+    }
+
+    template <typename TYPE>
+    auto original::iterable<TYPE>::iterAdaptor::operator+=(int64_t steps) const -> void
+    {
+        this->it_->operator+=(steps);
+    }
+
+    template <typename TYPE>
+    auto original::iterable<TYPE>::iterAdaptor::operator-=(int64_t steps) const -> void
+    {
+        this->it_->operator-=(steps);
+    }
+
+    template <typename TYPE>
+    auto original::iterable<TYPE>::iterAdaptor::operator-(const iterator<TYPE>& other) const -> int64_t
+    {
+        auto* other_it = dynamic_cast<const iterAdaptor*>(&other);
+        if (other_it == nullptr)
+            return this > &other ?
+                std::numeric_limits<int64_t>::max() :
+                std::numeric_limits<int64_t>::min();
+        return this->it_->operator-(*other_it->it_);
     }
 
     template <typename TYPE>

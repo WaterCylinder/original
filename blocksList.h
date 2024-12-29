@@ -62,6 +62,9 @@ namespace original {
             [[nodiscard]] bool hasPrev() const override;
             void next() const override;
             void prev() const override;
+            void operator+=(int64_t steps) const override;
+            void operator-=(int64_t steps) const override;
+            int64_t operator-(const iterator<TYPE>& other) const override;
             Iterator* getPrev() const override;
             Iterator* getNext() const override;
             TYPE& get() override;
@@ -218,6 +221,24 @@ namespace original {
             delete this->cur_;
             this->cur_ = new blockItr(&this->base_->get()[BLOCK_MAX_SIZE - 1], this->base_->_container, BLOCK_MAX_SIZE - 1);
         }
+    }
+
+    template <typename TYPE>
+    auto original::blocksList<TYPE>::Iterator::operator+=(int64_t steps) const -> void
+    {
+        // todo
+    }
+
+    template <typename TYPE>
+    auto original::blocksList<TYPE>::Iterator::operator-=(int64_t steps) const -> void
+    {
+        // todo
+    }
+
+    template <typename TYPE>
+    auto original::blocksList<TYPE>::Iterator::operator-(const iterator<TYPE>& other) const -> int64_t
+    {
+        return 0; // todo
     }
 
     template<typename TYPE>

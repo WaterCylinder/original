@@ -18,8 +18,11 @@ namespace original {
             void operator++(int) const;
             void operator--() const;
             void operator--(int) const;
+            virtual void operator+=(int64_t steps) const = 0;
+            virtual void operator-=(int64_t steps) const = 0;
             bool operator==(const iterator& other) const;
             bool operator!=(const iterator& other) const;
+            virtual int64_t operator-(const iterator& other) const = 0;
             iterator* clone() const override = 0;
             explicit operator bool() const;
             [[nodiscard]] virtual bool hasNext() const = 0;
@@ -42,6 +45,11 @@ namespace original {
             [[nodiscard]] std::string className() const override;
             [[nodiscard]] std::string toString(bool enter) const override;
             ~iterator() override = default;
+
+            template<typename T>
+            friend iterator<T>* operator+(const iterator<T>& it, int64_t steps);
+            template<typename T>
+            friend iterator<T>* operator-(const iterator<T>& it, int64_t steps);
     };
 
     template <typename TYPE>
@@ -51,6 +59,11 @@ namespace original {
             baseIterator* clone() const override = 0;
             ~baseIterator() override = default;
     };
+
+    template<typename TYPE>
+    iterator<TYPE>* operator+(const iterator<TYPE>& it, int64_t steps);
+    template<typename TYPE>
+    iterator<TYPE>* operator-(const iterator<TYPE>& it, int64_t steps);
 }
 
     template<typename TYPE>
@@ -147,6 +160,22 @@ namespace original {
             ss << "\n";
         }
         return ss.str();
+    }
+
+    template <typename TYPE>
+    auto original::operator+(const iterator<TYPE>& it, int64_t steps) -> iterator<TYPE>*
+    {
+        auto* nit = it.clone();
+        nit->operator+=(steps);
+        return nit;
+    }
+
+    template <typename TYPE>
+    auto original::operator-(const iterator<TYPE>& it, int64_t steps) -> iterator<TYPE>*
+    {
+        auto* nit = it.clone();
+        nit->operator-=(steps);
+        return nit;
     }
 
 #endif //ITERATOR_H

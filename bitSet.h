@@ -23,6 +23,7 @@ namespace original {
             void clearBit(int64_t bit, int64_t block);
             void writeBit(int64_t bit, int64_t block, bool value);
             static couple<uint32_t, int64_t> toInnerIdx(int64_t index);
+            static int64_t toOuterIdx(uint32_t cur_block, int64_t cur_bit);
         public:
             class Iterator final : public baseIterator<bool> {
                     mutable int64_t cur_bit;
@@ -43,6 +44,9 @@ namespace original {
                     void prev() const override;
                     Iterator* getPrev() const override;
                     Iterator* getNext() const override;
+                    void operator+=(int64_t steps) const override;
+                    void operator-=(int64_t steps) const override;
+                    int64_t operator-(const iterator& other) const override;
                     bool& get() override;
                     [[nodiscard]] std::string className() const override;
                     bool get() const override;
@@ -123,6 +127,11 @@ namespace original {
         return {static_cast<uint32_t>(index / BLOCK_MAX_SIZE), index % BLOCK_MAX_SIZE};
     }
 
+    inline auto original::bitSet::toOuterIdx(const uint32_t cur_block, const int64_t cur_bit) -> int64_t
+    {
+        return cur_block *  BLOCK_MAX_SIZE + cur_bit;
+    }
+
     inline original::bitSet::Iterator::Iterator(const int64_t bit, const int64_t block, underlying_type* block_p, const bitSet* container)
         : cur_bit(bit), cur_block(block), block_(block_p), container_(container) {}
 
@@ -201,6 +210,37 @@ namespace original {
         return it;
     }
 
+    inline auto original::bitSet::Iterator::operator+=(const int64_t steps) const -> void
+    {
+        const auto outer = toOuterIdx(this->cur_block, this->cur_bit);
+        auto inner = toInnerIdx(outer + steps);
+        this->cur_block = inner.first();
+        this->cur_bit = inner.second();
+    }
+
+    inline auto original::bitSet::Iterator::operator-=(const int64_t steps) const -> void
+    {
+        const auto outer = toOuterIdx(this->cur_block, this->cur_bit);
+        auto inner = toInnerIdx(outer - steps);
+        this->cur_block = inner.first();
+        this->cur_bit = inner.second();
+    }
+
+    inline int64_t original::bitSet::Iterator::operator-(const iterator& other) const
+    {
+        auto* other_it = dynamic_cast<const Iterator*>(&other);
+        if (other_it == nullptr)
+            return this > &other ?
+                std::numeric_limits<int64_t>::max() :
+                std::numeric_limits<int64_t>::min();
+        if (this->container_ != other_it->container_)
+            return this->container_ > other_it->container_ ?
+                std::numeric_limits<int64_t>::max() :
+                std::numeric_limits<int64_t>::min();
+
+        return toOuterIdx(this->cur_block, this->cur_bit) - toOuterIdx(other_it->cur_block, other_it->cur_bit);
+    }
+
     inline auto original::bitSet::Iterator::get() -> bool & {
         throw unSupportedMethodError();
     }
@@ -223,7 +263,7 @@ namespace original {
 
     inline auto original::bitSet::Iterator::isValid() const -> bool {
         return this->cur_block < this->container_->map.size()
-            && this->cur_bit + this->cur_block * BLOCK_MAX_SIZE < this->container_->size();
+            && toOuterIdx(this->cur_block, this->cur_bit) < this->container_->size();
     }
 
     inline original::bitSet::bitSet(const uint32_t size)
@@ -292,7 +332,7 @@ namespace original {
     }
 
     inline auto original::bitSet::ends() const -> Iterator* {
-        return new Iterator(BLOCK_MAX_SIZE - 1, this->map.size() - 1,
+        return new Iterator(toInnerIdx(this->size() - 1).second(), this->map.size() - 1,
                     &this->map.data() + this->map.size() - 1, this);
     }
 
