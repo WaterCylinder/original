@@ -162,7 +162,8 @@ int main(){
         std::cout << p1.pop() << std::endl;
         std::cout << "p1: " << p1 << std::endl;
     }
-    for (const auto v2 = original::vector({11, 8, 13, 16, 15}); const auto e : v2)
+    const auto v2 = original::vector({11, 8, 13, 16, 15});
+    for (const auto e : v2)
     {
         std::cout << "p2: " << p2 << std::endl;
         p2.push(e);
