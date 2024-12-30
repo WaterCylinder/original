@@ -55,7 +55,7 @@ namespace original {
             };
 
             explicit bitSet(uint32_t size);
-            bitSet(std::initializer_list<bool> lst);
+            bitSet(const std::initializer_list<bool>& lst);
             bitSet(const bitSet& other);
             bitSet& operator=(const bitSet& other);
             bool operator==(const bitSet& other) const;
@@ -269,7 +269,7 @@ namespace original {
     inline original::bitSet::bitSet(const uint32_t size)
         : map(array<underlying_type>((size + BLOCK_MAX_SIZE - 1) / BLOCK_MAX_SIZE)), size_(size) {}
 
-    inline original::bitSet::bitSet(const std::initializer_list<bool> lst) : bitSet(lst.size()) {
+    inline original::bitSet::bitSet(const std::initializer_list<bool>& lst) : bitSet(lst.size()) {
         uint32_t i = 0;
         for (const auto& e : lst) {
             auto idx = toInnerIdx(i);

@@ -38,7 +38,7 @@ namespace original{
 
         explicit vector();
         vector(const vector& other);
-        vector(std::initializer_list<TYPE> list);
+        vector(const std::initializer_list<TYPE>& list);
         explicit vector(array<TYPE> arr);
         vector& operator=(const vector& other);
         bool operator==(const vector& other) const;
@@ -181,7 +181,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    original::vector<TYPE>::vector(std::initializer_list<TYPE> list) : vector()
+    original::vector<TYPE>::vector(const std::initializer_list<TYPE>& list) : vector()
     {
         this->adjust(list.size());
         for (const TYPE& e: list)

@@ -15,7 +15,7 @@ namespace original
         Callback<TYPE> compare_;
         public:
             explicit prique(const SERIAL<TYPE>& serial = SERIAL<TYPE>{}, const Callback<TYPE>& compare = Callback<TYPE>{});
-            prique(std::initializer_list<TYPE> lst, const Callback<TYPE>& compare = Callback<TYPE>{});
+            prique(const std::initializer_list<TYPE>& lst, const Callback<TYPE>& compare = Callback<TYPE>{});
             prique(const prique& other);
             prique& operator=(const prique& other);
             bool operator==(const prique& other) const;
@@ -38,7 +38,7 @@ namespace original
     }
 
     template <typename TYPE, template <typename> class SERIAL, template <typename> class Callback>
-    original::prique<TYPE, SERIAL, Callback>::prique(std::initializer_list<TYPE> lst, const Callback<TYPE>& compare)
+    original::prique<TYPE, SERIAL, Callback>::prique(const std::initializer_list<TYPE>& lst, const Callback<TYPE>& compare)
         : prique(SERIAL<TYPE>(lst), compare) {}
 
     template <typename TYPE, template <typename> class SERIAL, template <typename> class Callback>

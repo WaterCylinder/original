@@ -32,7 +32,7 @@ namespace original{
         };
 
         explicit array(uint32_t size = 0);
-        array(std::initializer_list<TYPE> lst);
+        array(const std::initializer_list<TYPE>& lst);
         array(const array& other);
         array& operator=(const array& other);
         bool operator==(const array& other) const;
@@ -102,10 +102,10 @@ namespace original{
     }
 
     template <typename TYPE>
-    original::array<TYPE>::array(std::initializer_list<TYPE> lst)
+    original::array<TYPE>::array(const std::initializer_list<TYPE>& lst)
         : size_(lst.size()), body(new TYPE[size_]) {
         uint32_t i = 0;
-        for (auto e : lst) {
+        for (const auto& e : lst) {
             this->body[i] = e;
             i += 1;
         }
