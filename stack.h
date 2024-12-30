@@ -10,6 +10,7 @@ namespace original {
         SERIAL<TYPE> serial_;
     public:
         explicit stack(const SERIAL<TYPE>& serial = SERIAL<TYPE>{});
+        stack(const std::initializer_list<TYPE>& lst);
         stack(const stack& other);
         stack& operator=(const stack& other);
         bool operator==(const stack& other) const;
@@ -27,6 +28,10 @@ namespace original {
 
     template<typename TYPE, template <typename> typename SERIAL>
     original::stack<TYPE, SERIAL>::stack(const SERIAL<TYPE>& serial) : serial_{serial} {}
+
+    template<typename TYPE, template <typename> typename SERIAL>
+    original::stack<TYPE, SERIAL>::stack(const std::initializer_list<TYPE> &lst)
+            : stack(SERIAL<TYPE>(lst)) {}
 
     template<typename TYPE, template <typename> typename SERIAL>
     original::stack<TYPE, SERIAL>::stack(const stack& other) : serial_{other.serial_} {}

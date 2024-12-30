@@ -10,6 +10,7 @@ namespace original {
         SERIAL<TYPE> serial_;
     public:
         explicit queue(const SERIAL<TYPE>& serial = SERIAL<TYPE>{});
+        queue(const std::initializer_list<TYPE>& lst);
         queue(const queue& other);
         queue& operator=(const queue& other);
         bool operator==(const queue& other) const;
@@ -27,6 +28,10 @@ namespace original {
 
     template<typename TYPE, template <typename> typename SERIAL>
     original::queue<TYPE, SERIAL>::queue(const SERIAL<TYPE>& serial) : serial_{serial} {}
+
+    template<typename TYPE, template <typename> typename SERIAL>
+    original::queue<TYPE, SERIAL>::queue(const std::initializer_list<TYPE> &lst)
+            : queue(SERIAL<TYPE>(lst)) {}
 
     template<typename TYPE, template <typename> typename SERIAL>
     original::queue<TYPE, SERIAL>::queue(const queue& other) : serial_{other.serial_} {}

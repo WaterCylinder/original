@@ -10,6 +10,7 @@ namespace original{
         SERIAL<TYPE> serial_;
     public:
         explicit deque(const SERIAL<TYPE>& serial = SERIAL<TYPE>{});
+        deque(const std::initializer_list<TYPE>& lst);
         deque(const deque& other);
         deque& operator=(const deque& other);
         bool operator==(const deque& other) const;
@@ -30,6 +31,10 @@ namespace original{
 
     template<typename TYPE, template <typename> typename SERIAL>
     original::deque<TYPE, SERIAL>::deque(const SERIAL<TYPE>& serial) : serial_{serial} {}
+
+    template<typename TYPE, template <typename> typename SERIAL>
+    original::deque<TYPE, SERIAL>::deque(const std::initializer_list<TYPE> &lst)
+        : deque(SERIAL<TYPE>(lst)) {}
 
     template<typename TYPE, template <typename> typename SERIAL>
     original::deque<TYPE, SERIAL>::deque(const deque& other) : deque() {
