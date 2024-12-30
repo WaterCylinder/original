@@ -20,7 +20,7 @@ namespace original {
                 chainNode* prev;
                 chainNode* next;
             protected:
-                explicit chainNode(TYPE data = TYPE{}, chainNode* prev = nullptr, chainNode* next = nullptr);
+                explicit chainNode(const TYPE& data = TYPE{}, chainNode* prev = nullptr, chainNode* next = nullptr);
                 chainNode(const chainNode& other);
                 chainNode& operator=(const chainNode& other);
                 TYPE& getVal() override;
@@ -38,6 +38,10 @@ namespace original {
         chainNode* end_;
 
         chainNode* findNode(int64_t index) const;
+        void chainInit();
+        void firstAdd(chainNode* node);
+        chainNode* lastDelete();
+        void chainDestruction();
     public:
         class Iterator final : public doubleDirectionIterator<TYPE>
         {
@@ -78,7 +82,7 @@ namespace original {
 }
 
     template <typename TYPE>
-    original::chain<TYPE>::chainNode::chainNode(TYPE data, chainNode* prev, chainNode* next)
+    original::chain<TYPE>::chainNode::chainNode(const TYPE& data, chainNode* prev, chainNode* next)
     : data_(data), prev(prev), next(next) {}
 
     template<typename TYPE>
@@ -160,6 +164,47 @@ namespace original {
         return cur;
     }
 
+    template <typename TYPE>
+    auto original::chain<TYPE>::chainInit() -> void
+    {
+        auto* pivot = new chainNode();
+        this->size_ = 0;
+        this->begin_ = pivot->getPNext();
+        this->end_ = pivot;
+    }
+
+    template <typename TYPE>
+    auto original::chain<TYPE>::firstAdd(chainNode* node) -> void
+    {
+        chainNode::connect(this->end_, node);
+        this->begin_ = node;
+        this->end_ = node;
+        this->size_ += 1;
+    }
+
+    template <typename TYPE>
+    auto original::chain<TYPE>::lastDelete() -> chainNode*
+    {
+        auto* last = this->end_;
+        this->begin_ = last->getPPrev();
+        this->end_ = last->getPPrev();
+        chainNode::connect(this->end_, nullptr);
+        chainNode::connect(nullptr, last);
+        this->size_ -= 1;
+        return last;
+    }
+
+    template <typename TYPE>
+    auto original::chain<TYPE>::chainDestruction() -> void
+    {
+        auto* current = this->end_;
+        while (current) {
+            auto* prev = current->getPPrev();
+            delete current;
+            current = prev;
+        }
+    }
+
     template<typename TYPE>
     original::chain<TYPE>::Iterator::Iterator(chainNode* ptr)
         : doubleDirectionIterator<TYPE>::doubleDirectionIterator(ptr) {}
@@ -200,8 +245,10 @@ namespace original {
     }
 
     template <typename TYPE>
-    original::chain<TYPE>::chain()
-        : size_(0), begin_(), end_() {}
+    original::chain<TYPE>::chain() : size_(0)
+    {
+        chainInit();
+    }
 
     template<typename TYPE>
     original::chain<TYPE>::chain(const chain& other) : chain(){
@@ -215,14 +262,13 @@ namespace original {
             auto* cur_node = new chainNode(e);
             if (this->size() == 0)
             {
-                this->begin_ = cur_node;
-                this->end_ = cur_node;
+                this->firstAdd(cur_node);
             }else
             {
                 chainNode::connect(this->end_, cur_node);
                 this->end_ = cur_node;
+                size_ += 1;
             }
-            size_ += 1;
         }
     }
 
@@ -233,30 +279,27 @@ namespace original {
             auto* cur_node = new chainNode(arr.get(i));
             if (this->size() == 0)
             {
-                this->begin_ = cur_node;
-                this->end_ = cur_node;
+                this->firstAdd(cur_node);
             }else
             {
                 chainNode::connect(this->end_, cur_node);
                 this->end_ = cur_node;
+                size_ += 1;
             }
-            size_ += 1;
         }
     }
 
     template<typename TYPE>
     original::chain<TYPE>& original::chain<TYPE>::operator=(const chain& other){
         if (this == &other) return *this;
-        auto* current = begin_;
-        while (current) {
-            auto* next = current->getPNext();
-            delete current;
-            current = next;
-        }
+        this->chainDestruction();
         this->size_ = other.size_;
         if (this->size() != 0){
-            auto* other_ = other.begin_;
-            this->begin_ = new chainNode(other_->getVal());
+            auto* other_ = other.begin_->getPPrev();
+            auto* pivot = new chainNode(other_->getVal());
+            other_ = other_->getPNext();
+            chainNode::connect(pivot, new chainNode(other_->getVal()));
+            this->begin_ = pivot->getPNext();
             auto* this_ = this->begin_;
             while (other_ != other.end_){
                 other_ = other_->getPNext();
@@ -265,8 +308,7 @@ namespace original {
             }
             this->end_ = this_;
         } else{
-            this->begin_ = nullptr;
-            this->end_ = nullptr;
+            this->chainInit();
         }
         return *this;
     }
@@ -291,11 +333,10 @@ namespace original {
         if (other.empty()) return;
 
         this->size_ += other.size_;
+        delete other.begin_->getPPrev();
         chainNode::connect(this->end_, other.begin_);
         this->end_ = other.end_;
-        other.size_ = 0;
-        other.begin_ = nullptr;
-        other.end_ = nullptr;
+        other.chainInit();
     }
 
     template <typename TYPE>
@@ -358,13 +399,14 @@ namespace original {
     {
         auto* new_node = new chainNode(e);
         if (this->size() == 0){
-            this->begin_ = new_node;
-            this->end_ = new_node;
+            this->firstAdd(new_node);
         } else{
+            auto* pivot = this->begin_->getPPrev();
             chainNode::connect(new_node, this->begin_);
+            chainNode::connect(pivot, new_node);
             this->begin_ = new_node;
+            this->size_ += 1;
         }
-        this->size_ += 1;
     }
 
     template <typename TYPE>
@@ -393,13 +435,12 @@ namespace original {
     {
         auto* new_node = new chainNode(e);
         if (this->size() == 0){
-            this->begin_ = new_node;
-            this->end_ = new_node;
+            this->firstAdd(new_node);
         } else{
             chainNode::connect(this->end_, new_node);
             this->end_ = new_node;
+            this->size_ += 1;
         }
-        this->size_ += 1;
     }
 
     template <typename TYPE>
@@ -410,18 +451,19 @@ namespace original {
             throw noElementError();
         }
         if (this->size() == 1){
-            res = this->begin_->getVal();
-            delete this->begin_;
-            this->begin_ = nullptr;
-            this->end_ = nullptr;
+            auto* del = this->lastDelete();
+            res = del->getVal();
+            delete del;
+            this->chainInit();
         } else{
             res = this->begin_->getVal();
             auto* new_begin = this->begin_->getPNext();
+            auto* pivot = this->begin_->getPPrev();
             delete this->begin_;
             this->begin_ = new_begin;
-            chainNode::connect(nullptr, this->begin_);
+            chainNode::connect(pivot, this->begin_);
+            this->size_ -= 1;
         }
-        this->size_ -= 1;
         return res;
     }
 
@@ -457,18 +499,18 @@ namespace original {
             throw noElementError();
         }
         if (this->size() == 1){
-            res = this->end_->getVal();
-            delete this->end_;
-            this->begin_ = nullptr;
-            this->end_ = nullptr;
+            auto* del = this->lastDelete();
+            res = del->getVal();
+            delete del;
+            this->chainInit();
         } else{
             res = this->end_->getVal();
             auto* new_end = this->end_->getPPrev();
             delete this->end_;
             this->end_ = new_end;
             chainNode::connect(this->end_, nullptr);
+            this->size_ -= 1;
         }
-        this->size_ -= 1;
         return res;
     }
 
@@ -484,12 +526,7 @@ namespace original {
 
     template <typename TYPE>
     original::chain<TYPE>::~chain() {
-        auto* current = begin_;
-        while (current) {
-            auto* next = current->getPNext();
-            delete current;
-            current = next;
-        }
+        this->chainDestruction();
     }
 
 #endif //CHAIN_H

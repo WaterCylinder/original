@@ -14,7 +14,7 @@ namespace original {
                 TYPE data_;
                 forwardChainNode* next;
             protected:
-                explicit forwardChainNode(TYPE data = TYPE{}, forwardChainNode* next = nullptr);
+                explicit forwardChainNode(const TYPE& data = TYPE{}, forwardChainNode* next = nullptr);
                 forwardChainNode(const forwardChainNode& other);
                 forwardChainNode& operator=(const forwardChainNode& other);
                 TYPE& getVal() override;
@@ -29,7 +29,12 @@ namespace original {
         uint32_t size_;
         forwardChainNode* begin_;
 
+        forwardChainNode* beginNode() const;
         forwardChainNode* findNode(int64_t index) const;
+        void chainInit();
+        void firstAdd(forwardChainNode* node);
+        forwardChainNode* lastDelete();
+        void chainDestruction();
     public:
         class Iterator final : public singleDirectionIterator<TYPE>
         {
@@ -69,8 +74,7 @@ namespace original {
 }
 
     template <typename TYPE>
-    original::forwardChain<TYPE>::forwardChainNode::forwardChainNode(
-        TYPE data, forwardChainNode* next)
+    original::forwardChain<TYPE>::forwardChainNode::forwardChainNode(const TYPE& data, forwardChainNode* next)
         : data_(data), next(next) {}
 
     template<typename TYPE>
@@ -123,14 +127,57 @@ namespace original {
         if (prev != nullptr) prev->setPNext(next);
     }
 
+    template <typename TYPE>
+    auto original::forwardChain<TYPE>::beginNode() const -> forwardChainNode*
+    {
+        return this->begin_->getPNext();
+    }
+
     template<typename TYPE>
     auto original::forwardChain<TYPE>::findNode(const int64_t index) const -> forwardChainNode* {
-        forwardChainNode* cur = this->begin_;
+        if (this->size() == 0) return this->begin_;
+        auto* cur = this->beginNode();
         for(uint32_t i = 0; i < index; i++)
         {
             cur = cur->getPNext();
         }
         return cur;
+    }
+
+    template <typename TYPE>
+    auto original::forwardChain<TYPE>::chainInit() -> void
+    {
+        auto* pivot = new forwardChainNode();
+        this->size_ = 0;
+        this->begin_ = pivot;
+    }
+
+    template <typename TYPE>
+    auto original::forwardChain<TYPE>::firstAdd(forwardChainNode* node) -> void
+    {
+        forwardChainNode::connect(this->findNode(), node);
+        this->size_ += 1;
+    }
+
+    template <typename TYPE>
+    auto original::forwardChain<TYPE>::lastDelete() -> forwardChainNode*
+    {
+        auto* last = this->beginNode();
+        forwardChainNode::connect(this->begin_, nullptr);
+        this->size_ -= 1;
+        return last;
+    }
+
+    template <typename TYPE>
+    auto original::forwardChain<TYPE>::chainDestruction() -> void
+    {
+        auto* cur = this->begin_;
+        while (cur)
+        {
+            auto* next = cur->getPNext();
+            delete cur;
+            cur = next;
+        }
     }
 
     template<typename TYPE>
@@ -173,7 +220,10 @@ namespace original {
     }
 
     template<typename TYPE>
-    original::forwardChain<TYPE>::forwardChain() : size_(0), begin_() {}
+    original::forwardChain<TYPE>::forwardChain() : size_(0)
+    {
+        this->chainInit();
+    }
 
     template<typename TYPE>
     original::forwardChain<TYPE>::forwardChain(const forwardChain &other) : forwardChain() {
@@ -186,14 +236,13 @@ namespace original {
             auto* cur_node = new forwardChainNode(e);
             if (this->size() == 0)
             {
-                this->begin_ = cur_node;
-
+                this->firstAdd(cur_node);
             }else
             {
                 auto* end = this->findNode(this->size() - 1);
                 forwardChainNode::connect(end, cur_node);
+                this->size_ += 1;
             }
-            this->size_ += 1;
         }
     }
 
@@ -203,25 +252,20 @@ namespace original {
             auto* cur_node = new forwardChainNode(arr.get(i));
             if (this->size() == 0)
             {
-                this->begin_ = cur_node;
+                this->firstAdd(cur_node);
             }else
             {
                 auto* end = this->findNode(this->size() - 1);
                 forwardChainNode::connect(end, cur_node);
+                this->size_ += 1;
             }
-            this->size_ += 1;
         }
     }
 
     template<typename TYPE>
     auto original::forwardChain<TYPE>::operator=(const forwardChain &other) -> forwardChain& {
         if (this == &other) return *this;
-        auto* current = this->begin_;
-        while (current) {
-            auto* next = current->getPNext();
-            delete current;
-            current = next;
-        }
+        this->chainDestruction();
         this->size_ = other.size_;
         if (this->size() != 0){
             auto* other_ = other.begin_;
@@ -233,7 +277,7 @@ namespace original {
                 this_ = this_->getPNext();
             }
         } else{
-            this->begin_ = nullptr;
+            this->chainInit();
         }
         return *this;
     }
@@ -301,12 +345,14 @@ namespace original {
     auto original::forwardChain<TYPE>::pushBegin(const TYPE &e) -> void {
         auto* new_node = new forwardChainNode(e);
         if (this->size() == 0){
-            this->begin_ = new_node;
+            this->firstAdd(new_node);
         } else{
-            forwardChainNode::connect(new_node, this->begin_);
-            this->begin_ = new_node;
+            auto* next = this->beginNode();
+            forwardChainNode::connect(this->begin_, new_node);
+            forwardChainNode::connect(new_node, next);
+            this->size_ += 1;
         }
-        this->size_ += 1;
+
     }
 
     template<typename TYPE>
@@ -333,12 +379,12 @@ namespace original {
     auto original::forwardChain<TYPE>::pushEnd(const TYPE &e) -> void {
         auto* new_node = new forwardChainNode(e);
         if (this->size() == 0){
-            this->begin_ = new_node;
+            this->firstAdd(new_node);
         } else{
             auto* end = this->findNode(this->size() - 1);
             forwardChainNode::connect(end, new_node);
+            this->size_ += 1;
         }
-        this->size_ += 1;
     }
 
     template<typename TYPE>
@@ -348,16 +394,16 @@ namespace original {
             throw noElementError();
         }
         if (this->size() == 1){
-            res = this->begin_->getVal();
-            delete this->begin_;
-            this->begin_ = nullptr;
+            res = this->beginNode()->getVal();
+            delete this->lastDelete();
         } else{
             res = this->begin_->getVal();
-            auto* new_begin = this->begin_->getPNext();
-            delete this->begin_;
-            this->begin_ = new_begin;
+            auto* del = this->beginNode();
+            auto* new_begin = del->getPNext();
+            delete del;
+            forwardChainNode::connect(this->begin_, new_begin);
+            this->size_ -= 1;
         }
-        this->size_ -= 1;
         return res;
     }
 
@@ -391,23 +437,22 @@ namespace original {
             throw noElementError();
         }
         if (this->size() == 1){
-            res = this->begin_->getVal();
-            delete this->begin_;
-            this->begin_ = nullptr;
+            res = this->beginNode()->getVal();
+            delete this->lastDelete();
         } else{
             auto* new_end = this->findNode(this->size() - 2);
             auto* end = new_end->getPNext();
             res = end->getVal();
             delete end;
             forwardChainNode::connect(new_end, nullptr);
+            this->size_ -= 1;
         }
-        this->size_ -= 1;
         return res;
     }
 
     template<typename TYPE>
     auto original::forwardChain<TYPE>::begins() const -> Iterator* {
-        return new Iterator(this->begin_);
+        return new Iterator(this->beginNode());
     }
 
     template<typename TYPE>
@@ -422,12 +467,7 @@ namespace original {
 
     template<typename TYPE>
     original::forwardChain<TYPE>::~forwardChain() {
-        auto* current = this->begin_;
-        while (current) {
-            auto* next = current->getPNext();
-            delete current;
-            current = next;
-        }
+        this->chainDestruction();
     }
 
 #endif //FORWARDCHAIN_H
