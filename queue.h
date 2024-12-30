@@ -6,7 +6,7 @@
 
 namespace original {
     template<typename TYPE, template <typename> typename SERIAL = chain>
-    class queue : public iterationStream<TYPE> {
+    class queue : public printable {
         SERIAL<TYPE> serial_;
     public:
         explicit queue(const SERIAL<TYPE>& serial = SERIAL<TYPE>{});
@@ -20,9 +20,8 @@ namespace original {
         TYPE pop();
         TYPE head() const;
         TYPE tail() const;
-        baseIterator<TYPE>* begins() const override;
-        baseIterator<TYPE>* ends() const override;
         [[nodiscard]] std::string className() const override;
+        [[nodiscard]] std::string toString(bool enter) const override;
     };
 }
 
@@ -80,18 +79,25 @@ namespace original {
     }
 
     template<typename TYPE, template <typename> typename SERIAL>
-    auto original::queue<TYPE, SERIAL>::begins() const -> baseIterator<TYPE>* {
-        return serial_.begins();
-    }
-
-    template<typename TYPE, template <typename> typename SERIAL>
-    auto original::queue<TYPE, SERIAL>::ends() const -> baseIterator<TYPE>* {
-        return serial_.ends();
-    }
-
-    template<typename TYPE, template <typename> typename SERIAL>
     std::string original::queue<TYPE, SERIAL>::className() const {
         return "queue";
+    }
+
+    template <typename TYPE, template <typename> class SERIAL>
+    auto original::queue<TYPE, SERIAL>::toString(const bool enter) const -> std::string
+    {
+        std::stringstream ss;
+        ss << this->className() << "(";
+        bool first = true;
+        for (const auto e : this->serial_)
+        {
+            if (!first) ss << ", ";
+            ss << printable::formatString(e);
+            first = false;
+        }
+        ss << ")";
+        if (enter) ss << "\n";
+        return ss.str();
     }
 
 #endif //QUEUE_H

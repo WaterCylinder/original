@@ -9,7 +9,7 @@ namespace original
     template<typename TYPE,
     template <typename> typename SERIAL = vector,
     template <typename> typename Callback = increaseComparator>
-    class prique : public iterationStream<TYPE>
+    class prique : public printable
     {
         SERIAL<TYPE> serial_;
         Callback<TYPE> compare_;
@@ -25,9 +25,8 @@ namespace original
             void push(const TYPE& e);
             TYPE pop();
             TYPE top() const;
-            baseIterator<TYPE>* begins() const override;
-            baseIterator<TYPE>* ends() const override;
             [[nodiscard]] std::string className() const override;
+            [[nodiscard]] std::string toString(bool enter) const override;
     };
 }
 
@@ -35,7 +34,7 @@ namespace original
     original::prique<TYPE, SERIAL, Callback>::prique(const SERIAL<TYPE>& serial, const Callback<TYPE>& compare)
         : serial_(serial), compare_(compare)
     {
-        algorithms::heapInit(this->first(), this->last(), this->compare_);
+        algorithms::heapInit(this->serial_.first(), this->serial_.last(), this->compare_);
     }
 
     template <typename TYPE, template <typename> class SERIAL, template <typename> class Callback>
@@ -83,7 +82,7 @@ namespace original
     auto original::prique<TYPE, SERIAL, Callback>::push(const TYPE& e) -> void
     {
         serial_.pushEnd(e);
-        algorithms::heapAdjustUp(this->first(), this->last(), compare_);
+        algorithms::heapAdjustUp(this->serial_.first(), this->serial_.last(), this->compare_);
     }
 
     template <typename TYPE, template <typename> class SERIAL, template <typename> class Callback>
@@ -91,9 +90,9 @@ namespace original
     {
         if (this->empty()) throw noElementError();
 
-        algorithms::swap(this->first(), this->last());
+        algorithms::swap(this->serial_.first(), this->serial_.last());
         TYPE res = serial_.popEnd();
-        algorithms::heapAdjustDown(this->first(), this->last(), this->first(), compare_);
+        algorithms::heapAdjustDown(this->serial_.first(), this->serial_.last(), this->serial_.first(), compare_);
         return res;
     }
 
@@ -104,21 +103,26 @@ namespace original
     }
 
     template <typename TYPE, template <typename> class SERIAL, template <typename> class Callback>
-    auto original::prique<TYPE, SERIAL, Callback>::begins() const -> baseIterator<TYPE>*
-    {
-        return serial_.begins();
-    }
-
-    template <typename TYPE, template <typename> class SERIAL, template <typename> class Callback>
-    auto original::prique<TYPE, SERIAL, Callback>::ends() const -> baseIterator<TYPE>*
-    {
-        return serial_.ends();
-    }
-
-    template <typename TYPE, template <typename> class SERIAL, template <typename> class Callback>
     auto original::prique<TYPE, SERIAL, Callback>::className() const -> std::string
     {
         return "prique";
+    }
+
+    template <typename TYPE, template <typename> class SERIAL, template <typename> class Callback>
+    auto original::prique<TYPE, SERIAL, Callback>::toString(const bool enter) const -> std::string
+    {
+        std::stringstream ss;
+        ss << this->className() << "(";
+        bool first = true;
+        for (const auto e : this->serial_)
+        {
+            if (!first) ss << ", ";
+            ss << printable::formatString(e);
+            first = false;
+        }
+        ss << ")";
+        if (enter) ss << "\n";
+        return ss.str();
     }
 
 
