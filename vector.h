@@ -103,9 +103,10 @@ namespace original{
     auto original::vector<TYPE>::grow(const uint32_t new_size) -> void
     {
         TYPE* new_body = vector::vectorArrayInit(new_size);
-        size_t new_begin = (new_size - 1) / 4;
+        uint32_t new_begin = (new_size - 1) / 4;
+        const int64_t offset = static_cast<int64_t>(new_begin) - static_cast<int64_t>(this->inner_begin);
         vector::moveElements(this->body, this->inner_begin,
-                             this->size(), new_body, new_begin - this->inner_begin);
+                             this->size(), new_body, offset);
         delete[] this->body;
         this->body = new_body;
         this->max_size = new_size;
@@ -118,12 +119,13 @@ namespace original{
             return;
         }
         if (this->max_size >= this->size_ + increment) {
-            size_t new_begin = (this->max_size - this->size() - increment) / 2;
-            vector::moveElements(this->body, this->inner_begin, this->size(), this->body,
-                                 new_begin - this->inner_begin);
+            uint32_t new_begin = (this->max_size - this->size() - increment) / 2;
+            const int64_t offset = static_cast<int64_t>(new_begin) - static_cast<int64_t>(this->inner_begin);
+            vector::moveElements(this->body, this->inner_begin, this->size(),
+                                 this->body, offset);
             this->inner_begin = new_begin;
         } else {
-            const size_t new_max_size = (this->size() + increment) * 2;
+            const uint32_t new_max_size = (this->size() + increment) * 2;
             this->grow(new_max_size);
         }
     }
