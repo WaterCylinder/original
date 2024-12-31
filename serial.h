@@ -2,6 +2,7 @@
 #define SERIAL_H
 
 #include <container.h>
+#include "error.h"
 
 namespace original{
     template <typename TYPE>

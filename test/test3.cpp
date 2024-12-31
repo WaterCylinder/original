@@ -105,7 +105,7 @@ int main(){
         d1.popEnd();
     }
     std::cout << "d1 after: " << d1 << std::endl;
-    auto b1 = original::bitSet(std::initializer_list{true, false, false, true, true, false, true});
+    auto b1 = original::bitSet({true, false, false, true, true, false, true});
     std::cout << "b1: " << b1 << std::endl;
     auto b2 = original::bitSet(20);
     std::cout << "b2 before: " << b2 << std::endl;
@@ -171,8 +171,16 @@ int main(){
     std::cout << "p2: " << p2 << std::endl;
     while (!p2.empty())
     {
+        std::cout << "p2.top() = " << p2.top() << std::endl;
         std::cout << p2.pop() << std::endl;
         std::cout << "p2: " << p2 << std::endl;
+    }
+    auto p3 = original::prique<int, original::vector, original::decreaseComparator>({11, 8, 13, 16, 15, 5, 7, 6, 3, 2});
+    std::cout << "p3: " << p3 << std::endl;
+    while (!p3.empty())
+    {
+        std::cout << p3.pop() << std::endl;
+        std::cout << "p3: " << p3 << std::endl;
     }
     return 0;
 }
