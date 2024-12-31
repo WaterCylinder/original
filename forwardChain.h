@@ -2,6 +2,7 @@
 #define FORWARDCHAIN_H
 
 #include "singleDirectionIterator.h"
+#include "array.h"
 
 namespace original {
     template <typename TYPE>
@@ -40,7 +41,7 @@ namespace original {
         {
             explicit Iterator(forwardChainNode* ptr);
         public:
-            friend chain;
+            friend forwardChain;
             Iterator(const Iterator& other);
             Iterator& operator=(const Iterator& other);
             Iterator* clone() const override;
@@ -163,8 +164,8 @@ namespace original {
     auto original::forwardChain<TYPE>::lastDelete() -> forwardChainNode*
     {
         auto* last = this->beginNode();
-        forwardChainNode::connect(this->begin_, nullptr);
-        this->size_ -= 1;
+        delete this->begin_;
+        this->chainInit();
         return last;
     }
 
@@ -187,7 +188,7 @@ namespace original {
     template<typename TYPE>
     original::forwardChain<TYPE>::Iterator::Iterator(const Iterator &other)
         : singleDirectionIterator<TYPE>(nullptr) {
-        this.operator=(other);
+        this->operator=(other);
     }
 
     template<typename TYPE>
@@ -324,7 +325,6 @@ namespace original {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
         }
-        auto* new_node = new forwardChainNode(e);
         auto* cur = this->findNode(this->parseNegIndex(index));
         cur->setVal(e);
     }

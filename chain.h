@@ -186,11 +186,8 @@ namespace original {
     auto original::chain<TYPE>::lastDelete() -> chainNode*
     {
         auto* last = this->end_;
-        this->begin_ = last->getPPrev();
-        this->end_ = last->getPPrev();
-        chainNode::connect(this->end_, nullptr);
-        chainNode::connect(nullptr, last);
-        this->size_ -= 1;
+        delete last->getPPrev();
+        this->chainInit();
         return last;
     }
 
@@ -377,7 +374,6 @@ namespace original {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
         }
-        auto* new_node = new chainNode(e);
         auto* cur = this->findNode(this->parseNegIndex(index));
         cur->setVal(e);
     }
