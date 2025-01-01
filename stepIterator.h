@@ -56,6 +56,7 @@ namespace original
             {
                 return dis;
             }
+            cur = cur->getPNext();
             dis += 1;
         }
         return std::numeric_limits<int64_t>::max();
