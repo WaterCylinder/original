@@ -7,19 +7,16 @@ namespace original {
     template<typename TYPE>
     class singleDirectionIterator : public stepIterator<TYPE> {
         protected:
-            explicit singleDirectionIterator(TYPE *ptr);
+            explicit singleDirectionIterator(wrapper<TYPE>* ptr);
         public:
             singleDirectionIterator(const singleDirectionIterator& other);
             singleDirectionIterator& operator=(const singleDirectionIterator& other);
             singleDirectionIterator* clone() const override;
-            [[nodiscard]] bool hasPrev() const override = delete;
-            void prev() const override = delete;
-            std::unique_ptr<stepIterator<TYPE>> getPrev() const override = delete;
     };
 }
 
     template<typename TYPE>
-    original::singleDirectionIterator<TYPE>::singleDirectionIterator(TYPE *ptr) : stepIterator<TYPE>(ptr) {}
+    original::singleDirectionIterator<TYPE>::singleDirectionIterator(wrapper<TYPE>* ptr) : stepIterator<TYPE>(ptr) {}
 
     template<typename TYPE>
     original::singleDirectionIterator<TYPE>::singleDirectionIterator(const singleDirectionIterator &other)
