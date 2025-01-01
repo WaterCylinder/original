@@ -321,6 +321,9 @@ namespace original
     auto original::algorithms::heapAdjustDown(const iterator<TYPE>& begin, const iterator<TYPE>& range,
                                               const iterator<TYPE>& current, const Callback& compares) -> void
     {
+        if (distance(current, begin) < 0)
+            return;
+
         auto* it = current.clone();
         while (distance(*it, begin) * 2 + 1 <= distance(range, begin))
         {
