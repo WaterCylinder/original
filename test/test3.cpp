@@ -175,7 +175,7 @@ int main(){
         std::cout << p2.pop() << std::endl;
         std::cout << "p2: " << p2 << std::endl;
     }
-    auto p3 = original::prique<int, original::vector, original::decreaseComparator>({11, 8, 13, 16, 15, 5, 7, 6, 3, 2});
+    auto p3 = original::prique<int, original::chain, original::decreaseComparator>({11, 8, 13, 16, 15, 5, 7, 6, 3, 2});
     std::cout << "p3: " << p3 << std::endl;
     while (!p3.empty())
     {
