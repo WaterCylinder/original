@@ -156,7 +156,7 @@ namespace original {
     template <typename TYPE>
     auto original::forwardChain<TYPE>::firstAdd(forwardChainNode* node) -> void
     {
-        forwardChainNode::connect(this->findNode(), node);
+        forwardChainNode::connect(this->findNode(0), node);
         this->size_ += 1;
     }
 
