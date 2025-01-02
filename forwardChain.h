@@ -53,7 +53,7 @@ namespace original {
         explicit forwardChain();
         forwardChain(const forwardChain& other);
         forwardChain(std::initializer_list<TYPE> list);
-        explicit forwardChain(array<TYPE> arr);
+        explicit forwardChain(const array<TYPE>& arr);
         forwardChain& operator=(const forwardChain& other);
         bool operator==(const forwardChain& other) const;
         [[nodiscard]] uint32_t size() const override;
@@ -248,7 +248,7 @@ namespace original {
     }
 
     template<typename TYPE>
-    original::forwardChain<TYPE>::forwardChain(array<TYPE> arr) : forwardChain() {
+    original::forwardChain<TYPE>::forwardChain(const array<TYPE>& arr) : forwardChain() {
         for (uint32_t i = 0; i < arr.size(); i++) {
             auto* cur_node = new forwardChainNode(arr.get(i));
             if (this->size() == 0)
