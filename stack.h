@@ -6,7 +6,7 @@
 
 namespace original {
     template<typename TYPE, template <typename> typename SERIAL = chain>
-    class stack : public iterationStream<TYPE> {
+    class stack : public printable {
         SERIAL<TYPE> serial_;
     public:
         explicit stack(const SERIAL<TYPE>& serial = SERIAL<TYPE>{});
@@ -20,9 +20,8 @@ namespace original {
         void push(const TYPE& e);
         TYPE pop();
         TYPE top() const;
-        baseIterator<TYPE>* begins() const override;
-        baseIterator<TYPE>* ends() const override;
         [[nodiscard]] std::string className() const override;
+        [[nodiscard]] std::string toString(bool enter) const override;
     };
 }
 
@@ -79,18 +78,24 @@ namespace original {
     }
 
     template<typename TYPE, template <typename> typename SERIAL>
-    auto original::stack<TYPE, SERIAL>::begins() const -> baseIterator<TYPE>* {
-        return serial_.begins();
-    }
-
-    template<typename TYPE, template <typename> typename SERIAL>
-    auto original::stack<TYPE, SERIAL>::ends() const -> baseIterator<TYPE>* {
-        return serial_.ends();
-    }
-
-    template<typename TYPE, template <typename> typename SERIAL>
     std::string original::stack<TYPE, SERIAL>::className() const {
         return "stack";
+    }
+
+    template<typename TYPE, template <typename> typename SERIAL>
+    std::string original::stack<TYPE, SERIAL>::toString(bool enter) const {
+        std::stringstream ss;
+        ss << this->className() << "(";
+        bool first = true;
+        for (const auto e : this->serial_)
+        {
+            if (!first) ss << ", ";
+            ss << printable::formatString(e);
+            first = false;
+        }
+        ss << ")";
+        if (enter) ss << "\n";
+        return ss.str();
     }
 
 #endif // STACK_H
