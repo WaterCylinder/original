@@ -54,15 +54,6 @@ int main(){
         s2.pop();
     }
     std::cout << "s2.top(): " << s2.top() << std::endl;
-    std::cout << "s2: " << s2 << std::endl;
-    original::algorithms::forEach(s2.first(), s2.last(), original::addOptTransform(1));
-    std::cout << "s2: " << s2 << std::endl;
-    original::algorithms::forEach(s2.first(), 0, original::addOptTransform(-1));
-    std::cout << "s2: " << s2 << std::endl;
-    original::algorithms::forEach(s2.first(), s2.size(), original::addOptTransform(1) + original::multiOptTransform(2));
-    std::cout << "s2: " << s2 << std::endl;
-    original::algorithms::fill(s2.first(), s2.first());
-    std::cout << "s2: " << s2 << std::endl;
     auto c2 = original::chain({1, 3, 6, 9, 8, 4, 2});
     auto c3 = original::chain({7, 5});
     std::cout << c2 << " size: " << c2.size() << std::endl;
@@ -175,7 +166,7 @@ int main(){
         std::cout << p2.pop() << std::endl;
         std::cout << "p2: " << p2 << std::endl;
     }
-    auto p3 = original::prique<int, original::chain, original::decreaseComparator>({11, 8, 13, 16, 15, 5, 7, 6, 3, 2});
+    auto p3 = original::prique<int, original::decreaseComparator>({11, 8, 13, 16, 15, 5, 7, 6, 3, 2});
     std::cout << "p3: " << p3 << std::endl;
     while (!p3.empty())
     {
