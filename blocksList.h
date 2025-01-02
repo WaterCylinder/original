@@ -9,12 +9,15 @@ namespace original {
     // todo
     template<typename TYPE>
     class blocksList final : public serial<TYPE>, public iterationStream<TYPE>{
-        vector<TYPE*> map{};
-        uint32_t size_;
         static constexpr uint32_t BLOCK_MAX_SIZE = 16;
         static constexpr uint32_t POS_INIT = (BLOCK_MAX_SIZE - 1) / 2 + 1;
+
+        vector<TYPE*> map{};
+        uint32_t size_;
         uint32_t first;
         uint32_t last;
+        uint32_t first_block = 0;
+        uint32_t last_block = 0;
 
         static TYPE* blockArrayInit();
         [[nodiscard]] static uint32_t innerIdxToAbsIdx(uint32_t block, uint32_t pos);
@@ -23,18 +26,21 @@ namespace original {
         [[nodiscard]] int64_t absIdxToOuterIdx(uint32_t absIdx) const;
         [[nodiscard]] uint32_t outerIdxToAbsIdx(int64_t outerIdx) const;
         [[nodiscard]] static couple<uint32_t, uint32_t> absIdxToInnerIdx(uint32_t absIdx);
+        TYPE& getElem(uint32_t block, uint32_t pos) const;
+        void setElem(uint32_t block, uint32_t pos, const TYPE& e);
+        [[nodiscard]] bool growNeeded(uint32_t increment, bool is_first) const;
         void moveElements(uint32_t start_idx, uint32_t len, int64_t offset);
-        void addBlock(bool first);
-        void removeBlock(bool first);
+        void addBlock(bool is_first);
+        void adjust(uint32_t increment, bool is_first);
     public:
         class Iterator final : public baseIterator<TYPE>
         {
             mutable int64_t cur_pos;
             mutable int64_t cur_block;
-            mutable TYPE* block_;
+            mutable TYPE** data_;
             const blocksList* container_;
 
-            explicit Iterator(int64_t pos, int64_t block, TYPE* block_ptr, const blocksList* container);
+            explicit Iterator(int64_t pos, int64_t block, TYPE** data_ptr, const blocksList* container);
             bool equalPtr(const iterator<TYPE> *other) const override;
         public:
             friend blocksList;
@@ -59,8 +65,13 @@ namespace original {
             [[nodiscard]] std::string className() const override;
         };
 
-        friend class Iterator;
+        friend Iterator;
         explicit blocksList();
+        blocksList(const std::initializer_list<TYPE>& lst);
+        explicit blocksList(const array<TYPE>& arr);
+        blocksList(const blocksList& other);
+        blocksList& operator=(const blocksList& other);
+        bool operator==(const blocksList& other) const;
         TYPE get(int64_t index) const override;
         [[nodiscard]] uint32_t size() const override;
         Iterator* begins() const override;
@@ -68,7 +79,14 @@ namespace original {
         TYPE& operator[](int64_t index) override;
         void set(int64_t index, const TYPE &e) override;
         uint32_t indexOf(const TYPE &e) const override;
+        void push(int64_t index, const TYPE &e) override;
+        TYPE pop(int64_t index) override;
+        void pushBegin(const TYPE &e) override;
+        TYPE popBegin() override;
+        void pushEnd(const TYPE &e) override;
+        TYPE popEnd() override;
         [[nodiscard]] std::string className() const override;
+        ~blocksList() override;
     };
 }// namespace original
 
@@ -90,13 +108,13 @@ namespace original {
     template <typename TYPE>
     auto original::blocksList<TYPE>::firstAbsIdx() const -> uint32_t
     {
-        return innerIdxToAbsIdx(0, this->first);
+        return innerIdxToAbsIdx(this->first_block, this->first);
     }
 
     template <typename TYPE>
     auto original::blocksList<TYPE>::lastAbsIdx() const -> uint32_t
     {
-        return innerIdxToAbsIdx(this->map.size() - 1, this->last);
+        return innerIdxToAbsIdx(this->last_block, this->last);
     }
 
     template <typename TYPE>
@@ -117,6 +135,22 @@ namespace original {
         return {absIdx / BLOCK_MAX_SIZE, absIdx % BLOCK_MAX_SIZE};
     }
 
+    template<typename TYPE>
+    TYPE& original::blocksList<TYPE>::getElem(uint32_t block, uint32_t pos) const {
+        return this->map.get(block)[pos];
+    }
+
+    template<typename TYPE>
+    void original::blocksList<TYPE>::setElem(uint32_t block, uint32_t pos, const TYPE &e) {
+        this->map.get(block)[pos] = e;
+    }
+
+    template<typename TYPE>
+    bool original::blocksList<TYPE>::growNeeded(uint32_t increment, bool is_first) const {
+        return is_first ? firstAbsIdx() < increment
+        : lastAbsIdx() + increment > innerIdxToAbsIdx(this->map.size() - 1, BLOCK_MAX_SIZE - 1);
+    }
+
     template <typename TYPE>
     void original::blocksList<TYPE>::moveElements(uint32_t start_idx, uint32_t len, int64_t offset)
     {
@@ -126,7 +160,8 @@ namespace original {
             {
                 auto idx = absIdxToInnerIdx(start_idx + len - 1 - i);
                 auto idx_offset = absIdxToInnerIdx(start_idx + len - 1 - i + offset);
-                this->map.get(idx_offset.first())[idx_offset.second()] = this->map.get(idx.first())[idx.second()];
+                this->setElem(idx_offset.first(), idx_offset.second(),
+                              this->getElem(idx.first(), idx.second()));
             }
         }else
         {
@@ -134,37 +169,45 @@ namespace original {
             {
                 auto idx = absIdxToInnerIdx(start_idx + i);
                 auto idx_offset = absIdxToInnerIdx(start_idx + i + offset);
-                this->map.get(idx_offset.first())[idx_offset.second()] = this->map.get(idx.first())[idx.second()];
+                this->setElem(idx_offset.first(), idx_offset.second(),
+                              this->getElem(idx.first(), idx.second()));
             }
         }
     }
 
     template <typename TYPE>
-    auto original::blocksList<TYPE>::addBlock(bool first) -> void
+    auto original::blocksList<TYPE>::addBlock(bool is_first) -> void
     {
         auto* new_block = blockArrayInit();
-        first ? this->map.pushBegin(new_block) : this->map.pushEnd(new_block);
+        is_first ? this->map.pushBegin(new_block) : this->map.pushEnd(new_block);
+    }
+
+    template<typename TYPE>
+    void original::blocksList<TYPE>::adjust(uint32_t increment, bool is_first) {
+        if (this->growNeeded(increment, is_first)){
+            uint32_t new_blocks_cnt = increment / BLOCK_MAX_SIZE + 1;
+            for (uint32_t i = 0; i < new_blocks_cnt; ++i) {
+                this->addBlock(is_first);
+            }
+            if (is_first){
+                this->first_block += new_blocks_cnt;
+                this->last_block += new_blocks_cnt;
+            }
+        }
     }
 
     template <typename TYPE>
-    auto original::blocksList<TYPE>::removeBlock(bool first) -> void
-    {
-        auto* removed_block = first ? this->map.popBegin() : this->map.popEnd();
-        delete[] removed_block;
-    }
-
-    template <typename TYPE>
-    original::blocksList<TYPE>::Iterator::Iterator(const int64_t pos, const int64_t block, TYPE* block_ptr, const blocksList* container)
-        : cur_pos(pos), cur_block(block), block_(block_ptr), container_(container) {}
+    original::blocksList<TYPE>::Iterator::Iterator(const int64_t pos, const int64_t block, TYPE** data_ptr, const blocksList* container)
+        : cur_pos(pos), cur_block(block), data_(data_ptr), container_(container) {}
 
     template <typename TYPE>
     auto original::blocksList<TYPE>::Iterator::equalPtr(const iterator<TYPE>* other) const -> bool
     {
         auto* other_it = dynamic_cast<const Iterator*>(other);
         return other_it != nullptr
-               && this->cur_pos = other_it->cur_pos
-               && this->cur_block = other_it->cur_block
-               && this->block_ == other_it->block_
+               && this->cur_pos == other_it->cur_pos
+               && this->cur_block == other_it->cur_block
+               && this->data_ == other_it->data_
                && this->container_ == other_it->container_;
     }
 
@@ -182,8 +225,8 @@ namespace original {
 
         this->cur_pos = other->cur_pos;
         this->cur_block = other->cur_block;
-        this->block_ == other->block_;
-        this->container_ == other->container_;
+        this->data_ = other->data_;
+        this->container_ = other->container_;
         return *this;
     }
 
@@ -202,7 +245,7 @@ namespace original {
     template <typename TYPE>
     auto original::blocksList<TYPE>::Iterator::hasPrev() const -> bool
     {
-        return blocksList::innerIdxToAbsIdx(this->cur_block, this->cur_pos) > 0;
+        return blocksList::innerIdxToAbsIdx(this->cur_block, this->cur_pos) > this->container_->firstAbsIdx();
     }
 
     template <typename TYPE>
@@ -273,21 +316,21 @@ namespace original {
     auto original::blocksList<TYPE>::Iterator::get() -> TYPE&
     {
         if (!this->isValid()) throw outOfBoundError();
-        return this->block_[this->cur_pos];
+        return this->data_[this->cur_block][this->cur_pos];
     }
 
     template <typename TYPE>
     auto original::blocksList<TYPE>::Iterator::get() const -> TYPE
     {
         if (!this->isValid()) throw outOfBoundError();
-        return this->block_[this->cur_pos];
+        return this->data_[this->cur_block][this->cur_pos];
     }
 
     template <typename TYPE>
     auto original::blocksList<TYPE>::Iterator::set(const TYPE& data) -> void
     {
         if (!this->isValid()) throw outOfBoundError();
-        this->block_[this->cur_pos] = data;
+        this->data_[this->cur_block][this->cur_pos] = data;
     }
 
     template <typename TYPE>
@@ -325,11 +368,63 @@ namespace original {
         : map(vector({blockArrayInit()})), size_(0), first(POS_INIT + 1), last(POS_INIT) {}
 
     template<typename TYPE>
+    original::blocksList<TYPE>::blocksList(const std::initializer_list<TYPE>& lst) : blocksList() {
+        this->adjust(lst.size(), false);
+        for (const auto& e : lst) {
+            auto new_idx = absIdxToInnerIdx(this->lastAbsIdx() + 1);
+            this->last_block = new_idx.first();
+            this->last = new_idx.second();
+            this->setElem(this->last_block, this->last, e);
+        }
+    }
+
+    template<typename TYPE>
+    original::blocksList<TYPE>::blocksList(const array<TYPE>& arr) : blocksList() {
+        this->adjust(arr.size(), false);
+        for (const auto& e : arr) {
+            auto new_idx = absIdxToInnerIdx(this->lastAbsIdx() + 1);
+            this->last_block = new_idx.first();
+            this->last = new_idx.second();
+            this->setElem(this->last_block, this->last, e);
+        }
+    }
+
+    template<typename TYPE>
+    original::blocksList<TYPE>::blocksList(const blocksList& other) : blocksList() {
+        this->operator=(other);
+    }
+
+    template<typename TYPE>
+    original::blocksList<TYPE>& original::blocksList<TYPE>::operator=(const blocksList& other) {
+        if (this == &other) return *this;
+
+        this->map = other.map;
+        this->first = other.first;
+        this->last = other.last;
+        this->size_ = other.size_;
+        return *this;
+    }
+
+    template<typename TYPE>
+    bool original::blocksList<TYPE>::operator==(const blocksList& other) const {
+        if (this == &other) return true;
+        if (this->size() != other.size()) return false;
+        for (uint32_t i = 0; i < this->size(); ++i) {
+            auto this_idx = absIdxToInnerIdx(this->outerIdxToAbsIdx(i));
+            auto other_idx = absIdxToInnerIdx(other.outerIdxToAbsIdx(i));
+            if (this->getElem(this_idx.first(), this_idx.second()) !=
+                other.getElem(other_idx.first(), other_idx.second()))
+                return false;
+        }
+        return true;
+    }
+
+    template<typename TYPE>
     auto original::blocksList<TYPE>::get(int64_t index) const -> TYPE {
         if (this->indexOutOfBound(this->parseNegIndex(index))) throw outOfBoundError();
         index = this->parseNegIndex(index);
         auto inner_idx = absIdxToInnerIdx(this->outerIdxToAbsIdx(index));
-        return this->map.get(inner_idx.first())[inner_idx.second()];
+        return this->getElem(inner_idx.first(), inner_idx.second());
     }
 
     template<typename TYPE>
@@ -339,12 +434,12 @@ namespace original {
 
     template<typename TYPE>
     auto original::blocksList<TYPE>::begins() const -> Iterator* {
-        return new Iterator(this->map.data(), this);
+        return new Iterator(this->first, this->first_block, &this->map.data(), this);
     }
 
     template<typename TYPE>
     auto original::blocksList<TYPE>::ends() const -> Iterator* {
-        return new Iterator(this->map.data() + this->map.size() - 1, this);
+        return new Iterator(this->last, this->last_block, &this->map.data(), this);
     }
 
     template<typename TYPE>
@@ -357,13 +452,14 @@ namespace original {
         if (this->indexOutOfBound(index)) throw outOfBoundError();
         index = this->parseNegIndex(index);
         auto inner_idx = absIdxToInnerIdx(this->outerIdxToAbsIdx(index));
-        this->map.get(inner_idx.first())[inner_idx.second()] = e;
+        this->setElem(inner_idx.first(), inner_idx.second(), e);
     }
 
     template<typename TYPE>
     auto original::blocksList<TYPE>::indexOf(const TYPE &e) const -> uint32_t {
         for (uint32_t i = 0; i < this->size(); ++i) {
-            if (this->get(i) == e) return i;
+            auto idx = absIdxToInnerIdx(this->outerIdxToAbsIdx(i));
+            if (this->getElem(idx.first(), idx.second()) == e) return i;
         }
         return this->size();
     }
@@ -371,6 +467,13 @@ namespace original {
     template<typename TYPE>
     auto original::blocksList<TYPE>::className() const -> std::string {
         return "blocksList";
+    }
+
+    template<typename TYPE>
+    original::blocksList<TYPE>::~blocksList() {
+        for (auto* block : this->map) {
+            delete[] block;
+        }
     }
 
 #endif //BLOCKSLIST_H
