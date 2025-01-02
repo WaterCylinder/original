@@ -7,8 +7,8 @@
 namespace original
 {
     template<typename TYPE,
-    template <typename> typename SERIAL = vector,
-    template <typename> typename Callback = increaseComparator>
+    template <typename> typename Callback = increaseComparator,
+    template <typename> typename SERIAL = vector>
     class prique : public printable
     {
         SERIAL<TYPE> serial_;
@@ -30,23 +30,23 @@ namespace original
     };
 }
 
-    template <typename TYPE, template <typename> class SERIAL, template <typename> class Callback>
-    original::prique<TYPE, SERIAL, Callback>::prique(const SERIAL<TYPE>& serial, const Callback<TYPE>& compare)
+    template <typename TYPE, template <typename> class Callback, template <typename> class SERIAL>
+    original::prique<TYPE, Callback, SERIAL>::prique(const SERIAL<TYPE>& serial, const Callback<TYPE>& compare)
         : serial_(serial), compare_(compare)
     {
         algorithms::heapInit(this->serial_.first(), this->serial_.last(), this->compare_);
     }
 
-    template <typename TYPE, template <typename> class SERIAL, template <typename> class Callback>
-    original::prique<TYPE, SERIAL, Callback>::prique(const std::initializer_list<TYPE>& lst, const Callback<TYPE>& compare)
+    template <typename TYPE, template <typename> class Callback, template <typename> class SERIAL>
+    original::prique<TYPE, Callback, SERIAL>::prique(const std::initializer_list<TYPE>& lst, const Callback<TYPE>& compare)
         : prique(SERIAL<TYPE>(lst), compare) {}
 
-    template <typename TYPE, template <typename> class SERIAL, template <typename> class Callback>
-    original::prique<TYPE, SERIAL, Callback>::prique(const prique& other)
+    template <typename TYPE, template <typename> class Callback, template <typename> class SERIAL>
+    original::prique<TYPE, Callback, SERIAL>::prique(const prique& other)
         : serial_(other.serial_), compare_(other.compare_) {}
 
-    template <typename TYPE, template <typename> class SERIAL, template <typename> class Callback>
-    auto original::prique<TYPE, SERIAL, Callback>::operator=(const prique& other) -> prique&
+    template <typename TYPE, template <typename> class Callback, template <typename> class SERIAL>
+    auto original::prique<TYPE, Callback, SERIAL>::operator=(const prique& other) -> prique&
     {
         if (this == &other) return *this;
         serial_ = other.serial_;
@@ -54,39 +54,39 @@ namespace original
         return *this;
     }
 
-    template <typename TYPE, template <typename> class SERIAL, template <typename> class Callback>
-    auto original::prique<TYPE, SERIAL, Callback>::operator==(const prique& other) const -> bool
+    template <typename TYPE, template <typename> class Callback, template <typename> class SERIAL>
+    auto original::prique<TYPE, Callback, SERIAL>::operator==(const prique& other) const -> bool
     {
         return serial_ == other.serial_ && compare_ == other.compare_;
     }
 
-    template <typename TYPE, template <typename> class SERIAL, template <typename> class Callback>
-    auto original::prique<TYPE, SERIAL, Callback>::size() const -> uint32_t
+    template <typename TYPE, template <typename> class Callback, template <typename> class SERIAL>
+    auto original::prique<TYPE, Callback, SERIAL>::size() const -> uint32_t
     {
         return serial_.size();
     }
 
-    template <typename TYPE, template <typename> class SERIAL, template <typename> class Callback>
-    auto original::prique<TYPE, SERIAL, Callback>::empty() const -> bool
+    template <typename TYPE, template <typename> class Callback, template <typename> class SERIAL>
+    auto original::prique<TYPE, Callback, SERIAL>::empty() const -> bool
     {
         return serial_.empty();
     }
 
-    template <typename TYPE, template <typename> class SERIAL, template <typename> class Callback>
-    auto original::prique<TYPE, SERIAL, Callback>::clear() -> void
+    template <typename TYPE, template <typename> class Callback, template <typename> class SERIAL>
+    auto original::prique<TYPE, Callback, SERIAL>::clear() -> void
     {
         serial_.clear();
     }
 
-    template <typename TYPE, template <typename> class SERIAL, template <typename> class Callback>
-    auto original::prique<TYPE, SERIAL, Callback>::push(const TYPE& e) -> void
+    template <typename TYPE, template <typename> class Callback, template <typename> class SERIAL>
+    auto original::prique<TYPE, Callback, SERIAL>::push(const TYPE& e) -> void
     {
         serial_.pushEnd(e);
         algorithms::heapAdjustUp(this->serial_.first(), this->serial_.last(), this->compare_);
     }
 
-    template <typename TYPE, template <typename> class SERIAL, template <typename> class Callback>
-    auto original::prique<TYPE, SERIAL, Callback>::pop() -> TYPE
+    template <typename TYPE, template <typename> class Callback, template <typename> class SERIAL>
+    auto original::prique<TYPE, Callback, SERIAL>::pop() -> TYPE
     {
         if (this->empty()) throw noElementError();
 
@@ -96,20 +96,20 @@ namespace original
         return res;
     }
 
-    template <typename TYPE, template <typename> class SERIAL, template <typename> class Callback>
-    auto original::prique<TYPE, SERIAL, Callback>::top() const -> TYPE
+    template <typename TYPE, template <typename> class Callback, template <typename> class SERIAL>
+    auto original::prique<TYPE, Callback, SERIAL>::top() const -> TYPE
     {
         return serial_.getBegin();
     }
 
-    template <typename TYPE, template <typename> class SERIAL, template <typename> class Callback>
-    auto original::prique<TYPE, SERIAL, Callback>::className() const -> std::string
+    template <typename TYPE, template <typename> class Callback, template <typename> class SERIAL>
+    auto original::prique<TYPE, Callback, SERIAL>::className() const -> std::string
     {
         return "prique";
     }
 
-    template <typename TYPE, template <typename> class SERIAL, template <typename> class Callback>
-    auto original::prique<TYPE, SERIAL, Callback>::toString(const bool enter) const -> std::string
+    template <typename TYPE, template <typename> class Callback, template <typename> class SERIAL>
+    auto original::prique<TYPE, Callback, SERIAL>::toString(const bool enter) const -> std::string
     {
         std::stringstream ss;
         ss << this->className() << "(";
