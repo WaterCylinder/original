@@ -59,7 +59,7 @@ namespace original {
         explicit chain();
         chain(const chain& other);
         chain(const std::initializer_list<TYPE>& list);
-        explicit chain(array<TYPE> arr);
+        explicit chain(const array<TYPE>& arr);
         chain& operator=(const chain& other);
         bool operator==(const chain& other) const;
         void operator+=(chain& other);
@@ -270,7 +270,7 @@ namespace original {
     }
 
     template <typename TYPE>
-    original::chain<TYPE>::chain(array<TYPE> arr)
+    original::chain<TYPE>::chain(const array<TYPE>& arr)
         : chain() {
         for (uint32_t i = 0; i < arr.size(); i++) {
             auto* cur_node = new chainNode(arr.get(i));

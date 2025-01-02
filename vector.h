@@ -39,7 +39,7 @@ namespace original{
         explicit vector();
         vector(const vector& other);
         vector(const std::initializer_list<TYPE>& list);
-        explicit vector(array<TYPE> arr);
+        explicit vector(const array<TYPE>& arr);
         vector& operator=(const vector& other);
         bool operator==(const vector& other) const;
         [[nodiscard]] uint32_t size() const override;
@@ -224,7 +224,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    original::vector<TYPE>::vector(array<TYPE> arr) : vector()
+    original::vector<TYPE>::vector(const array<TYPE>& arr) : vector()
     {
         this->adjust(arr.size());
         for (uint32_t i = 0; i < arr.size(); i += 1)
