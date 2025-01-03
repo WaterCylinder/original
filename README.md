@@ -16,9 +16,9 @@ Original是一个小型的C++工具库,也是本人的第一个正式项目，�
 
 正在实现中。包含了常用容器与结构、算法、内存管理等部分，是项目的核心功能模块。
 
-常用容器与结构：已经实现array（定长数组）、chain（双向链表）、vector（变长数组）、stack&queue（栈和队列两种容器适配器），尚未实现部分有优先队列适配器和有序无序表。
+常用容器与结构：已经实现array（定长数组）、chain（双向链表）、forwardChain（单向链表）、vector（变长数组）、bitSet（位集合）、blocksList（双端队列的底层容器）、stack&queue&deque&prique（栈、队列、双端队列、优先队列四种容器适配器），尚未实现部分有哈希表和树表（红黑树实现）等。
 
-算法：已经实现iterator（双向迭代器）、filter&filterStream（谓词工具类）、transform&transformStream（原子操作类）、部分算法（非修改类、修改类算法），排序算法等尚未实现。
+算法：已经实现iterator（迭代器）、filter&filterStream（谓词工具类）、transform&transformStream（单一操作类）、comparator（比较器）、部分算法（非修改类、修改类算法），排序算法（堆算法）等。
 
 内存管理：待实现内存池、分配器、智能指针等。
 
