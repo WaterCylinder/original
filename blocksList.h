@@ -6,7 +6,6 @@
 #include "serial.h"
 
 namespace original {
-    // todo
     template<typename TYPE>
     class blocksList final : public serial<TYPE>, public iterationStream<TYPE>{
         static constexpr uint32_t BLOCK_MAX_SIZE = 16;
@@ -26,10 +25,13 @@ namespace original {
         [[nodiscard]] int64_t absIdxToOuterIdx(uint32_t absIdx) const;
         [[nodiscard]] uint32_t outerIdxToAbsIdx(int64_t outerIdx) const;
         [[nodiscard]] static couple<uint32_t, uint32_t> absIdxToInnerIdx(uint32_t absIdx);
+        [[nodiscard]] static couple<uint32_t, uint32_t> innerIdxOffset(uint32_t block, uint32_t pos, int64_t offset);
+        [[nodiscard]] couple<uint32_t, uint32_t> outerIdxToInnerIdx(int64_t outerIdx) const;
+        [[nodiscard]] int64_t innerIdxToOuterIdx(uint32_t block, uint32_t pos) const;
         TYPE& getElem(uint32_t block, uint32_t pos) const;
         void setElem(uint32_t block, uint32_t pos, const TYPE& e);
         [[nodiscard]] bool growNeeded(uint32_t increment, bool is_first) const;
-        void moveElements(uint32_t start_idx, uint32_t len, int64_t offset);
+        void moveElements(uint32_t start_block, uint32_t start_pos, uint32_t len, int64_t offset);
         void addBlock(bool is_first);
         void adjust(uint32_t increment, bool is_first);
     public:
@@ -136,6 +138,22 @@ namespace original {
     }
 
     template<typename TYPE>
+    original::couple<uint32_t, uint32_t>
+    original::blocksList<TYPE>::innerIdxOffset(uint32_t block, uint32_t pos, int64_t offset) {
+        return absIdxToInnerIdx(static_cast<uint32_t>(static_cast<int64_t>(innerIdxToAbsIdx(block, pos)) + offset));
+    }
+
+    template<typename TYPE>
+    original::couple<uint32_t, uint32_t> original::blocksList<TYPE>::outerIdxToInnerIdx(int64_t outerIdx) const {
+        return absIdxToInnerIdx(this->outerIdxToAbsIdx(outerIdx));
+    }
+
+    template<typename TYPE>
+    int64_t original::blocksList<TYPE>::innerIdxToOuterIdx(uint32_t block, uint32_t pos) const {
+        return this->absIdxToOuterIdx(innerIdxToAbsIdx(block, pos));
+    }
+
+    template<typename TYPE>
     TYPE& original::blocksList<TYPE>::getElem(uint32_t block, uint32_t pos) const {
         return this->map.get(block)[pos];
     }
@@ -152,14 +170,15 @@ namespace original {
     }
 
     template <typename TYPE>
-    void original::blocksList<TYPE>::moveElements(uint32_t start_idx, uint32_t len, int64_t offset)
+    void
+    original::blocksList<TYPE>::moveElements(uint32_t start_block, uint32_t start_pos, uint32_t len, int64_t offset)
     {
         if (offset > 0)
         {
             for (uint32_t i = 0; i < len; i++)
             {
-                auto idx = absIdxToInnerIdx(start_idx + len - 1 - i);
-                auto idx_offset = absIdxToInnerIdx(start_idx + len - 1 - i + offset);
+                auto idx = innerIdxOffset(start_block, start_pos, len - 1 - i);
+                auto idx_offset = innerIdxOffset(start_block, start_pos, len - 1 - i + offset);
                 this->setElem(idx_offset.first(), idx_offset.second(),
                               this->getElem(idx.first(), idx.second()));
             }
@@ -167,8 +186,8 @@ namespace original {
         {
             for (uint32_t i = 0; i < len; i++)
             {
-                auto idx = absIdxToInnerIdx(start_idx + i);
-                auto idx_offset = absIdxToInnerIdx(start_idx + i + offset);
+                auto idx = innerIdxOffset(start_block, start_pos, i);
+                auto idx_offset = innerIdxOffset(start_block, start_pos, i + offset);;
                 this->setElem(idx_offset.first(), idx_offset.second(),
                               this->getElem(idx.first(), idx.second()));
             }
@@ -223,10 +242,10 @@ namespace original {
         if (this == &other)
             return *this;
 
-        this->cur_pos = other->cur_pos;
-        this->cur_block = other->cur_block;
-        this->data_ = other->data_;
-        this->container_ = other->container_;
+        this->cur_pos = other.cur_pos;
+        this->cur_block = other.cur_block;
+        this->data_ = other.data_;
+        this->container_ = other.container_;
         return *this;
     }
 
@@ -264,7 +283,7 @@ namespace original {
     auto original::blocksList<TYPE>::Iterator::operator+=(int64_t steps) const -> void
     {
         if (!this->isValid()) throw outOfBoundError();
-        auto new_idx = absIdxToInnerIdx(innerIdxToAbsIdx(this->cur_block, this->cur_pos) + steps);
+        auto new_idx = innerIdxOffset(this->cur_block, this->cur_pos, steps);
         this->cur_block = new_idx.first();
         this->cur_pos = new_idx.second();
     }
@@ -273,7 +292,7 @@ namespace original {
     auto original::blocksList<TYPE>::Iterator::operator-=(int64_t steps) const -> void
     {
         if (!this->isValid()) throw outOfBoundError();
-        auto new_idx = absIdxToInnerIdx(innerIdxToAbsIdx(this->cur_block, this->cur_pos) - steps);
+        auto new_idx = innerIdxOffset(this->cur_block, this->cur_pos, -steps);
         this->cur_block = new_idx.first();
         this->cur_pos = new_idx.second();
     }
@@ -336,8 +355,8 @@ namespace original {
     template <typename TYPE>
     auto original::blocksList<TYPE>::Iterator::isValid() const -> bool
     {
-        return  blocksList::absIdxToOuterIdx(innerIdxToAbsIdx(this->cur_block, this->cur_pos)) >= 0 &&
-                blocksList::absIdxToOuterIdx(innerIdxToAbsIdx(this->cur_block, this->cur_pos)) < this->container_->size();
+        return this->container_->innerIdxToOuterIdx(this->cur_block, this->cur_pos) >= 0 &&
+               this->container_->innerIdxToOuterIdx(this->cur_block, this->cur_pos) < this->container_->size();
     }
 
     template <typename TYPE>
@@ -371,10 +390,11 @@ namespace original {
     original::blocksList<TYPE>::blocksList(const std::initializer_list<TYPE>& lst) : blocksList() {
         this->adjust(lst.size(), false);
         for (const auto& e : lst) {
-            auto new_idx = absIdxToInnerIdx(this->lastAbsIdx() + 1);
+            auto new_idx = innerIdxOffset(this->last_block, this->last, 1);
             this->last_block = new_idx.first();
             this->last = new_idx.second();
             this->setElem(this->last_block, this->last, e);
+            this->size_ += 1;
         }
     }
 
@@ -382,10 +402,11 @@ namespace original {
     original::blocksList<TYPE>::blocksList(const array<TYPE>& arr) : blocksList() {
         this->adjust(arr.size(), false);
         for (const auto& e : arr) {
-            auto new_idx = absIdxToInnerIdx(this->lastAbsIdx() + 1);
+            auto new_idx = innerIdxOffset(this->last_block, this->last, 1);
             this->last_block = new_idx.first();
             this->last = new_idx.second();
             this->setElem(this->last_block, this->last, e);
+            this->size_ += 1;
         }
     }
 
@@ -410,8 +431,8 @@ namespace original {
         if (this == &other) return true;
         if (this->size() != other.size()) return false;
         for (uint32_t i = 0; i < this->size(); ++i) {
-            auto this_idx = absIdxToInnerIdx(this->outerIdxToAbsIdx(i));
-            auto other_idx = absIdxToInnerIdx(other.outerIdxToAbsIdx(i));
+            auto this_idx = this->outerIdxToInnerIdx(i);
+            auto other_idx = other.outerIdxToInnerIdx(i);
             if (this->getElem(this_idx.first(), this_idx.second()) !=
                 other.getElem(other_idx.first(), other_idx.second()))
                 return false;
@@ -423,7 +444,7 @@ namespace original {
     auto original::blocksList<TYPE>::get(int64_t index) const -> TYPE {
         if (this->indexOutOfBound(this->parseNegIndex(index))) throw outOfBoundError();
         index = this->parseNegIndex(index);
-        auto inner_idx = absIdxToInnerIdx(this->outerIdxToAbsIdx(index));
+        auto inner_idx = this->outerIdxToInnerIdx(index);
         return this->getElem(inner_idx.first(), inner_idx.second());
     }
 
@@ -443,25 +464,134 @@ namespace original {
     }
 
     template<typename TYPE>
-    auto original::blocksList<TYPE>::operator[](const int64_t index) -> TYPE& {
-        return this->get(index);
+    auto original::blocksList<TYPE>::operator[](int64_t index) -> TYPE& {
+        if (this->indexOutOfBound(this->parseNegIndex(index))) throw outOfBoundError();
+        index = this->parseNegIndex(index);
+        auto inner_idx = this->outerIdxToInnerIdx(index);
+        return this->getElem(inner_idx.first(), inner_idx.second());
     }
 
     template<typename TYPE>
     auto original::blocksList<TYPE>::set(int64_t index, const TYPE &e) -> void {
         if (this->indexOutOfBound(index)) throw outOfBoundError();
         index = this->parseNegIndex(index);
-        auto inner_idx = absIdxToInnerIdx(this->outerIdxToAbsIdx(index));
+        auto inner_idx = this->outerIdxToInnerIdx(index);
         this->setElem(inner_idx.first(), inner_idx.second(), e);
     }
 
     template<typename TYPE>
     auto original::blocksList<TYPE>::indexOf(const TYPE &e) const -> uint32_t {
         for (uint32_t i = 0; i < this->size(); ++i) {
-            auto idx = absIdxToInnerIdx(this->outerIdxToAbsIdx(i));
+            auto idx = this->outerIdxToInnerIdx(i);
             if (this->getElem(idx.first(), idx.second()) == e) return i;
         }
         return this->size();
+    }
+
+    template<typename TYPE>
+    void original::blocksList<TYPE>::push(int64_t index, const TYPE &e) {
+        if (this->parseNegIndex(index) == this->size())
+        {
+            this->pushEnd(e);
+        } else if (this->parseNegIndex(index) == 0)
+        {
+            this->pushBegin(e);
+        } else{
+            if (this->indexOutOfBound(index))
+                throw outOfBoundError();
+
+            index = this->parseNegIndex(index);
+            bool is_first = index <= (this->size() - 1) / 2;
+            this->adjust(1, is_first);
+            if (is_first){
+                this->moveElements(this->first_block, this->first, index + 1, -1);
+                auto new_idx = innerIdxOffset(this->first_block, this->first, -1);
+                this->first_block = new_idx.first();
+                this->first = new_idx.second();
+            } else{
+                auto idx = outerIdxToInnerIdx(index);
+                this->moveElements(idx.first(), idx.second(), this->size() - index, 1);
+                auto new_idx = innerIdxOffset(this->last_block, this->last, 1);
+                this->last_block = new_idx.first();
+                this->last = new_idx.second();
+            }
+            this->size_ += 1;
+            auto idx = outerIdxToInnerIdx(index);
+            this->setElem(idx.first(), idx.second(), e);
+        }
+    }
+
+    template<typename TYPE>
+    TYPE original::blocksList<TYPE>::pop(int64_t index) {
+        if (this->parseNegIndex(index) == 0)
+            return this->popBegin();
+        if (this->parseNegIndex(index) == this->size() - 1)
+            return this->popEnd();
+        if (this->indexOutOfBound(index))
+            throw outOfBoundError();
+
+        index = this->parseNegIndex(index);
+        auto idx = outerIdxToInnerIdx(index);
+        TYPE res = this->getElem(idx.first(), idx.second());
+        bool is_first = index <= (this->size() - 1) / 2;
+        if (is_first){
+            moveElements(this->first_block, this->first, index, 1);
+            auto new_idx = innerIdxOffset(this->first_block, this->first, 1);
+            this->first_block = new_idx.first();
+            this->first = new_idx.second();
+        } else{
+            auto idx_offset = innerIdxOffset(idx.first(), idx.second(), 1);
+            moveElements(idx_offset.first(), idx_offset.second(), this->size() - 1 - index, -1);
+            auto new_idx = innerIdxOffset(this->last_block, this->last, -1);
+            this->last_block = new_idx.first();
+            this->last = new_idx.second();
+        }
+        this->size_ -= 1;
+        return res;
+    }
+
+    template<typename TYPE>
+    void original::blocksList<TYPE>::pushBegin(const TYPE &e) {
+        this->adjust(1, true);
+        auto new_idx = innerIdxOffset(this->first_block, this->first, -1);
+        this->first_block = new_idx.first();
+        this->first = new_idx.second();
+        this->setElem(this->first_block, this->first, e);
+        this->size_ += 1;
+    }
+
+    template<typename TYPE>
+    TYPE original::blocksList<TYPE>::popBegin() {
+        if (this->empty()) throw noElementError();
+
+        TYPE res = this->getElem(this->first_block, this->first);
+        auto new_idx = innerIdxOffset(this->first_block, this->first, 1);
+        this->first_block = new_idx.first();
+        this->first = new_idx.second();
+        this->size_ -= 1;
+        return res;
+    }
+
+    template<typename TYPE>
+    void original::blocksList<TYPE>::pushEnd(const TYPE &e) {
+        this->adjust(1, false);
+        auto new_idx = innerIdxOffset(this->last_block, this->last, 1);
+        this->last_block = new_idx.first();
+        this->last = new_idx.second();
+        this->setElem(this->last_block, this->last, e);
+        this->size_ += 1;
+    }
+
+    template<typename TYPE>
+    TYPE original::blocksList<TYPE>::popEnd() {
+        if (this->empty()) throw noElementError();
+
+        TYPE res = this->getElem(this->last_block, this->last);
+        auto new_idx = innerIdxOffset(this->last_block, this->last, -1);
+        this->last_block = new_idx.first();
+        this->last = new_idx.second();
+        this->size_ -= 1;
+        return res;
     }
 
     template<typename TYPE>
