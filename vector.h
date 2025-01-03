@@ -326,7 +326,7 @@ namespace original{
             }else
             {
                 vector::moveElements(this->body, index,
-                                     this->size() - 1 - rel_idx, this->body, 1);
+                                     this->size() - rel_idx, this->body, 1);
             }
             this->body[index] = e;
             this->size_ += 1;
