@@ -2927,7 +2927,7 @@ MSCFILE_DIRS           =
 PROJECT_NAME = "ORIGINAL"
 
 # 输出目录
-OUTPUT_DIRECTORY = ./docs
+OUTPUT_DIRECTORY = ../original_docs/docs
 
 # 启用UML类图生成
 HAVE_DOT = YES
