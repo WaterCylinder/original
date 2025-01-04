@@ -13,6 +13,15 @@ namespace original
         template<typename TYPE>
         static int64_t distance(const iterator<TYPE>& end, const iterator<TYPE>& begin);
 
+        template<typename TYPE, typename Callback>
+        static bool allOf(const iterator<TYPE>& begin, const iterator<TYPE>& end,  const Callback& condition);
+
+        template<typename TYPE, typename Callback>
+        static bool anyOf(const iterator<TYPE>& begin, const iterator<TYPE>& end,  const Callback& condition);
+
+        template<typename TYPE, typename Callback>
+        static bool noneOf(const iterator<TYPE>& begin, const iterator<TYPE>& end,  const Callback& condition);
+
         template<typename TYPE>
         static iterator<TYPE>* find(const iterator<TYPE> &begin, const iterator<TYPE> &end, const TYPE &target);
 
@@ -95,6 +104,51 @@ namespace original
         delete it1;
         delete it2;
         return dis;
+    }
+
+    template<typename TYPE, typename Callback>
+    bool original::algorithms::allOf(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
+                                     const Callback &condition) {
+        callBackChecker<Callback, bool, const TYPE&>::check();
+        auto* it = begin.clone();
+        for (; !it->equal(end); it->next()){
+            if (!condition(it->get())){
+                delete it;
+                return false;
+            }
+        }
+        delete it;
+        return true;
+    }
+
+    template<typename TYPE, typename Callback>
+    bool original::algorithms::anyOf(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
+                                     const Callback &condition) {
+        callBackChecker<Callback, bool, const TYPE&>::check();
+        auto* it = begin.clone();
+        for (; !it->equal(end); it->next()){
+            if (condition(it->get())){
+                delete it;
+                return true;
+            }
+        }
+        delete it;
+        return false;
+    }
+
+    template<typename TYPE, typename Callback>
+    bool original::algorithms::noneOf(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
+                                      const Callback &condition) {
+        callBackChecker<Callback, bool, const TYPE&>::check();
+        auto* it = begin.clone();
+        for (; !it->equal(end); it->next()){
+            if (condition(it->get())){
+                delete it;
+                return false;
+            }
+        }
+        delete it;
+        return true;
     }
 
     template <typename TYPE>
