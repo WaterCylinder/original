@@ -2926,8 +2926,17 @@ MSCFILE_DIRS           =
 # 项目名称
 PROJECT_NAME = "ORIGINAL"
 
+# 源目录
+INPUT = src
+
 # 输出目录
 OUTPUT_DIRECTORY = ../original_docs/docs
+
+# 文件类型
+FILE_PATTERNS = *.h
+
+# 允许递归扫描源文件夹
+RECURSIVE = YES
 
 # 启用UML类图生成
 HAVE_DOT = YES
