@@ -1,8 +1,8 @@
 #ifndef PRIQUE_H
 #define PRIQUE_H
-#include <algorithms.h>
-#include <comparator.h>
-#include <vector.h>
+#include "algorithms.h"
+#include "comparator.h"
+#include "vector.h"
 
 namespace original
 {

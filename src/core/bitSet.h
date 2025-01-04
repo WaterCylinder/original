@@ -1,9 +1,9 @@
 #ifndef BITSET_H
 #define BITSET_H
-#include <array.h>
-#include <couple.h>
-#include <iterationStream.h>
-#include <serial.h>
+#include "array.h"
+#include "couple.h"
+#include "iterationStream.h"
+#include "serial.h"
 
 
 namespace original {

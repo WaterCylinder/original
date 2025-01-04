@@ -1,7 +1,7 @@
 #ifndef SINGLEDIRECTIONITERATOR_H
 #define SINGLEDIRECTIONITERATOR_H
 
-#include <stepIterator.h>
+#include "stepIterator.h"
 
 namespace original {
     template<typename TYPE>

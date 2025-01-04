@@ -1,7 +1,7 @@
-#include <forwardChain.h>
+#include "src/core/forwardChain.h"
 #include <iostream>
-#include "vector.h"
-#include "blocksList.h"
+#include "src/core/vector.h"
+#include "src/core/blocksList.h"
 
 int main(){
     auto f1 = original::forwardChain({10, 4, 5, 7, 6, 3, 2});

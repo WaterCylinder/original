@@ -1,6 +1,6 @@
 #ifndef DOUBLEDIRECTIONITERATOR_H
 #define DOUBLEDIRECTIONITERATOR_H
-#include <stepIterator.h>
+#include "stepIterator.h"
 
 namespace original {
     template<typename TYPE>

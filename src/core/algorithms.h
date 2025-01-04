@@ -1,7 +1,7 @@
 #ifndef ALGORITHMS_H
 #define ALGORITHMS_H
 
-#include <filter.h>
+#include "filter.h"
 #include "iterator.h"
 #include "error.h"
 

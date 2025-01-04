@@ -1,13 +1,13 @@
 
 #include <iostream>
 
-#include "algorithms.h"
-#include "chain.h"
-#include "couple.h"
-#include "vector.h"
-#include "maths.h"
-#include "filterStream.h"
-#include "transformStream.h"
+#include "src/core/algorithms.h"
+#include "src/core/chain.h"
+#include "src/core/couple.h"
+#include "src/core/vector.h"
+#include "src/core/maths.h"
+#include "src/core/filterStream.h"
+#include "src/core/transformStream.h"
 
 
 int main()
