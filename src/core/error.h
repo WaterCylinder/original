@@ -2,24 +2,24 @@
 #define ERROR_H
 
 #include <stdexcept>
-#include <cxxabi.h>
-#include "type_traits"
-#include "string"
+#include <typeinfo>
+#include <string>
 
-namespace original{
+namespace original {
 
     template<typename Callback, typename Ret_TYPE, typename ...Args_TYPE>
     class callBackChecker{
-            template<class TYPE>
-            static std::string getTypeName();
-        public:
-            static void check();
+        template<class TYPE>
+        static std::string getTypeName();
+
+    public:
+        static void check();
     };
 
     class outOfBoundError final : public std::exception{
         [[nodiscard]] auto what() const noexcept -> const char* override
         {
-            return "Out of the bound of thw object.";
+            return "Out of the bound of the object.";
         }
     };
 
@@ -52,27 +52,25 @@ namespace original{
     };
 }
 
-    template<typename CallBack, typename Ret_TYPE, typename... Args_TYPE>
+    template<typename Callback, typename Ret_TYPE, typename... Args_TYPE>
     template<class TYPE>
-    std::string original::callBackChecker<CallBack, Ret_TYPE, Args_TYPE...>::getTypeName() {
-        int status;
-        char* demangled = abi::__cxa_demangle(typeid(TYPE).name(),
-                                              nullptr, nullptr, &status);
-        std::string name = (status == 0) ? demangled : typeid(TYPE).name();
-        std::free(demangled);
+    std::string original::callBackChecker<Callback, Ret_TYPE, Args_TYPE...>::getTypeName() {
+        std::string name = typeid(TYPE).name();
         return name;
     }
 
     template<typename Callback, typename Ret_TYPE, typename... Args_TYPE>
     void original::callBackChecker<Callback, Ret_TYPE, Args_TYPE...>::check() {
         constexpr bool is_valid = std::is_invocable_r_v<Ret_TYPE, Callback, Args_TYPE...>;
-        if constexpr (is_valid){
+        if constexpr (is_valid) {
             return;
         }
+
         std::string message =
                 "Callback must be a callable with return type '"
                 + callBackChecker::getTypeName<Ret_TYPE>() +
                 "' and argument type(s) (";
+
         ((message += callBackChecker::getTypeName<Args_TYPE>() + ", "), ...);
         message.pop_back();
         message.pop_back();
@@ -81,4 +79,4 @@ namespace original{
         throw std::runtime_error(message);
     }
 
-#endif //ERROR_H
+#endif // ERROR_H
