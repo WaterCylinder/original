@@ -1,10 +1,10 @@
 #include <iostream>
 
-#include "src/core/array.h"
-#include "src/core/chain.h"
-#include "src/core/maths.h"
-#include "src/core/vector.h"
-#include "src/core/iterator.h"
+#include "array.h"
+#include "chain.h"
+#include "maths.h"
+#include "vector.h"
+#include "iterator.h"
 
 
 int main(){

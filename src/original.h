@@ -1,6 +1,6 @@
 #ifndef ORIGINAL_H
 #define ORIGINAL_H
 
-#include "src/core/core.h"
+#include "core/core.h"
 
 #endif //ORIGINAL_H

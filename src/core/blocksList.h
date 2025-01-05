@@ -2,8 +2,7 @@
 #define BLOCKSLIST_H
 
 #include "couple.h"
-#include "iterationStream.h"
-#include "serial.h"
+#include "vector.h"
 
 namespace original {
     template<typename TYPE>

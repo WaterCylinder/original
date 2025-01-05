@@ -3,7 +3,6 @@
 #include "array.h"
 #include "couple.h"
 #include "iterationStream.h"
-#include "serial.h"
 
 
 namespace original {

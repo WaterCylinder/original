@@ -1,14 +1,14 @@
-#include "src/core/bitSet.h"
-#include "src/core/deque.h"
+#include "bitSet.h"
+#include "deque.h"
 
-#include "src/core/stack.h"
+#include "stack.h"
 #include <iostream>
-#include "src/core/prique.h"
-#include "src/core/queue.h"
-#include "src/core/chain.h"
-#include "src/core/vector.h"
-#include "src/core/algorithms.h"
-#include "src/core/filter.h"
+#include "prique.h"
+#include "queue.h"
+#include "chain.h"
+#include "vector.h"
+#include "algorithms.h"
+#include "filter.h"
 
 
 int main(){
