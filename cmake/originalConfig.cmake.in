@@ -1,0 +1,16 @@
+# cmake/originalConfig.cmake.in
+
+@PACKAGE_INIT@
+
+set(ORIGINAL_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/install/include")
+if(WIN32)
+    set(ORIGINAL_LIBRARIES "${CMAKE_SOURCE_DIR}/install/lib/original.lib")
+else()
+    set(ORIGINAL_LIBRARIES "${CMAKE_SOURCE_DIR}/install/lib/liboriginal.a")
+endif()
+
+include_directories(${ORIGINAL_INCLUDE_DIRS})
+
+if (ORIGINAL_LIBRARIES)
+    link_libraries(${ORIGINAL_LIBRARIES})
+endif()
