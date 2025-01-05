@@ -9,6 +9,61 @@ Original是一个小型的C++工具库,也是本人的第一个正式项目，�
 ## 文档
 点击此处查看项目文档：[文档-Original](https://documents-original.vercel.app/)
 
+# 安装
+在该项目文件夹下新建文件夹`build`并进入：
+```shell
+mkdir build
+cd build
+```
+利用cmake构建库：
+```shell
+cmake .. -DCMAKE_BUILD_TYPE=Debug
+cmake --build . --config Debug
+cmake --install . --config Debug
+```
+将生成的`build`和`install`文件夹复制到你的项目中，这里以项目`hello_original`为例：
+```text
+├─build
+├─install
+├─CMakeLists.txt
+└─main.cpp
+```
+配置`CMakeLists.txt`：
+```cmake
+cmake_minimum_required(VERSION 3.29)
+project(hello_original)
+
+set(CMAKE_CXX_STANDARD 20)
+
+set(CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/install/cmake")
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/install/cmake/original")
+
+find_package(original REQUIRED)
+
+add_executable(hello_original main.cpp)
+
+target_link_libraries(hello_original PRIVATE "${ORIGINAL_LIBRARIES}")
+```
+`main.cpp`：
+```c++
+#include <iostream>
+#include "original.h"
+
+
+int main() {
+    std::cout << "Hello, Original!" << std::endl;
+    auto a1 = original::array({"Hello, Original!"});
+    std::cout << a1 << std::endl;
+    printf("%s\n", static_cast<const char*>(a1));
+    return 0;
+}
+```
+输出：
+```text
+Hello, original!
+array("Hello, original!")
+array("Hello, original!")
+```
 
 ## 模块进度
 
