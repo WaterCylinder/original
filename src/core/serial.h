@@ -33,8 +33,8 @@ namespace original{
     template<typename TYPE>
     auto original::serial<TYPE>::indexOutOfBound(const int64_t index) const -> bool
     {
-        int64_t parsedIndex = this->parseNegIndex(index);
-        return parsedIndex < 0 || parsedIndex >= this->size();
+        int64_t parsed_index = this->parseNegIndex(index);
+        return parsed_index < 0 || parsed_index >= this->size();
     }
 
     template<typename TYPE>
