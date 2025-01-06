@@ -7,9 +7,9 @@
 Original是一个小型的C++工具库,也是本人的第一个正式项目，用于学习C++相关基础以及STL、Boost等库。项目的目标是实现STL的主要内容以及Boost的某些相关功能，具体已经实现和未来计划实现的模块内容在下文列出，计划实现的部分会根据情况进行调整，不一定都实现，以最终项目为准。如有问题可以在[Issues](https://github.com/FrozenLemonTee/original/issues)中提出，也欢迎一起参与到本项目的实现中来，如Fork等。
 
 ## 文档
-点击此处查看项目文档：[文档-Original](https://documents-original.vercel.app/)
+[文档-Original](https://documents-original.vercel.app/)
 
-# 安装
+## 安装
 在该项目文件夹下新建文件夹`build`并进入：
 ```shell
 mkdir build
