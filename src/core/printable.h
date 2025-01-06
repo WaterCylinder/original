@@ -89,6 +89,12 @@ namespace original {
     }
 
     template<>
+    inline auto original::printable::formatString<std::nullptr_t>(const std::nullptr_t&) -> std::string
+    {
+        return "nullptr";
+    }
+
+    template<>
     inline auto original::printable::formatString<std::string>(const std::string& t) -> std::string
     {
         return "\"" + t + "\"";
@@ -109,9 +115,6 @@ namespace original {
     template <typename TYPE>
     auto original::printable::formatString(TYPE* const& ptr) -> std::string
     {
-        if (ptr == nullptr) {
-            return "nullptr";
-        }
         std::stringstream ss;
         ss << "@" << ptr;
         return ss.str();
