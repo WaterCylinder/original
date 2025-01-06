@@ -276,7 +276,7 @@ namespace original{
     template<typename Callback>
     auto original::iterable<TYPE>::forEach(Callback operation) -> void
     {
-        callBackChecker<Callback, void, TYPE&>::check();
+        callBackChecker::check<Callback, void, TYPE&>();
         for (auto* it = this->begins(); it->isValid(); it->next()) {
             operation(it->get());
         }

@@ -109,7 +109,7 @@ namespace original
     template<typename TYPE, typename Callback>
     bool original::algorithms::allOf(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
                                      const Callback &condition) {
-        callBackChecker<Callback, bool, const TYPE&>::check();
+        callBackChecker::check<Callback, bool, const TYPE&>();
         auto* it = begin.clone();
         for (; !it->equal(end); it->next()){
             if (!condition(it->get())){
@@ -124,7 +124,7 @@ namespace original
     template<typename TYPE, typename Callback>
     bool original::algorithms::anyOf(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
                                      const Callback &condition) {
-        callBackChecker<Callback, bool, const TYPE&>::check();
+        callBackChecker::check<Callback, bool, const TYPE&>();
         auto* it = begin.clone();
         for (; !it->equal(end); it->next()){
             if (condition(it->get())){
@@ -139,7 +139,7 @@ namespace original
     template<typename TYPE, typename Callback>
     bool original::algorithms::noneOf(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
                                       const Callback &condition) {
-        callBackChecker<Callback, bool, const TYPE&>::check();
+        callBackChecker::check<Callback, bool, const TYPE&>();
         auto* it = begin.clone();
         for (; !it->equal(end); it->next()){
             if (condition(it->get())){
@@ -178,7 +178,7 @@ namespace original
     template<typename TYPE, typename Callback>
     auto original::algorithms::find(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                     const Callback& condition) -> iterator<TYPE>* {
-        callBackChecker<Callback, bool, const TYPE&>::check();
+        callBackChecker::check<Callback, bool, const TYPE&>();
         auto it = begin.clone();
         while (it->isValid() && !it->equal(end)) {
             if (condition(it->get())) {
@@ -192,7 +192,7 @@ namespace original
 
     template <typename TYPE, typename Callback>
     auto original::algorithms::find(const iterator<TYPE>& begin, const uint32_t n, const Callback& condition) -> iterator<TYPE>* {
-        callBackChecker<Callback, bool, const TYPE&>::check();
+        callBackChecker::check<Callback, bool, const TYPE&>();
         auto it = begin.clone();
         for (uint32_t i = 0; i < n; i += 1, it->next())
         {
@@ -221,7 +221,7 @@ namespace original
     auto original::algorithms::count(const iterator<TYPE>& begin, const iterator<TYPE>& end,
                                      const Callback& condition) -> uint32_t
     {
-        callBackChecker<Callback, bool, const TYPE&>::check();
+        callBackChecker::check<Callback, bool, const TYPE&>();
         uint32_t cnt = 0;
         auto it = begin.clone();
         while (it->isValid() && !end.atPrev(it)) {
@@ -255,7 +255,7 @@ namespace original
     auto original::algorithms::forEach(const iterator<TYPE>& begin, const iterator<TYPE>& end,
                                        Callback operation) -> void
     {
-        callBackChecker<Callback, void, TYPE&>::check();
+        callBackChecker::check<Callback, void, TYPE&>();
         auto it = begin.clone();
         for (; !it->equal(end); it->next()) {
             operation(it->get());
@@ -267,7 +267,7 @@ namespace original
     template <typename TYPE, typename Callback>
     auto original::algorithms::forEach(const iterator<TYPE>& begin, const uint32_t n,
                                        Callback operation) -> iterator<TYPE>* {
-        callBackChecker<Callback, void, TYPE&>::check();
+        callBackChecker::check<Callback, void, TYPE&>();
         auto it = begin.clone();
         for (uint32_t i = 0; i < n; i += 1, it->next())
         {
@@ -331,7 +331,7 @@ namespace original
     template<typename TYPE, typename Callback>
     auto original::algorithms::copy(const iterator<TYPE>& begin_src, const iterator<TYPE>& end_src,
                                const iterator<TYPE>& begin_tar, Callback condition) -> iterator<TYPE>* {
-        callBackChecker<Callback, bool, const TYPE&>::check();
+        callBackChecker::check<Callback, bool, const TYPE&>();
         auto it_src = begin_src.clone();
         auto it_tar = begin_tar.clone();
         while (!it_src->equal(end_src)){
@@ -367,7 +367,7 @@ namespace original
     auto original::algorithms::compare(const iterator<TYPE>& it1, const iterator<TYPE>& it2,
                                        const Callback& compares) -> bool
     {
-        callBackChecker<Callback, bool,const TYPE&, const TYPE&>::check();
+        callBackChecker::check<Callback, bool, const TYPE&, const TYPE&>();
         return compares(it1.get(), it2.get());
     }
 
