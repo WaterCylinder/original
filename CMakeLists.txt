@@ -1,6 +1,6 @@
 # CMakeLists.txt Main
 
-cmake_minimum_required(VERSION 3.29)
+cmake_minimum_required(VERSION 3.30)
 project(original LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -30,3 +30,4 @@ install(FILES "${CMAKE_BINARY_DIR}/cmake/originalConfig.cmake"
 
 # test cases
 add_subdirectory(test/legacy)
+add_subdirectory(test/unit_test)
