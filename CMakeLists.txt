@@ -1,5 +1,3 @@
-# CMakeLists.txt Main
-
 cmake_minimum_required(VERSION 3.30)
 project(original LANGUAGES CXX)
 
@@ -8,7 +6,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_BUILD_TYPE Debug)
 
 include_directories(${CMAKE_SOURCE_DIR})
-file(GLOB CORE_HEADERS "${CMAKE_SOURCE_DIR}/src/core/*.h")
+include_directories(${CMAKE_SOURCE_DIR}/src/core)
+
+file(GLOB CORE_HEADERS "${CMAKE_SOURCE_DIR}/src/original.h")
+
 add_library(original STATIC ${CORE_HEADERS} src/original.cpp)
 
 install(TARGETS original DESTINATION lib)
