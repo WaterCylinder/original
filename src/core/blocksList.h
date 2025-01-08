@@ -186,7 +186,7 @@ namespace original {
             for (uint32_t i = 0; i < len; i++)
             {
                 auto idx = innerIdxOffset(start_block, start_pos, i);
-                auto idx_offset = innerIdxOffset(start_block, start_pos, i + offset);;
+                auto idx_offset = innerIdxOffset(start_block, start_pos, i + offset);
                 this->setElem(idx_offset.first(), idx_offset.second(),
                               this->getElem(idx.first(), idx.second()));
             }
