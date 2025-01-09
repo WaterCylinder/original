@@ -90,27 +90,27 @@ namespace original
         static iterator<TYPE>* reverse(const iterator<TYPE> &begin, const iterator<TYPE> &end);
 
         template<typename TYPE, typename Callback>
-        requires Comparable<TYPE> && Compare<Callback, TYPE>
+        requires Compare<Callback, TYPE>
         static bool compare(const iterator<TYPE>& it1, const iterator<TYPE>& it2, const Callback& compares);
 
         template<typename TYPE, typename Callback>
-        requires Comparable<TYPE> && Compare<Callback, TYPE>
+        requires Compare<Callback, TYPE>
         static void heapAdjustDown(const iterator<TYPE>& begin, const iterator<TYPE>& range,
                                    const iterator<TYPE>& current, const Callback& compares);
 
         template<typename TYPE, typename Callback>
-        requires Comparable<TYPE> && Compare<Callback, TYPE>
+        requires Compare<Callback, TYPE>
         static void heapAdjustUp(const iterator<TYPE>& begin, const iterator<TYPE>& current,
                                  const Callback& compares);
 
         template<typename TYPE, typename Callback>
-        requires Comparable<TYPE> && Compare<Callback, TYPE>
+        requires Compare<Callback, TYPE>
         static void heapInit(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                              const Callback& compares);
 
         protected:
         template<typename TYPE, typename Callback>
-        requires Comparable<TYPE> && Compare<Callback, TYPE>
+        requires Compare<Callback, TYPE>
         static iterator<TYPE>* heapGetPrior(const iterator<TYPE>& begin, const iterator<TYPE>& range,
                                             const iterator<TYPE>& parent, const Callback& compares);
 
@@ -248,35 +248,35 @@ namespace original
         }
 
         template <typename TYPE, typename Callback>
-        requires original::Comparable<TYPE> && original::Compare<Callback, TYPE>
+        requires original::Compare<Callback, TYPE>
         static auto compare(const iterator<TYPE>* it1, const iterator<TYPE>* it2,
                                            const Callback& compares) -> bool {
             return compare(*it1, *it2, compares);
         }
 
         template<typename TYPE, typename Callback>
-        requires original::Comparable<TYPE> && original::Compare<Callback, TYPE>
+        requires original::Compare<Callback, TYPE>
         static auto heapAdjustDown(const iterator<TYPE>* begin, const iterator<TYPE>* range,
                                                   const iterator<TYPE>* current, const Callback& compares) -> void {
             heapAdjustDown(*begin, *range, *current, compares);
         }
 
         template<typename TYPE, typename Callback>
-        requires original::Comparable<TYPE> && original::Compare<Callback, TYPE>
+        requires original::Compare<Callback, TYPE>
         static auto heapAdjustUp(const iterator<TYPE>* begin, const iterator<TYPE>* current,
                                                 const Callback& compares) -> void {
             heapAdjustUp(*begin, *current, compares);
         }
 
         template<typename TYPE, typename Callback>
-        requires original::Comparable<TYPE> && original::Compare<Callback, TYPE>
+        requires original::Compare<Callback, TYPE>
         static auto heapInit(const iterator<TYPE>* begin, const iterator<TYPE>* end,
                                             const Callback& compares) -> void {
             heapInit(*begin, *end, compares);
         }
 
         template<typename TYPE, typename Callback>
-        requires original::Comparable<TYPE> && original::Compare<Callback, TYPE>
+        requires original::Compare<Callback, TYPE>
         static auto heapGetPrior(const iterator<TYPE>* begin, const iterator<TYPE>* range,
                                                 const iterator<TYPE>* parent, const Callback& compares) -> iterator<TYPE>* {
             return heapGetPrior(*begin, *range, *parent, compares);
@@ -565,7 +565,7 @@ namespace original
     }
 
     template <typename TYPE, typename Callback>
-    requires original::Comparable<TYPE> && original::Compare<Callback, TYPE>
+    requires original::Compare<Callback, TYPE>
     auto original::algorithms::compare(const iterator<TYPE>& it1, const iterator<TYPE>& it2,
                                        const Callback& compares) -> bool
     {
@@ -573,7 +573,7 @@ namespace original
     }
 
     template <typename TYPE, typename Callback>
-    requires original::Comparable<TYPE> && original::Compare<Callback, TYPE>
+    requires original::Compare<Callback, TYPE>
     auto original::algorithms::heapAdjustDown(const iterator<TYPE>& begin, const iterator<TYPE>& range,
                                               const iterator<TYPE>& current, const Callback& compares) -> void
     {
@@ -598,7 +598,7 @@ namespace original
     }
 
     template <typename TYPE, typename Callback>
-    requires original::Comparable<TYPE> && original::Compare<Callback, TYPE>
+    requires original::Compare<Callback, TYPE>
     auto original::algorithms::heapAdjustUp(const iterator<TYPE>& begin, const iterator<TYPE>& current,
                                             const Callback& compares) -> void
     {
@@ -620,7 +620,7 @@ namespace original
     }
 
     template <typename TYPE, typename Callback>
-    requires original::Comparable<TYPE> && original::Compare<Callback, TYPE>
+    requires original::Compare<Callback, TYPE>
     auto original::algorithms::heapInit(const iterator<TYPE>& begin, const iterator<TYPE>& end,
                                         const Callback& compares) -> void
     {
@@ -633,7 +633,7 @@ namespace original
     }
 
     template <typename TYPE, typename Callback>
-    requires original::Comparable<TYPE> && original::Compare<Callback, TYPE>
+    requires original::Compare<Callback, TYPE>
     auto original::algorithms::heapGetPrior(const iterator<TYPE>& begin, const iterator<TYPE>& range,
                                             const iterator<TYPE>& parent, const Callback& compares) -> iterator<TYPE>*
     {

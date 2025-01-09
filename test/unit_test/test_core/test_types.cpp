@@ -54,7 +54,7 @@ bool test_comparable(const T& a, const T& b) {
 
 // 测试 Compare 概念
 template <typename Callback, typename TYPE>
-requires Comparable<TYPE> && Compare<Callback, TYPE>
+requires Compare<Callback, TYPE>
 bool test_compare(const TYPE& t1, const TYPE& t2, Callback& callback) {
     return callback(t1, t2);
 }
