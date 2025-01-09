@@ -4,7 +4,7 @@
 #include "error.h"
 #include <limits>
 #include "transform.h"
-
+#include "types.h"
 #include "iterator.h"
 
 namespace original{
@@ -58,6 +58,7 @@ namespace original{
         iterAdaptor last() const;
 
         template<typename Callback = transform<TYPE>>
+        requires Operation<Callback, TYPE>
         void forEach(Callback operation = Callback{});
     };
 }
@@ -274,9 +275,9 @@ namespace original{
 
     template <typename TYPE>
     template<typename Callback>
+    requires original::Operation<Callback, TYPE>
     auto original::iterable<TYPE>::forEach(Callback operation) -> void
     {
-        callBackChecker::check<Callback, void, TYPE&>();
         for (auto* it = this->begins(); it->isValid(); it->next()) {
             operation(it->get());
         }

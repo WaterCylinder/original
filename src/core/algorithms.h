@@ -4,6 +4,7 @@
 #include "filter.h"
 #include "iterator.h"
 #include "error.h"
+#include "types.h"
 
 namespace original
 {
@@ -14,13 +15,16 @@ namespace original
         static int64_t distance(const iterator<TYPE>& end, const iterator<TYPE>& begin);
 
         template<typename TYPE, typename Callback>
-        static bool allOf(const iterator<TYPE>& begin, const iterator<TYPE>& end,  const Callback& condition);
+        requires Condition<Callback, TYPE>
+        static bool allOf(const iterator<TYPE>& begin, const iterator<TYPE>& end, const Callback& condition);
 
         template<typename TYPE, typename Callback>
-        static bool anyOf(const iterator<TYPE>& begin, const iterator<TYPE>& end,  const Callback& condition);
+        requires Condition<Callback, TYPE>
+        static bool anyOf(const iterator<TYPE>& begin, const iterator<TYPE>& end, const Callback& condition);
 
         template<typename TYPE, typename Callback>
-        static bool noneOf(const iterator<TYPE>& begin, const iterator<TYPE>& end,  const Callback& condition);
+        requires Condition<Callback, TYPE>
+        static bool noneOf(const iterator<TYPE>& begin, const iterator<TYPE>& end, const Callback& condition);
 
         template<typename TYPE>
         static iterator<TYPE>* find(const iterator<TYPE> &begin, const iterator<TYPE> &end, const TYPE &target);
@@ -29,16 +33,19 @@ namespace original
         static iterator<TYPE>* find(const iterator<TYPE> &begin, uint32_t n, const TYPE &target);
 
         template<typename TYPE, typename Callback>
+        requires Condition<Callback, TYPE>
         static iterator<TYPE>* find(const iterator<TYPE> &begin,
                                     const iterator<TYPE> &end, const Callback& condition);
 
         template<typename TYPE, typename Callback>
+        requires Condition<Callback, TYPE>
         static iterator<TYPE>* find(const iterator<TYPE> &begin, uint32_t n, const Callback& condition);
 
         template<typename TYPE>
         static uint32_t count(const iterator<TYPE>& begin, const iterator<TYPE>& end, const TYPE& target);
 
         template<typename TYPE, typename Callback>
+        requires Condition<Callback, TYPE>
         static uint32_t count(const iterator<TYPE>& begin, const iterator<TYPE>& end, const Callback& condition);
 
         template<typename TYPE>
@@ -46,10 +53,12 @@ namespace original
                           const iterator<TYPE>& begin2, const iterator<TYPE>& end2);
 
         template<typename TYPE, typename Callback>
+        requires Operation<Callback, TYPE>
         static void forEach(const iterator<TYPE>& begin,
                             const iterator<TYPE>& end, Callback operation);
 
         template<typename TYPE, typename Callback>
+        requires Operation<Callback, TYPE>
         static iterator<TYPE>* forEach(const iterator<TYPE> &begin, uint32_t n, Callback operation);
 
         template<typename TYPE>
@@ -67,6 +76,7 @@ namespace original
                                     const iterator<TYPE> &begin_tar);
 
         template<typename TYPE, typename Callback>
+        requires Condition<Callback, TYPE>
         static iterator<TYPE>* copy(const iterator<TYPE> &begin_src, const iterator<TYPE> &end_src,
                                     const iterator<TYPE> &begin_tar, Callback condition = filter<TYPE>{});
 
@@ -74,22 +84,27 @@ namespace original
         static iterator<TYPE>* reverse(const iterator<TYPE> &begin, const iterator<TYPE> &end);
 
         template<typename TYPE, typename Callback>
+        requires Comparable<TYPE> && Compare<Callback, TYPE>
         static bool compare(const iterator<TYPE>& it1, const iterator<TYPE>& it2, const Callback& compares);
 
         template<typename TYPE, typename Callback>
+        requires Comparable<TYPE> && Compare<Callback, TYPE>
         static void heapAdjustDown(const iterator<TYPE>& begin, const iterator<TYPE>& range,
                                    const iterator<TYPE>& current, const Callback& compares);
 
         template<typename TYPE, typename Callback>
+        requires Comparable<TYPE> && Compare<Callback, TYPE>
         static void heapAdjustUp(const iterator<TYPE>& begin, const iterator<TYPE>& current,
                                  const Callback& compares);
 
         template<typename TYPE, typename Callback>
+        requires Comparable<TYPE> && Compare<Callback, TYPE>
         static void heapInit(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                              const Callback& compares);
 
         protected:
         template<typename TYPE, typename Callback>
+        requires Comparable<TYPE> && Compare<Callback, TYPE>
         static iterator<TYPE>* heapGetPrior(const iterator<TYPE>& begin, const iterator<TYPE>& range,
                                             const iterator<TYPE>& parent, const Callback& compares);
     };
@@ -107,9 +122,9 @@ namespace original
     }
 
     template<typename TYPE, typename Callback>
+    requires original::Condition<Callback, TYPE>
     bool original::algorithms::allOf(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
-                                     const Callback &condition) {
-        callBackChecker::check<Callback, bool, const TYPE&>();
+                                     const Callback& condition) {
         auto* it = begin.clone();
         for (; !it->equal(end); it->next()){
             if (!condition(it->get())){
@@ -122,9 +137,9 @@ namespace original
     }
 
     template<typename TYPE, typename Callback>
+    requires original::Condition<Callback, TYPE>
     bool original::algorithms::anyOf(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
-                                     const Callback &condition) {
-        callBackChecker::check<Callback, bool, const TYPE&>();
+                                     const Callback& condition) {
         auto* it = begin.clone();
         for (; !it->equal(end); it->next()){
             if (condition(it->get())){
@@ -137,9 +152,9 @@ namespace original
     }
 
     template<typename TYPE, typename Callback>
+    requires original::Condition<Callback, TYPE>
     bool original::algorithms::noneOf(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
-                                      const Callback &condition) {
-        callBackChecker::check<Callback, bool, const TYPE&>();
+                                      const Callback& condition) {
         auto* it = begin.clone();
         for (; !it->equal(end); it->next()){
             if (condition(it->get())){
@@ -176,6 +191,7 @@ namespace original
     }
 
     template<typename TYPE, typename Callback>
+    requires original::Condition<Callback, TYPE>
     auto original::algorithms::find(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                     const Callback& condition) -> iterator<TYPE>* {
         callBackChecker::check<Callback, bool, const TYPE&>();
@@ -191,8 +207,8 @@ namespace original
     }
 
     template <typename TYPE, typename Callback>
+    requires original::Condition<Callback, TYPE>
     auto original::algorithms::find(const iterator<TYPE>& begin, const uint32_t n, const Callback& condition) -> iterator<TYPE>* {
-        callBackChecker::check<Callback, bool, const TYPE&>();
         auto it = begin.clone();
         for (uint32_t i = 0; i < n; i += 1, it->next())
         {
@@ -218,10 +234,10 @@ namespace original
     }
 
     template <typename TYPE, typename Callback>
+    requires original::Condition<Callback, TYPE>
     auto original::algorithms::count(const iterator<TYPE>& begin, const iterator<TYPE>& end,
                                      const Callback& condition) -> uint32_t
     {
-        callBackChecker::check<Callback, bool, const TYPE&>();
         uint32_t cnt = 0;
         auto it = begin.clone();
         while (it->isValid() && !end.atPrev(it)) {
@@ -252,6 +268,7 @@ namespace original
     }
 
     template <typename TYPE, typename Callback>
+    requires original::Operation<Callback, TYPE>
     auto original::algorithms::forEach(const iterator<TYPE>& begin, const iterator<TYPE>& end,
                                        Callback operation) -> void
     {
@@ -265,9 +282,9 @@ namespace original
     }
 
     template <typename TYPE, typename Callback>
+    requires original::Operation<Callback, TYPE>
     auto original::algorithms::forEach(const iterator<TYPE>& begin, const uint32_t n,
                                        Callback operation) -> iterator<TYPE>* {
-        callBackChecker::check<Callback, void, TYPE&>();
         auto it = begin.clone();
         for (uint32_t i = 0; i < n; i += 1, it->next())
         {
@@ -329,9 +346,9 @@ namespace original
     }
 
     template<typename TYPE, typename Callback>
+    requires original::Condition<Callback, TYPE>
     auto original::algorithms::copy(const iterator<TYPE>& begin_src, const iterator<TYPE>& end_src,
                                const iterator<TYPE>& begin_tar, Callback condition) -> iterator<TYPE>* {
-        callBackChecker::check<Callback, bool, const TYPE&>();
         auto it_src = begin_src.clone();
         auto it_tar = begin_tar.clone();
         while (!it_src->equal(end_src)){
@@ -364,14 +381,15 @@ namespace original
     }
 
     template <typename TYPE, typename Callback>
+    requires original::Comparable<TYPE> && original::Compare<Callback, TYPE>
     auto original::algorithms::compare(const iterator<TYPE>& it1, const iterator<TYPE>& it2,
                                        const Callback& compares) -> bool
     {
-        callBackChecker::check<Callback, bool, const TYPE&, const TYPE&>();
         return compares(it1.get(), it2.get());
     }
 
     template <typename TYPE, typename Callback>
+    requires original::Comparable<TYPE> && original::Compare<Callback, TYPE>
     auto original::algorithms::heapAdjustDown(const iterator<TYPE>& begin, const iterator<TYPE>& range,
                                               const iterator<TYPE>& current, const Callback& compares) -> void
     {
@@ -396,6 +414,7 @@ namespace original
     }
 
     template <typename TYPE, typename Callback>
+    requires original::Comparable<TYPE> && original::Compare<Callback, TYPE>
     auto original::algorithms::heapAdjustUp(const iterator<TYPE>& begin, const iterator<TYPE>& current,
                                             const Callback& compares) -> void
     {
@@ -417,6 +436,7 @@ namespace original
     }
 
     template <typename TYPE, typename Callback>
+    requires original::Comparable<TYPE> && original::Compare<Callback, TYPE>
     auto original::algorithms::heapInit(const iterator<TYPE>& begin, const iterator<TYPE>& end,
                                         const Callback& compares) -> void
     {
@@ -429,6 +449,7 @@ namespace original
     }
 
     template <typename TYPE, typename Callback>
+    requires original::Comparable<TYPE> && original::Compare<Callback, TYPE>
     auto original::algorithms::heapGetPrior(const iterator<TYPE>& begin, const iterator<TYPE>& range,
                                             const iterator<TYPE>& parent, const Callback& compares) -> iterator<TYPE>*
     {

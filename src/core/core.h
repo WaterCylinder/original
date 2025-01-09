@@ -29,6 +29,7 @@
 #include "stepIterator.h"
 #include "transform.h"
 #include "transformStream.h"
+#include "types.h"
 #include "vector.h"
 #include "wrapper.h"
 

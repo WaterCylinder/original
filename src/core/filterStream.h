@@ -282,7 +282,7 @@ namespace original{
 
         while (it_stream->isValid()){
             if (it_stream->get() != nullptr){
-                value_stack.pushEnd((*it_stream->get())(t));
+                value_stack.pushEnd(it_stream->get()->operator()(t));
             } else if (it_ops->isValid()){
                 switch (it_ops->get()) {
                     case opts::NOT:
