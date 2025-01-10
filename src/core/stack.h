@@ -13,6 +13,8 @@ namespace original {
         stack(const std::initializer_list<TYPE>& lst);
         stack(const stack& other);
         stack& operator=(const stack& other);
+        stack(stack&& other) noexcept;
+        stack& operator=(stack&& other) noexcept;
         bool operator==(const stack& other) const;
         [[nodiscard]] uint32_t size() const;
         [[nodiscard]] bool empty() const;
@@ -39,6 +41,23 @@ namespace original {
     auto original::stack<TYPE, SERIAL>::operator=(const stack& other) -> stack& {
         if (this == &other) return *this;
         serial_ = other.serial_;
+        return *this;
+    }
+
+    template <typename TYPE, template <typename> class SERIAL>
+    original::stack<TYPE, SERIAL>::stack(stack&& other) noexcept : stack()
+    {
+        this->operator=(std::move(other));
+    }
+
+    template <typename TYPE, template <typename> class SERIAL>
+    auto original::stack<TYPE, SERIAL>::operator=(stack&& other) noexcept -> stack&
+    {
+        if (this == &other)
+            return *this;
+
+        this->serial_ = std::move(other.serial_);
+        other.serial_ = SERIAL<TYPE>{};
         return *this;
     }
 

@@ -16,7 +16,7 @@ namespace original{
         TYPE* body;
 
         void arrInit(uint32_t size);
-        void arrDestruct();
+        void arrDestruct() const;
         public:
         class Iterator final : public randomAccessIterator<TYPE>
         {
@@ -62,7 +62,8 @@ namespace original{
     }
 
     template<typename TYPE>
-    void original::array<TYPE>::arrDestruct() {
+    void original::array<TYPE>::arrDestruct() const
+    {
         delete[] this->body;
     }
 
@@ -134,9 +135,12 @@ namespace original{
     template <typename TYPE>
     auto original::array<TYPE>::operator=(const array& other) -> array&
     {
-        if (this == &other) return *this;
+        if (this == &other)
+            return *this;
 
-        this->arrDestruct();
+        if (!this->empty())
+            this->arrDestruct();
+
         this->arrInit(other.size());
         for (uint32_t i = 0; i < this->size_; i++) {
             this->body[i] = other.body[i];
@@ -151,10 +155,13 @@ namespace original{
 
     template<typename TYPE>
     original::array<TYPE>& original::array<TYPE>::operator=(array&& other) noexcept {
-        if (this == &other) return *this;
+        if (this == &other)
+            return *this;
 
-        this->arrDestruct();
-        this->body = other.body;
+        if (!this->empty())
+            this->arrDestruct();
+
+        this->body = std::move(other.body);
         this->size_ = other.size_;
         other.arrInit(0);
         return *this;

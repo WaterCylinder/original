@@ -14,6 +14,8 @@ namespace original{
         deque(const deque& other);
         deque& operator=(const deque& other);
         bool operator==(const deque& other) const;
+        deque(deque&& other) noexcept;
+        deque& operator=(deque&& other) noexcept;
         [[nodiscard]] uint32_t size() const;
         [[nodiscard]] bool empty() const;
         void clear();
@@ -51,6 +53,23 @@ namespace original{
     template<typename TYPE, template <typename> typename SERIAL>
     auto original::deque<TYPE, SERIAL>::operator==(const deque &other) const -> bool {
         return serial_ == other.serial_;
+    }
+
+    template <typename TYPE, template <typename> class SERIAL>
+    original::deque<TYPE, SERIAL>::deque(deque&& other) noexcept : deque()
+    {
+        this->operator=(std::move(other));
+    }
+
+    template <typename TYPE, template <typename> class SERIAL>
+    auto original::deque<TYPE, SERIAL>::operator=(deque&& other) noexcept -> deque&
+    {
+        if (this == &other)
+            return *this;
+
+        this->serial_ = std::move(other.serial_);
+        other.serial_ = {};
+        return *this;
     }
 
     template<typename TYPE, template <typename> typename SERIAL>

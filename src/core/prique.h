@@ -19,6 +19,8 @@ namespace original
             prique(const prique& other);
             prique& operator=(const prique& other);
             bool operator==(const prique& other) const;
+            prique(prique&& other) noexcept;
+            prique& operator=(prique&& other) noexcept;
             [[nodiscard]] uint32_t size() const;
             [[nodiscard]] bool empty() const;
             void clear();
@@ -58,6 +60,25 @@ namespace original
     auto original::prique<TYPE, Callback, SERIAL>::operator==(const prique& other) const -> bool
     {
         return serial_ == other.serial_ && compare_ == other.compare_;
+    }
+
+    template <typename TYPE, template <typename> class Callback, template <typename> class SERIAL>
+    original::prique<TYPE, Callback, SERIAL>::prique(prique&& other) noexcept : prique()
+    {
+        this->operator=(std::move(other));
+    }
+
+    template <typename TYPE, template <typename> class Callback, template <typename> class SERIAL>
+    auto original::prique<TYPE, Callback, SERIAL>::operator=(prique&& other) noexcept -> prique&
+    {
+        if (this == &other)
+            return *this;
+
+        this->serial_ = std::move(other.serial_);
+        this->compare_ = std::move(other.compare_);
+        other.serial_ = {};
+        other.compare_ = {};
+        return *this;
     }
 
     template <typename TYPE, template <typename> class Callback, template <typename> class SERIAL>

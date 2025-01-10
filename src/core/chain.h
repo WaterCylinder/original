@@ -61,6 +61,8 @@ namespace original {
         chain(const std::initializer_list<TYPE>& list);
         explicit chain(const array<TYPE>& arr);
         chain& operator=(const chain& other);
+        chain(chain&& other) noexcept;
+        chain& operator=(chain&& other) noexcept;
         bool operator==(const chain& other) const;
         void operator+=(chain& other);
         [[nodiscard]] uint32_t size() const override;
@@ -307,6 +309,26 @@ namespace original {
         } else{
             this->chainInit();
         }
+        return *this;
+    }
+
+    template <typename TYPE>
+    original::chain<TYPE>::chain(chain&& other) noexcept : chain()
+    {
+        this->operator=(std::move(other));
+    }
+
+    template <typename TYPE>
+    auto original::chain<TYPE>::operator=(chain&& other) noexcept -> chain&
+    {
+        if (this == &other)
+            return *this;
+
+        this->chainDestruction();
+        this->begin_ = other.begin_;
+        this->end_ = other.begin_;
+        this->size_ = other.size_;
+        other.chainInit();
         return *this;
     }
 

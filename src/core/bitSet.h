@@ -13,6 +13,7 @@ namespace original {
             array<underlying_type> map;
             uint32_t size_;
 
+            void bitsetInit(uint32_t size);
             static bool getBitFromBlock(underlying_type block_value, int64_t bit);
             static underlying_type setBitFromBlock(underlying_type block_value, int64_t bit);
             static underlying_type clearBitFromBlock(underlying_type block_value, int64_t bit);
@@ -57,6 +58,8 @@ namespace original {
             bitSet(const std::initializer_list<bool>& lst);
             bitSet(const bitSet& other);
             bitSet& operator=(const bitSet& other);
+            bitSet(bitSet&& other) noexcept;
+            bitSet& operator=(bitSet&& other) noexcept;
             bool operator==(const bitSet& other) const;
             [[nodiscard]] uint32_t count() const;
             [[nodiscard]] bitSet resize(uint32_t new_size) const;
@@ -86,6 +89,12 @@ namespace original {
     bitSet operator^(const bitSet& lbs, const bitSet& rbs);
     bitSet operator~(const bitSet& bs);
 }
+
+    inline auto original::bitSet::bitsetInit(const uint32_t size) -> void
+    {
+        this->map = array<underlying_type>((size + BLOCK_MAX_SIZE - 1) / BLOCK_MAX_SIZE);
+        this->size_ = size;
+    }
 
     inline auto original::bitSet::getBitFromBlock(const underlying_type block_value, const int64_t bit) -> bool {
         return block_value & static_cast<underlying_type>(1) << static_cast<underlying_type>(bit);
@@ -241,12 +250,15 @@ namespace original {
     }
 
     inline auto original::bitSet::Iterator::isValid() const -> bool {
-        auto outer = toOuterIdx(this->cur_block, this->cur_bit);
+        const auto outer = toOuterIdx(this->cur_block, this->cur_bit);
         return outer >= 0 && outer < this->container_->size();
     }
 
     inline original::bitSet::bitSet(const uint32_t size)
-        : map(array<underlying_type>((size + BLOCK_MAX_SIZE - 1) / BLOCK_MAX_SIZE)), size_(size) {}
+        : size_()
+    {
+        this->bitsetInit(size);
+    }
 
     inline original::bitSet::bitSet(const std::initializer_list<bool>& lst) : bitSet(lst.size()) {
         uint32_t i = 0;
@@ -265,6 +277,22 @@ namespace original {
         if (this == &other) return *this;
         this->map = other.map;
         this->size_ = other.size_;
+        return *this;
+    }
+
+    inline original::bitSet::bitSet(bitSet&& other)  noexcept : bitSet(0)
+    {
+        this->operator=(std::move(other));
+    }
+
+    inline auto original::bitSet::operator=(bitSet&& other)  noexcept -> bitSet&
+    {
+        if (this == &other)
+            return *this;
+
+        this->map = std::move(other.map);
+        this->size_ = other.size_;
+        other.bitsetInit(0);
         return *this;
     }
 

@@ -14,6 +14,8 @@ namespace original{
         uint32_t inner_begin;
         TYPE* body;
 
+        void vectorInit();
+        void vectorDestruct() const;
         static TYPE* vectorArrayInit(uint32_t size);
         static void moveElements(TYPE* old_body, uint32_t inner_idx,
                                  uint32_t len, TYPE* new_body, int64_t offset);
@@ -41,6 +43,8 @@ namespace original{
         vector(const std::initializer_list<TYPE>& list);
         explicit vector(const array<TYPE>& arr);
         vector& operator=(const vector& other);
+        vector(vector&& other) noexcept;
+        vector& operator=(vector&& other) noexcept;
         bool operator==(const vector& other) const;
         [[nodiscard]] uint32_t size() const override;
         TYPE& data() const;
@@ -60,6 +64,22 @@ namespace original{
         ~vector() override;
     };
 }
+
+    template <typename TYPE>
+    auto original::vector<TYPE>::vectorInit() -> void
+    {
+        this->size_ = 0;
+        this->max_size = this->INNER_SIZE_INIT;
+        this->inner_begin = (this->INNER_SIZE_INIT - 1)/2;
+        this->body = vector::vectorArrayInit(this->INNER_SIZE_INIT);
+    }
+
+    template <typename TYPE>
+    auto original::vector<TYPE>::vectorDestruct() const -> void
+    {
+        delete[] this->body;
+    }
+
     template <typename TYPE>
     auto original::vector<TYPE>::vectorArrayInit(const uint32_t size) -> TYPE* {
         auto arr = new TYPE[size];
@@ -174,8 +194,10 @@ namespace original{
     }
 
     template <typename TYPE>
-    original::vector<TYPE>::vector() : size_(0), max_size(this->INNER_SIZE_INIT),
-        inner_begin((this->INNER_SIZE_INIT - 1)/2), body(vector::vectorArrayInit(this->INNER_SIZE_INIT)) {}
+    original::vector<TYPE>::vector() : size_(), max_size(), inner_begin()
+    {
+        this->vectorInit();
+    }
 
     template<typename TYPE>
     original::vector<TYPE>::vector(const vector& other) : vector(){
@@ -196,8 +218,11 @@ namespace original{
     template<typename TYPE>
     auto original::vector<TYPE>::operator=(const vector& other) -> vector&
     {
-        if (this == &other) return *this;
-        delete[] this->body;
+        if (this == &other)
+            return *this;
+
+        this->vectorDestruct();
+
         this->max_size = other.max_size;
         this->inner_begin = other.inner_begin;
         this->size_ = other.size_;
@@ -206,6 +231,27 @@ namespace original{
             const TYPE& data = other.body[this->toInnerIdx(i)];
             this->body[this->toInnerIdx(i)] = data;
         }
+        return *this;
+    }
+
+    template <typename TYPE>
+    original::vector<TYPE>::vector(vector&& other) noexcept : vector()
+    {
+        this->operator=(std::move(other));
+    }
+
+    template <typename TYPE>
+    auto original::vector<TYPE>::operator=(vector&& other) noexcept -> vector&
+    {
+        if (this == &other)
+            return *this;
+
+        this->vectorDestruct();
+        this->body = std::move(other.body);
+        this->max_size = other.max_size;
+        this->inner_begin = other.inner_begin;
+        this->size_ = other.size_;
+        other.vectorInit();
         return *this;
     }
 
@@ -413,7 +459,7 @@ namespace original{
 
     template <typename TYPE>
     original::vector<TYPE>::~vector() {
-        delete[] this->body;
+        this->vectorDestruct();
     }
 
 #endif //VECTOR_H

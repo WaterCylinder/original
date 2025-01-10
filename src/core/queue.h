@@ -13,6 +13,8 @@ namespace original {
         queue(const std::initializer_list<TYPE>& lst);
         queue(const queue& other);
         queue& operator=(const queue& other);
+        queue(queue&& other) noexcept;
+        queue& operator=(queue&& other) noexcept;
         bool operator==(const queue& other) const;
         [[nodiscard]] uint32_t size() const;
         [[nodiscard]] bool empty() const;
@@ -46,6 +48,23 @@ namespace original {
     template<typename TYPE, template <typename> typename SERIAL>
     auto original::queue<TYPE, SERIAL>::operator==(const queue& other) const -> bool {
         return serial_ == other.serial_;
+    }
+
+    template <typename TYPE, template <typename> class SERIAL>
+    original::queue<TYPE, SERIAL>::queue(queue&& other) noexcept : queue()
+    {
+        this->operator=(std::move(other));
+    }
+
+    template <typename TYPE, template <typename> class SERIAL>
+    auto original::queue<TYPE, SERIAL>::operator=(queue&& other) noexcept -> queue&
+    {
+        if (this == &other)
+            return *this;
+
+        this->serial_ = std::move(other.serial_);
+        other.serial_ = SERIAL<TYPE>{};
+        return *this;
     }
 
     template<typename TYPE, template <typename> typename SERIAL>
