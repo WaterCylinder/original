@@ -2,11 +2,9 @@
 #define ARRAY_H
 #pragma once
 
-
 #include <initializer_list>
 #include "iterationStream.h"
 #include "randomAccessIterator.h"
-
 #include "error.h"
 #include "serial.h"
 
@@ -17,6 +15,8 @@ namespace original{
         uint32_t size_;
         TYPE* body;
 
+        void arrInit(uint32_t size);
+        void arrDestruct();
         public:
         class Iterator final : public randomAccessIterator<TYPE>
         {
@@ -35,6 +35,8 @@ namespace original{
         array(const std::initializer_list<TYPE>& lst);
         array(const array& other);
         array& operator=(const array& other);
+        array(array&& other) noexcept;
+        array& operator=(array&& other) noexcept;
         bool operator==(const array& other) const;
         [[nodiscard]] uint32_t size() const override;
         TYPE& data() const;
@@ -49,6 +51,20 @@ namespace original{
     };
 
 }
+
+    template<typename TYPE>
+    void original::array<TYPE>::arrInit(const uint32_t size) {
+        this->size_ = size;
+        this->body = new TYPE[this->size_];
+        for (uint32_t i = 0; i < this->size(); ++i) {
+            this->body[i] = TYPE{};
+        }
+    }
+
+    template<typename TYPE>
+    void original::array<TYPE>::arrDestruct() {
+        delete[] this->body;
+    }
 
     template <typename TYPE>
     original::array<TYPE>::Iterator::Iterator(TYPE* ptr, const array* container, int64_t pos)
@@ -95,15 +111,13 @@ namespace original{
 
     template <typename TYPE>
     original::array<TYPE>::array(const uint32_t size)
-        : size_(size), body(new TYPE[size_]) {
-        for (uint32_t i = 0; i < this->size(); ++i) {
-            this->body[i] = TYPE{};
-        }
+        : size_(), body() {
+        this->arrInit(size);
     }
 
     template <typename TYPE>
     original::array<TYPE>::array(const std::initializer_list<TYPE>& lst)
-        : size_(lst.size()), body(new TYPE[size_]) {
+        : array(lst.size()) {
         uint32_t i = 0;
         for (const auto& e : lst) {
             this->body[i] = e;
@@ -113,10 +127,8 @@ namespace original{
 
     template <typename TYPE>
     original::array<TYPE>::array(const array& other)
-        : size_(other.size_), body(new TYPE[size_]) {
-        for (uint32_t i = 0; i < size_; i++) {
-            body[i] = other.body[i];
-        }
+        : array(other.size()) {
+        this->operator=(other);
     }
 
     template <typename TYPE>
@@ -124,13 +136,27 @@ namespace original{
     {
         if (this == &other) return *this;
 
-        delete[] this->body;
-
-        this->size_ = other.size_;
-        this->body = new TYPE[this->size_];
+        this->arrDestruct();
+        this->arrInit(other.size());
         for (uint32_t i = 0; i < this->size_; i++) {
             this->body[i] = other.body[i];
         }
+        return *this;
+    }
+
+    template<typename TYPE>
+    original::array<TYPE>::array(array&& other) noexcept : size_(0) {
+        this->operator=(std::move(other));
+    }
+
+    template<typename TYPE>
+    original::array<TYPE>& original::array<TYPE>::operator=(array&& other) noexcept {
+        if (this == &other) return *this;
+
+        this->arrDestruct();
+        this->body = other.body;
+        this->size_ = other.size_;
+        other.arrInit(0);
         return *this;
     }
 
@@ -151,7 +177,7 @@ namespace original{
 
     template <typename TYPE>
     original::array<TYPE>::~array() {
-        delete[] this->body;
+        this->arrDestruct();
     }
 
     template <typename TYPE>
