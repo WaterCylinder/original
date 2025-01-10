@@ -4,7 +4,7 @@
 namespace original {
 
     template <typename TYPE>
-    class array {
+    class testArray {
     private:
         TYPE* data_;
         size_t size_;
@@ -100,11 +100,11 @@ namespace original {
             }
         };
 
-        explicit array(size_t size) : size_(size) {
+        explicit testArray(size_t size) : size_(size) {
             data_ = new TYPE[size_];
         }
 
-        ~array() {
+        ~testArray() {
             delete[] data_;
         }
 
@@ -133,7 +133,7 @@ namespace original {
 
     // 测试 array 类构造、访问和迭代器
     TEST(ArrayTest, ArrayConstructorAndAccess) {
-        array<int> arr(5);
+        testArray<int> arr(5);
         for (size_t i = 0; i < arr.size(); ++i) {
             arr[i] = static_cast<int>(i * 2);  // 设置一些值
         }
@@ -146,7 +146,7 @@ namespace original {
 
     // 测试 array 的迭代器
     TEST(ArrayTest, ArrayIterator) {
-        array<int> arr(5);
+        testArray<int> arr(5);
         for (size_t i = 0; i < arr.size(); ++i) {
             arr[i] = static_cast<int>(i * 2);
         }
@@ -171,7 +171,7 @@ namespace original {
 
     // 测试迭代器加法与减法
     TEST(IteratorTest, IteratorPlusMinus) {
-        array<int> arr(5);
+        testArray<int> arr(5);
         for (size_t i = 0; i < arr.size(); ++i) {
             arr[i] = static_cast<int>(i * 2);
         }
@@ -186,7 +186,7 @@ namespace original {
 
     // 测试迭代器的相等与不相等
     TEST(IteratorTest, IteratorEquality) {
-        array<int> arr(5);
+        testArray<int> arr(5);
         for (size_t i = 0; i < arr.size(); ++i) {
             arr[i] = static_cast<int>(i * 2);
         }
@@ -203,7 +203,7 @@ namespace original {
 
     // 测试迭代器是否有效
     TEST(IteratorTest, IteratorIsValid) {
-        array<int> arr(5);
+        testArray<int> arr(5);
         for (size_t i = 0; i < arr.size(); ++i) {
             arr[i] = static_cast<int>(i * 2);
         }
@@ -218,7 +218,7 @@ namespace original {
 
     // 测试空数组的迭代器行为
     TEST(ArrayTest, EmptyArrayIterator) {
-        array<int> arr(0);  // 创建空数组
+        testArray<int> arr(0);  // 创建空数组
 
         auto it = arr.begin();
         auto it_end = arr.end();
@@ -232,7 +232,7 @@ namespace original {
 
     // 测试反向迭代器的行为
     TEST(ArrayTest, ReverseIterator) {
-        array<int> arr(5);
+        testArray<int> arr(5);
         for (size_t i = 0; i < arr.size(); ++i) {
             arr[i] = static_cast<int>(i * 2);
         }
@@ -252,7 +252,7 @@ namespace original {
 
     // 测试迭代器越界行为
     TEST(ArrayTest, IteratorOutOfBounds) {
-        array<int> arr(5);
+        testArray<int> arr(5);
         for (size_t i = 0; i < arr.size(); ++i) {
             arr[i] = static_cast<int>(i * 2);
         }
@@ -271,7 +271,7 @@ namespace original {
 
     // 测试迭代器赋值
     TEST(ArrayTest, IteratorAssignment) {
-        array<int> arr(5);
+        testArray<int> arr(5);
         for (size_t i = 0; i < arr.size(); ++i) {
             arr[i] = static_cast<int>(i * 2);
         }
@@ -284,7 +284,7 @@ namespace original {
 
     // 测试 operator[] 和迭代器的配合使用
     TEST(ArrayTest, IteratorAndSubscriptCompatibility) {
-        array<int> arr(5);
+        testArray<int> arr(5);
         for (size_t i = 0; i < arr.size(); ++i) {
             arr[i] = static_cast<int>(i * 2);
         }
@@ -304,7 +304,7 @@ namespace original {
 
     // 测试在容器被修改时迭代器的行为
     TEST(ArrayTest, IteratorAfterModification) {
-        array<int> arr(5);
+        testArray<int> arr(5);
         for (size_t i = 0; i < arr.size(); ++i) {
             arr[i] = static_cast<int>(i * 2);
         }
@@ -318,7 +318,7 @@ namespace original {
 
     // 测试随机访问迭代器
     TEST(ArrayTest, RandomAccessIterator) {
-        array<int> arr(5);
+        testArray<int> arr(5);
         for (size_t i = 0; i < arr.size(); ++i) {
             arr[i] = static_cast<int>(i * 2);
         }
