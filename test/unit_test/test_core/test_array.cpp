@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <array>  // std::array
 #include "array.h"  // original::array
+#include "error.h"
 
 namespace original {
     template <typename TYPE, std::size_t N>
@@ -55,11 +56,13 @@ TEST(ArrayTest, IndexingAndDataAccess) {
 
 TEST(ArrayTest, CopyConstructorAndAssignmentOperator) {
     const array arr1 = {1, 2, 3, 4, 5};
-    const array<int>& arr2 = arr1;  // Copy constructor
+    array<int> arr2 = arr1;
+    arr2[2] += 1;
     const std::array stdArr = {1, 2, 3, 4, 5};
+    const std::array stdArr2 = {1, 2, 4, 4, 5};
 
     EXPECT_TRUE(original::compareArrays(arr1, stdArr));
-    EXPECT_TRUE(original::compareArrays(arr2, stdArr));
+    EXPECT_TRUE(original::compareArrays(arr2, stdArr2));
 
     const array<int>& arr3 = arr1;  // Assignment operator
     EXPECT_TRUE(original::compareArrays(arr3, stdArr));
@@ -97,7 +100,7 @@ TEST(ArrayTest, Iterator) {
 }
 
 TEST(ArrayTest, CloneIterator) {
-    original::array<int> arr = {10, 20, 30, 40, 50};
+    const array arr = {10, 20, 30, 40, 50};
 
     const auto it = arr.begins();
     const auto clonedIt = it->clone();
@@ -134,6 +137,63 @@ TEST(ArrayTest, CopyAndMoveSemantics) {
     EXPECT_THROW(arr2[0], outOfBoundError);  // arr2 should be in an invalid state
     EXPECT_EQ(arr3[0], 1);
     EXPECT_EQ(arr3[1], 2);
+}
+
+    TEST(ArrayTest, IndexOutOfBound) {
+    array<int> arr = {1, 2, 3, 4, 5};
+
+    // Test indexOutOfBound method (or similar boundary check)
+    EXPECT_NO_THROW(arr.get(0));   // Valid index
+    EXPECT_NO_THROW(arr.get(4));   // Valid index (last element)
+    EXPECT_THROW(arr.get(5), outOfBoundError);  // Invalid index
+}
+
+TEST(ArrayTest, UnsupportedPushPopMethods) {
+    array<int> arr; // An empty array for testing unsupported methods
+
+    // Test unsupported methods in the base class (serial)
+    EXPECT_THROW(arr.push(10, 0), unSupportedMethodError);   // push() might throw if unsupported
+    EXPECT_THROW(arr.pop(10), unSupportedMethodError);      // pop() might throw if unsupported
+    EXPECT_THROW(arr.pushBegin(5), unSupportedMethodError); // pushBegin() might throw
+    EXPECT_THROW(arr.popBegin(), unSupportedMethodError);  // popBegin() might throw
+}
+
+TEST(ArrayTest, IndexOfMethodWithBounds) {
+    array<int> arr = {10, 20, 30, 40, 50};
+
+    // Test indexOf method for valid index
+    EXPECT_EQ(arr.indexOf(30), 2);   // 30 is at index 2
+    EXPECT_EQ(arr.indexOf(50), 4);   // 50 is at index 4
+
+    // Test indexOf method for non-existent element
+    EXPECT_EQ(arr.indexOf(100), arr.size()); // 100 not in array, should return size
+}
+
+TEST(ArrayTest, MoveConstructorAndAssignment)
+{
+    array arr1 = {1, 2, 3, 4, 5};
+
+    // Test move constructor
+    array arr2 = std::move(arr1);
+    EXPECT_EQ(arr2.size(), 5);
+    EXPECT_EQ(arr1.size(), 0);  // arr1 should be empty after move
+    EXPECT_THROW(arr1[0], outOfBoundError);  // arr1 should be in an invalid state
+
+    // Test move assignment
+    array arr3 = {10, 20, 30};
+    arr3 = std::move(arr2);
+    EXPECT_EQ(arr3.size(), 5);
+    EXPECT_THROW(arr2[0], outOfBoundError);
+}
+
+TEST(ArrayTest, ToString) {
+    const array arr = {1, 2, 3, 4, 5};
+
+    // 假设toString返回的格式是 "array(1, 2, 3, 4, 5)"
+    const std::string expected = "array(1, 2, 3, 4, 5)";
+
+    // 检查toString的输出
+    EXPECT_EQ(arr.toString(false), expected);
 }
 
 }  // namespace original
