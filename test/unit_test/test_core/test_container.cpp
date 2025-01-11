@@ -7,7 +7,6 @@ using namespace original;
 
 template<typename TYPE>
 class vectorContainer : public container<TYPE> {
-private:
     std::vector<TYPE> data_{};
 public:
     [[nodiscard]] uint32_t size() const override {
@@ -24,6 +23,20 @@ public:
 
     void clear() override {
         data_.clear();
+    }
+
+    TYPE remove(const TYPE& e) override
+    {
+        for (auto it = this->data_.begin(); it != this->data_.end(); ++it)
+        {
+            if (*it == e)
+            {
+                TYPE res = *it;
+                this->data_.erase(it);
+                return res;
+            }
+        }
+        throw std::runtime_error("Element not found");
     }
 };
 
@@ -131,4 +144,25 @@ TEST(ContainerTest, TestPointerData) {
 
     container.add(nullptr);
     EXPECT_TRUE(container.contains(nullptr));
+}
+
+TEST(ContainerTest, TestRemove) {
+    vectorContainer<int> container;
+    container.add(1);
+    container.add(2);
+    container.add(3);
+
+    EXPECT_EQ(container.size(), 3);
+
+    // 测试移除存在的元素
+    EXPECT_EQ(container.remove(2), 2);
+    EXPECT_EQ(container.size(), 2);
+    EXPECT_FALSE(container.contains(2));
+
+    // 测试移除不存在的元素，应该抛出异常
+    EXPECT_THROW(container.remove(4), std::runtime_error);
+
+    // 确保移除后的元素保持正确
+    EXPECT_TRUE(container.contains(1));
+    EXPECT_TRUE(container.contains(3));
 }

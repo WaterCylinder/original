@@ -1,13 +1,11 @@
 #include "gtest/gtest.h"
 #include "serial.h"
-#include "container.h"
 #include "error.h"
 
 namespace original {
 
     template <typename TYPE>
     class vectorSerial : public serial<TYPE> {
-    private:
         std::vector<TYPE> data;
 
     public:
@@ -298,4 +296,31 @@ TEST(SerialTest, MiddlePushPopTest) {
     int popped = serial.pop(1);
     EXPECT_EQ(popped, 7);
     EXPECT_EQ(serial.size(), 3);
+}
+
+// 测试 remove 方法
+TEST(SerialTest, RemoveMethodTest) {
+    vectorSerial<int> serial;
+
+    serial.add(5);
+    serial.add(10);
+    serial.add(15);
+
+    // 删除存在的元素
+    EXPECT_EQ(serial.remove(10), 10);  // 删除第二个元素
+    EXPECT_EQ(serial.size(), 2);
+    EXPECT_EQ(serial[0], 5);
+    EXPECT_EQ(serial[1], 15);
+
+    // 再次删除一个元素
+    EXPECT_EQ(serial.remove(5), 5);  // 删除第一个元素
+    EXPECT_EQ(serial.size(), 1);
+    EXPECT_EQ(serial[0], 15);
+
+    // 删除剩余的元素
+    EXPECT_EQ(serial.remove(15), 15);  // 删除最后一个元素
+    EXPECT_EQ(serial.size(), 0);
+
+    // 删除不存在的元素，应该抛出异常
+    EXPECT_THROW(serial.remove(20), outOfBoundError);  // 不存在的元素
 }
