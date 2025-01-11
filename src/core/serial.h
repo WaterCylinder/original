@@ -12,6 +12,7 @@ namespace original{
         [[nodiscard]] int64_t parseNegIndex(int64_t index) const;
     public:
         void add(const TYPE& e) override;
+        TYPE remove(const TYPE& e) override;
         void clear() override;
         virtual TYPE get(int64_t index) const = 0;
         virtual TYPE getBegin() const;
@@ -46,6 +47,13 @@ namespace original{
     auto original::serial<TYPE>::add(const TYPE &e) -> void
     {
         this->pushEnd(e);
+    }
+
+    template <typename TYPE>
+    auto original::serial<TYPE>::remove(const TYPE& e) -> TYPE
+    {
+        const int64_t index = this->indexOf(e);
+        return this->pop(index);
     }
 
     template<typename TYPE>
