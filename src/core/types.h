@@ -15,22 +15,20 @@ namespace original{
         { t1 >= t2 } -> std::same_as<bool>;
     };
 
+    template <typename Callback, typename ReturnType, typename... Args>
+    concept CallbackOf = requires(Callback callback, Args&&... args){
+        { callback(std::forward<Args>(args)...) } -> std::same_as<ReturnType>;
+    };
+
     template <typename Callback, typename TYPE>
     concept Compare =
-    Comparable<TYPE> &&
-    requires(Callback compare, const TYPE& t1, const TYPE& t2) {
-        { compare(t1, t2) } -> std::same_as<bool>;
-    };
+    Comparable<TYPE> && CallbackOf<Callback, bool, const TYPE&, const TYPE&>;
 
     template <typename Callback, typename TYPE>
-    concept Condition = requires(Callback condition, const TYPE& t){
-        { condition(t) } -> std::same_as<bool>;
-    };
+    concept Condition = CallbackOf<Callback, bool, const TYPE&>;
 
-    template < typename Callback, typename TYPE>
-    concept Operation = requires(Callback operation, TYPE& t){
-        { operation(t) } -> std::same_as<void>;
-    };
+    template <typename Callback, typename TYPE>
+    concept Operation = CallbackOf<Callback, void, TYPE&>;
 
     template <typename Base, typename Derive>
     concept SuperOf = std::is_base_of_v<Base, Derive> || std::is_same_v<Base, Derive>;
