@@ -29,6 +29,12 @@ configure_package_config_file(
 install(FILES "${CMAKE_BINARY_DIR}/cmake/originalConfig.cmake"
         DESTINATION cmake/original)
 
+set(original_build_include_dirs
+    "${original_SOURCE_DIR}/src/core"
+    "${original_SOURCE_DIR}/src"
+)
+include_directories("${original_build_include_dirs}")
+
 # test cases
 add_subdirectory(test/legacy)
 add_subdirectory(test/unit_test)
