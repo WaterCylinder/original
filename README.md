@@ -10,6 +10,39 @@ Original是一个C++基础工具库,也是本人的第一个正式项目，用�
 [文档-Original](https://documents-original.vercel.app/)
 
 ## 安装
+
+这里以项目`hello_original`为例：
+```text
+├─CMakeLists.txt
+└─main.cpp
+```
+
+方法一 使用Cmake远程拉取（推荐）：
+
+配置`CMakeLists.txt`：
+```cmake
+cmake_minimum_required(VERSION 3.30)
+project(hello_original)
+
+set(CMAKE_CXX_STANDARD 20)
+
+include(FetchContent)
+
+FetchContent_Declare(
+        original
+        GIT_REPOSITORY git@github.com:FrozenLemonTee/original.git
+        GIT_TAG master
+)
+
+FetchContent_MakeAvailable(original)
+
+add_executable(hello_original main.cpp)
+
+
+target_link_libraries(hello_original PRIVATE original)
+```
+方法二 使用Cmake本地构建、安装：
+
 在该项目文件夹下新建文件夹`build`并进入：
 ```shell
 mkdir build
@@ -21,13 +54,16 @@ cmake .. -DCMAKE_BUILD_TYPE=Debug
 cmake --build . --config Debug
 cmake --install . --config Debug
 ```
-将生成的`build`和`install`文件夹复制到你的项目中，这里以项目`hello_original`为例：
+将生成的`build`和`install`文件夹复制到项目`hello_original`中。
+
+复制后项目的结构如下：
 ```text
 ├─build
 ├─install
 ├─CMakeLists.txt
 └─main.cpp
 ```
+
 配置`CMakeLists.txt`：
 ```cmake
 cmake_minimum_required(VERSION 3.29)
@@ -44,6 +80,9 @@ add_executable(hello_original main.cpp)
 
 target_link_libraries(hello_original PRIVATE "${ORIGINAL_LIBRARIES}")
 ```
+
+接下来展示测试Demo：
+
 `main.cpp`：
 ```c++
 #include <iostream>
