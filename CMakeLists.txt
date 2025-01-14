@@ -12,9 +12,9 @@ file(GLOB CORE_HEADERS "${CMAKE_SOURCE_DIR}/src/core/*.h")
 add_library(original STATIC ${CORE_HEADERS} src/original.cpp)
 
 target_include_directories(original
-        INTERFACE
-        ${CMAKE_SOURCE_DIR}/src
-        ${CMAKE_SOURCE_DIR}/src/core
+    INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/core
 )
 
 install(TARGETS original DESTINATION lib)
