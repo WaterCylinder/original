@@ -14,10 +14,11 @@ namespace original {
             uint32_t size_;
 
             void bitsetInit(uint32_t size);
-            static bool getBitFromBlock(underlying_type block_value, int64_t bit);
-            static underlying_type setBitFromBlock(underlying_type block_value, int64_t bit);
-            static underlying_type clearBitFromBlock(underlying_type block_value, int64_t bit);
-            static underlying_type clearAllBitsFromBlock(underlying_type block_value, int64_t bit);
+            [[nodiscard]] static bool getBitFromBlock(underlying_type block_value, int64_t bit);
+            [[nodiscard]] static underlying_type setBitFromBlock(underlying_type block_value, int64_t bit);
+            [[nodiscard]] static underlying_type clearBitFromBlock(underlying_type block_value, int64_t bit);
+            [[nodiscard]] static underlying_type clearHigherBitsFromBlock(underlying_type block_value, int64_t bit);
+            void clearRedundantBits();
             [[nodiscard]] bool getBit(int64_t bit, int64_t block) const;
             void setBit(int64_t bit, int64_t block);
             void clearBit(int64_t bit, int64_t block);
@@ -97,22 +98,25 @@ namespace original {
     }
 
     inline auto original::bitSet::getBitFromBlock(const underlying_type block_value, const int64_t bit) -> bool {
-        return block_value & static_cast<underlying_type>(1) << static_cast<underlying_type>(bit);
+        return block_value & static_cast<underlying_type>(1) << bit;
     }
 
     inline auto original::bitSet::setBitFromBlock(const underlying_type block_value, const int64_t bit) -> underlying_type {
-        return block_value | static_cast<underlying_type>(1) << static_cast<underlying_type>(bit);
+        return block_value | static_cast<underlying_type>(1) << bit;
     }
 
     inline auto original::bitSet::clearBitFromBlock(const underlying_type block_value, const int64_t bit) -> underlying_type {
-        return block_value & ~(static_cast<underlying_type>(1) << static_cast<underlying_type>(bit));
+        return block_value & ~(static_cast<underlying_type>(1) << bit);
     }
 
-    inline auto original::bitSet::clearAllBitsFromBlock(const underlying_type block_value, const int64_t bit) -> underlying_type {
-        constexpr underlying_type mask1 = ~static_cast<underlying_type>(0);
-        const underlying_type mask2 = bit <= BLOCK_MAX_SIZE - 1 ? (1 << static_cast<underlying_type>(bit + 1)) - static_cast<underlying_type>(1) : mask1;
-        const underlying_type mask = mask1 ^ mask2;
-        return block_value & mask;
+    inline auto original::bitSet::clearHigherBitsFromBlock(const underlying_type block_value, const int64_t bit) -> underlying_type
+    {
+        return block_value & (static_cast<underlying_type>(1) << bit + 1) - static_cast<underlying_type>(1);
+    }
+
+    inline auto original::bitSet::clearRedundantBits() -> void
+    {
+        this->map.set(-1, clearHigherBitsFromBlock(this->map.get(-1), toInnerIdx(this->size() - 1).second()));
     }
 
     inline auto original::bitSet::getBit(const int64_t bit, const int64_t block) const -> bool {
@@ -124,7 +128,7 @@ namespace original {
     }
 
     inline auto original::bitSet::clearBit(const int64_t bit, const int64_t block) -> void {
-        return this->map.set(block, clearBitFromBlock(this->map.get(block), bit));
+        this->map.set(block, clearBitFromBlock(this->map.get(block), bit));
     }
 
     inline void original::bitSet::writeBit(const int64_t bit, const int64_t block, const bool value) {
@@ -319,14 +323,12 @@ namespace original {
         }
 
         auto nb = bitSet(new_size);
-        const int64_t new_blocks = (new_size + BLOCK_MAX_SIZE - 1) / BLOCK_MAX_SIZE;
-        const uint32_t blocks_min = min(static_cast<uint32_t>(new_blocks),
+        const uint32_t blocks_min = min(nb.map.size(),
                                         this->map.size());
         for (uint32_t i = 0; i < blocks_min; i++) {
             nb.map.set(i, this->map.get(i));
         }
-        const int64_t bits_remaining = nb.size() - blocks_min * BLOCK_MAX_SIZE;
-        nb.map.set(blocks_min - 1, clearAllBitsFromBlock(nb.map.get(blocks_min - 1), BLOCK_MAX_SIZE - bits_remaining));
+        nb.clearRedundantBits();
         return nb;
     }
 
@@ -437,9 +439,7 @@ namespace original {
         for (uint32_t i = 0; i < nbs.map.size(); i++) {
             nbs.map.set(i, ~nbs.map.get(i));
         }
-        const int64_t bits_remaining = nbs.size() - nbs.map.size() * bitSet::BLOCK_MAX_SIZE;
-        nbs.map.set(nbs.map.size() - 1, bitSet::clearAllBitsFromBlock(nbs.map.get(nbs.map.size() - 1),
-            bitSet::BLOCK_MAX_SIZE - bits_remaining));
+        nbs.clearRedundantBits();
         return nbs;
     }
 
