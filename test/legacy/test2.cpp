@@ -39,12 +39,12 @@ int main()
         a1[e].second() += 1;
     }
     std::cout << "after: " << a1 << std::endl;
-    auto v2 = original::vector<double>();
+    auto v2 = original::vector<long double>();
     for (int i = 0; i < 10; ++i) {
         v2.pushEnd(double{});
     }
     std::cout << "before: " << v2 << std::endl;
-    original::algorithms::fill(v2.first(), v2.last(), PI);
+    original::algorithms::fill(v2.first(), v2.last(), original::PI);
     std::cout << "after: " << v2 << std::endl;
     std::cout << "number of elements less than 3 in v1: "
     << original::algorithms::count(v1.first(), v1.last(), [](int e) {
