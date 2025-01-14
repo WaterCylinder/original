@@ -2,11 +2,6 @@
 
 @PACKAGE_INIT@
 
-set(original_build_include_dirs
-    "${original_SOURCE_DIR}/src/core"
-    "${original_SOURCE_DIR}/src"
-)
-
 set(ORIGINAL_INCLUDE_DIRS "${CMAKE_INSTALL_PREFIX}/include")
 if(WIN32)
     set(ORIGINAL_LIBRARIES "${CMAKE_SOURCE_DIR}/install/lib/original.lib")
@@ -14,7 +9,6 @@ else()
     set(ORIGINAL_LIBRARIES "${CMAKE_SOURCE_DIR}/install/lib/liboriginal.a")
 endif()
 
-include_directories("${original_build_include_dirs}")
 include_directories(${ORIGINAL_INCLUDE_DIRS})
 
 if (ORIGINAL_LIBRARIES)
