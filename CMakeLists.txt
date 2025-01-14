@@ -12,6 +12,8 @@ file(GLOB CORE_HEADERS "${CMAKE_SOURCE_DIR}/src/original.h")
 
 add_library(original STATIC ${CORE_HEADERS} src/original.cpp)
 
+target_include_directories(original PUBLIC ${CMAKE_SOURCE_DIR}/src)
+
 install(TARGETS original DESTINATION lib)
 install(FILES src/original.h DESTINATION include)
 install(DIRECTORY src/core/
