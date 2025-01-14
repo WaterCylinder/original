@@ -189,11 +189,43 @@ TEST(ArrayTest, MoveConstructorAndAssignment)
 TEST(ArrayTest, ToString) {
     const array arr = {1, 2, 3, 4, 5};
 
-    // 假设toString返回的格式是 "array(1, 2, 3, 4, 5)"
+    // toString返回的格式是 "array(1, 2, 3, 4, 5)"
     const std::string expected = "array(1, 2, 3, 4, 5)";
 
     // 检查toString的输出
     EXPECT_EQ(arr.toString(false), expected);
+}
+
+    TEST(ArrayTest, ForEachTest) {
+    array<int> array(5);
+    std::array<int, 5> stdArr{};
+    int i = 0;
+    for (auto &e : array)
+    {
+        e = i;
+        i += 1;
+    }
+    int j = 0;
+    for (auto &e : stdArr)
+    {
+        e = j;
+        j += 1;
+    }
+
+    int sum_arr = 0;
+    array.forEach([&sum_arr](const auto& value) {
+        sum_arr += value;
+    });
+
+    int sum_stdArr = 0;
+    for (const auto &e : stdArr)
+    {
+        sum_stdArr += e;
+    }
+
+    // 检查 forEach 是否正确遍历并累加元素
+    EXPECT_EQ(sum_arr, sum_stdArr);
+    EXPECT_TRUE(compareArrays(array, stdArr));
 }
 
 }  // namespace original
