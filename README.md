@@ -66,7 +66,7 @@ cmake --install . --config Debug
 
 配置`CMakeLists.txt`：
 ```cmake
-cmake_minimum_required(VERSION 3.29)
+cmake_minimum_required(VERSION 3.30)
 project(hello_original)
 
 set(CMAKE_CXX_STANDARD 20)
