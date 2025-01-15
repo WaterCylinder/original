@@ -26,6 +26,8 @@ project(hello_original)
 
 set(CMAKE_CXX_STANDARD 20)
 
+set(BUILD_TESTING OFF CACHE BOOL "Disable tests in the fetched project")
+
 include(FetchContent)
 
 FetchContent_Declare(
@@ -50,7 +52,7 @@ cd build
 ```
 利用cmake构建库：
 ```shell
-cmake .. -DCMAKE_BUILD_TYPE=Debug
+cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=OFF
 cmake --build . --config Debug
 cmake --install . --config Debug
 ```

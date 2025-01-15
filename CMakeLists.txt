@@ -34,6 +34,10 @@ configure_package_config_file(
 install(FILES "${CMAKE_BINARY_DIR}/cmake/originalConfig.cmake"
         DESTINATION cmake/original)
 
-# test cases
-add_subdirectory(test/legacy)
-add_subdirectory(test/unit_test)
+option(BUILD_TESTING "Build the testing directories" ON)
+
+if (BUILD_TESTING)
+    # test cases
+    add_subdirectory(test/legacy)
+    add_subdirectory(test/unit_test)
+endif ()
