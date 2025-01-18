@@ -116,7 +116,7 @@ namespace original{
     template <typename TYPE>
     auto original::vector<TYPE>::outOfMaxSize(uint32_t increment) const -> bool
     {
-        return this->inner_begin + this->size() + increment > this->max_size - 1 || this->inner_begin - increment < 0;
+        return this->inner_begin + this->size() + increment > this->max_size - 1 || static_cast<int64_t>(this->inner_begin) - static_cast<int64_t>(increment) < 0;
     }
 
     template <typename TYPE>
@@ -138,8 +138,8 @@ namespace original{
         if (!this->outOfMaxSize(increment)) {
             return;
         }
-        if (this->max_size >= this->size_ + increment) {
-            uint32_t new_begin = (this->max_size - this->size() - increment) / 2;
+        uint32_t new_begin = (this->max_size - this->size() - increment) / 2;
+        if (this->max_size >= this->size_ + increment && new_begin > 0) {
             const int64_t offset = static_cast<int64_t>(new_begin) - static_cast<int64_t>(this->inner_begin);
             vector::moveElements(this->body, this->inner_begin, this->size(),
                                  this->body, offset);
@@ -374,7 +374,7 @@ namespace original{
                 vector::moveElements(this->body, index,
                                      this->size() - rel_idx, this->body, 1);
             }
-            this->body[index] = e;
+            this->body[this->toInnerIdx(rel_idx)] = e;
             this->size_ += 1;
         }
     }
