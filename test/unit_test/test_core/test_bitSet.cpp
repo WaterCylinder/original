@@ -26,7 +26,7 @@ template <size_t N>
 
 TEST(BitSetTest, Constructor) {
     const original::bitSet bs1(64);  // 创建一个64位的 bitSet
-    const std::bitset<64> bs2;  // 创建一个64位的 std::bitset
+    constexpr std::bitset<64> bs2;  // 创建一个64位的 std::bitset
 
     for (size_t i = 0; i < 64; ++i) {
         ASSERT_EQ(bs1.get(i), bs2[i]);
