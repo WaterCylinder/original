@@ -81,7 +81,6 @@ int main(){
     q3.pop();
     std::cout << "q3 after: " << q3 << std::endl;
     original::stack<original::queue<int>> s4;
-    original::stack<int, original::array> s5; // 这种情况不应该通过编译
     original::deque<int> d1;
     for (int i = 0; i < 10; ++i) {
         d1.pushBegin(i);
