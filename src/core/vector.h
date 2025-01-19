@@ -1,13 +1,13 @@
 #ifndef VECTOR_H
 #define VECTOR_H
 
-#include "serial.h"
+#include "baseList.h"
 #include "iterationStream.h"
 #include "array.h"
 
 namespace original{
     template <typename TYPE>
-    class vector final : public serial<TYPE>, public iterationStream<TYPE>{
+    class vector final : public baseList<TYPE>, public iterationStream<TYPE>{
         uint32_t size_;
         const uint32_t INNER_SIZE_INIT = 16;
         uint32_t max_size;

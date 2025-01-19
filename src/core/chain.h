@@ -4,13 +4,13 @@
 
 #include "doubleDirectionIterator.h"
 #include "array.h"
-#include "serial.h"
+#include "baseList.h"
 #include "iterationStream.h"
 
 
 namespace original {
     template <typename TYPE>
-    class chain final : public serial<TYPE>, public iterationStream<TYPE>{
+    class chain final : public baseList<TYPE>, public iterationStream<TYPE>{
         class chainNode final : public wrapper<TYPE>{
             public:
                 friend class iterator<TYPE>;
@@ -326,7 +326,7 @@ namespace original {
 
         this->chainDestruction();
         this->begin_ = other.begin_;
-        this->end_ = other.begin_;
+        this->end_ = other.end_;
         this->size_ = other.size_;
         other.chainInit();
         return *this;

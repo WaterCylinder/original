@@ -3,10 +3,11 @@
 
 #include "singleDirectionIterator.h"
 #include "array.h"
+#include "baseList.h"
 
 namespace original {
     template <typename TYPE>
-    class forwardChain final : public serial<TYPE>, public iterationStream<TYPE>{
+    class forwardChain final : public baseList<TYPE>, public iterationStream<TYPE>{
         class forwardChainNode final : public wrapper<TYPE>{
             public:
                 friend class iterator<TYPE>;
@@ -55,6 +56,8 @@ namespace original {
         forwardChain(std::initializer_list<TYPE> list);
         explicit forwardChain(const array<TYPE>& arr);
         forwardChain& operator=(const forwardChain& other);
+        forwardChain(forwardChain&& other) noexcept;
+        forwardChain& operator=(forwardChain&& other) noexcept;
         bool operator==(const forwardChain& other) const;
         [[nodiscard]] uint32_t size() const override;
         TYPE get(int64_t index) const override;
@@ -272,7 +275,7 @@ namespace original {
             auto* other_ = other.begin_;
             this->begin_ = new forwardChainNode(other_->getVal());
             auto* this_ = this->begin_;
-            while (other_ != nullptr){
+            while (other_->getPNext() != nullptr){
                 other_ = other_->getPNext();
                 forwardChainNode::connect(this_, new forwardChainNode(other_->getVal()));
                 this_ = this_->getPNext();
@@ -280,6 +283,23 @@ namespace original {
         } else{
             this->chainInit();
         }
+        return *this;
+    }
+
+    template<typename TYPE>
+    original::forwardChain<TYPE>::forwardChain(forwardChain &&other) noexcept : forwardChain() {
+        this->operator=(std::move(other));
+    }
+
+    template<typename TYPE>
+    original::forwardChain<TYPE> & original::forwardChain<TYPE>::operator=(forwardChain &&other) noexcept {
+        if (this == &other)
+            return *this;
+
+        this->chainDestruction();
+        this->begin_ = other.begin_;
+        this->size_ = other.size_;
+        other.chainInit();
         return *this;
     }
 
@@ -352,7 +372,6 @@ namespace original {
             forwardChainNode::connect(new_node, next);
             this->size_ += 1;
         }
-
     }
 
     template<typename TYPE>
@@ -393,11 +412,11 @@ namespace original {
         if (this->size() == 0){
             throw noElementError();
         }
+
+        res = this->beginNode()->getVal();
         if (this->size() == 1){
-            res = this->beginNode()->getVal();
             delete this->lastDelete();
         } else{
-            res = this->begin_->getVal();
             auto* del = this->beginNode();
             auto* new_begin = del->getPNext();
             delete del;

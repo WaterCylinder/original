@@ -3,15 +3,16 @@
 #pragma once
 
 #include <initializer_list>
+
+#include "baseArray.h"
 #include "iterationStream.h"
 #include "randomAccessIterator.h"
 #include "error.h"
-#include "serial.h"
 
 namespace original{
 
     template<typename TYPE>
-    class array final : public iterationStream<TYPE>, public serial<TYPE>{
+    class array final : public iterationStream<TYPE>, public baseArray<TYPE>{
         uint32_t size_;
         TYPE* body;
 
