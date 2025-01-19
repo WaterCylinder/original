@@ -12,7 +12,7 @@ void compareVectors(const original::vector<int>& originalVec, const std::vector<
 }
 
 // 测试 original::vector 类
-class VectorTest : public ::testing::Test {
+class VectorTest : public testing::Test {
 protected:
     void SetUp() override {
         // 每个测试用例前都创建一个空的 original::vector 和 std::vector
@@ -138,7 +138,7 @@ TEST_F(VectorTest, ConstructorTest) {
 
 // 测试大数据量
 TEST_F(VectorTest, LargeDataTest) {
-    const size_t dataSize = 1000000;  // 测试 100万数据
+    constexpr size_t dataSize = 1000000;  // 测试 100万数据
     for (size_t i = 0; i < dataSize; ++i) {
         this->originalVec.pushEnd(static_cast<int>(i));
         this->stdVec.push_back(static_cast<int>(i));
@@ -157,7 +157,6 @@ TEST_F(VectorTest, EmptyContainerTest) {
 
     // Testing index on empty vector (should throw an exception)
     ASSERT_THROW(this->originalVec[0], original::outOfBoundError);
-    ASSERT_THROW(this->stdVec.at(0), std::out_of_range);
 }
 
 // 测试单一元素
@@ -253,12 +252,11 @@ TEST_F(VectorTest, BoundaryAccessTest) {
 
     // Testing out-of-bounds access
     ASSERT_THROW(this->originalVec[1], original::outOfBoundError);
-    ASSERT_THROW(this->stdVec.at(1), std::out_of_range);
 }
 
 // 测试 pushBegin
 TEST_F(VectorTest, PushBeginTest) {
-    const size_t dataSize = 100000;  // 大数据量测试
+    constexpr size_t dataSize = 100000;  // 大数据量测试
     for (size_t i = dataSize; i > 0; --i) {
         this->originalVec.pushBegin(static_cast<int>(i));
         this->stdVec.insert(this->stdVec.begin(), static_cast<int>(i));
@@ -269,7 +267,7 @@ TEST_F(VectorTest, PushBeginTest) {
 
 // 测试 popEnd
 TEST_F(VectorTest, PopEndTest) {
-    const size_t dataSize = 100000;  // 大数据量测试
+    constexpr size_t dataSize = 100000;  // 大数据量测试
     for (size_t i = 0; i < dataSize; ++i) {
         this->originalVec.pushEnd(static_cast<int>(i));
         this->stdVec.push_back(static_cast<int>(i));
@@ -288,7 +286,7 @@ TEST_F(VectorTest, PopEndTest) {
 
 // 测试 popBegin
 TEST_F(VectorTest, PopBeginTest) {
-    const size_t dataSize = 100000;  // 大数据量测试
+    constexpr size_t dataSize = 100000;  // 大数据量测试
     for (size_t i = 0; i < dataSize; ++i) {
         this->originalVec.pushEnd(static_cast<int>(i));
         this->stdVec.push_back(static_cast<int>(i));
@@ -307,7 +305,7 @@ TEST_F(VectorTest, PopBeginTest) {
 
 // 测试 push（插入到容器中间）
 TEST_F(VectorTest, PushTestMiddle) {
-    const size_t dataSize = 100000;  // 大数据量测试
+    constexpr size_t dataSize = 100000;  // 大数据量测试
     for (size_t i = 0; i < dataSize; ++i) {
         this->originalVec.pushEnd(static_cast<int>(i));
         this->stdVec.push_back(static_cast<int>(i));
@@ -324,7 +322,7 @@ TEST_F(VectorTest, PushTestMiddle) {
 
 // 测试插入和弹出混合操作
 TEST_F(VectorTest, MixedPushPopTest) {
-    const size_t dataSize = 100000;  // 大数据量测试
+    constexpr size_t dataSize = 100000;  // 大数据量测试
 
     // 在末尾插入数据
     for (size_t i = 0; i < dataSize; ++i) {
