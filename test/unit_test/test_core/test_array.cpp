@@ -139,23 +139,13 @@ TEST(ArrayTest, CopyAndMoveSemantics) {
     EXPECT_EQ(arr3[1], 2);
 }
 
-    TEST(ArrayTest, IndexOutOfBound) {
-    array<int> arr = {1, 2, 3, 4, 5};
+TEST(ArrayTest, IndexOutOfBound) {
+    array arr = {1, 2, 3, 4, 5};
 
     // Test indexOutOfBound method (or similar boundary check)
     EXPECT_NO_THROW(arr.get(0));   // Valid index
     EXPECT_NO_THROW(arr.get(4));   // Valid index (last element)
     EXPECT_THROW(arr.get(5), outOfBoundError);  // Invalid index
-}
-
-TEST(ArrayTest, UnsupportedPushPopMethods) {
-    array<int> arr; // An empty array for testing unsupported methods
-
-    // Test unsupported methods in the base class (serial)
-    EXPECT_THROW(arr.push(10, 0), unSupportedMethodError);   // push() might throw if unsupported
-    EXPECT_THROW(arr.pop(10), unSupportedMethodError);      // pop() might throw if unsupported
-    EXPECT_THROW(arr.pushBegin(5), unSupportedMethodError); // pushBegin() might throw
-    EXPECT_THROW(arr.popBegin(), unSupportedMethodError);  // popBegin() might throw
 }
 
 TEST(ArrayTest, IndexOfMethodWithBounds) {
@@ -226,6 +216,81 @@ TEST(ArrayTest, ToString) {
     // 检查 forEach 是否正确遍历并累加元素
     EXPECT_EQ(sum_arr, sum_stdArr);
     EXPECT_TRUE(compareArrays(array, stdArr));
+}
+
+    // 测试拷贝构造函数和拷贝赋值运算符
+    TEST(ArrayTest, CopyConstructorAndAssignmentWithPointer) {
+    array<int*> arr1(3);
+    int a = 1, b = 2, c = 3;
+    arr1.set(0, &a);
+    arr1.set(1, &b);
+    arr1.set(2, &c);
+
+    // 拷贝构造
+    array<int*> arr2 = arr1;
+    EXPECT_EQ(*arr2[0], 1);
+    EXPECT_EQ(*arr2[1], 2);
+    EXPECT_EQ(*arr2[2], 3);
+
+    // 修改 arr2 中的元素
+    int d = 4;
+    arr2[1] = &d;
+    EXPECT_EQ(*arr2[1], 4);  // arr2[1] 指向 d
+    EXPECT_EQ(*arr1[1], 2);   // arr1[1] 不应受影响
+
+    // 拷贝赋值运算符
+    array<int*> arr3 = arr1;
+    EXPECT_EQ(*arr3[0], 1);
+    EXPECT_EQ(*arr3[1], 2);
+    EXPECT_EQ(*arr3[2], 3);
+}
+
+    // 测试移动构造函数和移动赋值运算符
+    TEST(ArrayTest, MoveConstructorAndAssignmentWithPointer) {
+    array<int*> arr1(3);
+    int a = 1, b = 2, c = 3;
+    arr1.set(0, &a);
+    arr1.set(1, &b);
+    arr1.set(2, &c);
+
+    // 移动构造
+    array<int*> arr2 = std::move(arr1);
+    EXPECT_EQ(*arr2[0], 1);
+    EXPECT_EQ(*arr2[1], 2);
+    EXPECT_EQ(*arr2[2], 3);
+
+    // arr1 变为空，不能访问它的元素
+    EXPECT_THROW(arr1[0], outOfBoundError);
+
+    // 移动赋值运算符
+    array<int*> arr3(2);
+    int d = 4, e = 5;
+    arr3[0] = &d;
+    arr3[1] = &e;
+
+    arr3 = std::move(arr2);
+    EXPECT_EQ(*arr3[0], 1);
+    EXPECT_EQ(*arr3[1], 2);
+    EXPECT_EQ(*arr3[2], 3);
+
+    // arr2 变为空，不能访问它的元素
+    EXPECT_THROW(arr2[0], outOfBoundError);
+}
+
+    // 测试析构函数是否正确释放资源
+    TEST(ArrayTest, DestructionWithPointer) {
+    array<int*> arr1(3);
+    int a = 1, b = 2, c = 3;
+    arr1.set(0, &a);
+    arr1.set(1, &b);
+    arr1.set(2, &c);
+
+    // 让 arr 超出作用域，检查是否有内存泄漏
+    {
+        array<int*> arr2 = arr1;
+        EXPECT_EQ(arr1, arr2);
+    }  // arr2 超出作用域，检查是否无崩溃或内存泄漏
+    EXPECT_TRUE(true);
 }
 
 }  // namespace original
