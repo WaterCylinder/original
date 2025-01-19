@@ -6,7 +6,7 @@
 
 
 namespace original {
-    class bitSet final : public serial<bool>, public iterationStream<bool>{
+    class bitSet final : public baseArray<bool>, public iterationStream<bool>{
             using underlying_type = uint64_t;
 
             static constexpr int64_t BLOCK_MAX_SIZE = sizeof(underlying_type) * 8;
