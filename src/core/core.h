@@ -1,14 +1,20 @@
 #ifndef CORE_H
 #define CORE_H
 
+/**
+ * Headers of module core included.
+ */
 #include "algorithms.h"
 #include "array.h"
+#include "baseArray.h"
+#include "baseList.h"
 #include "bitSet.h"
 #include "blocksList.h"
 #include "chain.h"
 #include "cloneable.h"
 #include "comparator.h"
 #include "container.h"
+#include "containerAdapter.h"
 #include "couple.h"
 #include "deque.h"
 #include "doubleDirectionIterator.h"
