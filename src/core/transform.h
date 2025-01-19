@@ -1,10 +1,9 @@
 #ifndef TRANSFORM_H
 #define TRANSFORM_H
 
+#include "baseList.h"
 #include "cloneable.h"
-
 #include "maths.h"
-#include "container.h"
 
 namespace original{
 
@@ -56,11 +55,11 @@ namespace original{
 
     template<typename TYPE>
     class copyTransform final : public transform<TYPE>{
-            container<TYPE>* container_;
+            baseList<TYPE>* container_;
             void apply(TYPE &t) override;
         public:
             copyTransform* clone() const override;
-            explicit copyTransform(container<TYPE>& container);
+            explicit copyTransform(baseList<TYPE>& container);
     };
 
 } // namespace original
@@ -139,7 +138,7 @@ namespace original{
     }
 
     template<typename TYPE>
-    original::copyTransform<TYPE>::copyTransform(container<TYPE>& container)
+    original::copyTransform<TYPE>::copyTransform(baseList<TYPE>& container)
         : container_(&container) {}
 
     template <typename TYPE>
