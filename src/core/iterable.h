@@ -2,7 +2,6 @@
 #define ITERABLE_H
 
 #include "error.h"
-#include <limits>
 #include "transform.h"
 #include "types.h"
 #include "iterator.h"
@@ -172,9 +171,7 @@ namespace original{
     {
         auto* other_it = dynamic_cast<const iterAdaptor*>(&other);
         if (other_it == nullptr)
-            return this > &other ?
-                std::numeric_limits<int64_t>::max() :
-                std::numeric_limits<int64_t>::min();
+            return this->it_->operator-(other);
         return this->it_->operator-(*other_it->it_);
     }
 

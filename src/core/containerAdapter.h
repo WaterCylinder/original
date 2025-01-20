@@ -1,6 +1,7 @@
 #ifndef CONTAINERADAPTER_H
 #define CONTAINERADAPTER_H
 #include "baseList.h"
+#include "types.h"
 #include "printable.h"
 
 namespace original {

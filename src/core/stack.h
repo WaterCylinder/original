@@ -2,6 +2,7 @@
 #define STACK_H
 
 #include "chain.h"
+#include "containerAdapter.h"
 #include <string>
 
 namespace original {
