@@ -296,18 +296,18 @@ namespace original
     }
 
     template<typename TYPE>
-    original::iterator<TYPE> *original::algorithms::frontOf(const original::iterator<TYPE> &it, int64_t steps) {
+    original::iterator<TYPE> *original::algorithms::frontOf(const iterator<TYPE> &it, int64_t steps) {
         return it + steps;
     }
 
     template<typename TYPE>
-    original::iterator<TYPE> *original::algorithms::backOf(const original::iterator<TYPE> &it, int64_t steps) {
+    original::iterator<TYPE> *original::algorithms::backOf(const iterator<TYPE> &it, int64_t steps) {
         return it - steps;
     }
 
     template<typename TYPE, typename Callback>
     requires original::Condition<Callback, TYPE>
-    bool original::algorithms::allOf(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
+    bool original::algorithms::allOf(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                      const Callback& condition) {
         auto* it = begin.clone();
         for (; !it->equal(end); it->next()){
@@ -322,7 +322,7 @@ namespace original
 
     template<typename TYPE, typename Callback>
     requires original::Condition<Callback, TYPE>
-    bool original::algorithms::anyOf(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
+    bool original::algorithms::anyOf(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                      const Callback& condition) {
         auto* it = begin.clone();
         for (; !it->equal(end); it->next()){
@@ -337,7 +337,7 @@ namespace original
 
     template<typename TYPE, typename Callback>
     requires original::Condition<Callback, TYPE>
-    bool original::algorithms::noneOf(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
+    bool original::algorithms::noneOf(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                       const Callback& condition) {
         auto* it = begin.clone();
         for (; !it->equal(end); it->next()){
