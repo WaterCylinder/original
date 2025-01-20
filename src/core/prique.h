@@ -55,7 +55,7 @@ namespace original
     template <typename TYPE, template <typename> class Callback, template <typename> typename SERIAL>
     auto original::prique<TYPE, Callback, SERIAL>::operator==(const prique& other) const -> bool
     {
-        return this->serial_ == other.serial_ && compare_ == other.compare_;
+        return this->serial_ == other.serial_;
     }
 
     template <typename TYPE, template <typename> class Callback, template <typename> typename SERIAL>
@@ -72,8 +72,8 @@ namespace original
 
         this->serial_ = std::move(other.serial_);
         this->compare_ = std::move(other.compare_);
-        other.serial_ = {};
-        other.compare_ = {};
+        other.serial_ = SERIAL<TYPE>{};
+        other.compare_ = Callback<TYPE>{};
         return *this;
     }
 

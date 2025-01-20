@@ -63,7 +63,7 @@ namespace original{
             return *this;
 
         this->serial_ = std::move(other.serial_);
-        other.serial_ = {};
+        other.serial_ = SERIAL<TYPE>{};
         return *this;
     }
 
