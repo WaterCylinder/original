@@ -312,7 +312,6 @@ namespace original {
     template <typename TYPE>
     auto original::blocksList<TYPE>::Iterator::operator+=(const int64_t steps) const -> void
     {
-        if (!this->isValid()) throw outOfBoundError();
         auto new_idx = innerIdxOffset(this->cur_block, this->cur_pos, steps);
         this->cur_block = new_idx.first();
         this->cur_pos = new_idx.second();
@@ -321,7 +320,6 @@ namespace original {
     template <typename TYPE>
     auto original::blocksList<TYPE>::Iterator::operator-=(const int64_t steps) const -> void
     {
-        if (!this->isValid()) throw outOfBoundError();
         auto new_idx = innerIdxOffset(this->cur_block, this->cur_pos, -steps);
         this->cur_block = new_idx.first();
         this->cur_pos = new_idx.second();
@@ -340,7 +338,8 @@ namespace original {
                 std::numeric_limits<int64_t>::max() :
                 std::numeric_limits<int64_t>::min();
 
-        return innerIdxToAbsIdx(this->cur_block, this->cur_pos) - innerIdxToAbsIdx(other_it->cur_block, other_it->cur_pos);
+        return static_cast<int64_t>(innerIdxToAbsIdx(this->cur_block, this->cur_pos)) -
+               static_cast<int64_t>(innerIdxToAbsIdx(other_it->cur_block, other_it->cur_pos));
     }
 
     template <typename TYPE>
@@ -465,6 +464,8 @@ namespace original {
         this->first_ = other.first_;
         this->last_ = other.last_;
         this->size_ = other.size_;
+        this->first_block = other.first_block;
+        this->last_block = other.last_block;
         return *this;
     }
 
@@ -485,6 +486,8 @@ namespace original {
         this->map = std::move(other.map);
         this->first_ = other.first_;
         this->last_ = other.last_;
+        this->first_block = other.first_block;
+        this->last_block = other.last_block;
         this->size_ = other.size_;
         other.blocksListDestruct();
         return *this;
@@ -498,8 +501,8 @@ namespace original {
         for (uint32_t i = 0; i < this->size(); ++i) {
             auto this_idx = this->outerIdxToInnerIdx(i);
             if (auto other_idx = other.outerIdxToInnerIdx(i);
-                this->getElem(this_idx.first_(),
-                this_idx.second()) != other.getElem(other_idx.first_(), other_idx.second()))
+                this->getElem(this_idx.first(),
+                this_idx.second()) != other.getElem(other_idx.first(), other_idx.second()))
                     return false;
         }
         return true;
