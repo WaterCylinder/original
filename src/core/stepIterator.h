@@ -129,6 +129,11 @@ namespace original
     template <typename TYPE>
     auto original::stepIterator<TYPE>::operator+=(const int64_t steps) const -> void
     {
+        if (steps < 0) {
+            this->operator-=(abs(steps));
+            return;
+        }
+
         for (int64_t i = 0; i < steps; i++)
         {
             this->next();
@@ -138,6 +143,11 @@ namespace original
     template <typename TYPE>
     auto original::stepIterator<TYPE>::operator-=(const int64_t steps) const -> void
     {
+        if (steps < 0) {
+            this->operator+=(abs(steps));
+            return;
+        }
+
         for (int64_t i = 0; i < steps; i++)
         {
             this->prev();
