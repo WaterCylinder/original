@@ -204,7 +204,6 @@ namespace original {
 
     inline auto original::bitSet::Iterator::operator+=(const int64_t steps) const -> void
     {
-        if (!this->isValid()) throw outOfBoundError();
         auto new_idx = toInnerIdx(toOuterIdx(this->cur_block, this->cur_bit) + steps);
         this->cur_block = new_idx.first();
         this->cur_bit = new_idx.second();
@@ -212,7 +211,6 @@ namespace original {
 
     inline auto original::bitSet::Iterator::operator-=(const int64_t steps) const -> void
     {
-        if (!this->isValid()) throw outOfBoundError();
         auto new_idx = toInnerIdx(toOuterIdx(this->cur_block, this->cur_bit) - steps);
         this->cur_block = new_idx.first();
         this->cur_bit = new_idx.second();
