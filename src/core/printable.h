@@ -113,7 +113,7 @@ namespace original {
     }
 
     template <typename TYPE>
-    inline auto original::printable::formatString(TYPE* const& ptr) -> std::string
+    auto original::printable::formatString(TYPE* const& ptr) -> std::string
     {
         std::stringstream ss;
         ss << "@" << ptr;

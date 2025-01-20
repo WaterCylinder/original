@@ -11,9 +11,9 @@ public:
     ~crtpCloneable() override = default;
 };
 
-class crtpDerivedCloneable : public crtpCloneable<crtpDerivedCloneable> {
+class crtpDerivedCloneable final : public crtpCloneable<crtpDerivedCloneable> {
 public:
-    explicit crtpDerivedCloneable(int value) : crtpCloneable<crtpDerivedCloneable>(value) {}
+    explicit crtpDerivedCloneable(int value) : crtpCloneable(value) {}
     ~crtpDerivedCloneable() override = default;
 };
 
@@ -31,7 +31,7 @@ public:
 
 TEST(CloneableTest, CloneTest) {
 derivedCloneable obj(10); // 创建一个原始对象
-original::cloneable* clonedObj = obj.clone(); // 克隆对象
+cloneable* clonedObj = obj.clone(); // 克隆对象
 
 // 检查克隆对象的类型是否与原对象相同
 ASSERT_NE(clonedObj, nullptr);
