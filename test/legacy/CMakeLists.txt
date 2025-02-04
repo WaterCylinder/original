@@ -1,12 +1,9 @@
 # test/legacy/CMakeLists.txt
 
-add_executable(test1 test1.cpp)
-add_executable(test2 test2.cpp)
-add_executable(test3 test3.cpp)
-add_executable(test4 test4.cpp)
+file(GLOB TEST_LEGACY "${CMAKE_SOURCE_DIR}/test/legacy/*.cpp")
 
-
-target_include_directories(test1 PRIVATE ${CMAKE_SOURCE_DIR}/src/core)
-target_include_directories(test2 PRIVATE ${CMAKE_SOURCE_DIR}/src/core)
-target_include_directories(test3 PRIVATE ${CMAKE_SOURCE_DIR}/src/core)
-target_include_directories(test4 PRIVATE ${CMAKE_SOURCE_DIR}/src/core)
+foreach(TEST_FILE ${TEST_LEGACY})
+    get_filename_component(TEST_NAME ${TEST_FILE} NAME_WE)
+    add_executable(${TEST_NAME} ${TEST_FILE})
+    target_link_libraries(${TEST_NAME} original)
+endforeach()
