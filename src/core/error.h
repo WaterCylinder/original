@@ -1,12 +1,6 @@
 #ifndef ERROR_H
 #define ERROR_H
 
-#include <stdexcept>
-#include <typeinfo>
-#include <string>
-#include <sstream>
-#include <functional>
-
 namespace original {
     class callBackChecker{
     public:
@@ -54,7 +48,7 @@ namespace original {
         }
     };
 
-    class CallbackSignatureError : public std::exception {
+    class CallbackSignatureError final : public std::exception {
     public:
         [[nodiscard]] auto what() const noexcept -> const char* override
         {
@@ -62,7 +56,7 @@ namespace original {
         }
     };
 
-    class CallbackReturnTypeError : public std::exception {
+    class CallbackReturnTypeError final : public std::exception {
     public:
         [[nodiscard]] auto what() const noexcept -> const char* override
         {
@@ -73,13 +67,13 @@ namespace original {
 
     template<typename Callback, typename Ret_TYPE, typename... Args_TYPE>
     void original::callBackChecker::check() {
-        constexpr bool is_valid = std::is_invocable_v<Callback, Args_TYPE...>;
-        if constexpr (!is_valid){
+        if constexpr (constexpr bool is_valid = std::is_invocable_v<Callback, Args_TYPE...>;
+            !is_valid){
             throw CallbackSignatureError();
         } else{
             using result_type = std::invoke_result_t<Callback, Args_TYPE...>;
-            constexpr bool is_valid_return_type = std::is_same_v<result_type, Ret_TYPE>;
-            if constexpr (!is_valid_return_type)
+            if constexpr (constexpr bool is_valid_return_type = std::is_same_v<result_type, Ret_TYPE>;
+                !is_valid_return_type)
                 throw CallbackReturnTypeError();
         }
     }

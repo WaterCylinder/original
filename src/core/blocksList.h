@@ -168,13 +168,13 @@ namespace original {
     }
 
     template<typename TYPE>
-    auto original::blocksList<TYPE>::outerIdxToInnerIdx(int64_t outerIdx) const -> couple<uint32_t, uint32_t>
+    auto original::blocksList<TYPE>::outerIdxToInnerIdx(const int64_t outerIdx) const -> couple<uint32_t, uint32_t>
     {
         return absIdxToInnerIdx(this->outerIdxToAbsIdx(outerIdx));
     }
 
     template<typename TYPE>
-    auto original::blocksList<TYPE>::innerIdxToOuterIdx(uint32_t block, uint32_t pos) const -> int64_t
+    auto original::blocksList<TYPE>::innerIdxToOuterIdx(const uint32_t block, const uint32_t pos) const -> int64_t
     {
         return this->absIdxToOuterIdx(innerIdxToAbsIdx(block, pos));
     }
@@ -456,7 +456,7 @@ namespace original {
         for (int64_t i = 0; i < other.map.size(); ++i) {
             auto* block = blockArrayInit();
             for (uint32_t j = 0; j < BLOCK_MAX_SIZE; ++j) {
-                block[j] = other.map.get(i)[j];
+                block[j] = other.getElem(i, j);
             }
             this->map.pushEnd(block);
         }

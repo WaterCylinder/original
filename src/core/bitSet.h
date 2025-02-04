@@ -131,7 +131,7 @@ namespace original {
         this->map.set(block, clearBitFromBlock(this->map.get(block), bit));
     }
 
-    inline void original::bitSet::writeBit(const int64_t bit, const int64_t block, const bool value) {
+    inline auto original::bitSet::writeBit(const int64_t bit, const int64_t block, const bool value) -> void {
         value ? this->setBit(bit, block) : this->clearBit(bit, block);
     }
 
@@ -216,8 +216,7 @@ namespace original {
         this->cur_bit = new_idx.second();
     }
 
-    inline int64_t original::bitSet::Iterator::operator-(const iterator& other) const
-    {
+    inline auto original::bitSet::Iterator::operator-(const iterator &other) const -> int64_t {
         auto* other_it = dynamic_cast<const Iterator*>(&other);
         if (other_it == nullptr)
             return this > &other ?
@@ -245,7 +244,7 @@ namespace original {
         return getBitFromBlock(*this->block_, this->cur_bit);
     }
 
-    inline void original::bitSet::Iterator::set(const bool &data) {
+    inline auto original::bitSet::Iterator::set(const bool &data) -> void {
         if (!this->isValid()) throw outOfBoundError();
         *this->block_ = data ?
          setBitFromBlock(*this->block_, this->cur_bit) : clearBitFromBlock(*this->block_, this->cur_bit);
