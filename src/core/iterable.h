@@ -1,7 +1,6 @@
 #ifndef ITERABLE_H
 #define ITERABLE_H
 
-#include "error.h"
 #include "transform.h"
 #include "types.h"
 #include "iterator.h"
@@ -69,7 +68,9 @@ namespace original{
     auto original::iterable<TYPE>::iterAdaptor::equalPtr(const iterator<TYPE>* other) const -> bool
     {
         auto* other_it = dynamic_cast<const iterAdaptor*>(other);
-        return other_it != nullptr && this->it_->equal(other_it->it_);
+        if (other_it == nullptr)
+            return this->it_->equal(other);
+        return this->it_->equal(other_it->it_);
     }
 
     template <typename TYPE>
@@ -132,14 +133,18 @@ namespace original{
     auto original::iterable<TYPE>::iterAdaptor::atPrev(const iterator<TYPE>* other) const -> bool
     {
         auto* other_it = dynamic_cast<const iterAdaptor*>(other);
-        return other_it != nullptr && this->it_->atPrev(other_it->it_);
+        if (other_it == nullptr)
+            return this->it_->atPrev(other);
+        return this->it_->atPrev(other_it->it_);
     }
 
     template <typename TYPE>
     auto original::iterable<TYPE>::iterAdaptor::atNext(const iterator<TYPE>* other) const -> bool
     {
         auto* other_it = dynamic_cast<const iterAdaptor*>(other);
-        return other_it != nullptr && this->it_->atNext(other_it->it_);
+        if (other_it == nullptr)
+            return this->it_->atNext(other);
+        return this->it_->atNext(other_it->it_);
     }
 
     template <typename TYPE>
