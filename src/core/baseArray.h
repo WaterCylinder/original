@@ -4,11 +4,7 @@
 
 namespace original{
     template <typename TYPE>
-    class baseArray : public serial<TYPE> {
-        protected:
-            baseArray() = default;
-            ~baseArray() override = default;
-    };
+    class baseArray : public serial<TYPE> {};
 }
 
 #endif //BASEARRAY_H
