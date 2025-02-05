@@ -15,7 +15,7 @@ file(GLOB ORIGINAL_HEADERS
 add_library(original STATIC ${ORIGINAL_HEADERS} src/original.cpp)
 
 target_include_directories(original
-    INTERFACE
+    PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/src/core
 )
