@@ -133,7 +133,7 @@ namespace original {
         const notEqualFilter n_equal(val3);
 
         // 使用 group 进行复杂组合
-        const filterStream fs = group((less && greater) || n_equal);
+        const filterStream fs = group(group(less && greater) || n_equal);
 
         vec.forEach([=](const int x) {
             ASSERT_EQ(fs(x), (x < val2 && x > val1) || x != val3);
@@ -171,7 +171,7 @@ namespace original {
         const greaterFilter greater(val2);
 
         // 组合 AND 和 OR 操作符以及 group
-        const filterStream fs = group((less || greater) && greater);
+        const filterStream fs = group(group(less || greater) && greater);
 
         vec.forEach([=](const int x) {
             ASSERT_EQ(fs(x), (x < val1 || x > val2) && x > val2);
