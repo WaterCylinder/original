@@ -3,14 +3,13 @@
 
 #include "filter.h"
 #include "iterator.h"
-#include "error.h"
 #include "types.h"
 
 namespace original
 {
     class algorithms
     {
-        public:
+    public:
         template<typename TYPE>
         static int64_t distance(const iterator<TYPE>& end, const iterator<TYPE>& begin);
 
@@ -67,6 +66,14 @@ namespace original
         requires Operation<Callback, TYPE>
         static iterator<TYPE>* forEach(const iterator<TYPE> &begin, uint32_t n, Callback operation);
 
+        template<typename TYPE, typename Callback_O, typename Callback_C>
+        requires Operation<Callback_O, TYPE> && Condition<Callback_C, TYPE>
+        static void forEach(const iterator<TYPE>& begin, const iterator<TYPE>& end, Callback_O operation, const Callback_C& condition);
+
+        template<typename TYPE, typename Callback_O, typename Callback_C>
+        requires Operation<Callback_O, TYPE> && Condition<Callback_C, TYPE>
+        static iterator<TYPE>* forEach(const iterator<TYPE> &begin, uint32_t n, Callback_O operation, const Callback_C& condition);
+
         template<typename TYPE>
         static void fill(const iterator<TYPE>& begin,
                          const iterator<TYPE>& end, const TYPE& value = TYPE{});
@@ -108,7 +115,7 @@ namespace original
         static void heapInit(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                              const Callback& compares);
 
-        protected:
+    protected:
         template<typename TYPE, typename Callback>
         requires Compare<Callback, TYPE>
         static iterator<TYPE>* heapGetPrior(const iterator<TYPE>& begin, const iterator<TYPE>& range,
@@ -119,59 +126,60 @@ namespace original
          * ---- Implementation of pointer overload version. ----
          * */
 
-
+    public:
         template <typename TYPE>
-        auto distance(const iterator<TYPE>* end, const iterator<TYPE>* begin) -> int64_t
+        static auto distance(const iterator<TYPE>* end, const iterator<TYPE>* begin) -> int64_t
         {
             return distance(*end, *begin);
         }
 
         template<typename TYPE>
-        static iterator<TYPE>* frontOf(const iterator<TYPE>* it, int64_t steps){
+        static auto frontOf(const iterator<TYPE> *it, int64_t steps) -> iterator<TYPE> * {
             return frontOf(*it, steps);
         }
 
         template<typename TYPE>
-        static iterator<TYPE>* backOf(const iterator<TYPE>* it, int64_t steps){
+        static auto backOf(const iterator<TYPE> *it, int64_t steps) -> iterator<TYPE> * {
             return backOf(*it, steps);
         }
 
         template<typename TYPE, typename Callback>
         requires original::Condition<Callback, TYPE>
-        static bool allOf(const original::iterator<TYPE>* begin, const original::iterator<TYPE>* end,
-                                         const Callback& condition) {
+        static auto allOf(const iterator<TYPE> *begin, const iterator<TYPE> *end,
+                          const Callback &condition) -> bool {
             return allOf(*begin, *end, condition);
         }
 
         template<typename TYPE, typename Callback>
         requires original::Condition<Callback, TYPE>
-        static bool anyOf(const original::iterator<TYPE>* begin, const original::iterator<TYPE>* end,
-                                         const Callback& condition) {
+        static auto anyOf(const iterator<TYPE> *begin, const iterator<TYPE> *end,
+                          const Callback &condition) -> bool {
             return anyOf(*begin, *end, condition);
         }
 
         template<typename TYPE, typename Callback>
         requires original::Condition<Callback, TYPE>
-        static bool noneOf(const original::iterator<TYPE>* begin, const original::iterator<TYPE>* end,
-                                          const Callback& condition) {
+        static auto noneOf(const iterator<TYPE> *begin, const iterator<TYPE> *end,
+                           const Callback &condition) -> bool {
             return noneOf(*begin, *end, condition);
         }
 
         template <typename TYPE>
         static auto find(const iterator<TYPE>* begin, const iterator<TYPE>* end,
-                                        const TYPE& target) -> iterator<TYPE>* {
+                         const TYPE& target) -> iterator<TYPE>* {
             return find(*begin, *end, target);
         }
 
         template <typename TYPE>
-        static auto find(const iterator<TYPE>* begin, uint32_t n, const TYPE& target) -> iterator<TYPE>* {
+        static auto find(const iterator<TYPE>* begin, uint32_t n,
+                         const TYPE& target) -> iterator<TYPE>* {
             return find(*begin, n, target);
         }
 
         template<typename TYPE, typename Callback>
         requires original::Condition<Callback, TYPE>
         static auto find(const iterator<TYPE>* begin, const iterator<TYPE>* end,
-                                        const Callback& condition) -> iterator<TYPE>* {
+                         const Callback& condition) -> iterator<TYPE>* {
             return find(*begin, *end, condition);
         }
 
@@ -310,7 +318,7 @@ namespace original
     bool original::algorithms::allOf(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                      const Callback& condition) {
         auto* it = begin.clone();
-        for (; !it->equal(end); it->next()){
+        for (; distance(*it, end) <= 0; it->next()){
             if (!condition(it->get())){
                 delete it;
                 return false;
@@ -325,7 +333,7 @@ namespace original
     bool original::algorithms::anyOf(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                      const Callback& condition) {
         auto* it = begin.clone();
-        for (; !it->equal(end); it->next()){
+        for (; distance(*it, end) <= 0; it->next()){
             if (condition(it->get())){
                 delete it;
                 return true;
@@ -340,7 +348,7 @@ namespace original
     bool original::algorithms::noneOf(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                       const Callback& condition) {
         auto* it = begin.clone();
-        for (; !it->equal(end); it->next()){
+        for (; distance(*it, end) <= 0; it->next()){
             if (condition(it->get())){
                 delete it;
                 return false;
@@ -378,7 +386,6 @@ namespace original
     requires original::Condition<Callback, TYPE>
     auto original::algorithms::find(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                     const Callback& condition) -> iterator<TYPE>* {
-        callBackChecker::check<Callback, bool, const TYPE&>();
         auto it = begin.clone();
         while (it->isValid() && !it->equal(end)) {
             if (condition(it->get())) {
@@ -456,7 +463,6 @@ namespace original
     auto original::algorithms::forEach(const iterator<TYPE>& begin, const iterator<TYPE>& end,
                                        Callback operation) -> void
     {
-        callBackChecker::check<Callback, void, TYPE&>();
         auto it = begin.clone();
         for (; !it->equal(end); it->next()) {
             operation(it->get());
@@ -473,6 +479,32 @@ namespace original
         for (uint32_t i = 0; i < n; i += 1, it->next())
         {
             operation(it->get());
+        }
+        return it;
+    }
+
+    template<typename TYPE, typename Callback_O, typename Callback_C>
+    requires original::Operation<Callback_O, TYPE> && original::Condition<Callback_C, TYPE>
+    auto original::algorithms::forEach(const iterator<TYPE> &begin, const iterator<TYPE> &end, Callback_O operation,
+                                       const Callback_C &condition) -> void {
+        auto it = begin.clone();
+        for (; !it->equal(end); it->next()) {
+            if (condition(it->get()))
+                operation(it->get());
+        }
+        operation(it->get());
+        delete it;
+    }
+
+    template<typename TYPE, typename Callback_O, typename Callback_C>
+    requires original::Operation<Callback_O, TYPE> && original::Condition<Callback_C, TYPE>
+    auto original::algorithms::forEach(const iterator<TYPE> &begin, const uint32_t n, Callback_O operation,
+                                       const Callback_C &condition) -> iterator<TYPE>* {
+        auto it = begin.clone();
+        for (uint32_t i = 0; i < n; i += 1, it->next())
+        {
+            if (condition(it->get()))
+                operation(it->get());
         }
         return it;
     }
