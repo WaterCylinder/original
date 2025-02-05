@@ -58,6 +58,10 @@ namespace original{
         template<typename Callback = transform<TYPE>>
         requires Operation<Callback, TYPE>
         void forEach(Callback operation = Callback{});
+
+        template<typename Callback = transform<TYPE>>
+        requires Operation<Callback, TYPE>
+        void forEach(const Callback& operation = Callback{}) const;
     };
 }
 
@@ -282,6 +286,15 @@ namespace original{
     {
         for (auto* it = this->begins(); it->isValid(); it->next()) {
             operation(it->get());
+        }
+    }
+
+    template<typename TYPE>
+    template<typename Callback>
+    requires original::Operation<Callback, TYPE>
+    auto original::iterable<TYPE>::forEach(const Callback &operation) const -> void {
+        for (auto* it = this->begins(); it->isValid(); it->next()) {
+            operation(it->getElem());
         }
     }
 
