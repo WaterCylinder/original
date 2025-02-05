@@ -1,5 +1,6 @@
 #ifndef ERROR_H
 #define ERROR_H
+#include <exception>
 
 namespace original {
     class callBackChecker{
