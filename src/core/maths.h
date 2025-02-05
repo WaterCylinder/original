@@ -22,7 +22,7 @@ namespace original{
     template<typename TYPE>
     auto original::abs(TYPE a) -> TYPE
     {
-        return a > 0 ? a : -a;
+        return a > TYPE{} ? a : -a;
     }
 
     template<typename TYPE>

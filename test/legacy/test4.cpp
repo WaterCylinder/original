@@ -1,5 +1,7 @@
 #include "forwardChain.h"
 #include <iostream>
+
+#include "algorithms.h"
 #include "vector.h"
 #include "blocksList.h"
 
