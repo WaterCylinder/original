@@ -2,6 +2,7 @@
 #define FILTERSTREAM_H
 
 #include "filter.h"
+#include "chain.h"
 
 namespace original{
     template<typename TYPE>
@@ -36,11 +37,17 @@ namespace original{
             template<typename T>
             friend filterStream<T> operator&&(const filter<T>& f, const filterStream<T>& ofs);
             template<typename T>
+            friend filterStream<T> operator&&(const filterStream<T>& ofs, const filter<T>& f);
+            template<typename T>
             friend filterStream<T> operator||(const filter<T>& f1, const filter<T>& f2);
             template<typename T>
             friend filterStream<T> operator||(const filter<T>& f, const filterStream<T>& ofs);
             template<typename T>
+            friend filterStream<T> operator||(const filterStream<T>& ofs, const filter<T>& f);
+            template<typename T>
             friend filterStream<T> operator!(const filter<T>& f);
+            template<typename T>
+            friend filterStream<T> operator!(const filterStream<T>& ofs);
             template<typename T>
             friend filterStream<T> group(const filterStream<T>& ofs);
             template<typename T>
@@ -52,11 +59,17 @@ namespace original{
     template<typename T>
     filterStream<T> operator&&(const filter<T>& f, const filterStream<T>& ofs);
     template<typename T>
+    filterStream<T> operator&&(const filterStream<T>& ofs, const filter<T>& f);
+    template<typename T>
     filterStream<T> operator||(const filter<T>& f1, const filter<T>& f2);
     template<typename T>
     filterStream<T> operator||(const filter<T>& f, const filterStream<T>& ofs);
     template<typename T>
+    filterStream<T> operator||(const filterStream<T>& ofs, const filter<T>& f);
+    template<typename T>
     filterStream<T> operator!(const filter<T>& f);
+    template<typename T>
+    filterStream<T> operator!(const filterStream<T>& ofs);
     template<typename T>
     filterStream<T> group(const filterStream<T>& ofs);
     template<typename T>
@@ -208,8 +221,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    original::filterStream<TYPE> original::operator&&(const filter<TYPE>& f1, const filter<TYPE>& f2)
-    {
+    auto original::operator&&(const filter<TYPE> &f1, const filter<TYPE> &f2) -> filterStream<TYPE> {
         filterStream<TYPE> fs;
         fs.pushEnd(f1);
         fs.addAndOpt();
@@ -218,8 +230,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    original::filterStream<TYPE> original::operator&&(const filter<TYPE>& f, const filterStream<TYPE>& ofs)
-    {
+    auto original::operator&&(const filter<TYPE> &f, const filterStream<TYPE> &ofs) -> filterStream<TYPE> {
         filterStream<TYPE> fs;
         fs.pushEnd(f);
         fs.addAndOpt();
@@ -227,9 +238,14 @@ namespace original{
         return fs;
     }
 
+    template<typename TYPE>
+    auto original::operator&&(const filterStream<TYPE> &ofs, const filter<TYPE> &f) -> filterStream<TYPE> {
+        filterStream<TYPE> fs(ofs);
+        return fs && f;
+    }
+
     template <typename TYPE>
-    original::filterStream<TYPE> original::operator||(const filter<TYPE>& f1, const filter<TYPE>& f2)
-    {
+    auto original::operator||(const filter<TYPE> &f1, const filter<TYPE> &f2) -> filterStream<TYPE> {
         filterStream<TYPE> fs;
         fs.pushEnd(f1);
         fs.addOrOpt();
@@ -238,8 +254,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    original::filterStream<TYPE> original::operator||(const filter<TYPE>& f, const filterStream<TYPE>& ofs)
-    {
+    auto original::operator||(const filter<TYPE> &f, const filterStream<TYPE> &ofs) -> filterStream<TYPE> {
         filterStream<TYPE> fs;
         fs.pushEnd(f);
         fs.addOrOpt();
@@ -247,9 +262,14 @@ namespace original{
         return fs;
     }
 
+    template<typename TYPE>
+    auto original::operator||(const filterStream<TYPE> &ofs, const filter<TYPE> &f) -> filterStream<TYPE> {
+        filterStream<TYPE> fs(ofs);
+        return fs || f;
+    }
+
     template <typename TYPE>
-    original::filterStream<TYPE> original::operator!(const filter<TYPE>& f)
-    {
+    auto original::operator!(const filter<TYPE> &f) -> filterStream<TYPE> {
         filterStream<TYPE> fs;
         fs.pushEnd(f);
         fs.addNotOpt();
@@ -257,7 +277,13 @@ namespace original{
     }
 
     template<typename TYPE>
-    original::filterStream<TYPE> original::group(const filterStream<TYPE> &ofs) {
+    auto original::operator!(const filterStream<TYPE> &ofs) -> filterStream<TYPE> {
+        filterStream<TYPE> fs(ofs);
+        return !fs;
+    }
+
+    template<typename TYPE>
+    auto original::group(const filterStream<TYPE> &ofs) -> filterStream<TYPE> {
         filterStream<TYPE> fs;
         fs.pushAll(ofs);
         fs.addBrackets();
@@ -265,15 +291,14 @@ namespace original{
     }
 
     template<typename TYPE>
-    original::filterStream<TYPE> original::group(const filter<TYPE> &f) {
+    auto original::group(const filter<TYPE> &f) -> filterStream<TYPE> {
         filterStream<TYPE> fs;
         fs.pushEnd(f);
         return fs;
     }
 
     template <typename TYPE>
-    bool original::filterStream<TYPE>::operator()(const TYPE& t) const
-    {
+    auto original::filterStream<TYPE>::operator()(const TYPE &t) const -> bool {
         if (!this->flag) this->toPostFix();
 
         chain<bool> value_stack;
