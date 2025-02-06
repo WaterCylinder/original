@@ -7,7 +7,7 @@
 
 namespace original {
     template<typename TYPE>
-    class blocksList final : public baseList<TYPE>, public iterationStream<TYPE>{
+    class blocksList final : public baseList<TYPE>, public iterationStream<TYPE, blocksList<TYPE>>{
         static constexpr uint32_t BLOCK_MAX_SIZE = 16;
         static constexpr uint32_t POS_INIT = (BLOCK_MAX_SIZE - 1) / 2 + 1;
 
@@ -77,7 +77,6 @@ namespace original {
         blocksList& operator=(const blocksList& other);
         blocksList(blocksList&& other) noexcept;
         blocksList& operator=(blocksList&& other) noexcept;
-        bool operator==(const blocksList& other) const;
         TYPE get(int64_t index) const override;
         [[nodiscard]] uint32_t size() const override;
         Iterator* begins() const override;
@@ -491,21 +490,6 @@ namespace original {
         this->size_ = other.size_;
         other.blocksListDestruct();
         return *this;
-    }
-
-    template<typename TYPE>
-    auto original::blocksList<TYPE>::operator==(const blocksList& other) const -> bool
-    {
-        if (this == &other) return true;
-        if (this->size() != other.size()) return false;
-        for (uint32_t i = 0; i < this->size(); ++i) {
-            auto this_idx = this->outerIdxToInnerIdx(i);
-            if (auto other_idx = other.outerIdxToInnerIdx(i);
-                this->getElem(this_idx.first(),
-                this_idx.second()) != other.getElem(other_idx.first(), other_idx.second()))
-                    return false;
-        }
-        return true;
     }
 
     template<typename TYPE>

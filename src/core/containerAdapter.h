@@ -11,7 +11,7 @@ namespace original {
     protected:
         SERIAL<TYPE> serial_;
 
-        explicit containerAdapter(SERIAL<TYPE> serial);
+        explicit containerAdapter(const SERIAL<TYPE>& serial);
     public:
         [[nodiscard]] uint32_t size() const override;
         void clear();
@@ -24,7 +24,7 @@ namespace original {
 
     template<typename TYPE, template <typename> typename SERIAL>
     requires original::ExtendsOf<original::baseList<TYPE>, SERIAL<TYPE>>
-    original::containerAdapter<TYPE, SERIAL>::containerAdapter(SERIAL<TYPE> serial)
+    original::containerAdapter<TYPE, SERIAL>::containerAdapter(const SERIAL<TYPE>& serial)
         : serial_(serial) {}
 
     template<typename TYPE, template <typename> typename SERIAL>

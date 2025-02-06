@@ -7,7 +7,7 @@
 
 namespace original{
     template <typename TYPE>
-    class vector final : public baseList<TYPE>, public iterationStream<TYPE>{
+    class vector final : public baseList<TYPE>, public iterationStream<TYPE, vector<TYPE>>{
         uint32_t size_;
         const uint32_t INNER_SIZE_INIT = 16;
         uint32_t max_size;
@@ -45,7 +45,6 @@ namespace original{
         vector& operator=(const vector& other);
         vector(vector&& other) noexcept;
         vector& operator=(vector&& other) noexcept;
-        bool operator==(const vector& other) const;
         [[nodiscard]] uint32_t size() const override;
         TYPE& data() const;
         TYPE get(int64_t index) const override;
@@ -253,20 +252,6 @@ namespace original{
         this->size_ = other.size_;
         other.vectorInit();
         return *this;
-    }
-
-    template<typename TYPE>
-    auto original::vector<TYPE>::operator==(const vector& other) const -> bool
-    {
-        if (this == &other) return true;
-        if (this->size() != other.size()) return false;
-        for (uint32_t i = 0; i < this->size(); ++i) {
-            uint32_t index = this->toInnerIdx(i);
-            if (this->body[index] != other.body[index]){
-                return false;
-            }
-        }
-        return true;
     }
 
     template <typename TYPE>

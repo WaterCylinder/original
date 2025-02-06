@@ -10,7 +10,7 @@
 
 namespace original {
     template <typename TYPE>
-    class chain final : public baseList<TYPE>, public iterationStream<TYPE>{
+    class chain final : public baseList<TYPE>, public iterationStream<TYPE, chain<TYPE>>{
         class chainNode final : public wrapper<TYPE>{
             public:
                 friend class iterator<TYPE>;
@@ -63,7 +63,6 @@ namespace original {
         chain& operator=(const chain& other);
         chain(chain&& other) noexcept;
         chain& operator=(chain&& other) noexcept;
-        bool operator==(const chain& other) const;
         void operator+=(chain& other);
         [[nodiscard]] uint32_t size() const override;
         TYPE get(int64_t index) const override;
@@ -330,20 +329,6 @@ namespace original {
         this->size_ = other.size_;
         other.chainInit();
         return *this;
-    }
-
-    template<typename TYPE>
-    bool original::chain<TYPE>::operator==(const chain& other) const{
-        if (this == &other) return true;
-        if (this->size() != other.size()) return false;
-        auto* this_ = this->begin_;
-        auto* other_ = other.begin_;
-        for (uint32_t i = 0; i < this->size(); ++i) {
-            if (this_->getVal() != other_->getVal()){
-                return false;
-            }
-        }
-        return true;
     }
 
     template <typename TYPE>

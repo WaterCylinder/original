@@ -2,22 +2,25 @@
 #define ITERATIONSTREAM_H
 
 #include <sstream>
+
+#include "comparable.h"
 #include "printable.h"
 #include "iterable.h"
 
 namespace original{
-    template<typename TYPE>
-    class iterationStream : public printable, public iterable<TYPE>{
+    template<typename TYPE, typename DERIVED>
+    class iterationStream : public printable, public iterable<TYPE>, public comparable<iterationStream<TYPE, DERIVED>>{
     protected:
         [[nodiscard]] std::string elementsString() const;
     public:
+        int compareTo(const iterationStream& other) const override;
         [[nodiscard]] std::string className() const override;
         [[nodiscard]] std::string toString(bool enter) const override;
     };
 }
 
-    template<typename TYPE>
-    auto original::iterationStream<TYPE>::elementsString() const -> std::string
+    template<typename TYPE, typename DERIVED>
+    auto original::iterationStream<TYPE, DERIVED>::elementsString() const -> std::string
     {
         std::stringstream ss;
         ss << "(";
@@ -33,14 +36,24 @@ namespace original{
         return ss.str();
     }
 
-    template <typename TYPE>
-    std::string original::iterationStream<TYPE>::className() const
-    {
+    template<typename TYPE, typename DERIVED>
+    auto original::iterationStream<TYPE, DERIVED>::compareTo(const iterationStream &other) const -> int {
+        const auto this_it = this->begin();
+        const auto other_it = other.begin();
+        for (;this_it.isValid() && other_it.isValid(); ++this_it, ++other_it) {
+            if (*this_it != *other_it)
+                return *this_it < *other_it ? -1 : 1;
+        }
+        return this_it.isValid() - other_it.isValid();
+    }
+
+    template<typename TYPE, typename DERIVED>
+    auto original::iterationStream<TYPE, DERIVED>::className() const -> std::string {
         return "iterationStream";
     }
 
-    template<typename TYPE>
-    auto original::iterationStream<TYPE>::toString(const bool enter) const -> std::string
+    template<typename TYPE, typename DERIVED>
+    auto original::iterationStream<TYPE, DERIVED>::toString(const bool enter) const -> std::string
     {
         std::stringstream ss;
         ss << this->className() << this->elementsString();

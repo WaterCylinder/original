@@ -6,7 +6,7 @@
 
 
 namespace original {
-    class bitSet final : public baseArray<bool>, public iterationStream<bool>{
+    class bitSet final : public baseArray<bool>, public iterationStream<bool, bitSet>{
             using underlying_type = uint64_t;
 
             static constexpr int64_t BLOCK_MAX_SIZE = sizeof(underlying_type) * 8;
@@ -61,7 +61,6 @@ namespace original {
             bitSet& operator=(const bitSet& other);
             bitSet(bitSet&& other) noexcept;
             bitSet& operator=(bitSet&& other) noexcept;
-            bool operator==(const bitSet& other) const;
             [[nodiscard]] uint32_t count() const;
             [[nodiscard]] bitSet resize(uint32_t new_size) const;
             [[nodiscard]] uint32_t size() const override;
@@ -295,11 +294,6 @@ namespace original {
         this->size_ = other.size_;
         other.bitsetInit(0);
         return *this;
-    }
-
-    inline auto original::bitSet::operator==(const bitSet &other) const -> bool {
-        if (this == &other) return true;
-        return this->map == other.map && this->size_ == other.size_;
     }
 
     inline auto original::bitSet::count() const -> uint32_t {

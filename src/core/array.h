@@ -12,7 +12,7 @@
 namespace original{
 
     template<typename TYPE>
-    class array final : public iterationStream<TYPE>, public baseArray<TYPE>{
+    class array final : public iterationStream<TYPE, array<TYPE>>, public baseArray<TYPE>{
         uint32_t size_;
         TYPE* body;
 
@@ -38,7 +38,6 @@ namespace original{
         array& operator=(const array& other);
         array(array&& other) noexcept;
         array& operator=(array&& other) noexcept;
-        bool operator==(const array& other) const;
         [[nodiscard]] uint32_t size() const override;
         TYPE& data() const;
         TYPE get(int64_t index) const override;
@@ -166,21 +165,6 @@ namespace original{
         this->size_ = other.size_;
         other.arrInit(0);
         return *this;
-    }
-
-    template <typename TYPE>
-    auto original::array<TYPE>::operator==(const array& other) const -> bool
-    {
-        if (this == &other) return true;
-        if (this->size() != other.size()) return false;
-        for (uint32_t i = 0; i < this->size(); i ++)
-        {
-            if (this->body[i] != other.body[i])
-            {
-                return false;
-            }
-        }
-        return true;
     }
 
     template <typename TYPE>

@@ -7,7 +7,7 @@
 
 namespace original {
     template <typename TYPE>
-    class forwardChain final : public baseList<TYPE>, public iterationStream<TYPE>{
+    class forwardChain final : public baseList<TYPE>, public iterationStream<TYPE, forwardChain<TYPE>>{
         class forwardChainNode final : public wrapper<TYPE>{
             public:
                 friend class iterator<TYPE>;
@@ -58,7 +58,6 @@ namespace original {
         forwardChain& operator=(const forwardChain& other);
         forwardChain(forwardChain&& other) noexcept;
         forwardChain& operator=(forwardChain&& other) noexcept;
-        bool operator==(const forwardChain& other) const;
         [[nodiscard]] uint32_t size() const override;
         TYPE get(int64_t index) const override;
         TYPE& operator[](int64_t index) override;
@@ -301,20 +300,6 @@ namespace original {
         this->size_ = other.size_;
         other.chainInit();
         return *this;
-    }
-
-    template<typename TYPE>
-    auto original::forwardChain<TYPE>::operator==(const forwardChain &other) const -> bool {
-        if (this == &other) return true;
-        if (this->size() != other.size()) return false;
-        auto* this_ = this->begin_;
-        auto* other_ = other.begin_;
-        for (uint32_t i = 0; i < this->size(); ++i) {
-            if (this_->getVal() != other_->getVal()){
-                return false;
-            }
-        }
-        return true;
     }
 
     template<typename TYPE>
