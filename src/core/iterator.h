@@ -2,13 +2,13 @@
 #define ITERATOR_H
 
 #include "cloneable.h"
+#include "comparable.h"
 #include "error.h"
-
 #include "printable.h"
 
 namespace original {
     template<typename TYPE>
-    class iterator : public printable, public cloneable {
+    class iterator : public printable, public cloneable, public comparable<iterator<TYPE>> {
         protected:
             virtual bool equalPtr(const iterator* other) const = 0;
         public:
@@ -20,8 +20,7 @@ namespace original {
             void operator--(int) const;
             virtual void operator+=(int64_t steps) const = 0;
             virtual void operator-=(int64_t steps) const = 0;
-            bool operator==(const iterator& other) const;
-            bool operator!=(const iterator& other) const;
+            int compareTo(const iterator &other) const override;
             virtual int64_t operator-(const iterator& other) const = 0;
             iterator* clone() const override = 0;
             explicit operator bool() const;
@@ -97,13 +96,8 @@ namespace original {
     }
 
     template<typename TYPE>
-    auto original::iterator<TYPE>::operator==(const iterator &other) const -> bool {
-        return this->equal(other);
-    }
-
-    template<typename TYPE>
-    auto original::iterator<TYPE>::operator!=(const iterator &other) const -> bool {
-        return !this->equal(other);
+    auto original::iterator<TYPE>::compareTo(const iterator &other) const -> int {
+        return this->operator-(other);
     }
 
     template<typename TYPE>

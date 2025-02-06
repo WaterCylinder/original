@@ -34,7 +34,6 @@ namespace original{
             TYPE& get() override;
             void set(const TYPE& data) override;
             TYPE get() const override;
-            bool operator!=(const iterAdaptor& other) const;
             [[nodiscard]] bool isValid() const override;
             [[nodiscard]] std::string className() const override;
             [[nodiscard]] std::string toString(bool enter) const override;
@@ -200,11 +199,6 @@ namespace original{
     auto original::iterable<TYPE>::iterAdaptor::get() const -> TYPE
     {
         return this->it_->getElem();
-    }
-
-    template<typename TYPE>
-    auto original::iterable<TYPE>::iterAdaptor::operator!=(const iterAdaptor& other) const -> bool {
-        return !this->it_->equal(other.it_);
     }
 
     template<typename TYPE>
