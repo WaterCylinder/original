@@ -5,7 +5,7 @@ namespace original {
     template <typename DERIVED>
     class comparable {
         public:
-            virtual int compareTo(const DERIVED &other) const = 0;
+            virtual int64_t compareTo(const DERIVED &other) const = 0;
             bool operator==(const DERIVED &other) const;
             bool operator!=(const DERIVED &other) const;
             bool operator<(const DERIVED &other) const;

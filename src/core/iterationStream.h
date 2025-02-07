@@ -13,7 +13,7 @@ namespace original{
     protected:
         [[nodiscard]] std::string elementsString() const;
     public:
-        int compareTo(const iterationStream& other) const override;
+        int64_t compareTo(const iterationStream &other) const override;
         [[nodiscard]] std::string className() const override;
         [[nodiscard]] std::string toString(bool enter) const override;
     };
@@ -37,7 +37,7 @@ namespace original{
     }
 
     template<typename TYPE, typename DERIVED>
-    auto original::iterationStream<TYPE, DERIVED>::compareTo(const iterationStream &other) const -> int {
+    auto original::iterationStream<TYPE, DERIVED>::compareTo(const iterationStream &other) const -> int64_t {
         const auto this_it = this->begin();
         const auto other_it = other.begin();
         for (;this_it.isValid() && other_it.isValid(); ++this_it, ++other_it) {
