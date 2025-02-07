@@ -28,7 +28,7 @@
  * GitHub address: https://github.com/FrozenLemonTee/original
  * @date October 2024
  *
- * @note Project is built using CMake, following modern C++development standards and supporting cross-platform construction.
+ * @note Project is built using CMake, following modern C++ development standards and supporting cross-platform construction.
  * @note If you need assistance, please refer to the project documentation or submit an issue through GitHub.
  */
 
