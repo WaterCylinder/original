@@ -6,81 +6,413 @@
 
 
 namespace original {
+    /**
+     * @file bitSet.h
+     * @brief BitSet class declaration.
+     * @details This file contains the declaration of the bitSet class, which implements a
+     *          space-efficient data structure for storing a set of bits.
+     */
+
+    /**
+     * @class bitSet
+     * @brief A class representing a set of bits, offering functionality to manipulate and query individual bits.
+     * @extends baseArray
+     * @extends iterationStream
+     * @details The bitSet class allows efficient manipulation of individual bits using bitwise operations.
+     *          It utilizes a dynamic array of 64-bit blocks to store bits and provides methods to access
+     *          and modify them. Iterators are available for traversing through the bits.
+     */
     class bitSet final : public baseArray<bool>, public iterationStream<bool, bitSet>{
             using underlying_type = uint64_t;
 
-            static constexpr int64_t BLOCK_MAX_SIZE = sizeof(underlying_type) * 8;
-            array<underlying_type> map;
-            uint32_t size_;
+            static constexpr int64_t BLOCK_MAX_SIZE = sizeof(underlying_type) * 8; ///< Maximum number of bits in a block.
+            array<underlying_type> map; ///< Array to store the blocks of bits.
+            uint32_t size_; ///< The total number of bits in the set.
 
+
+            /**
+             * @brief Initializes the bitSet with the given size.
+             * @param size The size of the bitSet.
+             */
             void bitsetInit(uint32_t size);
+
+            /**
+            * @brief Gets the value of a specific bit in a block.
+            * @param block_value The block containing the bit.
+            * @param bit The bit index within the block.
+            * @return The value of the bit (true or false).
+            */
             [[nodiscard]] static bool getBitFromBlock(underlying_type block_value, int64_t bit);
+
+            /**
+             * @brief Sets a specific bit in a block.
+             * @param block_value The block containing the bit.
+             * @param bit The bit index within the block.
+             * @return The new block value with the bit set.
+             */
             [[nodiscard]] static underlying_type setBitFromBlock(underlying_type block_value, int64_t bit);
+
+            /**
+             * @brief Clears a specific bit in a block.
+             * @param block_value The block containing the bit.
+             * @param bit The bit index within the block.
+             * @return The new block value with the bit cleared.
+             */
             [[nodiscard]] static underlying_type clearBitFromBlock(underlying_type block_value, int64_t bit);
+
+            /**
+             * @brief Clears the higher bits in a block beyond a specified index.
+             * @param block_value The block containing the bits.
+             * @param bit The index to clear higher bits from.
+             * @return The new block value with higher bits cleared.
+             */
             [[nodiscard]] static underlying_type clearHigherBitsFromBlock(underlying_type block_value, int64_t bit);
+
+            /**
+             * @brief Clears any redundant bits (bits beyond the logical size of the set).
+             */
             void clearRedundantBits();
+
+            /**
+             * @brief Gets the value of a specific bit in the bitSet.
+             * @param bit The index of the bit within the block.
+             * @param block The block index containing the bit.
+             * @return The value of the bit (true or false).
+             */
             [[nodiscard]] bool getBit(int64_t bit, int64_t block) const;
+
+            /**
+             * @brief Sets a specific bit in the bitSet.
+             * @param bit The index of the bit to set.
+             * @param block The block index to set the bit in.
+             */
             void setBit(int64_t bit, int64_t block);
+
+            /**
+             * @brief Clears a specific bit in the bitSet.
+             * @param bit The index of the bit to clear.
+             * @param block The block index to clear the bit in.
+             */
             void clearBit(int64_t bit, int64_t block);
+
+            /**
+             * @brief Writes a specific bit in the bitSet (sets or clears based on value).
+             * @param bit The index of the bit.
+             * @param block The block index.
+             * @param value The value to set the bit to (true or false).
+             */
             void writeBit(int64_t bit, int64_t block, bool value);
+
+            /**
+             * @brief Converts an index to an inner block and bit index.
+             * @param index The global index.
+             * @return A couple containing the block index and bit index within the block.
+             */
             static couple<uint32_t, int64_t> toInnerIdx(int64_t index);
+
+            /**
+             * @brief Converts inner block and bit indices to a global index.
+             * @param cur_block The block index.
+             * @param cur_bit The bit index within the block.
+             * @return The global index.
+             */
             static int64_t toOuterIdx(uint32_t cur_block, int64_t cur_bit);
+
         public:
-            class Iterator final : public baseIterator<bool> {
-                    mutable int64_t cur_bit;
-                    mutable int64_t cur_block;
-                    mutable underlying_type* block_;
-                    const bitSet* container_;
 
-                    explicit Iterator(int64_t bit, int64_t block, underlying_type* block_p, const bitSet* container);
-                    bool equalPtr(const iterator *other) const override;
-                public:
-                    friend class bitSet;
-                    Iterator* clone() const override;
-                    [[nodiscard]] bool hasNext() const override;
-                    [[nodiscard]] bool hasPrev() const override;
-                    bool atPrev(const iterator *other) const override;
-                    bool atNext(const iterator *other) const override;
-                    void next() const override;
-                    void prev() const override;
-                    Iterator* getPrev() const override;
-                    Iterator* getNext() const override;
-                    void operator+=(int64_t steps) const override;
-                    void operator-=(int64_t steps) const override;
-                    int64_t operator-(const iterator& other) const override;
-                    bool& get() override;
-                    [[nodiscard]] std::string className() const override;
-                    bool get() const override;
-                    void set(const bool &data) override;
-                    [[nodiscard]] bool isValid() const override;
-            };
+        /**
+         * @class Iterator
+         * @brief An iterator for traversing the bits in a bitSet.
+         * @extends baseIterator
+         * @details This iterator allows iteration over the bits of a bitSet, providing functionality to
+         *          move forward, backward, and access or modify the bits.
+         */
+        class Iterator final : public baseIterator<bool> {
+                mutable int64_t cur_bit; ///< The current bit index.
+                mutable int64_t cur_block; ///< The current block index.
+                mutable underlying_type* block_; ///< Pointer to the current block.
+                const bitSet* container_; ///< Pointer to the containing bitSet.
 
+                /**
+                 * @brief Constructs an iterator.
+                 * @param bit The starting bit index.
+                 * @param block The starting block index.
+                 * @param block_p Pointer to the block data.
+                 * @param container The bitSet container the iterator belongs to.
+                 */
+                explicit Iterator(int64_t bit, int64_t block, underlying_type* block_p, const bitSet* container);
+
+                /**
+                 * @brief Checks if two iterators are equal.
+                 * @param other The iterator to compare to.
+                 * @return True if the iterators are equal, false otherwise.
+                 */
+                bool equalPtr(const iterator *other) const override;
+
+            public:
+                friend class bitSet;
+
+                /**
+                 * @brief Clones the iterator.
+                 * @return A new iterator pointing to the same position.
+                 */
+                Iterator* clone() const override;
+
+                /**
+                 * @brief Checks if there is a next element.
+                 * @return True if there is a next element, false otherwise.
+                 */
+                [[nodiscard]] bool hasNext() const override;
+
+                /**
+                 * @brief Checks if there is a previous element.
+                 * @return True if there is a previous element, false otherwise.
+                 */
+                [[nodiscard]] bool hasPrev() const override;
+
+                /**
+                 * @brief Checks if the iterator is at the previous element.
+                 * @param other The other iterator to compare.
+                 * @return True if this iterator is at the previous element relative to the other iterator.
+                 */
+                bool atPrev(const iterator *other) const override;
+
+                /**
+                 * @brief Checks if the iterator is at the next element.
+                 * @param other The other iterator to compare.
+                 * @return True if this iterator is at the next element relative to the other iterator.
+                 */
+                bool atNext(const iterator *other) const override;
+
+                /**
+                 * @brief Moves the iterator to the next element.
+                 */
+                void next() const override;
+
+                /**
+                 * @brief Moves the iterator to the previous element.
+                 */
+                void prev() const override;
+
+                /**
+                 * @brief Gets the previous iterator.
+                 * @return A new iterator pointing to the previous element.
+                 */
+                Iterator* getPrev() const override;
+
+                /**
+                 * @brief Gets the next iterator.
+                 * @return A new iterator pointing to the next element.
+                 */
+                Iterator* getNext() const override;
+
+                /**
+                 * @brief Advances the iterator by the given number of steps.
+                 * @param steps The number of steps to move forward.
+                 */
+                void operator+=(int64_t steps) const override;
+
+                /**
+                 * @brief Moves the iterator backward by the given number of steps.
+                 * @param steps The number of steps to move backward.
+                 */
+                void operator-=(int64_t steps) const override;
+
+                /**
+                 * @brief Computes the distance between two iterators.
+                 * @param other The other iterator.
+                 * @return The distance between the two iterators in terms of the number of elements.
+                 */
+                int64_t operator-(const iterator& other) const override;
+
+                /**
+                 * @brief Gets the value of the current bit.
+                 * @return A reference to the current bit.
+                 */
+                bool& get() override;
+
+                /**
+                 * @brief Returns the class name of this iterator.
+                 * @return A string representing the class name, which is "bitset::Iterator".
+                 */
+                [[nodiscard]] std::string className() const override;
+
+                /**
+                 * @brief Gets the value of the current bit (const version).
+                 * @return The value of the current bit.
+                 */
+                [[nodiscard]] bool get() const override;
+
+                /**
+                 * @brief Sets the value of the current bit.
+                 * @param data The value to set the bit to.
+                 */
+                void set(const bool &data) override;
+
+                /**
+                 * @brief Checks if the iterator is valid.
+                 * @return True if the iterator is valid, false otherwise.
+                 */
+                [[nodiscard]] bool isValid() const override;
+        };
+
+            /**
+             * @brief Constructs a bitSet with the given size.
+             * @param size The size of the bitSet.
+             */
             explicit bitSet(uint32_t size);
+
+            /**
+             * @brief Constructs a bitSet from an initializer list.
+             * @param lst The initializer list of boolean values.
+             */
             bitSet(const std::initializer_list<bool>& lst);
+
+            /**
+             * @brief Copy constructor.
+             * @param other The bitSet to copy.
+             */
             bitSet(const bitSet& other);
+
+            /**
+             * @brief Copy assignment operator.
+             * @param other The bitSet to copy.
+             * @return A reference to this bitSet.
+             */
             bitSet& operator=(const bitSet& other);
+
+            /**
+             * @brief Move constructor.
+             * @param other The bitSet to move.
+             */
             bitSet(bitSet&& other) noexcept;
+
+            /**
+             * @brief Move assignment operator.
+             * @param other The bitSet to move.
+             * @return A reference to this bitSet.
+             */
             bitSet& operator=(bitSet&& other) noexcept;
+
+            /**
+             * @brief Counts the number of bits set to true.
+             * @return The count of true bits.
+             */
             [[nodiscard]] uint32_t count() const;
+
+            /**
+             * @brief Resizes the bitSet to the given size.
+             * @param new_size The new size for the bitSet.
+             * @return A new resized bitSet.
+             */
             [[nodiscard]] bitSet resize(uint32_t new_size) const;
+
+            /**
+             * @brief Gets the size of the bitSet.
+             * @return The size of the bitSet.
+             */
             [[nodiscard]] uint32_t size() const override;
+
+            /**
+             * @brief Gets the iterator to the beginning of the bitSet.
+             * @return An iterator pointing to the beginning.
+             */
             [[nodiscard]] Iterator* begins() const override;
+
+            /**
+             * @brief Gets the iterator to the end of the bitSet.
+             * @return An iterator pointing to the end.
+             */
             [[nodiscard]] Iterator* ends() const override;
+
+            /**
+             * @brief Gets the value of a specific bit by index.
+             * @param index The index of the bit.
+             * @return The value of the bit.
+             */
             [[nodiscard]] bool get(int64_t index) const override;
+
+            /**
+             * @brief Gets the reference of a specific bit by index.
+             * @param index The index of the bit.
+             * @throw original::unSupportedMethodError
+             */
             bool& operator[](int64_t index) override;
+
+            /**
+             * @brief Sets the value of a specific bit by index.
+             * @param index The index of the bit.
+             * @param e The value to set the bit to.
+             */
             void set(int64_t index, const bool &e) override;
+
+            /**
+             * @brief Finds the index of the first occurrence of a specific value.
+             * @param e The value to find.
+             * @return The index of the first occurrence.
+             */
             [[nodiscard]] uint32_t indexOf(const bool &e) const override;
+
+            /**
+             * @brief Performs a bitwise AND operation between two bitSets.
+             * @param other The bitSet to AND with.
+             * @return The result of the AND operation.
+             */
             bitSet& operator&=(const bitSet& other);
+
+            /**
+             * @brief Performs a bitwise OR operation between two bitSets.
+             * @param other The bitSet to OR with.
+             * @return The result of the OR operation.
+             */
             bitSet& operator|=(const bitSet& other);
+
+            /**
+             * @brief Performs a bitwise XOR operation between two bitSets.
+             * @param other The bitSet to XOR with.
+             * @return The result of the XOR operation.
+             */
             bitSet& operator^=(const bitSet& other);
+
+            /**
+             * @brief Gets the class name for the bitSet.
+             * @return The class name as a string.
+             */
             [[nodiscard]] std::string className() const override;
+
 
             template<typename Callback = transform<bool>>
             void forEach(Callback operation = Callback{}) = delete;
 
+            /**
+             * @brief Performs a bitwise AND operation between two bitSets.
+             * @param lbs The left bitSet.
+             * @param rbs The right bitSet.
+             * @return The result of the AND operation.
+             */
             friend bitSet operator&(const bitSet& lbs, const bitSet& rbs);
+
+            /**
+             * @brief Performs a bitwise OR operation between two bitSets.
+             * @param lbs The left bitSet.
+             * @param rbs The right bitSet.
+             * @return The result of the OR operation.
+             */
             friend bitSet operator|(const bitSet& lbs, const bitSet& rbs);
+
+            /**
+             * @brief Performs a bitwise XOR operation between two bitSets.
+             * @param lbs The left bitSet.
+             * @param rbs The right bitSet.
+             * @return The result of the XOR operation.
+             */
             friend bitSet operator^(const bitSet& lbs, const bitSet& rbs);
+
+            /**
+             * @brief Performs a bitwise NOT operation on a bitSet.
+             * @param bs The bitSet to negate.
+             * @return The result of the NOT operation.
+             */
             friend bitSet operator~(const bitSet& bs);
     };
 
