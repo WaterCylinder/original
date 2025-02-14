@@ -1,6 +1,6 @@
 /**
 * @file original.cpp
- * @brief Original 库主文件
+ * @brief Original Library main file
  *
  * @details
  * Original 是一个用于学习和实践的 C++ 库开发项目，目的是实现 STL 风格的模板类容器、算法以及相关工具。
@@ -17,10 +17,10 @@
  * @note 项目使用 CMake 构建，遵循现代 C++ 开发规范，支持跨平台构建。
  * @note 如需帮助，请参考项目文档或通过 GitHub 提交 issue。
  *
- * @par 项目名称
+ * @par Project name
  * Original
  *
- * @par 项目简介
+ * @par Project description
  * Original is a C++ library development project for learning and practice, aimed at implementing STL-style template class containers, algorithms, and related tools.
  * This library has the following characteristics:
  * - Provide multiple container implementations, including vector, chain, array, etc., supporting iterator operations.
@@ -28,13 +28,13 @@
  * - Provide interfaces similar to standard libraries for users to quickly get started.
  * - Support unit testing to ensure the correctness and robustness of the code.
  *
- * @par 项目作者
+ * @par author
  * FrozenLemonTee
  *
- * @par GitHub 地址
+ * @par GitHub website
  * https://github.com/FrozenLemonTee/original
  *
- * @par 日期
+ * @par date
  * October 2024
  *
  * @note Project is built using CMake, following modern C++ development standards and supporting cross-platform construction.
