@@ -2933,7 +2933,7 @@ INPUT = src
 OUTPUT_DIRECTORY = ../original_docs/docs
 
 # 文件类型
-FILE_PATTERNS = *.h
+FILE_PATTERNS = *.h *.cpp
 
 # 允许递归扫描源文件夹
 RECURSIVE = YES
