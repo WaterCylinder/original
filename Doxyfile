@@ -2926,14 +2926,14 @@ MSCFILE_DIRS           =
 # 项目名称
 PROJECT_NAME = "ORIGINAL"
 
-# 源目录
-INPUT = src
+# 源目录（多个目录用空格分隔）
+INPUT = ./src ./include ./docs
 
 # 输出目录
 OUTPUT_DIRECTORY = ../original_docs/docs
 
 # 文件类型
-FILE_PATTERNS = *.h *.cpp
+FILE_PATTERNS = *.h *.cpp *.md
 
 # 允许递归扫描源文件夹
 RECURSIVE = YES
@@ -2949,3 +2949,6 @@ UML_LIMIT_NUM_CLASSES = 0  # 设置类图的类数量限制
 
 # 使用PlantUML格式输出
 UML_OUTPUT_FORMAT = plantuml
+
+# 使用 Markdown 文件作为主页
+USE_MDFILE_AS_MAINPAGE = ./docs/index.md
