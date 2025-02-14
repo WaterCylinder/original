@@ -1,5 +1,5 @@
 /**
-* @file original.cpp
+ * @file original.cpp
  * @brief Original Library main file
  *
  * @details
@@ -12,6 +12,7 @@
  *
  * @author FrozenLemonTee
  * @see GitHub 地址：https://github.com/FrozenLemonTee/original
+ * @copyright MIT License
  * @date 2024年10月
  *
  * @note 项目使用 CMake 构建，遵循现代 C++ 开发规范，支持跨平台构建。
@@ -33,6 +34,9 @@
  *
  * @par GitHub website
  * https://github.com/FrozenLemonTee/original
+ *
+ * @par
+ * @copyright MIT License
  *
  * @par date
  * October 2024

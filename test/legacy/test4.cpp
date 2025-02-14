@@ -1,15 +1,13 @@
 #include "forwardChain.h"
 #include <iostream>
 
-#include "algorithms.h"
 #include "vector.h"
 #include "blocksList.h"
 
 int main(){
     auto f1 = original::forwardChain({10, 4, 5, 7, 6, 3, 2});
     std::cout << f1 << std::endl;
-    const auto v1 = original::vector({11, 8, 13, 16, 15});
-    for (const auto& e: v1) {
+    for (const auto v1 = original::vector({11, 8, 13, 16, 15}); const auto& e: v1) {
         f1.pushEnd(e);
     }
     std::cout << f1 << std::endl;

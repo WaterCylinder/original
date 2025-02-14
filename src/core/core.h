@@ -2,8 +2,18 @@
 #define CORE_H
 
 /**
- * Headers of module core included.
+ * @file core.h
+ * @brief Core module header file.
+ * @details This header file includes all the essential modules and components
+ * that form the core of the library. It aggregates the most important header
+ * files into a single point of access for ease of use, ensuring that all the
+ * necessary components for the library’s core functionality are included.
+ *
+ * The included modules cover a wide range of functionalities such as containers,
+ * algorithms, iterators, and utilities, making this file the central hub for
+ * accessing core components of the library.
  */
+
 #include "algorithms.h"
 #include "array.h"
 #include "baseArray.h"
