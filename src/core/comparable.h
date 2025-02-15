@@ -1,5 +1,7 @@
 #ifndef COMPARABLE_H
 #define COMPARABLE_H
+#include <cstdint>
+
 
 namespace original {
 
