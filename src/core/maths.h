@@ -13,7 +13,19 @@ namespace original {
  * calculations.
  */
 
+/**
+ * @brief The mathematical constant E (Euler's number).
+ * @details This is the base of the natural logarithm, approximately equal to 2.71828.
+ * It is used in various mathematical, scientific, and engineering applications,
+ * particularly in exponential growth and decay models, as well as in complex analysis.
+ */
 constexpr long double E = 2.7182818284590452353602874713526624977572470937000L;
+
+/**
+ * @brief The mathematical constant PI (π).
+ * @details This is the ratio of a circle's circumference to its diameter, approximately equal to 3.14159.
+ * It is used in geometry, trigonometry, and many other mathematical fields, especially when dealing with circular or spherical shapes.
+ */
 constexpr long double PI = 3.1415926535897932384626433832795028841971693993751L;
 
 /**

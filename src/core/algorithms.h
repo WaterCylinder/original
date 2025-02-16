@@ -5,35 +5,123 @@
 #include "iterator.h"
 #include "types.h"
 
+/**
+ * @file algorithms.h
+ * @brief Standard algorithm implementations for iterator-based containers
+ * @details Provides generic algorithms such as range operations, heap operations,
+ * element search/count, and data manipulation functions.
+ */
+
 namespace original
 {
+
+    /**
+     * @class algorithms
+     * @brief Utility class containing generic container algorithms
+     * @details Provides static methods for iterator-based container operations including:
+     * - Range queries (distance, front/back navigation)
+     * - Element search/count (find, count, condition checks)
+     * - Data manipulation (fill, swap, copy, reverse)
+     * - Heap operations (heapify, adjust, priority comparison)
+     * - Conditional element processing
+     */
     class algorithms
     {
     public:
+
+        /**
+         * @brief Calculates distance between two iterators
+         * @tparam TYPE Element type
+         * @param end Ending iterator
+         * @param begin Starting iterator
+         * @return int64_t Number of elements between begin and end (negative if reversed)
+         */
         template<typename TYPE>
         static int64_t distance(const iterator<TYPE>& end, const iterator<TYPE>& begin);
 
+        /**
+         * @brief Gets iterator n steps forward
+         * @tparam TYPE Element type
+         * @param it Base iterator
+         * @param steps Number of steps to advance
+         * @return iterator<TYPE>* New iterator position
+         */
         template<typename TYPE>
         static iterator<TYPE>* frontOf(const iterator<TYPE>& it, int64_t steps);
 
+        /**
+         * @brief Gets iterator n steps backward
+         * @tparam TYPE Element type
+         * @param it Base iterator
+         * @param steps Number of steps to retreat
+         * @return iterator<TYPE>* New iterator position
+         */
         template<typename TYPE>
         static iterator<TYPE>* backOf(const iterator<TYPE>& it, int64_t steps);
 
+        /**
+         * @brief Checks if all elements satisfy condition
+         * @tparam TYPE Element type
+         * @tparam Callback Condition callback type
+         * @param begin Start iterator
+         * @param end End iterator
+         * @param condition Validation callback
+         * @return bool True if all elements pass condition
+         * @requires Condition<Callback, TYPE>
+         */
         template<typename TYPE, typename Callback>
         requires Condition<Callback, TYPE>
         static bool allOf(const iterator<TYPE>& begin, const iterator<TYPE>& end, const Callback& condition);
 
+        /**
+        * @brief Checks if any elements satisfy condition
+        * @tparam TYPE Element type
+        * @tparam Callback Condition callback type
+        * @param begin Start iterator
+        * @param end End iterator
+        * @param condition Validation callback
+        * @return bool True if any element passes condition
+        * @requires Condition<Callback, TYPE>
+        */
         template<typename TYPE, typename Callback>
         requires Condition<Callback, TYPE>
         static bool anyOf(const iterator<TYPE>& begin, const iterator<TYPE>& end, const Callback& condition);
 
+        /**
+        * @brief Checks if no elements satisfy condition
+        * @tparam TYPE Element type
+        * @tparam Callback Condition callback type
+        * @param begin Start iterator
+        * @param end End iterator
+        * @param condition Validation callback
+        * @return bool True if no elements pass condition
+        * @requires Condition<Callback, TYPE>
+        */
         template<typename TYPE, typename Callback>
         requires Condition<Callback, TYPE>
         static bool noneOf(const iterator<TYPE>& begin, const iterator<TYPE>& end, const Callback& condition);
 
+        /**
+        * @brief Find first occurrence of target in iterator range
+        * @tparam TYPE Element type
+        * @param begin Start iterator
+        * @param n Maximum number of elements to search
+        * @param target Value to search for
+        * @return iterator<TYPE>* Iterator pointing to found element or end
+        */
         template<typename TYPE>
         static iterator<TYPE>* find(const iterator<TYPE> &begin, const iterator<TYPE> &end, const TYPE &target);
 
+        /**
+        * @brief Find first element satisfying condition in iterator range
+        * @tparam TYPE Element type
+        * @tparam Callback Condition callback type
+        * @param begin Start iterator
+        * @param n Maximum number of elements to search
+        * @param condition Search condition callback
+        * @return iterator<TYPE>* Iterator pointing to found element or end
+        * @requires Condition<Callback, TYPE>
+        */
         template<typename TYPE>
         static iterator<TYPE>* find(const iterator<TYPE> &begin, uint32_t n, const TYPE &target);
 
@@ -42,6 +130,14 @@ namespace original
         static iterator<TYPE>* find(const iterator<TYPE> &begin,
                                     const iterator<TYPE> &end, const Callback& condition);
 
+        /**
+        * @brief Fill range with value (fixed number of elements)
+        * @tparam TYPE Element type
+        * @param begin Start iterator
+        * @param n Number of elements to fill
+        * @param value Value to fill with (default constructed if omitted)
+        * @return iterator<TYPE>* Iterator past last filled element
+        */
         template<typename TYPE, typename Callback>
         requires Condition<Callback, TYPE>
         static iterator<TYPE>* find(const iterator<TYPE> &begin, uint32_t n, const Callback& condition);
@@ -66,10 +162,33 @@ namespace original
         requires Operation<Callback, TYPE>
         static iterator<TYPE>* forEach(const iterator<TYPE> &begin, uint32_t n, Callback operation);
 
+        /**
+        * @brief Apply operation to elements with condition check
+        * @tparam TYPE Element type
+        * @tparam Callback_O Operation callback type
+        * @tparam Callback_C Condition callback type
+        * @param begin Start iterator
+        * @param end End iterator
+        * @param operation Operation to apply
+        * @param condition Filter condition for elements
+        * @requires Operation<Callback_O, TYPE> && Condition<Callback_C, TYPE>
+        */
         template<typename TYPE, typename Callback_O, typename Callback_C>
         requires Operation<Callback_O, TYPE> && Condition<Callback_C, TYPE>
         static void forEach(const iterator<TYPE>& begin, const iterator<TYPE>& end, Callback_O operation, const Callback_C& condition);
 
+        /**
+        * @brief Conditional forEach with element count limit
+        * @tparam TYPE Element type
+        * @tparam Callback_O Operation callback type
+        * @tparam Callback_C Condition callback type
+        * @param begin Start iterator
+        * @param n Maximum number of elements to process
+        * @param operation Operation to apply
+        * @param condition Filter condition
+        * @return iterator<TYPE>* Iterator past last processed element
+        * @requires Operation<Callback_O, TYPE> && Condition<Callback_C, TYPE>
+        */
         template<typename TYPE, typename Callback_O, typename Callback_C>
         requires Operation<Callback_O, TYPE> && Condition<Callback_C, TYPE>
         static iterator<TYPE>* forEach(const iterator<TYPE> &begin, uint32_t n, Callback_O operation, const Callback_C& condition);
@@ -78,6 +197,14 @@ namespace original
         static void fill(const iterator<TYPE>& begin,
                          const iterator<TYPE>& end, const TYPE& value = TYPE{});
 
+        /**
+        * @brief Fill range with value (fixed number of elements)
+        * @tparam TYPE Element type
+        * @param begin Start iterator
+        * @param n Number of elements to fill
+        * @param value Value to fill with (default constructed if omitted)
+        * @return iterator<TYPE>* Iterator past last filled element
+        */
         template<typename TYPE>
         static iterator<TYPE>* fill(const iterator<TYPE> &begin, uint32_t n, const TYPE &value = TYPE{});
 
@@ -88,11 +215,30 @@ namespace original
         static iterator<TYPE>* copy(const iterator<TYPE> &begin_src, const iterator<TYPE> &end_src,
                                     const iterator<TYPE> &begin_tar);
 
+        /**
+        * @brief Conditional copy with filtering
+        * @tparam TYPE Element type
+        * @tparam Callback Condition callback type
+        * @param begin_src Source start iterator
+        * @param end_src Source end iterator
+        * @param begin_tar Target start iterator
+        * @param condition Filter condition for elements
+        * @return iterator<TYPE>* Iterator past last copied element
+        * @requires Condition<Callback, TYPE>
+        */
         template<typename TYPE, typename Callback>
         requires Condition<Callback, TYPE>
         static iterator<TYPE>* copy(const iterator<TYPE> &begin_src, const iterator<TYPE> &end_src,
                                     const iterator<TYPE> &begin_tar, Callback condition = filter<TYPE>{});
 
+        /**
+        * @brief Range-based reverse operation
+        * @tparam TYPE Element type
+        * @param begin Start iterator
+        * @param end End iterator
+        * @return iterator<TYPE>* Iterator to new end of reversed range
+        * @note Performs in-place reversal of elements
+        */
         template<typename TYPE>
         static iterator<TYPE>* reverse(const iterator<TYPE> &begin, const iterator<TYPE> &end);
 
@@ -116,6 +262,18 @@ namespace original
                              const Callback& compares);
 
     protected:
+        /**
+        * @brief Get parent node's priority child in heap structure
+        * @tparam TYPE Element type
+        * @tparam Callback Comparison callback type
+        * @param begin Heap root iterator
+        * @param range Valid heap range boundary
+        * @param parent Parent node iterator
+        * @param compares Comparison callback
+        * @return iterator<TYPE>* Iterator to higher-priority child node
+        * @requires Compare<Callback, TYPE>
+        * @note Protected helper for heap operations
+        */
         template<typename TYPE, typename Callback>
         requires Compare<Callback, TYPE>
         static iterator<TYPE>* heapGetPrior(const iterator<TYPE>& begin, const iterator<TYPE>& range,

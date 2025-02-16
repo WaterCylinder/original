@@ -5,6 +5,18 @@
 
 namespace original {
     /**
+    * @file serial.h
+    * @brief Defines an abstract base class for sequential containers
+    *        with index-based access.
+    *
+    * @details The `serial` class is intended to be used as a base for containers that support index-based
+    *          access, such as arrays, lists, and other data structures where elements can be accessed
+    *          via an index. Derived classes are required to implement certain methods such as `get()`,
+    *          `operator[]`, `set()`, and `indexOf()`. This class offers methods for safely accessing
+    *          elements, including negative index handling and bounds checking.
+    */
+
+    /**
      * @class serial
      * @tparam TYPE Type of the elements contained in the serial container
      * @brief Abstract base class for sequential containers with index-based access.
@@ -92,7 +104,7 @@ namespace original {
          * @brief Checks if the container contains the specified element.
          * @param e The element to check for.
          * @return `true` if the container contains the element, otherwise `false`.
-         * @details This method uses `indexOf()` to check if the element exists within the container.
+         * @details This method uses `indexOf()` by default to check if the element exists within the container.
          */
         bool contains(const TYPE& e) const override;
     };
