@@ -5,92 +5,452 @@
 #include "couple.h"
 #include "vector.h"
 
+/**
+ * @file blocksList.h
+ * @brief A block-based list implementation similar to std::deque.
+ * @details This file provides the definition of the blocksList class, which is a list that stores elements
+ *          in blocks. It efficiently handles operations such as insertion and removal at both ends, while
+ *          maintaining a structure similar to std::deque. The class supports random access and iteration.
+ */
+
 namespace original {
-    template<typename TYPE>
-    class blocksList final : public baseList<TYPE>, public iterationStream<TYPE, blocksList<TYPE>>{
-        static constexpr uint32_t BLOCK_MAX_SIZE = 16;
-        static constexpr uint32_t POS_INIT = (BLOCK_MAX_SIZE - 1) / 2 + 1;
+    /**
+     * @class blocksList
+     * @tparam TYPE Type of elements stored in the blocksList
+     * @brief A block-based list implementation.
+     * @extends baseList
+     * @extends iterationStream
+     * @details The blocksList class is a container that stores elements in blocks, which makes it similar to
+     *          std::deque. The class provides operations for insertion, deletion, and accessing elements
+     *          from both ends. The internal structure consists of blocks of a fixed size, and elements are
+     *          efficiently managed across these blocks. It also provides bidirectional iteration.
+     */
+    template <typename TYPE>
+    class blocksList final : public baseList<TYPE>, public iterationStream<TYPE, blocksList<TYPE>> {
+        static constexpr uint32_t BLOCK_MAX_SIZE = 16; ///< The maximum size of each block
+        static constexpr uint32_t POS_INIT = (BLOCK_MAX_SIZE - 1) / 2 + 1; ///< Initial position in a block
 
-        vector<TYPE*> map;
-        uint32_t size_;
-        uint32_t first_;
-        uint32_t last_;
-        uint32_t first_block;
-        uint32_t last_block;
+        vector<TYPE*> map; ///< Vector to store blocks of elements
+        uint32_t size_; ///< Current size of the list
+        uint32_t first_; ///< Position of the first element
+        uint32_t last_; ///< Position of the last element
+        uint32_t first_block; ///< Block index of the first element
+        uint32_t last_block; ///< Block index of the last element
 
+        /**
+         * @brief Initializes the blocksList with an initial block.
+         */
         void blocksListInit();
-        void blocksListDestruct() const;
-        static TYPE* blockArrayInit();
-        [[nodiscard]] static uint32_t innerIdxToAbsIdx(uint32_t block, uint32_t pos);
-        [[nodiscard]] uint32_t firstAbsIdx() const;
-        [[nodiscard]] uint32_t lastAbsIdx() const;
-        [[nodiscard]] int64_t absIdxToOuterIdx(uint32_t absIdx) const;
-        [[nodiscard]] uint32_t outerIdxToAbsIdx(int64_t outerIdx) const;
-        [[nodiscard]] static couple<uint32_t, uint32_t> absIdxToInnerIdx(uint32_t absIdx);
-        [[nodiscard]] static couple<uint32_t, uint32_t> innerIdxOffset(uint32_t block, uint32_t pos, int64_t offset);
-        [[nodiscard]] couple<uint32_t, uint32_t> outerIdxToInnerIdx(int64_t outerIdx) const;
-        [[nodiscard]] int64_t innerIdxToOuterIdx(uint32_t block, uint32_t pos) const;
-        TYPE& getElem(uint32_t block, uint32_t pos) const;
-        void setElem(uint32_t block, uint32_t pos, const TYPE& e);
-        [[nodiscard]] bool growNeeded(uint32_t increment, bool is_first) const;
-        void moveElements(uint32_t start_block, uint32_t start_pos, uint32_t len, int64_t offset);
-        void addBlock(bool is_first);
-        void adjust(uint32_t increment, bool is_first);
-    public:
-        class Iterator final : public baseIterator<TYPE>
-        {
-            mutable int64_t cur_pos;
-            mutable int64_t cur_block;
-            mutable TYPE** data_;
-            const blocksList* container_;
 
+        /**
+         * @brief Destroys the blocksList by deleting all blocks.
+         */
+        void blocksListDestruct() const;
+
+        /**
+         * @brief Initializes a block array.
+         * @return A pointer to the new block array.
+         */
+        static TYPE* blockArrayInit();
+
+        /**
+         * @brief Converts the block and position to an absolute index.
+         * @param block The block index.
+         * @param pos The position within the block.
+         * @return The absolute index.
+         */
+        [[nodiscard]] static uint32_t innerIdxToAbsIdx(uint32_t block, uint32_t pos);
+
+        /**
+         * @brief Gets the absolute index of the first element.
+         * @return The absolute index of the first element.
+         */
+        [[nodiscard]] uint32_t firstAbsIdx() const;
+
+        /**
+         * @brief Gets the absolute index of the last element.
+         * @return The absolute index of the last element.
+         */
+        [[nodiscard]] uint32_t lastAbsIdx() const;
+
+        /**
+         * @brief Converts an absolute index to an outer index.
+         * @param absIdx The absolute index.
+         * @return The corresponding outer index.
+         */
+        [[nodiscard]] int64_t absIdxToOuterIdx(uint32_t absIdx) const;
+
+        /**
+         * @brief Converts an outer index to an absolute index.
+         * @param outerIdx The outer index.
+         * @return The corresponding absolute index.
+         */
+        [[nodiscard]] uint32_t outerIdxToAbsIdx(int64_t outerIdx) const;
+
+        /**
+         * @brief Converts an absolute index to a pair of block and position.
+         * @param absIdx The absolute index.
+         * @return A pair of block index and position within the block.
+         */
+        [[nodiscard]] static couple<uint32_t, uint32_t> absIdxToInnerIdx(uint32_t absIdx);
+
+        /**
+         * @brief Computes the new block and position after applying an offset.
+         * @param block The current block index.
+         * @param pos The current position within the block.
+         * @param offset The offset to apply.
+         * @return A pair of the new block index and position.
+         */
+        [[nodiscard]] static couple<uint32_t, uint32_t> innerIdxOffset(uint32_t block, uint32_t pos, int64_t offset);
+
+        /**
+         * @brief Converts an outer index to a block and position pair.
+         * @param outerIdx The outer index.
+         * @return A pair of block index and position within the block.
+         */
+        [[nodiscard]] couple<uint32_t, uint32_t> outerIdxToInnerIdx(int64_t outerIdx) const;
+
+        /**
+         * @brief Converts a block and position to an outer index.
+         * @param block The block index.
+         * @param pos The position within the block.
+         * @return The corresponding outer index.
+         */
+        [[nodiscard]] int64_t innerIdxToOuterIdx(uint32_t block, uint32_t pos) const;
+
+        /**
+         * @brief Gets the element at a given block and position.
+         * @param block The block index.
+         * @param pos The position within the block.
+         * @return A reference to the element at the specified position.
+         */
+        TYPE& getElem(uint32_t block, uint32_t pos) const;
+
+        /**
+         * @brief Sets the element at a given block and position.
+         * @param block The block index.
+         * @param pos The position within the block.
+         * @param e The value to set at the specified position.
+         */
+        void setElem(uint32_t block, uint32_t pos, const TYPE& e);
+
+        /**
+         * @brief Determines whether the blocksList needs to grow.
+         * @param increment The number of elements to add.
+         * @param is_first Flag indicating whether it is the first element being added.
+         * @return True if growth is needed, false otherwise.
+         */
+        [[nodiscard]] bool growNeeded(uint32_t increment, bool is_first) const;
+
+        /**
+         * @brief Moves elements from one position to another within the list.
+         * @param start_block The block where the move starts.
+         * @param start_pos The position where the move starts.
+         * @param len The number of elements to move.
+         * @param offset The offset to apply to the positions.
+         */
+        void moveElements(uint32_t start_block, uint32_t start_pos, uint32_t len, int64_t offset);
+
+        /**
+         * @brief Adds a new block to the blocksList.
+         * @param is_first Flag indicating whether the block should be added at the beginning or the end.
+         */
+        void addBlock(bool is_first);
+
+        /**
+         * @brief Adjusts the blocksList to accommodate a specified number of elements.
+         * @param increment The number of elements to accommodate.
+         * @param is_first Flag indicating whether the adjustment is for the first or last block.
+         */
+        void adjust(uint32_t increment, bool is_first);
+
+    public:
+        /**
+         * @class Iterator
+         * @brief Iterator for blocksList, supports forward and backward iteration.
+         * @extends baseIterator
+         * @details This iterator allows iterating through the blocksList with random access.
+         */
+        class Iterator final : public baseIterator<TYPE> {
+            mutable int64_t cur_pos; ///< Current position within the block
+            mutable int64_t cur_block; ///< Current block index
+            mutable TYPE** data_; ///< Pointer to the block data
+            const blocksList* container_; ///< Pointer to the containing blocksList
+
+            /**
+             * @brief Constructs an iterator for the blocksList.
+             * @param pos The position of the element.
+             * @param block The block index of the element.
+             * @param data_ptr The pointer to the block data.
+             * @param container The blocksList container.
+             */
             explicit Iterator(int64_t pos, int64_t block, TYPE** data_ptr, const blocksList* container);
-            bool equalPtr(const iterator<TYPE> *other) const override;
+
+            /**
+             * @brief Checks if two iterators point to the same element.
+             * @param other The other iterator to compare.
+             * @return True if the iterators point to the same element, false otherwise.
+             */
+            bool equalPtr(const iterator<TYPE>* other) const override;
+
         public:
             friend blocksList;
+
+            /**
+             * @brief Copy constructor for the Iterator.
+             * @param other The iterator to copy.
+             */
             Iterator(const Iterator& other);
+
+            /**
+             * @brief Assignment operator for the Iterator.
+             * @param other The iterator to assign.
+             * @return A reference to this iterator.
+             */
             Iterator& operator=(const Iterator& other);
+
+            /**
+             * @brief Clones the iterator.
+             * @return A new iterator pointing to the same element.
+             */
             Iterator* clone() const override;
+
+            /**
+             * @brief Checks if there is a next element.
+             * @return True if there is a next element, false otherwise.
+             */
             [[nodiscard]] bool hasNext() const override;
+
+            /**
+             * @brief Checks if there is a previous element.
+             * @return True if there is a previous element, false otherwise.
+             */
             [[nodiscard]] bool hasPrev() const override;
+
+            /**
+             * @brief Moves the iterator to the next element.
+             */
             void next() const override;
+
+            /**
+             * @brief Moves the iterator to the previous element.
+             */
             void prev() const override;
+
+            /**
+             * @brief Advances the iterator by the specified number of steps.
+             * @param steps The number of steps to advance.
+             */
             void operator+=(int64_t steps) const override;
+
+            /**
+             * @brief Moves the iterator backward by the specified number of steps.
+             * @param steps The number of steps to move backward.
+             */
             void operator-=(int64_t steps) const override;
+
+            /**
+             * @brief Computes the distance between two iterators.
+             * @param other The other iterator to compare.
+             * @return The distance between the two iterators.
+             */
             int64_t operator-(const iterator<TYPE>& other) const override;
+
+            /**
+             * @brief Gets the previous iterator.
+             * @return A new iterator pointing to the previous element.
+             */
             Iterator* getPrev() const override;
+
+            /**
+             * @brief Gets the next iterator.
+             * @return A new iterator pointing to the next element.
+             */
             Iterator* getNext() const override;
+
+            /**
+             * @brief Gets the element pointed to by the iterator.
+             * @return A reference to the element.
+             */
             TYPE& get() override;
+
+            /**
+             * @brief Gets the element pointed to by the iterator (const version).
+             * @return A const reference to the element.
+             */
             TYPE get() const override;
-            void set(const TYPE &data) override;
+
+            /**
+             * @brief Sets the value of the element pointed to by the iterator.
+             * @param data The value to set.
+             */
+            void set(const TYPE& data) override;
+
+            /**
+             * @brief Checks if the iterator is valid.
+             * @return True if the iterator is valid, false otherwise.
+             */
             [[nodiscard]] bool isValid() const override;
-            bool atPrev(const iterator<TYPE> *other) const override;
-            bool atNext(const iterator<TYPE> *other) const override;
+
+            /**
+             * @brief Checks if the iterator is at the previous element relative to another iterator.
+             * @param other The other iterator to compare.
+             * @return True if the iterator is at the previous element, false otherwise.
+             */
+            bool atPrev(const iterator<TYPE>* other) const override;
+
+            /**
+             * @brief Checks if the iterator is at the next element relative to another iterator.
+             * @param other The other iterator to compare.
+             * @return True if the iterator is at the next element, false otherwise.
+             */
+            bool atNext(const iterator<TYPE>* other) const override;
+
+            /**
+             * @brief Gets the class name of the iterator.
+             * @return The class name as a string.
+             */
             [[nodiscard]] std::string className() const override;
         };
 
         friend Iterator;
+
+        /**
+         * @brief Default constructor for blocksList.
+         */
         explicit blocksList();
+
+        /**
+         * @brief Constructs a blocksList from an initializer list.
+         * @param lst The initializer list to construct the blocksList from.
+         */
         blocksList(const std::initializer_list<TYPE>& lst);
+
+        /**
+         * @brief Constructs a blocksList from an array.
+         * @param arr The array to construct the blocksList from.
+         */
         explicit blocksList(const array<TYPE>& arr);
+
+        /**
+         * @brief Copy constructor for blocksList.
+         * @param other The blocksList to copy from.
+         */
         blocksList(const blocksList& other);
+
+        /**
+         * @brief Assignment operator for blocksList.
+         * @param other The blocksList to assign from.
+         * @return A reference to this blocksList.
+         */
         blocksList& operator=(const blocksList& other);
+
+        /**
+         * @brief Move constructor for blocksList.
+         * @param other The blocksList to move from.
+         */
         blocksList(blocksList&& other) noexcept;
+
+        /**
+         * @brief Move assignment operator for blocksList.
+         * @param other The blocksList to move from.
+         * @return A reference to this blocksList.
+         */
         blocksList& operator=(blocksList&& other) noexcept;
+
+        /**
+         * @brief Gets the element at the specified index.
+         * @param index The index of the element to retrieve.
+         * @return The element at the specified index.
+         */
         TYPE get(int64_t index) const override;
+
+        /**
+         * @brief Gets the size of the blocksList.
+         * @return The size of the blocksList.
+         */
         [[nodiscard]] uint32_t size() const override;
+
+        /**
+         * @brief Gets an iterator to the beginning of the blocksList.
+         * @return An iterator to the beginning of the blocksList.
+         */
         Iterator* begins() const override;
+
+        /**
+         * @brief Gets an iterator to the end of the blocksList.
+         * @return An iterator to the end of the blocksList.
+         */
         Iterator* ends() const override;
+
+        /**
+         * @brief Gets a reference to the element at the specified index.
+         * @param index The index of the element to retrieve.
+         * @return A reference to the element at the specified index.
+         */
         TYPE& operator[](int64_t index) override;
-        void set(int64_t index, const TYPE &e) override;
-        uint32_t indexOf(const TYPE &e) const override;
-        void push(int64_t index, const TYPE &e) override;
+
+        /**
+         * @brief Sets the element at the specified index.
+         * @param index The index of the element to set.
+         * @param e The value to set the element to.
+         */
+        void set(int64_t index, const TYPE& e) override;
+
+        /**
+         * @brief Finds the index of the first occurrence of the specified element.
+         * @param e The element to search for.
+         * @return The index of the element, or the size of the blocksList if not found.
+         */
+        uint32_t indexOf(const TYPE& e) const override;
+
+        /**
+         * @brief Pushes an element to the specified index in the blocksList.
+         * @param index The index at which to insert the element.
+         * @param e The element to insert.
+         */
+        void push(int64_t index, const TYPE& e) override;
+
+        /**
+         * @brief Pops the element at the specified index in the blocksList.
+         * @param index The index of the element to pop.
+         * @return The element that was popped.
+         */
         TYPE pop(int64_t index) override;
-        void pushBegin(const TYPE &e) override;
+
+        /**
+         * @brief Pushes an element to the beginning of the blocksList.
+         * @param e The element to push.
+         */
+        void pushBegin(const TYPE& e) override;
+
+        /**
+         * @brief Pops the element from the beginning of the blocksList.
+         * @return The element that was popped.
+         */
         TYPE popBegin() override;
-        void pushEnd(const TYPE &e) override;
+
+        /**
+         * @brief Pushes an element to the end of the blocksList.
+         * @param e The element to push.
+         */
+        void pushEnd(const TYPE& e) override;
+
+        /**
+         * @brief Pops the element from the end of the blocksList.
+         * @return The element that was popped.
+         */
         TYPE popEnd() override;
+
+        /**
+         * @brief Gets the class name of the blocksList.
+         * @return The class name as a string.
+         */
         [[nodiscard]] std::string className() const override;
+
+        /**
+         * @brief Destructor for the blocksList.
+         */
         ~blocksList() override;
     };
 }// namespace original

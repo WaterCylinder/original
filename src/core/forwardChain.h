@@ -5,73 +5,341 @@
 #include "array.h"
 #include "baseList.h"
 
+/**
+ * @file forwardChain.h
+ * @brief Non-cyclic singly linked list implementation
+ * @details This file provides an implementation of a singly linked list with efficient front and back operations.
+ * The class includes:
+ * - Single-direction iterator support
+ * - Basic list operations such as push, pop, get, and indexOf
+ * - Memory management with custom node handling
+ */
+
+
 namespace original {
+
+    /**
+     * @class forwardChain
+     * @tparam TYPE The type of elements stored in the forward chain
+     * @brief A singly linked list implementation.
+     * @extends baseList
+     * @extends iterationStream
+     * @details The forwardChain class implements a singly linked list where elements are stored in nodes.
+     *          Each node points to the next node, and the list supports operations like push, pop, get, and indexOf.
+     */
     template <typename TYPE>
     class forwardChain final : public baseList<TYPE>, public iterationStream<TYPE, forwardChain<TYPE>>{
+
+        /**
+         * @class forwardChainNode
+         * @brief Internal node structure for elements in forwardChain.
+         * @extends wrapper
+         * @details Represents a node in the linked list containing the element data and a pointer to the next node.
+         */
         class forwardChainNode final : public wrapper<TYPE>{
             public:
                 friend class iterator<TYPE>;
                 friend class forwardChain;
             private:
-                TYPE data_;
-                forwardChainNode* next;
+                TYPE data_;         ///< The data of the node
+                forwardChainNode* next; ///< Pointer to the next node in the chain
             protected:
+
+                /**
+                 * @brief Constructs a forwardChainNode with given data and next pointer.
+                 * @param data The data to store in the node.
+                 * @param next Pointer to the next node (default is nullptr).
+                 */
                 explicit forwardChainNode(const TYPE& data = TYPE{}, forwardChainNode* next = nullptr);
+
+                /**
+                 * @brief Copy constructor for forwardChainNode.
+                 * @param other The node to copy from.
+                 */
                 forwardChainNode(const forwardChainNode& other);
+
+                /**
+                 * @brief Assignment operator for forwardChainNode.
+                 * @param other The node to assign from.
+                 * @return A reference to this node.
+                 */
                 forwardChainNode& operator=(const forwardChainNode& other);
+
+                /**
+                 * @brief Gets the value stored in the node.
+                 * @return A reference to the value stored in the node.
+                 */
                 TYPE& getVal() override;
+
+                /**
+                 * @brief Gets the value stored in the node (const version).
+                 * @return A const reference to the value stored in the node.
+                 */
                 const TYPE& getVal() const override;
+
+                /**
+                 * @brief Sets the value of the node.
+                 * @param data The value to set the node to.
+                 */
                 void setVal(TYPE data) override;
+
+                /**
+                 * @brief Gets the pointer to the previous node (not supported in this class).
+                 * @return Throws an exception.
+                 */
                 forwardChainNode* getPPrev() const override;
+
+                /**
+                 * @brief Gets the pointer to the next node.
+                 * @return A pointer to the next node.
+                 */
                 forwardChainNode* getPNext() const override;
+
+                /**
+                 * @brief Sets the pointer to the next node.
+                 * @param new_next The new next node pointer.
+                 */
                 void setPNext(forwardChainNode* new_next);
+
+                /**
+                 * @brief Connects two nodes by adjusting their pointers.
+                 * @param prev The previous node.
+                 * @param next The next node.
+                 */
                 static void connect(forwardChainNode* prev, forwardChainNode* next);
         };
 
-        uint32_t size_;
-        forwardChainNode* begin_;
+        uint32_t size_;         ///< The number of elements in the chain
+        forwardChainNode* begin_; ///< Pointer to the first node in the chain
 
+        /**
+         * @brief Gets the first node (after the sentinel).
+         * @return A pointer to the first node in the chain.
+         */
         forwardChainNode* beginNode() const;
+
+        /**
+         * @brief Finds the node at the specified index.
+         * @param index The index of the node to find.
+         * @return A pointer to the node at the specified index.
+         */
         forwardChainNode* findNode(int64_t index) const;
+
+        /**
+         * @brief Initializes the chain with a sentinel node.
+         */
         void chainInit();
+
+        /**
+         * @brief Adds a node to the beginning of the chain.
+         * @param node The node to add to the beginning.
+         */
         void firstAdd(forwardChainNode* node);
+
+        /**
+         * @brief Deletes the last node of the chain.
+         * @return The last node that was deleted.
+         */
         forwardChainNode* lastDelete();
+
+        /**
+         * @brief Destroys the chain by deleting all nodes.
+         */
         void chainDestruction();
     public:
+
+        /**
+         * @class Iterator
+         * @brief Iterator for forwardChain, supports single-direction traversal
+         * @extends singleDirectionIterator
+         * @details Allows forward iteration through the forwardChain with operations like cloning, comparison, etc.
+         */
         class Iterator final : public singleDirectionIterator<TYPE>
         {
+            /**
+             * @brief Constructs an Iterator from a given forwardChainNode pointer.
+             * @param ptr Pointer to the forwardChainNode the iterator will point to.
+             */
             explicit Iterator(forwardChainNode* ptr);
         public:
             friend forwardChain;
+
+            /**
+            * @brief Copy constructor for Iterator.
+            * @param other The iterator to copy from.
+            */
             Iterator(const Iterator& other);
+
+            /**
+             * @brief Assignment operator for Iterator.
+             * @param other The iterator to assign from.
+             * @return A reference to this iterator.
+             */
             Iterator& operator=(const Iterator& other);
+
+            /**
+             * @brief Clones the iterator.
+             * @return A new iterator pointing to the same position.
+             */
             Iterator* clone() const override;
+
+            /**
+             * @brief Checks if this iterator is at the previous element relative to another iterator.
+             * @param other The iterator to compare to.
+             * @return True if this iterator is at the previous element, false otherwise.
+             */
             bool atPrev(const iterator<TYPE> *other) const override;
+
+            /**
+             * @brief Checks if this iterator is at the next element relative to another iterator.
+             * @param other The iterator to compare to.
+             * @return True if this iterator is at the next element, false otherwise.
+             */
             bool atNext(const iterator<TYPE> *other) const override;
+
+            /**
+             * @brief Gets the class name of the iterator.
+             * @return The class name as a string.
+             */
             [[nodiscard]] std::string className() const override;
         };
 
+        /**
+         * @brief Default constructor for forwardChain.
+         */
         explicit forwardChain();
+
+        /**
+         * @brief Copy constructor for forwardChain.
+         * @param other The forwardChain to copy from.
+         */
         forwardChain(const forwardChain& other);
+
+        /**
+         * @brief Constructs a forwardChain from an initializer list.
+         * @param list The initializer list to construct the forwardChain from.
+         */
         forwardChain(std::initializer_list<TYPE> list);
+
+        /**
+         * @brief Constructs a forwardChain from an array.
+         * @param arr The array to construct the forwardChain from.
+         */
         explicit forwardChain(const array<TYPE>& arr);
+
+        /**
+         * @brief Assignment operator for forwardChain.
+         * @param other The forwardChain to assign from.
+         * @return A reference to this forwardChain.
+         */
         forwardChain& operator=(const forwardChain& other);
+
+        /**
+         * @brief Move constructor for forwardChain.
+         * @param other The forwardChain to move from.
+         */
         forwardChain(forwardChain&& other) noexcept;
+
+        /**
+         * @brief Move assignment operator for forwardChain.
+         * @param other The forwardChain to move from.
+         * @return A reference to this forwardChain.
+         */
         forwardChain& operator=(forwardChain&& other) noexcept;
+
+        /**
+         * @brief Gets the size of the forwardChain.
+         * @return The number of elements in the forwardChain.
+         */
         [[nodiscard]] uint32_t size() const override;
+
+        /**
+         * @brief Gets the element at the specified index.
+         * @param index The index of the element to retrieve.
+         * @return The element at the specified index.
+         */
         TYPE get(int64_t index) const override;
+
+        /**
+         * @brief Gets a reference to the element at the specified index.
+         * @param index The index of the element to retrieve.
+         * @return A reference to the element at the specified index.
+         */
         TYPE& operator[](int64_t index) override;
+
+        /**
+         * @brief Sets the element at the specified index.
+         * @param index The index of the element to set.
+         * @param e The value to set the element to.
+         */
         void set(int64_t index, const TYPE &e) override;
+
+        /**
+         * @brief Finds the index of the first occurrence of the specified element.
+         * @param e The element to search for.
+         * @return The index of the element, or the size of the forwardChain if not found.
+         */
         uint32_t indexOf(const TYPE &e) const override;
+
+        /**
+         * @brief Pushes an element to the beginning of the forwardChain.
+         * @param e The element to push to the beginning.
+         */
         void pushBegin(const TYPE &e) override;
+
+        /**
+         * @brief Pushes an element at the specified index in the forwardChain.
+         * @param index The index at which to insert the element.
+         * @param e The element to push.
+         */
         void push(int64_t index, const TYPE &e) override;
+
+        /**
+         * @brief Pushes an element to the end of the forwardChain.
+         * @param e The element to push to the end.
+         */
         void pushEnd(const TYPE &e) override;
+
+        /**
+         * @brief Pops an element from the beginning of the forwardChain.
+         * @return The element that was popped.
+         */
         TYPE popBegin() override;
+
+        /**
+         * @brief Pops an element at the specified index in the forwardChain.
+         * @param index The index of the element to pop.
+         * @return The element that was popped.
+         */
         TYPE pop(int64_t index) override;
+
+        /**
+         * @brief Pops an element from the end of the forwardChain.
+         * @return The element that was popped.
+         */
         TYPE popEnd() override;
+
+        /**
+         * @brief Gets an iterator to the beginning of the forwardChain.
+         * @return An iterator to the beginning of the forwardChain.
+         */
         Iterator* begins() const override;
+
+        /**
+         * @brief Gets an iterator to the end of the forwardChain.
+         * @return An iterator to the end of the forwardChain.
+         */
         Iterator* ends() const override;
+
+        /**
+         * @brief Gets the class name of the forwardChain.
+         * @return The class name as a string.
+         */
         [[nodiscard]] std::string className() const override;
+
+        /**
+         * @brief Destructor for the forwardChain.
+         */
         ~forwardChain() override;
     };
 }

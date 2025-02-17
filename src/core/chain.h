@@ -14,7 +14,6 @@
  * Features include:
  * - Constant time insertion/removal at both ends
  * - Linear time random access
- * - STL-style bidirectional iterators
  * - Safe element ownership through RAII
  */
 
@@ -51,15 +50,68 @@ namespace original {
                 chainNode* prev;    ///< Pointer to previous node
                 chainNode* next;    ///< Pointer to next node
             protected:
+
+                /**
+                 * @brief Constructs a chainNode with given data, previous, and next pointers.
+                 * @param data The value to store in the node.
+                 * @param prev Pointer to the previous node (default is nullptr).
+                 * @param next Pointer to the next node (default is nullptr).
+                 */
                 explicit chainNode(const TYPE& data = TYPE{}, chainNode* prev = nullptr, chainNode* next = nullptr);
+
+                /**
+                * @brief Copy constructor for chainNode.
+                * @param other The node to copy.
+                */
                 chainNode(const chainNode& other);
+
+                /**
+                * @brief Assignment operator for chainNode.
+                * @param other The node to assign.
+                * @return A reference to this node.
+                */
                 chainNode& operator=(const chainNode& other);
+
+                /**
+                * @brief Gets the reference of the node value.
+                * @return The value stored in the node.
+                */
                 TYPE& getVal() override;
+
+                /**
+                * @brief Gets the value of the node (const version).
+                * @return The constant value stored in the node.
+                */
                 const TYPE& getVal() const override;
+
+                /**
+                * @brief Sets the value of the node.
+                * @param data The value to store in the node.
+                */
                 void setVal(TYPE data) override;
+
+                /**
+                * @brief Gets the pointer to the previous node.
+                * @return A pointer to the previous node.
+                */
                 chainNode* getPPrev() const override;
+
+                /**
+                * @brief Gets the pointer to the next node.
+                * @return A pointer to the next node.
+                */
                 chainNode* getPNext() const override;
+
+                /**
+                 * @brief Sets the pointer to the previous node.
+                 * @param new_prev The new previous node pointer.
+                 */
                 void setPPrev(chainNode* new_prev);
+
+                /**
+                 * @brief Sets the pointer to the next node.
+                 * @param new_next The new next node pointer.
+                 */
                 void setPNext(chainNode* new_next);
 
                 /**
@@ -74,16 +126,40 @@ namespace original {
         chainNode* begin_;      ///< Pointer to first element node
         chainNode* end_;        ///< Pointer to end sentinel node
 
+        /**
+         * @brief Finds the node at the given index.
+         * @param index The index of the node to find.
+         * @return The node at the given index.
+         */
         chainNode* findNode(int64_t index) const;
+
+        /**
+         * @brief Initializes the chain with sentinel nodes.
+         */
         void chainInit();
+
+        /**
+         * @brief Adds a node to the beginning of the chain.
+         * @param node The node to add at the beginning.
+         */
         void firstAdd(chainNode* node);
+
+        /**
+         * @brief Deletes the last node of the chain.
+         * @return The last node that was deleted.
+         */
         chainNode* lastDelete();
+
+        /**
+         * @brief Destroys the chain by deleting all nodes.
+         */
         void chainDestruction();
     public:
+
         /**
          * @class Iterator
          * @brief Bidirectional iterator implementation for chain
-         * @extends doubleDirectionIterator<TYPE>
+         * @extends doubleDirectionIterator
          * @details Provides:
          * - Forward/backward traversal
          * - Clone capability
@@ -91,39 +167,197 @@ namespace original {
          */
         class Iterator final : public doubleDirectionIterator<TYPE>
         {
+
+            /**
+             * @brief Constructs an Iterator from a given chainNode pointer.
+             * @param ptr Pointer to the chainNode the iterator will point to.
+             */
             explicit Iterator(chainNode* ptr);
         public:
             friend chain;
+
+            /**
+             * @brief Copy constructor for Iterator.
+             * @param other The iterator to copy.
+             */
             Iterator(const Iterator& other);
+
+            /**
+             * @brief Assignment operator for Iterator.
+             * @param other The iterator to assign.
+             * @return A reference to this iterator.
+             */
             Iterator& operator=(const Iterator& other);
+
+            /**
+             * @brief Clones the iterator.
+             * @return A new iterator pointing to the same position.
+             */
             Iterator* clone() const override;
+
+            /**
+             * @brief Checks if the iterator is at the previous position relative to another iterator.
+             * @param other The iterator to compare with.
+             * @return True if this iterator is at the previous position, false otherwise.
+             */
             bool atPrev(const iterator<TYPE> *other) const override;
+
+            /**
+             * @brief Checks if the iterator is at the next position relative to another iterator.
+             * @param other The iterator to compare with.
+             * @return True if this iterator is at the next position, false otherwise.
+             */
             bool atNext(const iterator<TYPE> *other) const override;
+
+            /**
+             * @brief Gets the class name of the iterator.
+             * @return The class name as a string.
+             */
             [[nodiscard]] std::string className() const override;
         };
 
+        /**
+         * @brief Default constructor for chain.
+         */
         explicit chain();
+
+        /**
+         * @brief Copy constructor for chain.
+         * @param other The chain to copy.
+         */
         chain(const chain& other);
+
+        /**
+         * @brief Constructs a chain from an initializer list.
+         * @param list The initializer list to construct the chain from.
+         */
         chain(const std::initializer_list<TYPE>& list);
+
+        /**
+         * @brief Constructs a chain from an array.
+         * @param arr The array to construct the chain from.
+         */
         explicit chain(const array<TYPE>& arr);
+
+        /**
+         * @brief Assignment operator for chain.
+         * @param other The chain to assign.
+         * @return A reference to this chain.
+         */
         chain& operator=(const chain& other);
+
+        /**
+         * @brief Move constructor for chain.
+         * @param other The chain to move.
+         */
         chain(chain&& other) noexcept;
+
+        /**
+         * @brief Move assignment operator for chain.
+         * @param other The chain to move.
+         * @return A reference to this chain.
+         */
         chain& operator=(chain&& other) noexcept;
+
+        /**
+         * @brief Appends another chain to the current chain.
+         * @param other The chain to append.
+         */
         void operator+=(chain& other);
+
+        /**
+         * @brief Gets the size of the chain.
+         * @return The number of elements in the chain.
+         */
         [[nodiscard]] uint32_t size() const override;
+
+        /**
+         * @brief Gets the element at the specified index.
+         * @param index The index of the element to retrieve.
+         * @return The element at the specified index.
+         */
         TYPE get(int64_t index) const override;
+
+        /**
+         * @brief Gets a reference to the element at the specified index.
+         * @param index The index of the element to retrieve.
+         * @return A reference to the element at the specified index.
+         */
         TYPE& operator[](int64_t index) override;
+
+        /**
+         * @brief Sets the element at the specified index.
+         * @param index The index of the element to set.
+         * @param e The value to set the element to.
+         */
         void set(int64_t index, const TYPE &e) override;
+
+        /**
+         * @brief Finds the index of the first occurrence of the specified element.
+         * @param e The element to search for.
+         * @return The index of the element, or the size of the chain if not found.
+         */
         uint32_t indexOf(const TYPE &e) const override;
+
+        /**
+         * @brief Pushes an element to the beginning of the chain.
+         * @param e The element to push to the beginning.
+         */
         void pushBegin(const TYPE &e) override;
+
+        /**
+         * @brief Pushes an element at the specified index in the chain.
+         * @param index The index at which to insert the element.
+         * @param e The element to push.
+         */
         void push(int64_t index, const TYPE &e) override;
+
+        /**
+         * @brief Pushes an element to the end of the chain.
+         * @param e The element to push to the end.
+         */
         void pushEnd(const TYPE &e) override;
+
+        /**
+         * @brief Pops an element from the beginning of the chain.
+         * @return The element that was popped.
+         */
         TYPE popBegin() override;
+
+        /**
+         * @brief Pops an element at the specified index in the chain.
+         * @param index The index of the element to pop.
+         * @return The element that was popped.
+         */
         TYPE pop(int64_t index) override;
+
+        /**
+         * @brief Pops an element from the end of the chain.
+         * @return The element that was popped.
+         */
         TYPE popEnd() override;
+
+        /**
+         * @brief Gets an iterator to the beginning of the chain.
+         * @return An iterator to the beginning of the chain.
+         */
         Iterator* begins() const override;
+
+        /**
+         * @brief Gets an iterator to the end of the chain.
+         * @return An iterator to the end of the chain.
+         */
         Iterator* ends() const override;
+
+        /**
+         * @brief Gets the class name of the chain.
+         * @return The class name as a string.
+         */
         [[nodiscard]] std::string className() const override;
+
+        /**
+         * @brief Destructor for the chain.
+         */
         ~chain() override;
     };
 }
