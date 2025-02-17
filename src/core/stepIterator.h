@@ -59,7 +59,7 @@ namespace original
             cur = cur->getPNext();
             dis += 1;
         }
-        return std::numeric_limits<int64_t>::max();
+        return cur == end ? 0 : std::numeric_limits<int64_t>::max();
     }
 
     template<typename TYPE>
@@ -103,13 +103,13 @@ namespace original
     }
 
     template <typename TYPE>
-    auto original::stepIterator<TYPE>::atPrev(const iterator<TYPE>* other) const -> bool
+    auto original::stepIterator<TYPE>::atPrev(const iterator<TYPE>*) const -> bool
     {
         throw unSupportedMethodError();
     }
 
     template <typename TYPE>
-    auto original::stepIterator<TYPE>::atNext(const iterator<TYPE>* other) const -> bool
+    auto original::stepIterator<TYPE>::atNext(const iterator<TYPE>*) const -> bool
     {
         throw unSupportedMethodError();
     }

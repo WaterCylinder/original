@@ -7,18 +7,49 @@
 #include "baseList.h"
 #include "iterationStream.h"
 
+/**
+ * @file chain.h
+ * @brief Non-cyclic doubly linked list implementation
+ * @details Provides a bidirectional linked list container with efficient front/back operations.
+ * Features include:
+ * - Constant time insertion/removal at both ends
+ * - Linear time random access
+ * - STL-style bidirectional iterators
+ * - Safe element ownership through RAII
+ */
 
 namespace original {
+    /**
+     * @class chain
+     * @tparam TYPE Type of elements stored in the list
+     * @brief Non-cyclic doubly linked list container
+     * @extends baseList
+     * @extends iterationStream
+     * @details Implements a classic doubly linked list with:
+     * - Sentinel nodes for boundary management
+     * - Bidirectional traversal capabilities
+     * - Index-based element access (O(n) complexity)
+     * - Deep copy semantics
+     */
     template <typename TYPE>
     class chain final : public baseList<TYPE>, public iterationStream<TYPE, chain<TYPE>>{
+        /**
+         * @class chainNode
+         * @brief Internal node structure for chain elements
+         * @extends wrapper
+         * @details Represents a single list node containing:
+         * - Data payload
+         * - Previous/next node pointers
+         * - Value access/modification methods
+         */
         class chainNode final : public wrapper<TYPE>{
             public:
                 friend class iterator<TYPE>;
                 friend class chain;
             private:
-                TYPE data_;
-                chainNode* prev;
-                chainNode* next;
+                TYPE data_;         ///< Element storage
+                chainNode* prev;    ///< Pointer to previous node
+                chainNode* next;    ///< Pointer to next node
             protected:
                 explicit chainNode(const TYPE& data = TYPE{}, chainNode* prev = nullptr, chainNode* next = nullptr);
                 chainNode(const chainNode& other);
@@ -30,12 +61,18 @@ namespace original {
                 chainNode* getPNext() const override;
                 void setPPrev(chainNode* new_prev);
                 void setPNext(chainNode* new_next);
+
+                /**
+                * @brief Connects two nodes
+                * @param prev Previous node to connect
+                * @param next Next node to connect
+                */
                 static void connect(chainNode* prev, chainNode* next);
         };
 
-        uint32_t size_;
-        chainNode* begin_;
-        chainNode* end_;
+        uint32_t size_;         ///< Current element count
+        chainNode* begin_;      ///< Pointer to first element node
+        chainNode* end_;        ///< Pointer to end sentinel node
 
         chainNode* findNode(int64_t index) const;
         void chainInit();
@@ -43,6 +80,15 @@ namespace original {
         chainNode* lastDelete();
         void chainDestruction();
     public:
+        /**
+         * @class Iterator
+         * @brief Bidirectional iterator implementation for chain
+         * @extends doubleDirectionIterator<TYPE>
+         * @details Provides:
+         * - Forward/backward traversal
+         * - Clone capability
+         * - Position comparison checks
+         */
         class Iterator final : public doubleDirectionIterator<TYPE>
         {
             explicit Iterator(chainNode* ptr);

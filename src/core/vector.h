@@ -1,65 +1,297 @@
 #ifndef VECTOR_H
 #define VECTOR_H
 
+/**
+ * @file vector.h
+ * @brief Dynamic array container with automatic resizing
+ * @details Implements a vector container with efficient operations
+ * and auto-centering memory management. Supports random access and iterator-based traversal.
+ */
+
 #include "baseList.h"
 #include "iterationStream.h"
 #include "array.h"
 
 namespace original{
+    /**
+     * @class vector
+     * @tparam TYPE Element type stored in the vector
+     * @brief Dynamic array container with amortized constant time operations
+     * @extends baseList
+     * @extends iterationStream
+     * @details Features include:
+     * - Auto-resizing with centered memory allocation
+     * - Random access via operator[] with bounds checking
+     * - Bidirectional element insertion/removal
+     * - STL-style iterator support
+     * - Initializer list and array conversion
+     */
     template <typename TYPE>
     class vector final : public baseList<TYPE>, public iterationStream<TYPE, vector<TYPE>>{
-        uint32_t size_;
-        const uint32_t INNER_SIZE_INIT = 16;
-        uint32_t max_size;
-        uint32_t inner_begin;
-        TYPE* body;
+        uint32_t size_;                 ///< Current number of elements
+        const uint32_t INNER_SIZE_INIT = 16; ///< Initial buffer capacity
+        uint32_t max_size;              ///< Current buffer capacity
+        uint32_t inner_begin;           ///< Starting index in circular buffer
+        TYPE* body;                     ///< Internal storage buffer
 
+        /**
+         * @brief Initializes the vector with default settings.
+         */
         void vectorInit();
+
+        /**
+         * @brief Destroys the internal storage of the vector.
+         */
         void vectorDestruct() const;
+
+        /**
+         * @brief Allocates and initializes an array of a given size.
+         * @param size The size of the array to initialize.
+         * @return Pointer to the newly allocated array.
+         */
         static TYPE* vectorArrayInit(uint32_t size);
+
+        /**
+         * @brief Moves elements from the old buffer to the new buffer.
+         * @param old_body The original array to move elements from.
+         * @param inner_idx The starting index for moving.
+         * @param len The number of elements to move.
+         * @param new_body The new buffer to move elements to.
+         * @param offset The offset to apply when moving the elements.
+         */
         static void moveElements(TYPE* old_body, uint32_t inner_idx,
                                  uint32_t len, TYPE* new_body, int64_t offset);
+
+        /**
+         * @brief Converts an index to an inner buffer index.
+         * @param index The index to convert.
+         * @return The corresponding index in the internal buffer.
+         */
         [[nodiscard]] uint32_t toInnerIdx(int64_t index) const;
+
+        /**
+         * @brief Checks if a given increment would exceed the inner buffer size of the vector.
+         * @param increment The increment to check.
+         * @return True if the increment would exceed max size, false otherwise.
+         */
         [[nodiscard]] bool outOfMaxSize(uint32_t increment) const;
+
+        /**
+         * @brief Grows the vector's internal buffer to accommodate more elements.
+         * @param new_size The new size for the buffer.
+         */
         void grow(uint32_t new_size);
+
+        /**
+         * @brief Adjusts the vector's internal buffer to accommodate an increment in size.
+         * @param increment The number of elements to accommodate.
+         */
         void adjust(uint32_t increment);
 
     public:
+        /**
+         * @class Iterator
+         * @brief Random access iterator implementation for vector
+         * @extends randomAccessIterator
+         * @details Provides full random access capabilities including:
+         * - Pointer arithmetic operations
+         * - Element dereferencing
+         * - Comparison operators
+         */
         class Iterator final : public randomAccessIterator<TYPE>
         {
+                /**
+                 * @brief Constructs an iterator for the vector.
+                 * @param ptr Pointer to the element in the vector that the iterator will point to.
+                 * @param container Pointer to the container (vector) the iterator belongs to.
+                 * @param pos The position of the iterator within the container.
+                 */
                 explicit Iterator(TYPE* ptr, const vector* container, int64_t pos);
             public:
                 friend vector;
-                Iterator(const Iterator& other);
-                Iterator& operator=(const Iterator& other);
-                Iterator* clone() const override;
-                bool atPrev(const iterator<TYPE> *other) const override;
-                bool atNext(const iterator<TYPE> *other) const override;
-                [[nodiscard]] std::string className() const override;
+
+            /**
+            * @brief Copy constructor for the iterator.
+            * @param other The iterator to copy.
+            */
+            Iterator(const Iterator& other);
+
+            /**
+             * @brief Assignment operator for the iterator.
+             * @param other The iterator to assign from.
+             * @return A reference to this iterator.
+             */
+            Iterator& operator=(const Iterator& other);
+
+            /**
+             * @brief Clones the iterator.
+             * @return A new iterator pointing to the same position.
+             */
+            Iterator* clone() const override;
+
+            /**
+             * @brief Checks if the iterator is at the previous element relative to another iterator.
+             * @param other The other iterator to compare to.
+             * @return True if this iterator is at the previous element, false otherwise.
+             */
+            bool atPrev(const iterator<TYPE> *other) const override;
+
+            /**
+             * @brief Checks if the iterator is at the next element relative to another iterator.
+             * @param other The other iterator to compare to.
+             * @return True if this iterator is at the next element, false otherwise.
+             */
+            bool atNext(const iterator<TYPE> *other) const override;
+
+            /**
+             * @brief Gets the class name of the iterator.
+             * @return The class name as a string.
+             */
+            [[nodiscard]] std::string className() const override;
         };
 
+        /**
+          * @brief Default constructor for the vector.
+          */
         explicit vector();
+
+        /**
+         * @brief Copy constructor for the vector.
+         * @param other The vector to copy from.
+         */
         vector(const vector& other);
+
+        /**
+         * @brief Constructs a vector from an initializer list.
+         * @param list The initializer list to construct the vector from.
+         */
         vector(const std::initializer_list<TYPE>& list);
+
+        /**
+         * @brief Constructs a vector from an array.
+         * @param arr The array to construct the vector from.
+         */
         explicit vector(const array<TYPE>& arr);
+
+        /**
+         * @brief Assignment operator for the vector.
+         * @param other The vector to assign from.
+         * @return A reference to this vector.
+         */
         vector& operator=(const vector& other);
+
+        /**
+         * @brief Move constructor for the vector.
+         * @param other The vector to move from.
+         */
         vector(vector&& other) noexcept;
+
+        /**
+         * @brief Move assignment operator for the vector.
+         * @param other The vector to move from.
+         * @return A reference to this vector.
+         */
         vector& operator=(vector&& other) noexcept;
+
+        /**
+         * @brief Gets the size of the vector.
+         * @return The number of elements in the vector.
+         */
         [[nodiscard]] uint32_t size() const override;
+
+        /**
+         * @brief Gets a reference to the first element in the vector.
+         * @return A reference to the first element.
+         */
         TYPE& data() const;
+
+        /**
+         * @brief Gets an element at the specified index.
+         * @param index The index of the element.
+         * @return The element at the specified index.
+         */
         TYPE get(int64_t index) const override;
+
+        /**
+         * @brief Gets a reference to the element at the specified index.
+         * @param index The index of the element.
+         * @return A reference to the element at the specified index.
+         */
         TYPE& operator[](int64_t index) override;
+
+        /**
+         * @brief Sets the element at the specified index.
+         * @param index The index of the element to set.
+         * @param e The value to set.
+         */
         void set(int64_t index, const TYPE &e) override;
+
+        /**
+         * @brief Finds the index of the first occurrence of the specified element.
+         * @param e The element to find.
+         * @return The index of the element, or the size of the vector if not found.
+         */
         uint32_t indexOf(const TYPE &e) const override;
+
+        /**
+         * @brief Inserts an element at the beginning of the vector.
+         * @param e The element to insert.
+         */
         void pushBegin(const TYPE &e) override;
+
+        /**
+         * @brief Inserts an element at the specified index in the vector.
+         * @param index The index to insert the element at.
+         * @param e The element to insert.
+         */
         void push(int64_t index, const TYPE &e) override;
+
+        /**
+         * @brief Inserts an element at the end of the vector.
+         * @param e The element to insert.
+         */
         void pushEnd(const TYPE &e) override;
+
+        /**
+         * @brief Removes and returns the first element in the vector.
+         * @return The removed element.
+         */
         TYPE popBegin() override;
+
+        /**
+         * @brief Removes and returns the element at the specified index.
+         * @param index The index of the element to remove.
+         * @return The removed element.
+         */
         TYPE pop(int64_t index) override;
+
+        /**
+         * @brief Removes and returns the last element in the vector.
+         * @return The removed element.
+         */
         TYPE popEnd() override;
+
+        /**
+         * @brief Gets an iterator to the beginning of the vector.
+         * @return An iterator to the beginning.
+         */
         Iterator* begins() const override;
+
+        /**
+         * @brief Gets an iterator to the end of the vector.
+         * @return An iterator to the end.
+         */
         Iterator* ends() const override;
+
+        /**
+         * @brief Gets the class name of the vector.
+         * @return The class name as a string.
+         */
         [[nodiscard]] std::string className() const override;
+
+        /**
+         * @brief Destructor for the vector.
+         */
         ~vector() override;
     };
 }

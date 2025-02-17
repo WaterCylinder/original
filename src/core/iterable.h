@@ -5,6 +5,19 @@
 #include "types.h"
 #include "iterator.h"
 
+/**
+ * @file iterable.h
+ * @brief Base interface for iterable container types
+ * @details Defines the core abstraction for iterator-enabled containers. Provides:
+ * - iterable<TYPE> base class with iterator access methods
+ * - iterAdaptor nested class implementing iterator pattern
+ * - Range-based for loop support via begin()/end() methods
+ * - Element traversal and manipulation operations
+ *
+ * @see iterator.h For base iterator implementation
+ * @see transform.h For operation callback templates
+ */
+
 namespace original {
 
     /**
