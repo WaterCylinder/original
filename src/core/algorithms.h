@@ -395,27 +395,37 @@ namespace original
                                             const iterator<TYPE>& parent, const Callback& compares);
 
 
-        /**
-         * ---- Implementation of pointer overload version. ----
-         * */
+    // ---- Implementation of pointer overload version ----
 
     public:
+        /**
+         * @brief Pointer overload version of @ref distance()
+         * */
         template <typename TYPE>
         static auto distance(const iterator<TYPE>* end, const iterator<TYPE>* begin) -> int64_t
         {
             return distance(*end, *begin);
         }
 
+        /**
+         * @brief Pointer overload version of @ref frontOf()
+         * */
         template<typename TYPE>
         static auto frontOf(const iterator<TYPE> *it, int64_t steps) -> iterator<TYPE> * {
             return frontOf(*it, steps);
         }
 
+        /**
+         * @brief Pointer overload version of @ref backOf()
+         * */
         template<typename TYPE>
         static auto backOf(const iterator<TYPE> *it, int64_t steps) -> iterator<TYPE> * {
             return backOf(*it, steps);
         }
 
+        /**
+         * @brief Pointer overload version of @ref allOf()
+         * */
         template<typename TYPE, typename Callback>
         requires original::Condition<Callback, TYPE>
         static auto allOf(const iterator<TYPE> *begin, const iterator<TYPE> *end,
@@ -423,6 +433,9 @@ namespace original
             return allOf(*begin, *end, condition);
         }
 
+        /**
+         * @brief Pointer overload version of @ref anyOf()
+         * */
         template<typename TYPE, typename Callback>
         requires original::Condition<Callback, TYPE>
         static auto anyOf(const iterator<TYPE> *begin, const iterator<TYPE> *end,
@@ -430,6 +443,9 @@ namespace original
             return anyOf(*begin, *end, condition);
         }
 
+        /**
+         * @brief Pointer overload version of @ref noneOf()
+         * */
         template<typename TYPE, typename Callback>
         requires original::Condition<Callback, TYPE>
         static auto noneOf(const iterator<TYPE> *begin, const iterator<TYPE> *end,
@@ -437,18 +453,27 @@ namespace original
             return noneOf(*begin, *end, condition);
         }
 
+        /**
+         * @brief Pointer overload version of @ref find()
+         * */
         template <typename TYPE>
         static auto find(const iterator<TYPE>* begin, const iterator<TYPE>* end,
                          const TYPE& target) -> iterator<TYPE>* {
             return find(*begin, *end, target);
         }
 
+        /**
+         * @brief Pointer overload version of @ref find()
+         * */
         template <typename TYPE>
         static auto find(const iterator<TYPE>* begin, uint32_t n,
                          const TYPE& target) -> iterator<TYPE>* {
             return find(*begin, n, target);
         }
 
+        /**
+         * @brief Pointer overload version of @ref find()
+         * */
         template<typename TYPE, typename Callback>
         requires original::Condition<Callback, TYPE>
         static auto find(const iterator<TYPE>* begin, const iterator<TYPE>* end,
@@ -456,18 +481,27 @@ namespace original
             return find(*begin, *end, condition);
         }
 
+        /**
+         * @brief Pointer overload version of @ref find()
+         * */
         template <typename TYPE, typename Callback>
         requires original::Condition<Callback, TYPE>
         static auto find(const iterator<TYPE>* begin, uint32_t n, const Callback& condition) -> iterator<TYPE>* {
             return find(*begin, n, condition);
         }
 
+        /**
+         * @brief Pointer overload version of @ref count()
+         * */
         template <typename TYPE>
         static auto count(const iterator<TYPE>* begin, const iterator<TYPE>* end,
                                          const TYPE& target) -> uint32_t {
             return count(*begin, *end, target);
         }
 
+        /**
+         * @brief Pointer overload version of @ref count()
+         * */
         template <typename TYPE, typename Callback>
         requires original::Condition<Callback, TYPE>
         static auto count(const iterator<TYPE>* begin, const iterator<TYPE>* end,
@@ -475,12 +509,18 @@ namespace original
             return count(*begin, *end, condition);
         }
 
+        /**
+         * @brief Pointer overload version of @ref equal()
+         * */
         template <typename TYPE>
         static auto equal(const iterator<TYPE>* begin1, const iterator<TYPE>* end1,
                                          const iterator<TYPE>* begin2, const iterator<TYPE>* end2) -> bool {
             return equal(*begin1, *end1, *begin2, *end2);
         }
 
+        /**
+         * @brief Pointer overload version of @ref forEach()
+         * */
         template <typename TYPE, typename Callback>
         requires original::Operation<Callback, TYPE>
         static auto forEach(const iterator<TYPE>* begin, const iterator<TYPE>* end,
@@ -488,34 +528,52 @@ namespace original
             forEach(*begin, *end, operation);
         }
 
+        /**
+         * @brief Pointer overload version of @ref forEach()
+         * */
         template <typename TYPE, typename Callback>
         requires original::Operation<Callback, TYPE>
         static auto forEach(const iterator<TYPE>* begin, uint32_t n, Callback operation) -> iterator<TYPE>* {
             return forEach(*begin, n, operation);
         }
 
+        /**
+         * @brief Pointer overload version of @ref fill()
+         * */
         template<typename TYPE>
         static auto fill(const iterator<TYPE>* begin, const iterator<TYPE>* end,
                                         const TYPE& value) -> void {
             fill(*begin, *end, value);
         }
 
+        /**
+         * @brief Pointer overload version of @ref fill()
+         * */
         template<typename TYPE>
         static auto fill(const iterator<TYPE>* begin, uint32_t n, const TYPE& value) -> iterator<TYPE>* {
             return fill(*begin, n, value);
         }
 
+        /**
+         * @brief Pointer overload version of @ref swap()
+         * */
         template <typename TYPE>
         static auto swap(const iterator<TYPE>* it1, const iterator<TYPE>* it2) noexcept -> void {
             swap(*it1, *it2);
         }
 
+        /**
+         * @brief Pointer overload version of @ref copy()
+         * */
         template <typename TYPE>
         static auto copy(const iterator<TYPE>* begin_src, const iterator<TYPE>* end_src,
                                         const iterator<TYPE>* begin_tar) -> iterator<TYPE>* {
             return copy(*begin_src, *end_src, *begin_tar);
         }
 
+        /**
+         * @brief Pointer overload version of @ref copy()
+         * */
         template<typename TYPE, typename Callback>
         requires original::Condition<Callback, TYPE>
         static auto copy(const iterator<TYPE>* begin_src, const iterator<TYPE>* end_src,
@@ -523,11 +581,17 @@ namespace original
             return copy(*begin_src, *end_src, *begin_tar, condition);
         }
 
+        /**
+         * @brief Pointer overload version of @ref reverse()
+         * */
         template<typename TYPE>
         static auto reverse(const iterator<TYPE>* begin, const iterator<TYPE>* end) -> iterator<TYPE>* {
             return reverse(*begin, *end);
         }
 
+        /**
+         * @brief Pointer overload version of @ref compare()
+         * */
         template <typename TYPE, typename Callback>
         requires original::Compare<Callback, TYPE>
         static auto compare(const iterator<TYPE>* it1, const iterator<TYPE>* it2,
@@ -535,6 +599,9 @@ namespace original
             return compare(*it1, *it2, compares);
         }
 
+        /**
+         * @brief Pointer overload version of @ref heapAdjustDown()
+         * */
         template<typename TYPE, typename Callback>
         requires original::Compare<Callback, TYPE>
         static auto heapAdjustDown(const iterator<TYPE>* begin, const iterator<TYPE>* range,
@@ -542,6 +609,9 @@ namespace original
             heapAdjustDown(*begin, *range, *current, compares);
         }
 
+        /**
+         * @brief Pointer overload version of @ref heapAdjustUp()
+         * */
         template<typename TYPE, typename Callback>
         requires original::Compare<Callback, TYPE>
         static auto heapAdjustUp(const iterator<TYPE>* begin, const iterator<TYPE>* current,
@@ -549,6 +619,9 @@ namespace original
             heapAdjustUp(*begin, *current, compares);
         }
 
+        /**
+         * @brief Pointer overload version of @ref heapInit()
+         * */
         template<typename TYPE, typename Callback>
         requires original::Compare<Callback, TYPE>
         static auto heapInit(const iterator<TYPE>* begin, const iterator<TYPE>* end,
@@ -556,6 +629,9 @@ namespace original
             heapInit(*begin, *end, compares);
         }
 
+        /**
+         * @brief Pointer overload version of @ref heapGetPrior()
+         * */
         template<typename TYPE, typename Callback>
         requires original::Compare<Callback, TYPE>
         static auto heapGetPrior(const iterator<TYPE>* begin, const iterator<TYPE>* range,
