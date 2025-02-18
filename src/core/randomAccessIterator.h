@@ -6,35 +6,169 @@
 #include "iterator.h"
 #include <limits>
 
-namespace original{
-    template<typename TYPE>
-    class randomAccessIterator : public baseIterator<TYPE>{
-    protected:
-        mutable TYPE* _ptr;
-        mutable const container<TYPE>* _container;
-        mutable int64_t _pos;
+/**
+ * @file randomAccessIterator.h
+ * @brief Base class for random-access iterators
+ * @details Provides common functionality for iterators supporting random access operations.
+ * Features include pointer arithmetic, validity checking, and bidirectional traversal.
+ */
 
+namespace original {
+
+    /**
+     * @class randomAccessIterator
+     * @tparam TYPE Type of elements being iterated
+     * @brief Abstract base class for random-access iterators
+     * @extends baseIterator
+     * @details Implements core functionality for iterators that support:
+     * - Pointer arithmetic operations (+, +=, -, -=)
+     * - Bidirectional traversal
+     * - Position validity checking
+     * - Element access/modification
+     *
+     * @note Maintains three state markers:
+     * - Raw pointer to the current element
+     * - Reference to parent container
+     * - Absolute position index
+     */
+    template<typename TYPE>
+    class randomAccessIterator : public baseIterator<TYPE> {
+    protected:
+        mutable TYPE* _ptr;             ///< Pointer to the current element
+        mutable const container<TYPE>* _container; ///< Reference to the parent container
+        mutable int64_t _pos;           ///< Absolute position in the container
+
+        /**
+         * @brief Protected constructor for derived classes
+         * @param ptr Raw element pointer
+         * @param container Parent container reference
+         * @param pos Initial position index
+         */
         explicit randomAccessIterator(TYPE* ptr, const container<TYPE>* container, int64_t pos);
-        bool equalPtr(const iterator<TYPE> * other) const override;
+
+        /**
+         * @brief Equality comparison implementation
+         * @param other Iterator to compare with
+         * @return True when pointing to the same memory location
+         */
+        bool equalPtr(const iterator<TYPE>* other) const override;
+
     public:
+
+        /**
+         * @brief Copy constructor
+         * @param other Iterator to copy from
+         */
         randomAccessIterator(const randomAccessIterator& other);
+
+        /**
+         * @brief Copy assignment operator
+         * @param other Iterator to copy from
+         * @return Reference to this iterator
+         */
         randomAccessIterator& operator=(const randomAccessIterator& other);
+
+        /**
+         * @brief Creates a heap-allocated copy
+         * @return New iterator instance
+         */
         randomAccessIterator* clone() const override;
+
+        /**
+         * @brief Checks forward traversal capability
+         * @return True if not at the end
+         */
         [[nodiscard]] bool hasNext() const override;
+
+        /**
+         * @brief Checks reverse traversal capability
+         * @return True if not at the beginning
+         */
         [[nodiscard]] bool hasPrev() const override;
+
+        /**
+         * @brief Checks if the current iterator is at the previous position compared to another iterator.
+         * @param other The iterator to compare with.
+         * @return True if the iterator is at the previous position, otherwise false.
+         */
         bool atPrev(const iterator<TYPE>* other) const override;
+
+        /**
+         * @brief Checks if the current iterator is at the next position compared to another iterator.
+         * @param other The iterator to compare with.
+         * @return True if the iterator is at the next position, otherwise false.
+         */
         bool atNext(const iterator<TYPE>* other) const override;
+
+        /**
+         * @brief Advances to the next position in the container
+         */
         void next() const override;
+
+        /**
+         * @brief Retreats to the previous position in the container
+         */
         void prev() const override;
+
+        /**
+         * @brief Moves forward by N positions
+         * @param steps Number of positions to advance
+         */
         void operator+=(int64_t steps) const override;
+
+        /**
+         * @brief Moves backward by N positions
+         * @param steps Number of positions to retreat
+         */
         void operator-=(int64_t steps) const override;
+
+        /**
+         * @brief Computes the distance between the current iterator and another iterator.
+         * @param other The iterator to compare with
+         * @return The number of positions between the two iterators
+         */
         int64_t operator-(const iterator<TYPE>& other) const override;
+
+        /**
+         * @brief Gets an iterator pointing to the next element
+         * @return A new iterator pointing to the next element
+         */
         randomAccessIterator* getNext() const override;
+
+        /**
+         * @brief Gets an iterator pointing to the previous element
+         * @return A new iterator pointing to the previous element
+         */
         randomAccessIterator* getPrev() const override;
+
+        /**
+         * @brief Gets the current element in the container
+         * @return Reference to the current element
+         */
         TYPE& get() override;
+
+        /**
+         * @brief Gets the current element in the container (const version)
+         * @return Const reference to the current element
+         */
         TYPE get() const override;
+
+        /**
+         * @brief Sets the value of the current element
+         * @param data The value to set to the current element
+         */
         void set(const TYPE& data) override;
+
+        /**
+         * @brief Checks if the iterator is valid (points to a valid element in the container)
+         * @return True if the iterator is valid, otherwise false
+         */
         [[nodiscard]] bool isValid() const override;
+
+        /**
+         * @brief Gets the class name of the iterator
+         * @return The class name as a string
+         */
         [[nodiscard]] std::string className() const override;
     };
 }
@@ -83,12 +217,12 @@ namespace original{
     }
 
     template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::atPrev(const iterator<TYPE> *other) const -> bool {
+    auto original::randomAccessIterator<TYPE>::atPrev(const iterator<TYPE>*) const -> bool {
         throw unSupportedMethodError();
     }
 
     template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::atNext(const iterator<TYPE> *other) const -> bool {
+    auto original::randomAccessIterator<TYPE>::atNext(const iterator<TYPE>*) const -> bool {
         throw unSupportedMethodError();
     }
 

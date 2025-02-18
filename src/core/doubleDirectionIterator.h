@@ -3,15 +3,55 @@
 #include "stepIterator.h"
 
 namespace original {
+
+    /**
+     * @class doubleDirectionIterator
+     * @tparam TYPE Type of elements being iterated
+     * @brief Abstract base class for double-direction iterators
+     * @extends stepIterator
+     * @details Implements core functionality for iterators that can traverse elements in both directions
+     *          (forward and backward) with single-step movements. This class extends the `stepIterator`
+     *          and provides support for both forward and backward iteration.
+     */
     template<typename TYPE>
     class doubleDirectionIterator : public stepIterator<TYPE> {
     protected:
+        /**
+         * @brief Protected constructor for doubleDirectionIterator
+         * @param ptr Raw pointer to the element being iterated
+         */
         explicit doubleDirectionIterator(wrapper<TYPE>* ptr);
+
     public:
+        /**
+         * @brief Copy constructor for doubleDirectionIterator
+         * @param other The iterator to copy from
+         */
         doubleDirectionIterator(const doubleDirectionIterator& other);
+
+        /**
+         * @brief Copy assignment operator for doubleDirectionIterator
+         * @param other The iterator to copy from
+         * @return Reference to this iterator
+         */
         doubleDirectionIterator& operator=(const doubleDirectionIterator& other);
+
+        /**
+         * @brief Creates a heap-allocated copy of the iterator
+         * @return A new heap-allocated doubleDirectionIterator
+         */
         doubleDirectionIterator* clone() const override;
+
+        /**
+         * @brief Checks if the iterator can move backward
+         * @return True if the iterator is not at the beginning, otherwise false
+         */
         [[nodiscard]] bool hasPrev() const override;
+
+        /**
+         * @brief Moves the iterator to the previous element
+         * @throws nullPointerError if the iterator is invalid
+         */
         void prev() const override;
     };
 }

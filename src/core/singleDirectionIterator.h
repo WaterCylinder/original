@@ -3,15 +3,52 @@
 
 #include "stepIterator.h"
 
+/**
+ * @file singleDirectionIterator.h
+ * @brief Single-direction iterator base class
+ * @details Provides common functionality for iterators that can only traverse in one direction (forward).
+ *          It extends the `stepIterator` class to include functionality that applies to single-direction step iterators.
+ */
+
 namespace original {
+
+    /**
+     * @class singleDirectionIterator
+     * @tparam TYPE Type of elements being iterated
+     * @brief Abstract base class for single-direction iterators
+     * @extends stepIterator
+     * @details Implements core functionality for iterators that support single-direction traversal.
+     *          It extends `stepIterator` and provides a base for all iterators that traverse elements
+     *          one step at a time in a single direction (typically forward).
+     */
     template<typename TYPE>
     class singleDirectionIterator : public stepIterator<TYPE> {
-        protected:
-            explicit singleDirectionIterator(wrapper<TYPE>* ptr);
-        public:
-            singleDirectionIterator(const singleDirectionIterator& other);
-            singleDirectionIterator& operator=(const singleDirectionIterator& other);
-            singleDirectionIterator* clone() const override;
+    protected:
+        /**
+         * @brief Protected constructor for singleDirectionIterator
+         * @param ptr Raw pointer to the element being iterated
+         */
+        explicit singleDirectionIterator(wrapper<TYPE>* ptr);
+
+    public:
+        /**
+         * @brief Copy constructor for singleDirectionIterator
+         * @param other The iterator to copy from
+         */
+        singleDirectionIterator(const singleDirectionIterator& other);
+
+        /**
+         * @brief Copy assignment operator for singleDirectionIterator
+         * @param other The iterator to copy from
+         * @return A reference to this iterator
+         */
+        singleDirectionIterator& operator=(const singleDirectionIterator& other);
+
+        /**
+         * @brief Creates a heap-allocated copy of the iterator
+         * @return A new heap-allocated singleDirectionIterator
+         */
+        singleDirectionIterator* clone() const override;
     };
 }
 

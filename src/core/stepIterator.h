@@ -7,37 +7,175 @@
 #include "wrapper.h"
 #include "error.h"
 
+/**
+ * @file stepIterator.h
+ * @brief Step iterator base class for single-step iterators
+ * @details Provides common functionality for iterators that support step-based traversal operations.
+ *          Includes methods for pointer arithmetic, traversal, and element access.
+ *          Intended for use as a base class for all iterators that iterate through elements one step at a time.
+ */
+
 namespace original
 {
+    /**
+     * @class stepIterator
+     * @tparam TYPE Type of elements being iterated
+     * @brief Abstract base class for step iterators
+     * @extends baseIterator
+     * @details Implements core functionality for iterators that iterate through elements one step at a time.
+     *          Supports:
+     *          - Stepwise forward traversal (`next` and `prev`)
+     *          - Cloning and comparison operations
+     *          - Element access/modification
+     *          - Position validity checking
+     *
+     * @note Derived iterators should provide the specific behavior of moving to the next element and accessing the current element.
+     */
     template<typename TYPE>
     class stepIterator : public baseIterator<TYPE>
     {
-        protected:
-            mutable wrapper<TYPE>* _ptr;
+    protected:
+        mutable wrapper<TYPE>* _ptr;  ///< Pointer to the current element
 
-            explicit stepIterator(wrapper<TYPE>* ptr);
-            static int64_t ptrDistance(wrapper<TYPE>* start, wrapper<TYPE>* end);
-            bool equalPtr(const iterator<TYPE>* other) const override;
-        public:
-            stepIterator(const stepIterator& other);
-            stepIterator& operator=(const stepIterator& other);
-            stepIterator* clone() const override;
-            [[nodiscard]] bool hasNext() const override;
-            [[nodiscard]] bool hasPrev() const override;
-            bool atPrev(const iterator<TYPE>* other) const override;
-            bool atNext(const iterator<TYPE>* other) const override;
-            void next() const override;
-            void prev() const override;
-            void operator+=(int64_t steps) const override;
-            void operator-=(int64_t steps) const override;
-            int64_t operator-(const iterator<TYPE>& other) const override;
-            stepIterator* getNext() const override;
-            iterator<TYPE>* getPrev() const override;
-            TYPE& get() override;
-            TYPE get() const override;
-            void set(const TYPE& data) override;
-            [[nodiscard]] bool isValid() const override;
-            [[nodiscard]] std::string className() const override;
+        /**
+         * @brief Protected constructor for derived classes
+         * @param ptr Raw pointer to the element
+         */
+        explicit stepIterator(wrapper<TYPE>* ptr);
+
+        /**
+         * @brief Calculates the distance between two iterators
+         * @param start Iterator pointing to the start position
+         * @param end Iterator pointing to the end position
+         * @return The number of steps between the two iterators
+         */
+        static int64_t ptrDistance(wrapper<TYPE>* start, wrapper<TYPE>* end);
+
+        /**
+         * @brief Equality comparison for two iterators
+         * @param other Iterator to compare with
+         * @return True if the iterators point to the same element, otherwise false
+         */
+        bool equalPtr(const iterator<TYPE>* other) const override;
+
+    public:
+        /**
+         * @brief Copy constructor for stepIterator
+         * @param other The iterator to copy
+         */
+        stepIterator(const stepIterator& other);
+
+        /**
+         * @brief Copy assignment operator for stepIterator
+         * @param other The iterator to copy
+         * @return Reference to this iterator
+         */
+        stepIterator& operator=(const stepIterator& other);
+
+        /**
+         * @brief Creates a heap-allocated copy of the iterator
+         * @return A new heap-allocated stepIterator
+         */
+        stepIterator* clone() const override;
+
+        /**
+         * @brief Checks if the iterator can move forward
+         * @return True if the iterator is not at the end, otherwise false
+         */
+        [[nodiscard]] bool hasNext() const override;
+
+        /**
+         * @brief Checks if the iterator can move backward
+         * @return Always throws unSupportedMethodError since this iterator only supports forward movement
+         */
+        [[nodiscard]] bool hasPrev() const override;
+
+        /**
+         * @brief Checks if the current iterator is at the previous position relative to another iterator
+         * @param other The iterator to compare with
+         * @return Always throws unSupportedMethodError for backward checks
+         */
+        bool atPrev(const iterator<TYPE>* other) const override;
+
+        /**
+         * @brief Checks if the current iterator is at the next position relative to another iterator
+         * @param other The iterator to compare with
+         * @return Always throws unSupportedMethodError for forward checks
+         */
+        bool atNext(const iterator<TYPE>* other) const override;
+
+        /**
+         * @brief Advances to the next position in the container
+         */
+        void next() const override;
+
+        /**
+         * @brief Retreats to the previous position in the container
+         * @details Always throws unSupportedMethodError since backward movement is not supported for step iterators.
+         */
+        void prev() const override;
+
+        /**
+         * @brief Moves forward by a specified number of steps
+         * @param steps The number of positions to move forward
+         */
+        void operator+=(int64_t steps) const override;
+
+        /**
+         * @brief Moves backward by a specified number of steps
+         * @param steps The number of positions to move backward
+         * @details This operation is supported by internally calling `operator+=` with a negative value of `steps`.
+         */
+        void operator-=(int64_t steps) const override;
+
+        /**
+         * @brief Calculates the number of steps between the current iterator and another iterator
+         * @param other The iterator to compare with
+         * @return The number of steps between the two iterators
+         */
+        int64_t operator-(const iterator<TYPE>& other) const override;
+
+        /**
+         * @brief Creates a new iterator pointing to the next element
+         * @return A new stepIterator pointing to the next element
+         */
+        stepIterator* getNext() const override;
+
+        /**
+         * @brief Creates a new iterator pointing to the previous element
+         * @return Always throws unSupportedMethodError for backward iteration
+         */
+        iterator<TYPE>* getPrev() const override;
+
+        /**
+         * @brief Gets the reference of current element in the container
+         * @return A reference to the current element
+         */
+        TYPE& get() override;
+
+        /**
+         * @brief Gets the current element in the container
+         * @return A constant reference to the current element
+         */
+        TYPE get() const override;
+
+        /**
+         * @brief Sets the value of the current element
+         * @param data The value to set to the current element
+         */
+        void set(const TYPE& data) override;
+
+        /**
+         * @brief Checks if the iterator is valid
+         * @return True if the iterator is valid (points to a valid element), otherwise false
+         */
+        [[nodiscard]] bool isValid() const override;
+
+        /**
+         * @brief Returns the class name of the iterator
+         * @return The class name as a string
+         */
+        [[nodiscard]] std::string className() const override;
     };
 }
 
