@@ -4,74 +4,247 @@
 #include "filter.h"
 #include "chain.h"
 
+/**
+* @file filterStream.h
+* @brief Composite filter operations with logical chaining
+* @details Implements a stream-like structure for combining multiple filters through logical operators.
+* Supports AND/OR/NOT operations and explicit grouping via group() function.
+* Uses postfix notation for internal evaluation and avoids direct parenthesis usage.
+*/
+
 namespace original{
+    /**
+    * @class filterStream
+    * @tparam TYPE Element type for filtering
+    * @brief Composite filter builder with logical operator chaining
+    * @details Enables construction of complex filter conditions through operator overloading.
+    * Maintains internal operator precedence using postfix conversion. Use group() for explicit
+    * precedence control instead of parentheses.
+    */
     template<typename TYPE>
     class filterStream
     {
+        /// @internal Operator types for postfix conversion
         enum class opts{AND = 1, OR = 0, NOT = 2, LEFT_BRACKET = 3, RIGHT_BRACKET = 4};
 
-        mutable chain<std::shared_ptr<filter<TYPE>>> stream;
-        mutable chain<opts> ops;
-        mutable bool flag;
+        mutable chain<std::shared_ptr<filter<TYPE>>> stream; ///< Filter operand chain
+        mutable chain<opts> ops; ///< Operator sequence storage
+        mutable bool flag; ///< Postfix conversion status flag
 
-        protected:
-            explicit filterStream();
-            void addBrackets();
-            void addAndOpt();
-            void addOrOpt();
-            void addNotOpt();
-            void pushEnd(const filter<TYPE>& f);
-            void pushAll(const filterStream& fs);
-            void toPostFix() const;
-        public:
-            ~filterStream() = default;
-            filterStream& operator&&(const filter<TYPE>& f);
-            filterStream& operator&&(const filterStream& fs);
-            filterStream& operator||(const filter<TYPE>& f);
-            filterStream& operator||(const filterStream& fs);
-            filterStream& operator!();
-            bool operator()(const TYPE& t) const;
+    protected:
+        /**
+        * @brief Protected constructor for stream initialization
+        * @note Used internally and by friend functions
+        */
+        explicit filterStream();
 
-            template<typename T>
-            friend filterStream<T> operator&&(const filter<T>& f1, const filter<T>& f2);
-            template<typename T>
-            friend filterStream<T> operator&&(const filter<T>& f, const filterStream<T>& ofs);
-            template<typename T>
-            friend filterStream<T> operator&&(const filterStream<T>& ofs, const filter<T>& f);
-            template<typename T>
-            friend filterStream<T> operator||(const filter<T>& f1, const filter<T>& f2);
-            template<typename T>
-            friend filterStream<T> operator||(const filter<T>& f, const filterStream<T>& ofs);
-            template<typename T>
-            friend filterStream<T> operator||(const filterStream<T>& ofs, const filter<T>& f);
-            template<typename T>
-            friend filterStream<T> operator!(const filter<T>& f);
-            template<typename T>
-            friend filterStream<T> operator!(const filterStream<T>& ofs);
-            template<typename T>
-            friend filterStream<T> group(const filterStream<T>& ofs);
-            template<typename T>
-            friend filterStream<T> group(const filter<T>& f);
+        /**
+        * @brief Add bracket operators for grouping
+        * @details Wraps current stream in logical parentheses
+        */
+        void addBrackets();
+
+        /**
+        * @brief Add AND operator to the stream
+        * @details Inserts logical AND between subsequent filters
+        */
+        void addAndOpt();
+
+        /**
+        * @brief Add OR operator to the stream
+        * @details Inserts logical OR between subsequent filters
+        */
+        void addOrOpt();
+
+        /**
+        * @brief Add NOT operator to the stream
+        * @details Negates subsequent filter condition
+        */
+        void addNotOpt();
+
+        /**
+        * @brief Append filter to the stream
+        * @param f Filter to add to the end of stream
+        */
+        void pushEnd(const filter<TYPE>& f);
+
+        /**
+        * @brief Merge another filterStream into this one
+        * @param fs Source filterStream to merge
+        */
+        void pushAll(const filterStream& fs);
+
+        /**
+        * @brief Convert infix notation to postfix
+        * @details Internal implementation of Shunting Yard algorithm
+        */
+        void toPostFix() const;
+
+    public:
+        ~filterStream() = default;
+
+        /**
+        * @brief AND operator with single filter
+        * @param f Filter to AND with current stream
+        * @return Reference to modified filterStream
+        */
+        filterStream& operator&&(const filter<TYPE>& f);
+
+        /**
+        * @brief AND operator with another filterStream
+        * @param fs filterStream to AND with current stream
+        * @return Reference to modified filterStream
+        */
+        filterStream& operator&&(const filterStream& fs);
+
+        /**
+        * @brief OR operator with single filter
+        * @param f Filter to OR with current stream
+        * @return Reference to modified filterStream
+        */
+        filterStream& operator||(const filter<TYPE>& f);
+
+        /**
+        * @brief OR operator with another filterStream
+        * @param fs filterStream to OR with current stream
+        * @return Reference to modified filterStream
+        */
+        filterStream& operator||(const filterStream& fs);
+
+        /**
+        * @brief Logical NOT operator
+        * @return Reference to negated filterStream
+        * @note Automatically adds grouping parentheses
+        */
+        filterStream& operator!();
+
+        /**
+        * @brief Filter evaluation operator
+        * @param t Element to test against filter conditions
+        * @return bool True if element passes filter chain
+        */
+        bool operator()(const TYPE& t) const;
+
+        // Friend operator implementations
+        template<typename T>
+        friend filterStream<T> operator&&(const filter<T>& f1, const filter<T>& f2);
+        template<typename T>
+        friend filterStream<T> operator&&(const filter<T>& f, const filterStream<T>& ofs);
+        template<typename T>
+        friend filterStream<T> operator&&(const filterStream<T>& ofs, const filter<T>& f);
+        template<typename T>
+        friend filterStream<T> operator||(const filter<T>& f1, const filter<T>& f2);
+        template<typename T>
+        friend filterStream<T> operator||(const filter<T>& f, const filterStream<T>& ofs);
+        template<typename T>
+        friend filterStream<T> operator||(const filterStream<T>& ofs, const filter<T>& f);
+        template<typename T>
+        friend filterStream<T> operator!(const filter<T>& f);
+        template<typename T>
+        friend filterStream<T> operator!(const filterStream<T>& ofs);
+        template<typename T>
+        friend filterStream<T> group(const filterStream<T>& ofs);
+        template<typename T>
+        friend filterStream<T> group(const filter<T>& f);
     };
 
+    /**
+    * @brief Create AND filterStream from two filters
+    * @tparam T Element type
+    * @param f1 First filter operand
+    * @param f2 Second filter operand
+    * @return New filterStream with AND operation
+    */
     template<typename T>
     filterStream<T> operator&&(const filter<T>& f1, const filter<T>& f2);
+
+    /**
+    * @brief AND operator between filter and filterStream
+    * @tparam T Element type
+    * @param f Filter operand
+    * @param ofs filterStream operand
+    * @return New combined filterStream
+    */
     template<typename T>
     filterStream<T> operator&&(const filter<T>& f, const filterStream<T>& ofs);
+
+    /**
+    * @brief AND operator between filterStream and filter
+    * @tparam T Element type
+    * @param ofs filterStream operand
+    * @param f Filter operand
+    * @return New combined filterStream
+    */
     template<typename T>
     filterStream<T> operator&&(const filterStream<T>& ofs, const filter<T>& f);
+
+    /**
+    * @brief Create OR filterStream from two filters
+    * @tparam T Element type
+    * @param f1 First filter operand
+    * @param f2 Second filter operand
+    * @return New filterStream with OR operation
+    */
     template<typename T>
     filterStream<T> operator||(const filter<T>& f1, const filter<T>& f2);
+
+    /**
+    * @brief OR operator between filter and filterStream
+    * @tparam T Element type
+    * @param f Filter operand
+    * @param ofs filterStream operand
+    * @return New combined filterStream
+    */
     template<typename T>
     filterStream<T> operator||(const filter<T>& f, const filterStream<T>& ofs);
+
+    /**
+    * @brief OR operator between filterStream and filter
+    * @tparam T Element type
+    * @param ofs filterStream operand
+    * @param f Filter operand
+    * @return New combined filterStream
+    */
     template<typename T>
     filterStream<T> operator||(const filterStream<T>& ofs, const filter<T>& f);
+
+    /**
+    * @brief Create negated filterStream from filter
+    * @tparam T Element type
+    * @param f Filter to negate
+    * @return New filterStream with NOT operation
+    * @note Automatically adds grouping parentheses
+    */
     template<typename T>
     filterStream<T> operator!(const filter<T>& f);
+
+    /**
+    * @brief Create negated filterStream from existing stream
+    * @tparam T Element type
+    * @param ofs filterStream to negate
+    * @return New negated filterStream
+    * @note Automatically adds grouping parentheses
+    */
     template<typename T>
     filterStream<T> operator!(const filterStream<T>& ofs);
+
+    /**
+    * @brief Create grouped filterStream from existing stream
+    * @tparam T Element type
+    * @param ofs filterStream to group
+    * @return New grouped filterStream
+    * @details Use instead of parentheses for explicit precedence control
+    */
     template<typename T>
     filterStream<T> group(const filterStream<T>& ofs);
+
+    /**
+    * @brief Create grouped filterStream from single filter
+    * @tparam T Element type
+    * @param f Filter to group
+    * @return New grouped filterStream
+    * @details Enables future operator precedence modifications
+    */
     template<typename T>
     filterStream<T> group(const filter<T>& f);
 } // namespace original
