@@ -2,6 +2,13 @@
 #define DOUBLEDIRECTIONITERATOR_H
 #include "stepIterator.h"
 
+/**
+ * @file doubleDirectionIterator.h
+ * @brief Double-direction iterator base class
+ * @details Provides common functionality for iterators that can only traverse in both directions (forward and backward).
+ *          It extends the `stepIterator` class to include functionality that applies to single-direction step iterators.
+ */
+
 namespace original {
 
     /**
