@@ -159,9 +159,8 @@ namespace original {
             /**
              * @brief Constructs an Iterator from a given forwardChainNode pointer.
              * @param ptr Pointer to the forwardChainNode the iterator will point to.
-             * @param pos Initial position index
              */
-            explicit Iterator(forwardChainNode* ptr, int64_t pos);
+            explicit Iterator(forwardChainNode* ptr);
         public:
             friend forwardChain;
 
@@ -453,12 +452,12 @@ namespace original {
     }
 
     template<typename TYPE>
-    original::forwardChain<TYPE>::Iterator::Iterator(forwardChainNode *ptr, int64_t pos)
-        : singleDirectionIterator<TYPE>(ptr, pos) {}
+    original::forwardChain<TYPE>::Iterator::Iterator(forwardChainNode *ptr)
+        : singleDirectionIterator<TYPE>(ptr) {}
 
     template<typename TYPE>
     original::forwardChain<TYPE>::Iterator::Iterator(const Iterator &other)
-        : singleDirectionIterator<TYPE>(nullptr, 0) {
+        : singleDirectionIterator<TYPE>(nullptr) {
         this->operator=(other);
     }
 
@@ -725,12 +724,12 @@ namespace original {
 
     template<typename TYPE>
     auto original::forwardChain<TYPE>::begins() const -> Iterator* {
-        return new Iterator(this->beginNode(), 0);
+        return new Iterator(this->beginNode());
     }
 
     template<typename TYPE>
     auto original::forwardChain<TYPE>::ends() const -> Iterator* {
-        return new Iterator(this->findNode(this->size() - 1), this->size_ - 1);
+        return new Iterator(this->findNode(this->size() - 1));
     }
 
     template<typename TYPE>

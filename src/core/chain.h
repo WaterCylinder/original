@@ -171,9 +171,8 @@ namespace original {
             /**
              * @brief Constructs an Iterator from a given chainNode pointer.
              * @param ptr Pointer to the chainNode the iterator will point to.
-             * @param pos Initial position index
              */
-            explicit Iterator(chainNode* ptr, int64_t pos);
+            explicit Iterator(chainNode* ptr);
         public:
             friend chain;
 
@@ -485,12 +484,12 @@ namespace original {
     }
 
     template<typename TYPE>
-    original::chain<TYPE>::Iterator::Iterator(chainNode* ptr, int64_t pos)
-        : doubleDirectionIterator<TYPE>::doubleDirectionIterator(ptr, pos) {}
+    original::chain<TYPE>::Iterator::Iterator(chainNode* ptr)
+        : doubleDirectionIterator<TYPE>::doubleDirectionIterator(ptr) {}
 
     template<typename TYPE>
     original::chain<TYPE>::Iterator::Iterator(const Iterator& other)
-        : doubleDirectionIterator<TYPE>::doubleDirectionIterator(nullptr, 0) {
+        : doubleDirectionIterator<TYPE>::doubleDirectionIterator(nullptr) {
         this->operator=(other);
     }
 
@@ -800,12 +799,12 @@ namespace original {
 
     template<typename TYPE>
     auto original::chain<TYPE>::begins() const -> Iterator* {
-        return new Iterator(this->begin_, 0);
+        return new Iterator(this->begin_);
     }
 
     template<typename TYPE>
     auto original::chain<TYPE>::ends() const -> Iterator* {
-        return new Iterator(this->end_, this->size_ - 1);
+        return new Iterator(this->end_);
     }
 
     template <typename TYPE>

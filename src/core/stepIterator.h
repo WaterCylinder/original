@@ -37,14 +37,12 @@ namespace original
     {
     protected:
         mutable wrapper<TYPE>* _ptr;  ///< Pointer to the current wrapper
-        mutable int64_t _pos;           ///< Absolute position in the container
 
         /**
          * @brief Protected constructor for derived classes
          * @param ptr Raw pointer to the element
-         * @param pos Initial position index
          */
-        explicit stepIterator(wrapper<TYPE>* ptr, int64_t pos);
+        explicit stepIterator(wrapper<TYPE>* ptr);
 
         /**
          * @brief Calculates the distance between two iterators
@@ -183,8 +181,8 @@ namespace original
 }
 
     template <typename TYPE>
-    original::stepIterator<TYPE>::stepIterator(wrapper<TYPE>* ptr, int64_t pos)
-        : _ptr(ptr), _pos(pos) {}
+    original::stepIterator<TYPE>::stepIterator(wrapper<TYPE>* ptr)
+        : _ptr(ptr) {}
 
     template <typename TYPE>
     auto original::stepIterator<TYPE>::ptrDistance(const stepIterator* start, const stepIterator* end) -> int64_t
@@ -215,7 +213,7 @@ namespace original
 
     template <typename TYPE>
     original::stepIterator<TYPE>::stepIterator(const stepIterator& other)
-        : _ptr(nullptr), _pos(0)
+        : _ptr(nullptr)
     {
         this->operator=(other);
     }
@@ -228,7 +226,6 @@ namespace original
             return *this;
         }
         this->_ptr = other._ptr;
-        this->_pos = other._pos;
         return *this;
     }
 
@@ -265,7 +262,6 @@ namespace original
     {
         if (!this->isValid()) throw nullPointerError();
         this->_ptr = this->_ptr->getPNext();
-        this->_pos += 1;
     }
 
     template<typename TYPE>
@@ -320,7 +316,7 @@ namespace original
 
     template <typename TYPE>
     auto original::stepIterator<TYPE>::getNext() const -> stepIterator* {
-        return new stepIterator(this->_ptr->getPNext(), this->_pos + 1);
+        return new stepIterator(this->_ptr->getPNext());
     }
 
     template<typename TYPE>
