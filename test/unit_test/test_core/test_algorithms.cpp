@@ -147,4 +147,22 @@ namespace original {
             EXPECT_EQ(originalArr1[i], stdArr1[i]);
         }
     }
+
+    TEST(AlgorithmsTest, InsertionSortTest){
+        #define lst2 {5, 8, 7, 2, 8, 10, 4, 3, 1, 4, 6, 2, 0, 9}
+        array originalArr1 = lst2;
+        std::array stdArr1 = lst2;
+        algorithms::insertionSort(originalArr1.first(), originalArr1.last(), increaseComparator<int>());
+        std::sort(stdArr1.begin(), stdArr1.end());
+        for (uint32_t i = 0; i < originalArr1.size(); i++){
+            EXPECT_EQ(originalArr1[i], stdArr1[i]);
+        }
+        array originalArr2 = lst2;
+        std::array stdArr2 = lst2;
+        algorithms::insertionSort(originalArr2.first(), originalArr2.last(), decreaseComparator<int>());
+        std::sort(stdArr2.begin(), stdArr2.end(), std::greater());
+        for (uint32_t i = 0; i < originalArr2.size(); i++){
+            EXPECT_EQ(originalArr2[i], stdArr2[i]);
+        }
+    }
 }
