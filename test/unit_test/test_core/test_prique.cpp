@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 #include <queue>
 #include "prique.h"
-#include "blocksList.h"
 
+#define lst {40, 20, 10, 30, 50, 70, 60, 100, 110, 50, 20, 90, 80, 80, 40}
 
 // Custom comparator to create a min-heap instead of max-heap
 template <typename T>
@@ -46,7 +46,7 @@ bool comparePriques(const original::prique<T, Callback, SERIAL>& originalPrique,
 
 // Test prique with `blocksList` as the underlying container and increaseComparator as the comparator
 TEST(PriqueTest, BlocksListPrique) {
-    auto list = {40, 20, 10, 30};
+    auto list = lst;
     original::prique p1 = list;
     auto p2 = initPriQue(list);
 
@@ -79,7 +79,7 @@ TEST(PriqueTest, BlocksListPrique) {
 
 // Test prique with a custom comparator
 TEST(PriqueTest, CustomComparator) {
-    auto list = {40, 20, 10, 30};
+    auto list = lst;
     original::prique<int, lessComparator> p1 = list;
     auto p2 = initPriQue<int, std::vector<int>>(list);
 
@@ -112,7 +112,7 @@ TEST(PriqueTest, CustomComparator) {
 
 // Test prique with vector as the underlying container (heap simulation)
 TEST(PriqueTest, VectorPrique) {
-    auto list = {40, 20, 10, 30};
+    auto list = lst;
     original::prique<int, original::increaseComparator, original::vector> p1 = list;
     auto p2 = initPriQue<int>(list);
 
