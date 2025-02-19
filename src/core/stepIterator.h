@@ -6,6 +6,7 @@
 #include "iterator.h"
 #include "wrapper.h"
 #include "error.h"
+#include "maths.h"
 
 /**
  * @file stepIterator.h
@@ -35,13 +36,15 @@ namespace original
     class stepIterator : public baseIterator<TYPE>
     {
     protected:
-        mutable wrapper<TYPE>* _ptr;  ///< Pointer to the current element
+        mutable wrapper<TYPE>* _ptr;  ///< Pointer to the current wrapper
+        mutable int64_t _pos;           ///< Absolute position in the container
 
         /**
          * @brief Protected constructor for derived classes
          * @param ptr Raw pointer to the element
+         * @param pos Initial position index
          */
-        explicit stepIterator(wrapper<TYPE>* ptr);
+        explicit stepIterator(wrapper<TYPE>* ptr, int64_t pos);
 
         /**
          * @brief Calculates the distance between two iterators
@@ -49,7 +52,7 @@ namespace original
          * @param end Iterator pointing to the end position
          * @return The number of steps between the two iterators
          */
-        static int64_t ptrDistance(wrapper<TYPE>* start, wrapper<TYPE>* end);
+        static int64_t ptrDistance(const stepIterator* start, const stepIterator* end);
 
         /**
          * @brief Equality comparison for two iterators
@@ -180,24 +183,28 @@ namespace original
 }
 
     template <typename TYPE>
-    original::stepIterator<TYPE>::stepIterator(wrapper<TYPE>* ptr)
-        : _ptr(ptr) {}
+    original::stepIterator<TYPE>::stepIterator(wrapper<TYPE>* ptr, int64_t pos)
+        : _ptr(ptr), _pos(pos) {}
 
     template <typename TYPE>
-    auto original::stepIterator<TYPE>::ptrDistance(wrapper<TYPE>* start, wrapper<TYPE>* end) -> int64_t
+    auto original::stepIterator<TYPE>::ptrDistance(const stepIterator* start, const stepIterator* end) -> int64_t
     {
+        auto* s = start->clone();
+        auto* e = end->clone();
         int64_t dis = 0;
-        auto* cur = start;
-        while (cur != nullptr)
-        {
-            if (cur == end)
-            {
+        while (s->isValid()){
+            if (s->_ptr == e->_ptr){
                 return dis;
             }
-            cur = cur->getPNext();
             dis += 1;
+            s->next();
         }
-        return cur == end ? 0 : std::numeric_limits<int64_t>::max();
+        if (e->isValid()){
+            dis = std::numeric_limits<int64_t>::max();
+        }
+        delete s;
+        delete e;
+        return dis;
     }
 
     template<typename TYPE>
@@ -208,7 +215,7 @@ namespace original
 
     template <typename TYPE>
     original::stepIterator<TYPE>::stepIterator(const stepIterator& other)
-        : _ptr(nullptr)
+        : _ptr(nullptr), _pos(0)
     {
         this->operator=(other);
     }
@@ -221,6 +228,7 @@ namespace original
             return *this;
         }
         this->_ptr = other._ptr;
+        this->_pos = other._pos;
         return *this;
     }
 
@@ -257,6 +265,7 @@ namespace original
     {
         if (!this->isValid()) throw nullPointerError();
         this->_ptr = this->_ptr->getPNext();
+        this->_pos += 1;
     }
 
     template<typename TYPE>
@@ -268,7 +277,7 @@ namespace original
     auto original::stepIterator<TYPE>::operator+=(const int64_t steps) const -> void
     {
         if (steps < 0) {
-            this->operator-=(abs(steps));
+            this->operator-=(original::abs(steps));
             return;
         }
 
@@ -282,7 +291,7 @@ namespace original
     auto original::stepIterator<TYPE>::operator-=(const int64_t steps) const -> void
     {
         if (steps < 0) {
-            this->operator+=(abs(steps));
+            this->operator+=(original::abs(steps));
             return;
         }
 
@@ -300,9 +309,9 @@ namespace original
             return this > &other ?
                 std::numeric_limits<int64_t>::max() :
                 std::numeric_limits<int64_t>::min();
-        if (const int64_t pos_dis = ptrDistance(other_it->_ptr, this->_ptr);
+        if (const int64_t pos_dis = ptrDistance(other_it, this);
             pos_dis != std::numeric_limits<int64_t>::max()) return pos_dis;
-        if (const int64_t neg_dis = ptrDistance(this->_ptr, other_it->_ptr);
+        if (const int64_t neg_dis = ptrDistance(this, other_it);
             neg_dis != std::numeric_limits<int64_t>::max()) return -neg_dis;
         return this->_ptr > other_it->_ptr ?
             std::numeric_limits<int64_t>::max() :
@@ -311,7 +320,7 @@ namespace original
 
     template <typename TYPE>
     auto original::stepIterator<TYPE>::getNext() const -> stepIterator* {
-        return new stepIterator(this->_ptr->getPNext());
+        return new stepIterator(this->_ptr->getPNext(), this->_pos + 1);
     }
 
     template<typename TYPE>

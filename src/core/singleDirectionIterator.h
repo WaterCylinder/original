@@ -27,8 +27,9 @@ namespace original {
         /**
          * @brief Protected constructor for singleDirectionIterator
          * @param ptr Raw pointer to the element being iterated
+         * @param pos Initial position index
          */
-        explicit singleDirectionIterator(wrapper<TYPE>* ptr);
+        explicit singleDirectionIterator(wrapper<TYPE>* ptr, int64_t pos);
 
     public:
         /**
@@ -53,11 +54,12 @@ namespace original {
 }
 
     template<typename TYPE>
-    original::singleDirectionIterator<TYPE>::singleDirectionIterator(wrapper<TYPE>* ptr) : stepIterator<TYPE>(ptr) {}
+    original::singleDirectionIterator<TYPE>::singleDirectionIterator(wrapper<TYPE>* ptr, int64_t pos)
+        : stepIterator<TYPE>(ptr, pos) {}
 
     template<typename TYPE>
     original::singleDirectionIterator<TYPE>::singleDirectionIterator(const singleDirectionIterator &other)
-        : stepIterator<TYPE>(nullptr) {
+        : stepIterator<TYPE>(nullptr, 0) {
         this->operator=(other);
     }
 

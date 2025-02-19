@@ -26,8 +26,9 @@ namespace original {
         /**
          * @brief Protected constructor for doubleDirectionIterator
          * @param ptr Raw pointer to the element being iterated
+         * @param pos Initial position index
          */
-        explicit doubleDirectionIterator(wrapper<TYPE>* ptr);
+        explicit doubleDirectionIterator(wrapper<TYPE>* ptr, int64_t pos);
 
     public:
         /**
@@ -64,12 +65,12 @@ namespace original {
 }
 
     template<typename TYPE>
-    original::doubleDirectionIterator<TYPE>::doubleDirectionIterator(wrapper<TYPE>* ptr)
-        : stepIterator<TYPE>(ptr) {}
+    original::doubleDirectionIterator<TYPE>::doubleDirectionIterator(wrapper<TYPE>* ptr, int64_t pos)
+        : stepIterator<TYPE>(ptr, pos) {}
 
     template<typename TYPE>
     original::doubleDirectionIterator<TYPE>::doubleDirectionIterator(const doubleDirectionIterator &other)
-        : stepIterator<TYPE>(nullptr) {
+        : stepIterator<TYPE>(nullptr, 0) {
         this->operator=(other);
     }
 
@@ -92,6 +93,7 @@ namespace original {
     void original::doubleDirectionIterator<TYPE>::prev() const {
         if (!this->isValid()) throw nullPointerError();
         this->_ptr = this->_ptr->getPPrev();
+        this->_pos -= 1;
     }
 
     template<typename TYPE>
