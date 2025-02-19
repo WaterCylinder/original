@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
+#include <algorithm> // std algorithm
 #include "array.h"
 #include "vector.h"
-#include "algorithms.h"
+#include "algorithms.h" // original algorithm
+#include "comparator.h"
 
 namespace original {
 
@@ -131,6 +133,18 @@ namespace original {
         int idx = 0;
         for (const auto it = arr.begin(); it != arr.end(); it.next()) {
             EXPECT_EQ(it.get(), expected[idx++]);
+        }
+    }
+
+    // 测试 heapSort 方法（堆排序）
+    TEST(AlgorithmsTest, HeapSortTest) {
+        #define lst1 {5, 8, 7, 4, 3, 1, 6, 2, 0, 9}
+        array originalArr1 = lst1;
+        std::array stdArr1 = lst1;
+        algorithms::heapSort(originalArr1.first(), originalArr1.last(), increaseComparator<int>());
+        std::sort(stdArr1.begin(), stdArr1.end());
+        for (uint32_t i = 0; i < originalArr1.size(); i++){
+            EXPECT_EQ(originalArr1[i], stdArr1[i]);
         }
     }
 }
