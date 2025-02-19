@@ -1,6 +1,7 @@
 #ifndef ALGORITHMS_H
 #define ALGORITHMS_H
 
+#include <functional>
 #include "filter.h"
 #include "iterator.h"
 #include "types.h"
@@ -376,6 +377,11 @@ namespace original
         static void heapInit(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                              const Callback& compares);
 
+        template<typename TYPE, typename Callback>
+        requires Compare<Callback, TYPE>
+        static void heapSort(const iterator<TYPE> &begin, const iterator<TYPE> &end,
+                         const Callback& compares);
+
     protected:
         /**
         * @brief Get parent node's priority child in heap structure
@@ -629,6 +635,17 @@ namespace original
             heapInit(*begin, *end, compares);
         }
 
+        /**
+         * @brief Pointer overload version of @ref heapSort()
+         * */
+        template<typename TYPE, typename Callback>
+        requires original::Compare<Callback, TYPE>
+        static auto heapSort(const iterator<TYPE>* begin, const iterator<TYPE>* end,
+                                            const Callback& compares) -> void{
+            heapSort(*begin, *end, compares);
+        }
+
+    protected:
         /**
          * @brief Pointer overload version of @ref heapGetPrior()
          * */
@@ -962,7 +979,7 @@ namespace original
             return;
 
         auto* it = current.clone();
-        while (distance(*it, begin) * 2 + 1 <= distance(range, begin))
+        while ((distance(*it, begin) + 1) * 2 - 1 <= distance(range, begin))
         {
             auto* child = heapGetPrior(begin, range, *it, compares);
             if (compare(it, child, compares))
@@ -986,10 +1003,12 @@ namespace original
         auto* it = current.clone();
         while (distance(*it, begin) > 0)
         {
-            auto* parent = frontOf(begin, (distance(*it, begin) - 1) / 2);
+            auto* parent = frontOf(begin, (distance(*it, begin) + 1) / 2 - 1);
             if (compare(it, parent, compares))
             {
                 swap(it, parent);
+                delete it;
+                it = parent->clone();
             }else
             {
                 delete parent;
@@ -1013,15 +1032,32 @@ namespace original
         delete it;
     }
 
+    template<typename TYPE, typename Callback>
+    requires original::Compare<Callback, TYPE>
+    void original::algorithms::heapSort(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
+                                        const Callback& compares) {
+        if (distance(end, begin) <= 0)
+            return;
+
+        heapInit(begin, end, std::not_fn(compares));
+        auto* right = end.clone();
+        while (distance(*right, begin) > 0){
+            swap(begin, *right);
+            right->prev();
+            heapAdjustDown(begin, *right, begin, std::not_fn(compares));
+        }
+        delete right;
+    }
+
     template <typename TYPE, typename Callback>
     requires original::Compare<Callback, TYPE>
     auto original::algorithms::heapGetPrior(const iterator<TYPE>& begin, const iterator<TYPE>& range,
                                             const iterator<TYPE>& parent, const Callback& compares) -> iterator<TYPE>*
     {
-        if (distance(parent, begin) * 2 + 2 <= distance(range, begin))
+        if ((distance(parent, begin) + 1) * 2 <= distance(range, begin))
         {
-            auto* left = frontOf(begin, distance(parent, begin) * 2 + 1);
-            auto* right = frontOf(begin, distance(parent, begin) * 2 + 2);
+            auto* left = frontOf(begin, (distance(parent, begin) + 1) * 2 - 1);
+            auto* right = frontOf(begin, (distance(parent, begin) + 1) * 2);
             if (compare(left, right, compares))
             {
                 delete right;
@@ -1030,7 +1066,7 @@ namespace original
             delete left;
             return right;
         }
-        return frontOf(begin, distance(parent, begin) * 2 + 1);
+        return frontOf(begin, (distance(parent, begin) + 1) * 2 - 1);
     }
 
 #endif // ALGORITHMS_H
