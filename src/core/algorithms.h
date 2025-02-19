@@ -377,6 +377,19 @@ namespace original
         static void heapInit(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                              const Callback& compares);
 
+        /**
+         * @brief Sorts a range of elements using heap sort
+         * @tparam TYPE Element type
+         * @tparam Callback Comparison callback type
+         * @param begin Start iterator of the range
+         * @param end End iterator of the range
+         * @param compares Comparison callback to define the order
+         * @details This function performs a heap sort on the elements in the range defined by the iterators `begin` and `end`.
+         *          It first constructs a heap by calling `heapInit`, and then iteratively swaps the root of the heap with
+         *          the last element in the range, re-adjusting the heap after each swap.
+         *          The comparison callback `compares` is used to determine the order of elements during the sorting process.
+         *          The sorting is performed in-place.
+         */
         template<typename TYPE, typename Callback>
         requires Compare<Callback, TYPE>
         static void heapSort(const iterator<TYPE> &begin, const iterator<TYPE> &end,
