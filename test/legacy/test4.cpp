@@ -3,6 +3,8 @@
 
 #include "vector.h"
 #include "blocksList.h"
+#include "prique.h"
+#include "chain.h"
 
 int main(){
     auto f1 = original::forwardChain({10, 4, 5, 7, 6, 3, 2});
@@ -28,6 +30,12 @@ int main(){
     for (int i = 0; i < 20; i++){
         bl1.push(bl1.size() / 2, i);
         std::cout << "bl1: " << bl1 << std::endl;
+    }
+    original::prique<int, original::increaseComparator, original::chain> pq = {40, 20, 10, 30, 50, 70, 60, 20, 90, 80, 80, 40};
+    pq.push(10);
+    while (!pq.empty()){
+        std::cout << pq << std::endl;
+        pq.pop();
     }
     return 0;
 }
