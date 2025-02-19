@@ -23,7 +23,7 @@ namespace original
      * @tparam Callback Comparison functor type (default: increaseComparator)
      * @tparam SERIAL Underlying container type (default: blocksList)
      * @brief Heap-based priority queue container
-     * @extends containerAdapter<TYPE, SERIAL>
+     * @extends containerAdapter
      * @details Implements a priority queue using heap algorithms over an underlying
      * container. The element priority is determined by the provided comparator.
      *
