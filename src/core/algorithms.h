@@ -26,7 +26,7 @@ namespace original
      * - Heap operations (heapify, adjust, priority comparison)
      * - Conditional element processing
      */
-    class algorithms
+    class algorithms final
     {
     public:
 
@@ -395,6 +395,22 @@ namespace original
         static void heapSort(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                          const Callback& compares);
 
+        /**
+         * @brief Sorts a range of elements using insertion sort
+         * @tparam TYPE Element type
+         * @tparam Callback Comparison callback type
+         * @param begin Start iterator of the range
+         * @param end End iterator of the range
+         * @param compares Comparison callback to define the order
+         * @details This function performs an insertion sort on the elements in the range defined by the iterators `begin` and `end`.
+         *          It iterates through the elements starting from the second element, inserting each element into its correct position
+         *          relative to the already sorted portion of the range. The comparison callback `compares` is used to determine the
+         *          order of the elements during the sorting process. The sorting is performed in-place.
+         */
+        template<typename TYPE, typename Callback>
+        requires Compare<Callback, TYPE>
+        static void insertionSort(const iterator<TYPE> &begin, const iterator<TYPE> &end,
+                                  const Callback& compares);
     protected:
         /**
         * @brief Get parent node's priority child in heap structure
@@ -413,6 +429,20 @@ namespace original
         static iterator<TYPE>* heapGetPrior(const iterator<TYPE>& begin, const iterator<TYPE>& range,
                                             const iterator<TYPE>& parent, const Callback& compares);
 
+        template<typename TYPE, typename Callback>
+        requires Compare<Callback, TYPE>
+        static iterator<TYPE>* _introSortGetPivot(const iterator<TYPE>& begin, const iterator<TYPE>& end,
+                                                  const Callback& compares);
+
+        template<typename TYPE, typename Callback>
+        requires Compare<Callback, TYPE>
+        static iterator<TYPE>* _introSortPartition(const iterator<TYPE>& begin, const iterator<TYPE>& end,
+                                                   const Callback& compares);
+
+        template<typename TYPE, typename Callback>
+        requires Compare<Callback, TYPE>
+        static void _introSort(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
+                               const Callback& compares, uint32_t depth_limit);
 
     // ---- Implementation of pointer overload version ----
 
@@ -654,8 +684,18 @@ namespace original
         template<typename TYPE, typename Callback>
         requires original::Compare<Callback, TYPE>
         static auto heapSort(const iterator<TYPE>* begin, const iterator<TYPE>* end,
-                                            const Callback& compares) -> void{
+                             const Callback& compares) -> void{
             heapSort(*begin, *end, compares);
+        }
+
+        /**
+         * @brief Pointer overload version of @ref insertionSort()
+         * */
+        template<typename TYPE, typename Callback>
+        requires original::Compare<Callback, TYPE>
+        static auto insertionSort(const iterator<TYPE>* begin, const iterator<TYPE>* end,
+                             const Callback& compares) -> void{
+            insertionSort(*begin, *end, compares);
         }
 
     protected:
@@ -1080,6 +1120,103 @@ namespace original
             return right;
         }
         return frontOf(begin, (distance(parent, begin) + 1) * 2 - 1);
+    }
+
+    template<typename TYPE, typename Callback>
+    requires original::Compare<Callback, TYPE>
+    original::iterator<TYPE>*
+    original::algorithms::_introSortGetPivot(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
+                                             const Callback &compares) {
+        auto* mid = frontOf(begin, distance(end, begin) / 2);
+        if ((!compare(begin, *mid, compares) && !compare(end, begin, compares))
+         || (!compare(*mid, begin, compares) && !compare(begin, end, compares))){
+            delete mid;
+            return begin.clone();
+        }
+        if ((!compare(*mid, begin, compares) && !compare(end, *mid, compares))
+            || (!compare(begin, *mid, compares) && !compare(*mid, end, compares))){
+            return mid;
+        }
+        delete mid;
+        return end.clone();
+    }
+
+    template<typename TYPE, typename Callback>
+    requires original::Compare<Callback, TYPE>
+    original::iterator<TYPE>*
+    original::algorithms::_introSortPartition(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
+                                              const Callback &compares) {
+        auto* pivot = _introSortGetPivot(begin, end, compares);
+        TYPE pivot_v = pivot->getElem();
+        swap(begin, pivot);
+        delete pivot;
+        auto* left = begin.clone();
+        auto* right = end.clone();
+        bool move_right = true;
+        while (distance(right, left) > 0) {
+            if (move_right){
+                if (compare(left, right, compares)){
+                    right->prev();
+                } else{
+                    swap(left, right);
+                    move_right = false;
+                }
+            } else{
+                if (compare(left, right, compares)){
+                    left->next();
+                } else{
+                    swap(left, right);
+                    move_right = true;
+                }
+            }
+        }
+        delete right;
+        left->set(pivot_v);
+        return left;
+    }
+
+    template<typename TYPE, typename Callback>
+    requires original::Compare<Callback, TYPE>
+    void
+    original::algorithms::_introSort(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
+                                     const Callback &compares, const uint32_t depth_limit) {
+        if (distance(end, begin) <= 8) { // todo: size 8 for debug, will set to 16 if passed
+            insertionSort(begin, end, compares);
+            return;
+        }
+
+        if (depth_limit == 0) {
+            heapSort(begin, end, compares);
+            return;
+        }
+
+        auto* pivot = _introSortPartition(begin, end, compares);
+        _introSort(begin, pivot, depth_limit - 1);
+        _introSort(pivot, end, depth_limit - 1);
+        delete pivot;
+    }
+
+    template<typename TYPE, typename Callback>
+    requires original::Compare<Callback, TYPE>
+    void original::algorithms::insertionSort(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
+                                             const Callback &compares) {
+        if (distance(end, begin) <= 0)
+            return;
+
+        auto* left = frontOf(begin, 1);
+        while (distance(end, *left) >= 0) {
+            auto* current = left->clone();
+            auto* prev = backOf(current, 1);
+            while (distance(*current, begin) > 0 && compare(current, prev, compares)){
+                swap(current, prev);
+                current->prev();
+                prev->prev();
+            }
+            delete prev;
+            delete current;
+            left->next();
+        }
+        delete left;
     }
 
 #endif // ALGORITHMS_H
