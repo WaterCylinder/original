@@ -437,8 +437,8 @@ namespace original
         */
         template<typename TYPE, typename Callback>
         requires Compare<Callback, TYPE>
-        static iterator<TYPE>* heapGetPrior(const iterator<TYPE>& begin, const iterator<TYPE>& range,
-                                            const iterator<TYPE>& parent, const Callback& compares);
+        static iterator<TYPE>* _heapGetPrior(const iterator<TYPE>& begin, const iterator<TYPE>& range,
+                                             const iterator<TYPE>& parent, const Callback& compares);
 
         template<typename TYPE, typename Callback>
         requires Compare<Callback, TYPE>
@@ -711,13 +711,13 @@ namespace original
 
     protected:
         /**
-         * @brief Pointer overload version of @ref heapGetPrior()
+         * @brief Pointer overload version of @ref _heapGetPrior()
          * */
         template<typename TYPE, typename Callback>
         requires original::Compare<Callback, TYPE>
-        static auto heapGetPrior(const iterator<TYPE>* begin, const iterator<TYPE>* range,
-                                                const iterator<TYPE>* parent, const Callback& compares) -> iterator<TYPE>* {
-            return heapGetPrior(*begin, *range, *parent, compares);
+        static auto _heapGetPrior(const iterator<TYPE>* begin, const iterator<TYPE>* range,
+                                  const iterator<TYPE>* parent, const Callback& compares) -> iterator<TYPE>* {
+            return _heapGetPrior(*begin, *range, *parent, compares);
         }
     };
 }
@@ -1045,7 +1045,7 @@ namespace original
         auto* it = current.clone();
         while ((distance(*it, begin) + 1) * 2 - 1 <= distance(range, begin))
         {
-            auto* child = heapGetPrior(begin, range, *it, compares);
+            auto* child = _heapGetPrior(begin, range, *it, compares);
             if (compare(it, child, compares))
             {
                 delete child;
@@ -1134,8 +1134,8 @@ namespace original
 
     template <typename TYPE, typename Callback>
     requires original::Compare<Callback, TYPE>
-    auto original::algorithms::heapGetPrior(const iterator<TYPE>& begin, const iterator<TYPE>& range,
-                                            const iterator<TYPE>& parent, const Callback& compares) -> iterator<TYPE>*
+    auto original::algorithms::_heapGetPrior(const iterator<TYPE>& begin, const iterator<TYPE>& range,
+                                             const iterator<TYPE>& parent, const Callback& compares) -> iterator<TYPE>*
     {
         if ((distance(parent, begin) + 1) * 2 <= distance(range, begin))
         {
