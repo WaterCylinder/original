@@ -184,6 +184,24 @@ namespace original {
         }
     }
 
+    TEST(AlgorithmsTest, StableSortTest){
+        #define lst5 {5, 8, 7, 2, 8, 10, 4, 3, 1, 4, 6, 2, 7, 0, 9, 11, 14, 4, 15, 12, 13, 0, 19, 18, 16, 17, 20, 8, 12}
+        array originalArr1 = lst5;
+        std::array stdArr1 = lst5;
+        algorithms::stableSort(originalArr1.first(), originalArr1.last(), increaseComparator<int>());
+        std::stable_sort(stdArr1.begin(), stdArr1.end());
+        for (uint32_t i = 0; i < originalArr1.size(); i++){
+            EXPECT_EQ(originalArr1[i], stdArr1[i]);
+        }
+        array originalArr2 = lst5;
+        std::array stdArr2 = lst5;
+        algorithms::stableSort(originalArr2.first(), originalArr2.last(), decreaseComparator<int>());
+        std::stable_sort(stdArr2.begin(), stdArr2.end(), std::greater());
+        for (uint32_t i = 0; i < originalArr2.size(); i++){
+            EXPECT_EQ(originalArr2[i], stdArr2[i]);
+        }
+    }
+
     TEST(AlgorithmsTest, SortTest){
         #define lst4 {5, 8, 7, 2, 8, 10, -8, 4, 3, 1, 21, 17, 19, 35, 4, 25, 6, 2, 0, -2, 31, 9, 11, 14, 15, 12, 13, 19, 18, 16, 17, 20}
         array originalArr1 = lst4;
