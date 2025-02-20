@@ -165,4 +165,55 @@ namespace original {
             EXPECT_EQ(originalArr2[i], stdArr2[i]);
         }
     }
+
+    TEST(AlgorithmsTest, IntroSortTest){
+        #define lst3 {5, 8, 7, 2, 8, 10, 4, 3, 1, 4, 6, 2, 0, 9, 11, 14, 15, 12, 13, 19, 18, 16, 17, 20}
+        array originalArr1 = lst3;
+        std::array stdArr1 = lst3;
+        algorithms::introSort(originalArr1.first(), originalArr1.last(), increaseComparator<int>());
+        std::sort(stdArr1.begin(), stdArr1.end());
+        for (uint32_t i = 0; i < originalArr1.size(); i++){
+            EXPECT_EQ(originalArr1[i], stdArr1[i]);
+        }
+        array originalArr2 = lst3;
+        std::array stdArr2 = lst3;
+        algorithms::introSort(originalArr2.first(), originalArr2.last(), decreaseComparator<int>());
+        std::sort(stdArr2.begin(), stdArr2.end(), std::greater());
+        for (uint32_t i = 0; i < originalArr2.size(); i++){
+            EXPECT_EQ(originalArr2[i], stdArr2[i]);
+        }
+    }
+
+    TEST(AlgorithmsTest, SortTest){
+        #define lst4 {5, 8, 7, 2, 8, 10, -8, 4, 3, 1, 21, 17, 19, 35, 4, 25, 6, 2, 0, -2, 31, 9, 11, 14, 15, 12, 13, 19, 18, 16, 17, 20}
+        array originalArr1 = lst4;
+        std::array stdArr1 = lst4;
+        algorithms::sort(originalArr1.first(), originalArr1.last(), increaseComparator<int>());
+        std::sort(stdArr1.begin(), stdArr1.end());
+        for (uint32_t i = 0; i < originalArr1.size(); i++){
+            EXPECT_EQ(originalArr1[i], stdArr1[i]);
+        }
+        array originalArr2 = lst4;
+        std::array stdArr2 = lst4;
+        algorithms::sort(originalArr2.first(), originalArr2.last(), decreaseComparator<int>());
+        std::sort(stdArr2.begin(), stdArr2.end(), std::greater());
+        for (uint32_t i = 0; i < originalArr2.size(); i++){
+            EXPECT_EQ(originalArr2[i], stdArr2[i]);
+        }
+
+        array originalArr3 = lst4;
+        std::array stdArr3 = lst4;
+        algorithms::sort(originalArr3.first(), originalArr3.last(), increaseComparator<int>(), true);
+        std::stable_sort(stdArr3.begin(), stdArr3.end());
+        for (uint32_t i = 0; i < originalArr3.size(); i++){
+            EXPECT_EQ(originalArr3[i], stdArr3[i]);
+        }
+        array originalArr4 = lst4;
+        std::array stdArr4 = lst4;
+        algorithms::sort(originalArr4.first(), originalArr4.last(), decreaseComparator<int>(), true);
+        std::stable_sort(stdArr4.begin(), stdArr4.end(), std::greater());
+        for (uint32_t i = 0; i < originalArr4.size(); i++){
+            EXPECT_EQ(originalArr4[i], stdArr4[i]);
+        }
+    }
 }
