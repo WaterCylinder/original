@@ -387,15 +387,15 @@ namespace original
         * @param end End iterator of the range
         * @param compares Comparison callback to define the order
         * @param isStable Flag indicating whether to use stable sorting (default: false)
-        * @details This function sorts the elements in the range [begin, end) based on the specified comparison callback.
-        * When isStable is set to true, it delegates to insertion sort which preserves the relative order of equivalent elements,
-        * suitable for scenarios requiring stability. When false (default), it uses introspective sort (hybrid of quicksort/heapsort)
+        * @details This function sorts the elements in the range [begin, end] based on the specified comparison callback.
+        * When isStable is set to true, it delegates to stable sort (hybrid of mergesort/insertionSort, see @ref stableSort())
+        * which preserves the relative order of equivalent elements,
+        * suitable for scenarios requiring stability. When false (default), it uses introspective sort
+        * (hybrid of quicksort/heapSort/insertionSort, see @ref introSort())
         * which provides O(n log n) worst-case performance but does not preserve element order equality.
         * The choice depends on use-case requirements:
         * Introspective sort (default) is optimal for general-purpose sorting with large datasets
-        * Insertion sort is explicitly chosen for small ranges or when stability is required
-        * @note The comparison callback must implement strict weak ordering. For stable sorting with large datasets,
-        * consider implementing a dedicated stable algorithm like merge sort.
+        * Stable sort is explicitly chosen for when stability is required
         */
         template<typename TYPE, typename Callback>
         requires Compare<Callback, TYPE>
@@ -409,7 +409,7 @@ namespace original
          * @param begin Start iterator of the range
          * @param end End iterator of the range
          * @param compares Comparison callback to define the order
-         * @details This method sorts the elements in the range [begin, end) into ascending order
+         * @details This method sorts the elements in the range [begin, end] into ascending order
          * using an introspective sort (a hybrid of quicksort, heapsort, and insertion sort).
          * The order is determined by the provided comparison function.
          *
@@ -424,6 +424,19 @@ namespace original
         static void introSort(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                const Callback& compares);
 
+        /**
+         * @brief Performs stable hybrid sort on element range
+         * @tparam TYPE Element type
+         * @tparam Callback Comparison callback type
+         * @param begin Start iterator of the range
+         * @param end End iterator of the range
+         * @param compares Comparison callback for ordering
+         * @details Implements a stable sort algorithm (a hybrid of merge sort and insertion sort) with O(n log n) time complexity.
+         * - Preserves original order of equivalent elements
+         * - Uses insertion sort for small ranges (<=16 elements)
+         * - Recursively splits and merges sub-ranges
+         * @note Preferred for scenarios requiring stable ordering guarantees
+         */
         template<typename TYPE, typename Callback>
         requires Compare<Callback, TYPE>
         static void stableSort(const iterator<TYPE>& begin, const iterator<TYPE>& end,
@@ -529,11 +542,39 @@ namespace original
         static void _introSort(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
                                const Callback& compares, uint32_t depth_limit);
 
+        /**
+         * @brief Merges two sorted sub-ranges during merge sort
+         * @tparam TYPE Element type
+         * @tparam Callback Comparison callback type
+         * @param begin Start of first sub-range
+         * @param mid Start of second sub-range (end of first)
+         * @param end End of second sub-range
+         * @param compares Comparison callback
+         * @details Key merge step of merge sort algorithm:
+         * 1. Creates temporary storage for merged elements
+         * 2. Sequentially compares elements from both sub-ranges
+         * 3. Copies sorted elements back to original container
+         * @note Requires both input sub-ranges to be pre-sorted
+         */
         template<typename TYPE, typename Callback>
         requires Compare<Callback, TYPE>
         static void _stableSortMerge(const iterator<TYPE>& begin, const iterator<TYPE>& mid,
                                      const iterator<TYPE>& end, const Callback& compares);
 
+        /**
+         * @brief Recursive implementation of stable sort
+         * @tparam TYPE Element type
+         * @tparam Callback Comparison callback type
+         * @param begin Current sub-range start
+         * @param end Current sub-range end
+         * @param compares Comparison callback
+         * @details Internal recursive method handling:
+         * - Base case handling for small ranges
+         * - Sub-range division
+         * - Recursive sorting of divided ranges
+         * - Merge operation invocation
+         * @note Not intended for direct external use
+         */
         template<typename TYPE, typename Callback>
         requires Compare<Callback, TYPE>
         static void _stableSort(const iterator<TYPE>& begin, const iterator<TYPE>& end,
