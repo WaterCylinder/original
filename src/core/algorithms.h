@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <cmath>
+#include "vector.h"
 #include "filter.h"
 #include "iterator.h"
 #include "types.h"
@@ -423,6 +424,11 @@ namespace original
         static void introSort(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                const Callback& compares);
 
+        template<typename TYPE, typename Callback>
+        requires Compare<Callback, TYPE>
+        static void stableSort(const iterator<TYPE>& begin, const iterator<TYPE>& end,
+                                const Callback& compares);
+
         /**
          * @brief Sorts a range of elements using heap sort
          * @tparam TYPE Element type
@@ -522,6 +528,16 @@ namespace original
         requires Compare<Callback, TYPE>
         static void _introSort(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
                                const Callback& compares, uint32_t depth_limit);
+
+        template<typename TYPE, typename Callback>
+        requires Compare<Callback, TYPE>
+        static void _stableSortMerge(const iterator<TYPE>& begin, const iterator<TYPE>& mid,
+                                     const iterator<TYPE>& end, const Callback& compares);
+
+        template<typename TYPE, typename Callback>
+        requires Compare<Callback, TYPE>
+        static void _stableSort(const iterator<TYPE>& begin, const iterator<TYPE>& end,
+                                const Callback& compares);
 
     // ---- Implementation of pointer overload version ----
 
@@ -1168,7 +1184,7 @@ namespace original
     requires original::Compare<Callback, TYPE>
     void original::algorithms::sort(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
                                     const Callback &compares, const bool isStable) {
-        isStable ? insertionSort(begin, end, compares) : introSort(begin, end, compares);
+        isStable ? stableSort(begin, end, compares) : introSort(begin, end, compares);
     }
 
     template<typename TYPE, typename Callback>
@@ -1181,6 +1197,13 @@ namespace original
 
         uint32_t depth_limit = 2 * std::log2(distance(end, begin));
         _introSort(begin, end, compares, depth_limit);
+    }
+
+    template<typename TYPE, typename Callback>
+    requires original::Compare<Callback, TYPE>
+    void original::algorithms::stableSort(const iterator<TYPE> &begin, const iterator<TYPE> &end,
+                                          const Callback &compares) {
+        _stableSort(begin, end, compares);
     }
 
     template<typename TYPE, typename Callback>
@@ -1290,7 +1313,7 @@ namespace original
 
         auto* pivot = _introSortPartition(begin, end, compares);
         _introSort(begin, *pivot, compares, depth_limit - 1);
-        _introSort(*pivot, end, compares,depth_limit - 1);
+        _introSort(*pivot, end, compares, depth_limit - 1);
         delete pivot;
     }
 
@@ -1315,6 +1338,60 @@ namespace original
             left->next();
         }
         delete left;
+    }
+
+    template<typename TYPE, typename Callback>
+    requires original::Compare<Callback, TYPE>
+    void original::algorithms::_stableSortMerge(const iterator<TYPE> &begin, const iterator<TYPE> &mid,
+                                                const iterator<TYPE> &end, const Callback &compares) {
+        vector<TYPE> tmp;
+        auto* left = begin.clone();
+        auto* right = mid.clone();
+
+        while (distance(mid, *left) > 0 && distance(end, *right) > 0){
+            if (compare(left, right, compares)){
+                tmp.pushEnd(left->get());
+                left->next();
+            } else{
+                tmp.pushEnd(right->get());
+                right->next();
+            }
+        }
+
+        while (distance(mid, *left) > 0){
+            tmp.pushEnd(left->get());
+            left->next();
+        }
+
+        while (distance(end, *right) > 0){
+            tmp.pushEnd(right->get());
+            right->next();
+        }
+
+        copy(tmp.first(), tmp.last(), begin);
+        delete right;
+        delete left;
+    }
+
+    template<typename TYPE, typename Callback>
+    requires original::Compare<Callback, TYPE>
+    void original::algorithms::_stableSort(const iterator<TYPE> &begin, const iterator<TYPE> &end,
+                                           const Callback &compares) {
+        int64_t dis = distance(end, begin);
+
+        if (dis <= 1)
+            return;
+
+        if (dis <= 16){
+            insertionSort(begin, end, compares);
+            return;
+        }
+
+        auto* mid = frontOf(begin, dis / 2);
+        _stableSort(begin, *mid, compares);
+        _stableSort(*mid, end, compares);
+        _stableSortMerge(begin, *mid, end, compares);
+        delete mid;
     }
 
 #endif // ALGORITHMS_H
