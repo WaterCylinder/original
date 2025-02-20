@@ -378,11 +378,46 @@ namespace original
         static void heapInit(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                              const Callback& compares);
 
+        /**
+        * @brief Sorts a range of elements using either stable or unstable sorting algorithm
+        * @tparam TYPE Element type
+        * @tparam Callback Comparison callback type
+        * @param begin Start iterator of the range
+        * @param end End iterator of the range
+        * @param compares Comparison callback to define the order
+        * @param isStable Flag indicating whether to use stable sorting (default: false)
+        * @details This function sorts the elements in the range [begin, end) based on the specified comparison callback.
+        * When isStable is set to true, it delegates to insertion sort which preserves the relative order of equivalent elements,
+        * suitable for scenarios requiring stability. When false (default), it uses introspective sort (hybrid of quicksort/heapsort)
+        * which provides O(n log n) worst-case performance but does not preserve element order equality.
+        * The choice depends on use-case requirements:
+        * Introspective sort (default) is optimal for general-purpose sorting with large datasets
+        * Insertion sort is explicitly chosen for small ranges or when stability is required
+        * @note The comparison callback must implement strict weak ordering. For stable sorting with large datasets,
+        * consider implementing a dedicated stable algorithm like merge sort.
+        */
         template<typename TYPE, typename Callback>
         requires Compare<Callback, TYPE>
         static void sort(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                               const Callback& compares, bool isStable = false);
 
+        /**
+         * @brief Sorts a range of elements using introspective sort
+         * @tparam TYPE Element type
+         * @tparam Callback Comparison callback type
+         * @param begin Start iterator of the range
+         * @param end End iterator of the range
+         * @param compares Comparison callback to define the order
+         * @details This method sorts the elements in the range [begin, end) into ascending order
+         * using an introspective sort (a hybrid of quicksort, heapsort, and insertion sort).
+         * The order is determined by the provided comparison function.
+         *
+         * The algorithm switches to heapsort if the recursion depth exceeds 2*log2(n),
+         * ensuring O(n log n) worst-case time complexity. For small partitions (<=16 elements),
+         * it uses insertion sort for better cache performance.
+         *
+         * @note The comparison function must provide strict
+         */
         template<typename TYPE, typename Callback>
         requires Compare<Callback, TYPE>
         static void introSort(const iterator<TYPE> &begin, const iterator<TYPE> &end,
@@ -440,16 +475,49 @@ namespace original
         static iterator<TYPE>* _heapGetPrior(const iterator<TYPE>& begin, const iterator<TYPE>& range,
                                              const iterator<TYPE>& parent, const Callback& compares);
 
+        /**
+         * @brief Selects pivot element for partitioning
+         * @tparam TYPE Element type
+         * @tparam Callback Comparison callback type
+         * @param begin Start iterator of the partition
+         * @param end End iterator of the partition
+         * @param compares Comparison callback
+         * @return iterator<TYPE>* Median-of-three pivot element
+         * @private
+         * @note Internal helper for introspective sort
+         */
         template<typename TYPE, typename Callback>
         requires Compare<Callback, TYPE>
         static iterator<TYPE>* _introSortGetPivot(const iterator<TYPE>& begin, const iterator<TYPE>& end,
                                                   const Callback& compares);
 
+        /**
+         * @brief Partitions elements around selected pivot
+         * @tparam TYPE Element type
+         * @tparam Callback Comparison callback type
+         * @param begin Start iterator of the partition
+         * @param end End iterator of the partition
+         * @param compares Comparison callback
+         * @return iterator<TYPE>* Final pivot position
+         * @private
+         * @note Internal helper for introspective sort
+         */
         template<typename TYPE, typename Callback>
         requires Compare<Callback, TYPE>
         static iterator<TYPE>* _introSortPartition(const iterator<TYPE>& begin, const iterator<TYPE>& end,
                                                    const Callback& compares);
 
+        /**
+         * @brief Hybrid sorting algorithm implementation
+         * @tparam TYPE Element type
+         * @tparam Callback Comparison callback type
+         * @param begin Start iterator of the range
+         * @param end End iterator of the range
+         * @param compares Comparison callback
+         * @param depth_limit Current recursion depth limit
+         * @private
+         * @note Internal implementation detail for introSort
+         */
         template<typename TYPE, typename Callback>
         requires Compare<Callback, TYPE>
         static void _introSort(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
