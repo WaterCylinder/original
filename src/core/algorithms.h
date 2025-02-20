@@ -2,6 +2,7 @@
 #define ALGORITHMS_H
 
 #include <functional>
+#include <cmath>
 #include "filter.h"
 #include "iterator.h"
 #include "types.h"
@@ -376,6 +377,16 @@ namespace original
         requires Compare<Callback, TYPE>
         static void heapInit(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                              const Callback& compares);
+
+        template<typename TYPE, typename Callback>
+        requires Compare<Callback, TYPE>
+        static void sort(const iterator<TYPE> &begin, const iterator<TYPE> &end,
+                              const Callback& compares, bool isStable = false);
+
+        template<typename TYPE, typename Callback>
+        requires Compare<Callback, TYPE>
+        static void introSort(const iterator<TYPE> &begin, const iterator<TYPE> &end,
+                               const Callback& compares);
 
         /**
          * @brief Sorts a range of elements using heap sort
@@ -1087,6 +1098,25 @@ namespace original
 
     template<typename TYPE, typename Callback>
     requires original::Compare<Callback, TYPE>
+    void original::algorithms::sort(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
+                                    const Callback &compares, const bool isStable) {
+        isStable ? insertionSort(begin, end, compares) : introSort(begin, end, compares);
+    }
+
+    template<typename TYPE, typename Callback>
+    requires original::Compare<Callback, TYPE>
+    void original::algorithms::introSort(const iterator<TYPE> &begin, const iterator<TYPE> &end,
+                                         const Callback &compares) {
+        int64_t dis = distance(end, begin);
+        if (dis <= 0)
+            return;
+
+        uint32_t depth_limit = 2 * std::log2(distance(end, begin));
+        _introSort(begin, end, compares, depth_limit);
+    }
+
+    template<typename TYPE, typename Callback>
+    requires original::Compare<Callback, TYPE>
     void original::algorithms::heapSort(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
                                         const Callback& compares) {
         if (distance(end, begin) <= 0)
@@ -1146,23 +1176,23 @@ namespace original
     original::iterator<TYPE>*
     original::algorithms::_introSortPartition(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
                                               const Callback &compares) {
-        auto* pivot = _introSortGetPivot(begin, end, compares);
-        TYPE pivot_v = pivot->getElem();
-        swap(begin, pivot);
-        delete pivot;
         auto* left = begin.clone();
         auto* right = end.clone();
+        auto* pivot = _introSortGetPivot(begin, end, compares);
+        TYPE tmp = left->getElem();
+        left->set(pivot->getElem());
+        delete pivot;
         bool move_right = true;
         while (distance(right, left) > 0) {
             if (move_right){
-                if (compare(left, right, compares)){
+                if (compare(right, left, std::not_fn(compares))){
                     right->prev();
                 } else{
                     swap(left, right);
                     move_right = false;
                 }
             } else{
-                if (compare(left, right, compares)){
+                if (compare(right, left, std::not_fn(compares))){
                     left->next();
                 } else{
                     swap(left, right);
@@ -1171,7 +1201,7 @@ namespace original
             }
         }
         delete right;
-        left->set(pivot_v);
+        left->set(tmp);
         return left;
     }
 
@@ -1179,8 +1209,8 @@ namespace original
     requires original::Compare<Callback, TYPE>
     void
     original::algorithms::_introSort(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
-                                     const Callback &compares, const uint32_t depth_limit) {
-        if (distance(end, begin) <= 8) { // todo: size 8 for debug, will set to 16 if passed
+                                     const Callback &compares, uint32_t depth_limit) {
+        if (distance(end, begin) <= 16) {
             insertionSort(begin, end, compares);
             return;
         }
@@ -1191,8 +1221,8 @@ namespace original
         }
 
         auto* pivot = _introSortPartition(begin, end, compares);
-        _introSort(begin, pivot, depth_limit - 1);
-        _introSort(pivot, end, depth_limit - 1);
+        _introSort(begin, *pivot, compares, depth_limit - 1);
+        _introSort(*pivot, end, compares,depth_limit - 1);
         delete pivot;
     }
 
