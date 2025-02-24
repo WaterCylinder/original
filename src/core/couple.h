@@ -167,8 +167,8 @@ namespace original
     auto original::couple<F_TYPE, S_TYPE>::toString(const bool enter) const -> std::string
     {
         std::stringstream ss;
-        ss << this->className() << "(" << "first: " << formatString(this->first_)
-           << ", " << "second: " << formatString(this->second_) << ")";
+        ss << this->className() << "(" << formatString(this->first_)
+           << ", " << formatString(this->second_) << ")";
         if (enter) ss << "\n";
         return ss.str();
     }
