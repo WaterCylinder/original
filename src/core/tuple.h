@@ -15,11 +15,11 @@ namespace original{
         class tupleImpl<I> : public printable, public comparable<tupleImpl<I>>{
             explicit tupleImpl() = default;
 
-            tupleImpl(const tupleImpl& other) = default;
+            tupleImpl(const tupleImpl<I>& other) = default;
 
         public:
             friend class tuple;
-            int64_t compareTo(const tupleImpl& other) const override;
+            int64_t compareTo(const tupleImpl<I>& other) const override;
 
             std::string toString(bool enter) const override;
         };
@@ -34,7 +34,7 @@ namespace original{
             tupleImpl(const tupleImpl& other);
         public:
             friend class tuple;
-            int64_t compareTo(const tupleImpl& other) const override;
+            int64_t compareTo(const tupleImpl<I, T>& other) const override;
 
             std::string toString(bool enter) const override;
         };
@@ -49,7 +49,7 @@ namespace original{
             tupleImpl(const tupleImpl& other);
         public:
             friend class tuple;
-            int64_t compareTo(const tupleImpl<I, T, TS...> &other) const override;
+            int64_t compareTo(const tupleImpl<I, T, TS...>& other) const override;
 
             std::string toString(bool enter) const override;
         };
@@ -80,7 +80,7 @@ namespace original{
 
 template<typename... TYPES>
 template<uint32_t I>
-int64_t original::tuple<TYPES...>::tupleImpl<I>::compareTo(const tupleImpl&) const {
+int64_t original::tuple<TYPES...>::tupleImpl<I>::compareTo(const tupleImpl<I>&) const {
     return 0;
 }
 
@@ -97,12 +97,12 @@ original::tuple<TYPES...>::tupleImpl<I, T>::tupleImpl(T cur)
 
 template<typename... TYPES>
 template<uint32_t I, typename T>
-original::tuple<TYPES...>::tupleImpl<I, T>::tupleImpl(const tupleImpl& other)
+original::tuple<TYPES...>::tupleImpl<I, T>::tupleImpl(const tupleImpl<I, T>& other)
     : cur_elem(other.cur_elem), next() {}
 
 template<typename... TYPES>
 template<uint32_t I, typename T>
-int64_t original::tuple<TYPES...>::tupleImpl<I, T>::compareTo(const tupleImpl& other) const {
+int64_t original::tuple<TYPES...>::tupleImpl<I, T>::compareTo(const tupleImpl<I, T>& other) const {
     if (cur_elem != other.cur_elem)
         return cur_elem < other.cur_elem ? -1 : 1;
     return next.compareTo(other.next);
@@ -124,13 +124,13 @@ original::tuple<TYPES...>::tupleImpl<I, T, TS...>::tupleImpl(T cur, TS... next_e
 
 template<typename... TYPES>
 template<uint32_t I, typename T, typename... TS>
-original::tuple<TYPES...>::tupleImpl<I, T, TS...>::tupleImpl(const tupleImpl& other)
+original::tuple<TYPES...>::tupleImpl<I, T, TS...>::tupleImpl(const tupleImpl<I, T, TS...>& other)
     : cur_elem(other.cur_elem), next(other.next) {}
 
 template<typename... TYPES>
 template<uint32_t I, typename T, typename... TS>
 int64_t
-original::tuple<TYPES...>::tupleImpl<I, T, TS...>::compareTo(const tupleImpl& other) const {
+original::tuple<TYPES...>::tupleImpl<I, T, TS...>::compareTo(const tupleImpl<I, T, TS...>& other) const {
     if (cur_elem != other.cur_elem)
         return cur_elem < other.cur_elem ? -1 : 1;
     return next.compareTo(other.next);
