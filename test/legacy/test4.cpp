@@ -5,6 +5,7 @@
 #include "blocksList.h"
 #include "prique.h"
 #include "chain.h"
+#include "tuple.h"
 
 int main(){
     auto f1 = original::forwardChain({10, 4, 5, 7, 6, 3, 2});
@@ -37,5 +38,23 @@ int main(){
         std::cout << pq << std::endl;
         pq.pop();
     }
+    original::couple<const int, const int> couple = {1, 1};
+    std::cout << couple << std::endl;
+    #define test4_lst1 {1, 5, 8, 10, 25, 70, 64, 3, 9, 2, 11, 14, 26, 39, 42, 50}
+    original::prique pq2 = test4_lst1;
+    original::array arr = test4_lst1;
+    original::algorithms::sort(arr.first(), arr.last(), original::increaseComparator<int>());
+    int i = 0;
+    while (!pq2.empty()){
+        if (pq2.pop() != arr[i])
+            std::cout << "Not equal at index " << i << std::endl;
+        i += 1;
+    }
+    auto t1 = original::tuple{1, 1, 1};
+    auto t2 = original::tuple{1, 1, 2};
+    std::cout << original::printable::formatString(t1 < t2) << std::endl;
+    std::cout << t1 << std::endl;
+    auto t3 = original::tuple{original::array({1, 2}), original::vector({3, 4}), original::chain({5, 6})};
+    std::cout << t3 << std::endl;
     return 0;
 }
