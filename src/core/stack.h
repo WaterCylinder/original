@@ -71,13 +71,6 @@ namespace original {
         stack& operator=(stack&& other) noexcept;
 
         /**
-         * @brief Equality comparison operator
-         * @param other Stack to compare with
-         * @return True if both stacks have equal elements, false otherwise
-         */
-        bool operator==(const stack& other) const;
-
-        /**
          * @brief Pushes element to the top of the stack
          * @param e Element to be pushed
          */
@@ -139,11 +132,6 @@ template<typename TYPE, template <typename> typename SERIAL>
         this->serial_ = std::move(other.serial_);
         other.serial_ = SERIAL<TYPE>{};
         return *this;
-    }
-
-    template<typename TYPE, template <typename> typename SERIAL>
-    auto original::stack<TYPE, SERIAL>::operator==(const stack& other) const -> bool {
-        return this->serial_ == other.serial_;
     }
 
     template<typename TYPE, template <typename> typename SERIAL>

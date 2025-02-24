@@ -52,13 +52,6 @@ namespace original {
         deque& operator=(const deque& other);
 
         /**
-         * @brief Equality comparison operator
-         * @param other Deque to compare with
-         * @return True if both deques have equal elements in same order
-         */
-        bool operator==(const deque& other) const;
-
-        /**
          * @brief Move constructor
          * @param other Deque instance to move from
          * @note noexcept guarantees exception safety during move
@@ -139,11 +132,6 @@ namespace original {
         if (this == &other) return *this;
         this->serial_ = other.serial_;
         return *this;
-    }
-
-    template<typename TYPE, template <typename> typename SERIAL>
-    auto original::deque<TYPE, SERIAL>::operator==(const deque &other) const -> bool {
-        return this->serial_ == other.serial_;
     }
 
     template <typename TYPE, template <typename> class SERIAL>

@@ -75,13 +75,6 @@ namespace original
         prique& operator=(const prique& other);
 
         /**
-         * @brief Equality comparison operator
-         * @param other Queue to compare with
-         * @return True if both queues have identical elements and ordering
-         */
-        bool operator==(const prique& other) const;
-
-        /**
          * @brief Move constructor
          * @param other Queue to move from
          * @note noexcept guarantees exception safety during move
@@ -153,13 +146,6 @@ template <typename TYPE, template <typename> class Callback, template <typename>
         this->serial_ = other.serial_;
         compare_ = other.compare_;
         return *this;
-    }
-
-    template <typename TYPE, template <typename> class Callback, template <typename> typename SERIAL>
-    requires original::Compare<Callback<TYPE>, TYPE>
-    auto original::prique<TYPE, Callback, SERIAL>::operator==(const prique& other) const -> bool
-    {
-        return this->serial_ == other.serial_;
     }
 
     template <typename TYPE, template <typename> class Callback, template <typename> typename SERIAL>

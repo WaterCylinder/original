@@ -68,13 +68,6 @@ namespace original {
         queue& operator=(queue&& other) noexcept;
 
         /**
-         * @brief Equality comparison operator
-         * @param other Queue to compare with
-         * @return True if both queues have equal elements in same order
-         */
-        bool operator==(const queue& other) const;
-
-        /**
          * @brief Inserts element at the back of the queue
          * @param e Element to be inserted
          */
@@ -126,11 +119,6 @@ namespace original {
         if (this == &other) return *this;
         this->serial_ = other.serial_;
         return *this;
-    }
-
-    template<typename TYPE, template <typename> typename SERIAL>
-    auto original::queue<TYPE, SERIAL>::operator==(const queue& other) const -> bool {
-        return this->serial_ == other.serial_;
     }
 
     template <typename TYPE, template <typename> class SERIAL>
