@@ -145,12 +145,15 @@ int main(){
     std::cout << "b12.end() - b12.begin() = " << original::algorithms::distance(b12.end(), b12.begin()) << std::endl;
     auto p1 = original::prique({10, 4, 5, 7, 6, 3, 2});
     auto p2 = original::prique(p1);
+    std::cout << "p1 == p2: " << original::printable::formatString(p1 == p2) << std::endl;
+    std::cout << "p1 < p2: " << original::printable::formatString(p1 < p2) << std::endl;
     std::cout << "p1: " << p1 << std::endl;
     while (!p1.empty())
     {
         std::cout << p1.pop() << std::endl;
         std::cout << "p1: " << p1 << std::endl;
     }
+    std::cout << "p1 < p2: " << original::printable::formatString(p1 < p2) << std::endl;
     for (const auto v2 = original::vector({11, 8, 13, 16, 15}); const auto e : v2)
     {
         std::cout << "p2: " << p2 << std::endl;
