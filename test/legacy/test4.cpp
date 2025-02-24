@@ -56,5 +56,7 @@ int main(){
     std::cout << t1 << std::endl;
     auto t3 = original::tuple{original::array({1, 2}), original::vector({3, 4}), original::chain({5, 6})};
     std::cout << t3 << std::endl;
+    auto t4 = original::tuple{original::array({1, 2, 3}), original::couple{1, 0.5}, original::blocksList{true, false}, original::vector{3, 2, 9, 5, 8, 6, 1}};
+    std::cout << t4 << std::endl;
     return 0;
 }
