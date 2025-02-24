@@ -1,6 +1,7 @@
 #ifndef COMPARABLE_H
 #define COMPARABLE_H
 #include <cstdint>
+#include <compare>
 
 
 namespace original {
@@ -79,6 +80,13 @@ public:
     bool operator>=(const DERIVED &other) const;
 
     /**
+     * @brief Three-way comparison operator (<=>), returns an ordered comparison result.
+     * @param other The object to compare against.
+     * @return A comparison category result, which is less, equal, or greater.
+     */
+    std::strong_ordering operator<=>(const DERIVED &other) const;
+
+    /**
      * @brief Virtual destructor for proper cleanup of derived objects.
      */
     virtual ~comparable() = default;
@@ -114,6 +122,17 @@ auto comparable<DERIVED>::operator<=(const DERIVED &other) const -> bool {
 template<typename DERIVED>
 auto comparable<DERIVED>::operator>=(const DERIVED &other) const -> bool {
     return compareTo(other) >= 0;
+}
+
+template<typename DERIVED>
+std::strong_ordering comparable<DERIVED>::operator<=>(const DERIVED &other) const {
+    if (auto cmp = compareTo(other); cmp < 0) {
+        return std::strong_ordering::less;
+    } else if (cmp > 0) {
+        return std::strong_ordering::greater;
+    } else {
+        return std::strong_ordering::equal;
+    }
 }
 
 } // namespace original
