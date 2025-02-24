@@ -38,6 +38,14 @@ public:
     virtual int64_t compareTo(const DERIVED &other) const = 0;
 
     /**
+     * @brief Three-way comparison operator (<=>), returns an ordered comparison result.
+     * @param other The object to compare against.
+     * @return A comparison category result, which is less, equal, or greater.
+     */
+    template<typename EXTENDED>
+    friend std::strong_ordering operator<=>(const comparable<EXTENDED>& lc, const comparable<EXTENDED>& rc);
+
+    /**
      * @brief Checks if the current object is equal to another.
      * @param other The object to compare against.
      * @return True if equal, otherwise false.
@@ -80,19 +88,17 @@ public:
     bool operator>=(const DERIVED &other) const;
 
     /**
-     * @brief Three-way comparison operator (<=>), returns an ordered comparison result.
-     * @param other The object to compare against.
-     * @return A comparison category result, which is less, equal, or greater.
-     */
-    std::strong_ordering operator<=>(const DERIVED &other) const;
-
-    /**
      * @brief Virtual destructor for proper cleanup of derived objects.
      */
     virtual ~comparable() = default;
 };
 
 // ----------------- Definitions of comparable.h -----------------
+
+template<typename EXTENDED>
+std::strong_ordering operator<=>(const comparable<EXTENDED>& lc, const comparable<EXTENDED>& rc) {
+    return lc.compareTo(rc) <=> 0;
+}
 
 template<typename DERIVED>
 auto comparable<DERIVED>::operator==(const DERIVED &other) const -> bool {
@@ -122,17 +128,6 @@ auto comparable<DERIVED>::operator<=(const DERIVED &other) const -> bool {
 template<typename DERIVED>
 auto comparable<DERIVED>::operator>=(const DERIVED &other) const -> bool {
     return compareTo(other) >= 0;
-}
-
-template<typename DERIVED>
-std::strong_ordering comparable<DERIVED>::operator<=>(const DERIVED &other) const {
-    if (auto cmp = compareTo(other); cmp < 0) {
-        return std::strong_ordering::less;
-    } else if (cmp > 0) {
-        return std::strong_ordering::greater;
-    } else {
-        return std::strong_ordering::equal;
-    }
 }
 
 } // namespace original
