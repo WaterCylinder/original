@@ -39,8 +39,17 @@ public:
 
     /**
      * @brief Three-way comparison operator (<=>), returns an ordered comparison result.
-     * @param other The object to compare against.
-     * @return A comparison category result, which is less, equal, or greater.
+     * @details This operator is implemented by invoking the compareTo() method of the comparable object.
+     *          The result type is std::strong_ordering, indicating strong ordering semantics.
+     *          Defined as a friend function to enable symmetric argument handling.
+     *
+     * @tparam EXTENDED The actual derived type using CRTP pattern.
+     * @param lhs Left-hand side comparable object
+     * @param rhs Right-hand side comparable object
+     * @return std::strong_ordering
+     *          - std::strong_ordering::less    if lhs < rhs
+     *          - std::strong_ordering::equal    if lhs == rhs
+     *          - std::strong_ordering::greater if lhs > rhs
      */
     template<typename EXTENDED>
     friend std::strong_ordering operator<=>(const comparable<EXTENDED>& lc, const comparable<EXTENDED>& rc);
