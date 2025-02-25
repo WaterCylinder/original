@@ -6,6 +6,8 @@
 #include "prique.h"
 #include "chain.h"
 #include "tuple.h"
+#include "stack.h"
+#include "bitSet.h"
 
 int main(){
     auto f1 = original::forwardChain({10, 4, 5, 7, 6, 3, 2});
@@ -58,5 +60,15 @@ int main(){
     std::cout << t3 << std::endl;
     auto t4 = original::tuple{original::array({1, 2, 3}), original::couple{1, 0.5}, original::blocksList{true, false}, original::vector{3, 2, 9, 5, 8, 6, 1}};
     std::cout << t4 << std::endl;
+    std::cout << t4.get<2>() << std::endl;
+    auto cp = t4.get<1>();
+    cp.set<1>(0.6);
+    t4.set<1>(cp);
+    std::cout << cp << std::endl;
+    std::cout << t4 << std::endl;
+    auto t5 = original::tuple{original::stack{1, 2, 1}};
+    std::cout << t5 << std::endl;
+    auto t6 = original::tuple{original::prique{3, 9, 5, 4, 6, 1, 8}, original::bitSet{true, false, true}};
+    std::cout << t6 << std::endl;
     return 0;
 }
