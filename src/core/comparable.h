@@ -52,7 +52,7 @@ public:
      *          - std::strong_ordering::greater if lhs > rhs
      */
     template<typename EXTENDED>
-    friend std::strong_ordering operator<=>(const comparable<EXTENDED>& lc, const comparable<EXTENDED>& rc);
+    friend std::strong_ordering operator<=>(const EXTENDED& lc, const EXTENDED& rc);
 
     /**
      * @brief Checks if the current object is equal to another.
@@ -105,7 +105,7 @@ public:
 // ----------------- Definitions of comparable.h -----------------
 
 template<typename EXTENDED>
-std::strong_ordering operator<=>(const comparable<EXTENDED>& lc, const comparable<EXTENDED>& rc) {
+std::strong_ordering operator<=>(const EXTENDED& lc, const EXTENDED& rc) {
     return lc.compareTo(rc) <=> 0;
 }
 
