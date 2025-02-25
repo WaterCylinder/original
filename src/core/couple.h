@@ -66,9 +66,23 @@ namespace original
          */
         couple& operator=(const couple& other);
 
+        /**
+         * @brief element access template method
+         * @tparam IDX element index (0=1st element, 1=2nd element)
+         * @return Constant reference to the corresponding element
+         * @throw outOfBoundError is thrown when the index is not 0/1
+         */
         template<uint32_t IDX>
         auto get() const;
 
+        /**
+         * @brief element modifies the template method
+         * @tparam IDX element index (0=1st element, 1=2nd element)
+         * @tparam T-element type (auto-derivation)
+         * @param e new element value
+         * @throw valueError is thrown when the types do not match
+         * @throw outOfBoundError is thrown when the index exceeds 1
+         */
         template<uint32_t IDX, typename T>
         void set(const T& e);
 
