@@ -173,8 +173,6 @@ namespace original{
          * @tparam IDX Zero-based index of the element to retrieve
          * @return Copy of the element at specified index
          * @throw outOfBoundError If index exceeds tuple size
-         *
-         * @example auto val = myTuple.get<2>();
          */
         template<uint32_t IDX>
         auto get() const;
@@ -186,8 +184,6 @@ namespace original{
          * @param e New value to assign
          * @throw outOfBoundError If index exceeds tuple size
          * @throw valueError If type E is incompatible with target element type
-         *
-         * @example myTuple.set<1>(42);
          */
         template<uint32_t IDX, typename E>
         void set(const E& e);
