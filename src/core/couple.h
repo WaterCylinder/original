@@ -10,6 +10,7 @@
 
 #include "printable.h"
 #include "comparable.h"
+#include "types.h"
 
 namespace original
 {
@@ -64,6 +65,12 @@ namespace original
          * @return Reference to this object
          */
         couple& operator=(const couple& other);
+
+        template<uint32_t IDX>
+        auto get() const;
+
+        template<uint32_t IDX, typename T>
+        void set(const T& e);
 
         /**
          * @brief Lexicographical comparison operation
@@ -130,15 +137,43 @@ namespace original
     }
 
     template<typename F_TYPE, typename S_TYPE>
+    template<uint32_t IDX>
+    auto original::couple<F_TYPE, S_TYPE>::get() const {
+        if constexpr (IDX == 0)
+            return this->first_;
+        if constexpr (IDX == 1)
+            return this->second_;
+        throw outOfBoundError();
+    }
+
+    template<typename F_TYPE, typename S_TYPE>
+    template<uint32_t IDX, typename T>
+    void original::couple<F_TYPE, S_TYPE>::set(const T &e) {
+        if constexpr (IDX == 0 && std::same_as<T, F_TYPE>){
+            this->first_ = e;
+            return;
+        }
+        if constexpr (IDX == 1 && std::same_as<T, S_TYPE>){
+            this->second_ = e;
+            return;
+        }
+        throw valueError();
+    }
+
+    template<typename F_TYPE, typename S_TYPE>
     int64_t original::couple<F_TYPE, S_TYPE>::compareTo(const couple& other) const {
-        if (this->first_ < other.first_)
-            return -1;
-        if (this->first_ > other.first_)
-            return 1;
-        if (this->second_ < other.second_)
-            return -1;
-        if (this->second_ > other.second_)
-            return 1;
+        if constexpr (Comparable<F_TYPE>){
+            if (this->first_ < other.first_)
+                return -1;
+            if (this->first_ > other.first_)
+                return 1;
+        }
+        if constexpr (Comparable<S_TYPE>){
+            if (this->second_ < other.second_)
+                return -1;
+            if (this->second_ > other.second_)
+                return 1;
+        }
         return 0;
     }
 
