@@ -6,6 +6,7 @@
 #include "comparable.h"
 #include "printable.h"
 #include "iterable.h"
+#include "types.h"
 
 /**
  * @file iterationStream.h
@@ -92,8 +93,10 @@ auto original::iterationStream<TYPE, DERIVED>::compareTo(const iterationStream &
     const auto this_it = this->begin();
     const auto other_it = other.begin();
     for (; this_it.isValid() && other_it.isValid(); ++this_it, ++other_it) {
-        if (*this_it != *other_it)
-            return *this_it < *other_it ? -1 : 1;
+        if constexpr (Comparable<TYPE>){
+            if (*this_it != *other_it)
+                return *this_it < *other_it ? -1 : 1;
+        }
     }
     return this_it.isValid() - other_it.isValid();
 }
