@@ -1,6 +1,7 @@
 #ifndef ERROR_H
 #define ERROR_H
 #include <exception>
+#include "types.h"
 
 /**
  * @file error.h
@@ -30,11 +31,18 @@ namespace original {
          * @code{.cpp}
          * auto callback = [](int x) { return x * 1.5f; };
          * callBackChecker::check<decltype(callback), float, int>();  // Valid
-         * callBackChecker::check<decltype(callback), int, int>();    // Throws CallbackReturnTypeError
+         * callBackChecker::check<decltype(callback), int, int>();    // Throws callbackReturnTypeError
          * @endcode
          */
         template<typename Callback, typename Ret_TYPE, typename ...Args_TYPE>
         static void check();
+    };
+
+    class error : public std::exception{
+        public:
+            template<typename ERR>
+            requires ExtendsOf<error, ERR>
+            static void asserts();
     };
 
 // ----------------- Exception Classes -----------------
@@ -44,7 +52,7 @@ namespace original {
  * @brief Exception for container index out-of-range errors.
  * @details Thrown when accessing elements beyond valid boundaries.
  */
-class outOfBoundError final : public std::exception {
+class outOfBoundError final : public error {
 public:
     [[nodiscard]] auto what() const noexcept -> const char* override
     {
@@ -57,7 +65,7 @@ public:
  * @brief Exception for invalid parameter values.
  * @details Thrown when receiving logically incorrect values (e.g., negative size).
  */
-class valueError final : public std::exception {
+class valueError final : public error {
 public:
     [[nodiscard]] auto what() const noexcept -> const char* override
     {
@@ -70,7 +78,7 @@ public:
  * @brief Exception for null pointer dereference attempts.
  * @details Thrown when accessing resources through null pointers.
  */
-class nullPointerError final : public std::exception {
+class nullPointerError final : public error {
 public:
     [[nodiscard]] auto what() const noexcept -> const char* override
     {
@@ -83,7 +91,7 @@ public:
  * @brief Exception for unimplemented method calls.
  * @details Thrown when calling methods not supported by the target class.
  */
-class unSupportedMethodError final : public std::exception {
+class unSupportedMethodError final : public error {
 public:
     [[nodiscard]] auto what() const noexcept -> const char* override
     {
@@ -96,7 +104,7 @@ public:
  * @brief Exception for missing element requests.
  * @details Thrown when querying non-existent elements in containers.
  */
-class noElementError final : public std::exception {
+class noElementError final : public error {
 public:
     [[nodiscard]] auto what() const noexcept -> const char* override
     {
@@ -105,11 +113,11 @@ public:
 };
 
 /**
- * @class CallbackSignatureError
+ * @class callbackSignatureError
  * @brief Exception for callback argument mismatch.
  * @details Thrown when callback parameters don't match expected types.
  */
-class CallbackSignatureError final : public std::exception {
+class callbackSignatureError final : public error {
 public:
     [[nodiscard]] auto what() const noexcept -> const char* override
     {
@@ -118,18 +126,17 @@ public:
 };
 
 /**
- * @class CallbackReturnTypeError
+ * @class callbackReturnTypeError
  * @brief Exception for callback return type mismatch.
  * @details Thrown when callback return type differs from expected type.
  */
-class CallbackReturnTypeError final : public std::exception {
+class callbackReturnTypeError final : public error {
 public:
     [[nodiscard]] auto what() const noexcept -> const char* override
     {
         return "Return type of callback mismatch.";
     }
 };
-
 } // namespace original
 
 // ----------------- Definitions of error.h -----------------
@@ -138,13 +145,54 @@ template<typename Callback, typename Ret_TYPE, typename... Args_TYPE>
 void original::callBackChecker::check() {
     if constexpr (constexpr bool is_valid = std::is_invocable_v<Callback, Args_TYPE...>;
         !is_valid){
-        throw CallbackSignatureError();
+        throw callbackSignatureError();
     } else{
         using result_type = std::invoke_result_t<Callback, Args_TYPE...>;
         if constexpr (constexpr bool is_valid_return_type = std::is_same_v<result_type, Ret_TYPE>;
             !is_valid_return_type)
-            throw CallbackReturnTypeError();
+            throw callbackReturnTypeError();
     }
+}
+
+template<typename ERR>
+requires original::ExtendsOf<original::error, ERR>
+void original::error::asserts() {
+    static_assert(true, "A static assert called");
+}
+
+template<>
+inline void original::error::asserts<original::outOfBoundError>() {
+    static_assert(true, "Out of the bound of the object");
+}
+
+template<>
+inline void original::error::asserts<original::valueError>() {
+    static_assert(true, "Wrong value given");
+}
+
+template<>
+inline void original::error::asserts<original::nullPointerError>() {
+    static_assert(true, "Attempting to access null pointer");
+}
+
+template<>
+inline void original::error::asserts<original::unSupportedMethodError>() {
+    static_assert(true, "Unsupported Method for class");
+}
+
+template<>
+inline void original::error::asserts<original::noElementError>() {
+    static_assert(true, "No such element");
+}
+
+template<>
+inline void original::error::asserts<original::callbackSignatureError>() {
+    static_assert(true, "Callback signature mismatch");
+}
+
+template<>
+inline void original::error::asserts<original::callbackReturnTypeError>() {
+    static_assert(true, "Return type of callback mismatch");
 }
 
 #endif // ERROR_H
