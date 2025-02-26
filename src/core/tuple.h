@@ -3,6 +3,7 @@
 
 #include "printable.h"
 #include "comparable.h"
+#include "couple.h"
 #include "types.h"
 
 /**
@@ -227,9 +228,15 @@ namespace original{
          */
         std::string className() const override;
 
+        template<typename F_TYPE, typename S_TYPE>
+        friend tuple<F_TYPE, S_TYPE> makeTuple(const original::couple<F_TYPE, S_TYPE> &cp);
+
         template<typename... L_TYPES, typename... R_TYPES>
         friend tuple<L_TYPES..., R_TYPES...> operator+(const tuple<L_TYPES...>& lt, const tuple<R_TYPES...>& rt);
     };
+
+    template<typename F_TYPE, typename S_TYPE>
+    tuple<F_TYPE, S_TYPE> makeTuple(const original::couple<F_TYPE, S_TYPE> &cp);
 
     template<typename... L_TYPES, typename... R_TYPES>
     tuple<L_TYPES..., R_TYPES...> operator+(const tuple<L_TYPES...>& lt, const tuple<R_TYPES...>& rt);
@@ -498,6 +505,11 @@ std::string original::tuple<TYPES...>::toString(bool enter) const {
 template<typename... TYPES>
 std::string original::tuple<TYPES...>::className() const {
     return "tuple";
+}
+
+template<typename F_TYPE, typename S_TYPE>
+original::tuple<F_TYPE, S_TYPE> original::makeTuple(const original::couple<F_TYPE, S_TYPE> &cp) {
+    return original::tuple<F_TYPE, S_TYPE>{cp.template get<0>(), cp.template get<1>()};
 }
 
 template<typename... L_TYPES, typename... R_TYPES>
