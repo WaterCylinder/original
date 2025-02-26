@@ -73,7 +73,7 @@ int main(){
     auto t7 = t4.slice<0, 2>();
     std::cout << t7 << std::endl;
     std::cout << t7.size() << std::endl;
-    auto t8 = t4 + t4.slice<2, 1>() + t4.slice<1, 3>();
+    auto t8 = t4 + t4.slice<2, 1>() + t4.slice<1, 3>() + original::make_tuple(t4.get<1>());
     std::cout << t8 << std::endl;
     return 0;
 }
