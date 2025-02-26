@@ -50,16 +50,16 @@ TEST(CallBackCheckerTest, ValidCallbackTest) {
 }
 
 TEST(CallBackCheckerTest, InvalidCallbackTest) {
-    EXPECT_THROW((original::callBackChecker::check<decltype(invalidReturnTypeCallback), float, int, double>()), CallbackReturnTypeError);
+    EXPECT_THROW((original::callBackChecker::check<decltype(invalidReturnTypeCallback), float, int, double>()), callbackReturnTypeError);
 }
 
 TEST(CallBackCheckerTest, InvalidArgumentCallbackTest1) {
-    EXPECT_THROW((original::callBackChecker::check<decltype(invalidArgumentCallback), void, int, int>()), CallbackSignatureError);
+    EXPECT_THROW((original::callBackChecker::check<decltype(invalidArgumentCallback), void, int, int>()), callbackSignatureError);
 }
 
 
 TEST(CallBackCheckerTest, InvalidArgumentCallbackTest2) {
-    EXPECT_THROW((original::callBackChecker::check<decltype(invalidArgumentCallback), void, sampleClass>()), CallbackSignatureError);
+    EXPECT_THROW((original::callBackChecker::check<decltype(invalidArgumentCallback), void, sampleClass>()), callbackSignatureError);
 }
 
 TEST(CallBackCheckerTest, EmptyCallbackTest) {
