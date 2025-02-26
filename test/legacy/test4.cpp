@@ -70,5 +70,10 @@ int main(){
     std::cout << t5 << std::endl;
     auto t6 = original::tuple{original::prique{3, 9, 5, 4, 6, 1, 8}, original::bitSet{true, false, true}};
     std::cout << t6 << std::endl;
+    auto t7 = t4.slice<0, 2>();
+    std::cout << t7 << std::endl;
+    std::cout << t7.size() << std::endl;
+    auto t8 = t4 + t4.slice<2, 1>() + t4.slice<1, 3>();
+    std::cout << t8 << std::endl;
     return 0;
 }
