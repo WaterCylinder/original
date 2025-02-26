@@ -234,8 +234,9 @@ template<uint32_t I_DIFF>
 auto original::tuple<TYPES...>::tupleImpl<I, T>::get() const {
     if constexpr (I_DIFF == 0){
         return cur_elem;
+    } else{
+        throw outOfBoundError();
     }
-    throw outOfBoundError();
 }
 
 template<typename... TYPES>
@@ -244,10 +245,11 @@ template<uint32_t I_DIFF, typename E>
 void original::tuple<TYPES...>::tupleImpl<I, T>::set(const E& e) {
     if constexpr (I_DIFF == 0 && std::same_as<T, E>){
         cur_elem = e;
+    } else{
+        if constexpr (I_DIFF != 0)
+            throw outOfBoundError();
+        throw valueError();
     }
-    if constexpr (I_DIFF != 0)
-        throw outOfBoundError();
-    throw valueError();
 }
 
 template<typename... TYPES>
@@ -256,8 +258,9 @@ int64_t original::tuple<TYPES...>::tupleImpl<I, T>::compareTo(const tupleImpl<I,
     if constexpr (Comparable<T>){
         if (cur_elem != other.cur_elem)
             return cur_elem < other.cur_elem ? -1 : 1;
+    } else{
+        return 0;
     }
-    return 0;
 }
 
 template<typename... TYPES>
@@ -299,9 +302,9 @@ void original::tuple<TYPES...>::tupleImpl<I, T, TS>::set(const E& e) {
         if constexpr (!std::same_as<T, E>)
             throw valueError();
         cur_elem = e;
-        return;
+    } else{
+        next.template set<I_DIFF - 1, E>(e);
     }
-    next.template set<I_DIFF - 1, E>(e);
 }
 
 template<typename... TYPES>
@@ -311,8 +314,9 @@ original::tuple<TYPES...>::tupleImpl<I, T, TS>::compareTo(const tupleImpl<I, T, 
     if constexpr (Comparable<T>){
         if (cur_elem != other.cur_elem)
             return cur_elem < other.cur_elem ? -1 : 1;
+    } else{
+        return next.compareTo(other.next);
     }
-    return next.compareTo(other.next);
 }
 
 template<typename... TYPES>
@@ -355,9 +359,9 @@ void original::tuple<TYPES...>::tupleImpl<I, T, TS...>::set(const E& e) {
         if constexpr (!std::same_as<T, E>)
             throw valueError();
         cur_elem = e;
-        return;
+    } else{
+        next.template set<I_DIFF - 1, E>(e);
     }
-    next.template set<I_DIFF - 1, E>(e);
 }
 
 template<typename... TYPES>
@@ -367,8 +371,9 @@ original::tuple<TYPES...>::tupleImpl<I, T, TS...>::compareTo(const tupleImpl<I, 
     if constexpr (Comparable<T>){
         if (cur_elem != other.cur_elem)
             return cur_elem < other.cur_elem ? -1 : 1;
+    } else{
+        return next.compareTo(other.next);
     }
-    return next.compareTo(other.next);
 }
 
 template<typename... TYPES>
