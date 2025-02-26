@@ -11,6 +11,8 @@
 #include "printable.h"
 #include "comparable.h"
 #include "types.h"
+#include "error.h"
+
 
 namespace original
 {
@@ -153,11 +155,13 @@ namespace original
     template<typename F_TYPE, typename S_TYPE>
     template<uint32_t IDX>
     auto original::couple<F_TYPE, S_TYPE>::get() const {
-        if constexpr (IDX == 0)
+        if constexpr (IDX == 0){
             return this->first_;
-        if constexpr (IDX == 1)
+        } else if constexpr (IDX == 1){
             return this->second_;
-        throw outOfBoundError();
+        } else{
+            error::asserts<outOfBoundError>();
+        }
     }
 
     template<typename F_TYPE, typename S_TYPE>
@@ -166,12 +170,12 @@ namespace original
         if constexpr (IDX == 0 && std::same_as<T, F_TYPE>){
             this->first_ = e;
             return;
-        }
-        if constexpr (IDX == 1 && std::same_as<T, S_TYPE>){
+        } else if constexpr (IDX == 1 && std::same_as<T, S_TYPE>){
             this->second_ = e;
             return;
+        } else {
+            error::asserts<valueError>();
         }
-        throw valueError();
     }
 
     template<typename F_TYPE, typename S_TYPE>
