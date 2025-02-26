@@ -12,7 +12,7 @@
  * @file algorithms.h
  * @brief Standard algorithm implementations for iterator-based containers
  * @details Provides generic algorithms such as range operations, heap operations,
- * element search/count, and data manipulation functions.
+ * element search/count, sorting, and data manipulation functions.
  */
 
 namespace original
@@ -27,6 +27,7 @@ namespace original
      * - Data manipulation (fill, swap, copy, reverse)
      * - Heap operations (heapify, adjust, priority comparison)
      * - Conditional element processing
+     * - Generic sorting algorithm
      */
     class algorithms final
     {
