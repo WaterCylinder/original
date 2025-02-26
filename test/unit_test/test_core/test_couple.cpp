@@ -40,8 +40,8 @@ TEST(CoupleTest, FirstAndSecond) {
 
 TEST(CoupleTest, ToString) {
     couple<int, double> c(10, 20.5);
-    EXPECT_EQ(c.toString(true), "couple(first: 10, second: 20.5)\n");
-    EXPECT_EQ(c.toString(false), "couple(first: 10, second: 20.5)");
+    EXPECT_EQ(c.toString(true), "couple(10, 20.5)\n");
+    EXPECT_EQ(c.toString(false), "couple(10, 20.5)");
 }
 
 // 测试相等运算符
