@@ -36,6 +36,7 @@ namespace original{
      */
     template<typename... TYPES>
     class tuple final : public printable, public comparable<tuple<TYPES...>>{
+        static constexpr uint32_t SIZE = sizeof...(TYPES);
 
         /**
          * @class tupleImpl
@@ -129,13 +130,15 @@ namespace original{
 
         tupleImpl<0, TYPES...> elems;  ///< Recursive element storage
 
-    public:
-        /**
-         * @brief Default constructor
-         * @details Value-initializes all elements using their default constructors
-         */
-        explicit tuple();
+        template<uint32_t... IDX_S, uint32_t BEGIN_IDX>
+        auto _slice(std::integer_sequence<uint32_t, IDX_S...> indexes, std::integral_constant<uint32_t, BEGIN_IDX> begin) const;
 
+        template<typename... O_TYPES, uint32_t... T_SIZE, uint32_t... O_SIZE>
+        tuple<TYPES..., O_TYPES...> _concat(const tuple<O_TYPES...>& other,
+                                            std::integer_sequence<uint32_t, T_SIZE...> ts,
+                                            std::integer_sequence<uint32_t, O_SIZE...> os) const;
+
+    public:
         /**
          * @brief Constructs a tuple with given elements
          * @param e... Elements to initialize the tuple with
@@ -168,6 +171,8 @@ namespace original{
          */
         tuple& operator=(tuple&& other) noexcept;
 
+        constexpr uint32_t size() const;
+
         /**
          * @brief Get element by index
          * @tparam IDX Zero-based index of the element to retrieve
@@ -187,6 +192,12 @@ namespace original{
          */
         template<uint32_t IDX, typename E>
         void set(const E& e);
+
+        template<uint32_t BEGIN_IDX, uint32_t N_ELEMS>
+        auto slice() const;
+
+        template<typename... O_TYPES>
+        tuple<TYPES..., O_TYPES...> operator+(const tuple<O_TYPES...>& other) const;
 
         /**
          * @brief Compare two tuples lexicographically
@@ -215,7 +226,13 @@ namespace original{
          * @return "tuple" string literal
          */
         std::string className() const override;
+
+        template<typename... L_TYPES, typename... R_TYPES>
+        friend tuple<L_TYPES..., R_TYPES...> operator+(const tuple<L_TYPES...>& lt, const tuple<R_TYPES...>& rt);
     };
+
+    template<typename... L_TYPES, typename... R_TYPES>
+    tuple<L_TYPES..., R_TYPES...> operator+(const tuple<L_TYPES...>& lt, const tuple<R_TYPES...>& rt);
 }
 
 template<typename... TYPES>
@@ -235,7 +252,7 @@ auto original::tuple<TYPES...>::tupleImpl<I, T>::get() const {
     if constexpr (I_DIFF == 0){
         return cur_elem;
     } else{
-        throw outOfBoundError();
+        error::asserts<outOfBoundError>();
     }
 }
 
@@ -247,8 +264,9 @@ void original::tuple<TYPES...>::tupleImpl<I, T>::set(const E& e) {
         cur_elem = e;
     } else{
         if constexpr (I_DIFF != 0)
-            throw outOfBoundError();
-        throw valueError();
+            error::asserts<outOfBoundError>();
+        if constexpr (!std::same_as<T, E>)
+            error::asserts<valueError>();
     }
 }
 
@@ -258,9 +276,8 @@ int64_t original::tuple<TYPES...>::tupleImpl<I, T>::compareTo(const tupleImpl<I,
     if constexpr (Comparable<T>){
         if (cur_elem != other.cur_elem)
             return cur_elem < other.cur_elem ? -1 : 1;
-    } else{
-        return 0;
     }
+    return 0;
 }
 
 template<typename... TYPES>
@@ -300,7 +317,7 @@ template<uint32_t I_DIFF, typename E>
 void original::tuple<TYPES...>::tupleImpl<I, T, TS>::set(const E& e) {
     if constexpr (I_DIFF == 0){
         if constexpr (!std::same_as<T, E>)
-            throw valueError();
+            error::asserts<valueError>();
         cur_elem = e;
     } else{
         next.template set<I_DIFF - 1, E>(e);
@@ -314,9 +331,8 @@ original::tuple<TYPES...>::tupleImpl<I, T, TS>::compareTo(const tupleImpl<I, T, 
     if constexpr (Comparable<T>){
         if (cur_elem != other.cur_elem)
             return cur_elem < other.cur_elem ? -1 : 1;
-    } else{
-        return next.compareTo(other.next);
     }
+    return next.compareTo(other.next);
 }
 
 template<typename... TYPES>
@@ -357,7 +373,7 @@ template<uint32_t I_DIFF, typename E>
 void original::tuple<TYPES...>::tupleImpl<I, T, TS...>::set(const E& e) {
     if constexpr (I_DIFF == 0){
         if constexpr (!std::same_as<T, E>)
-            throw valueError();
+            error::asserts<valueError>();
         cur_elem = e;
     } else{
         next.template set<I_DIFF - 1, E>(e);
@@ -371,9 +387,8 @@ original::tuple<TYPES...>::tupleImpl<I, T, TS...>::compareTo(const tupleImpl<I, 
     if constexpr (Comparable<T>){
         if (cur_elem != other.cur_elem)
             return cur_elem < other.cur_elem ? -1 : 1;
-    } else{
-        return next.compareTo(other.next);
     }
+    return next.compareTo(other.next);
 }
 
 template<typename... TYPES>
@@ -388,7 +403,20 @@ std::string original::tuple<TYPES...>::tupleImpl<I, T, TS...>::toString(bool ent
 }
 
 template<typename... TYPES>
-original::tuple<TYPES...>::tuple() : tuple(TYPES{}...) {}
+template<uint32_t... IDX_S, uint32_t BEGIN_IDX>
+auto original::tuple<TYPES...>::_slice(std::integer_sequence<uint32_t, IDX_S...>,
+                                       std::integral_constant<uint32_t, BEGIN_IDX>) const {
+    return tuple<decltype(this->get<BEGIN_IDX + IDX_S>())...>(this->get<BEGIN_IDX + IDX_S>()...);
+}
+
+template<typename... TYPES>
+template<typename... O_TYPES, uint32_t... T_SIZE, uint32_t... O_SIZE>
+original::tuple<TYPES..., O_TYPES...>
+original::tuple<TYPES...>::_concat(const original::tuple<O_TYPES...> &other,
+                                   std::integer_sequence<uint32_t, T_SIZE...>,
+                                   std::integer_sequence<uint32_t, O_SIZE...>) const {
+    return tuple<TYPES..., O_TYPES...>{this->get<T_SIZE>()..., other.template get<O_SIZE>()...};
+}
 
 template<typename... TYPES>
 original::tuple<TYPES...>::tuple(const TYPES&... e) : elems(e...) {}
@@ -415,6 +443,11 @@ original::tuple<TYPES...>& original::tuple<TYPES...>::operator=(tuple&& other) n
 }
 
 template<typename... TYPES>
+constexpr uint32_t original::tuple<TYPES...>::size() const {
+    return SIZE;
+}
+
+template<typename... TYPES>
 template<uint32_t IDX>
 auto original::tuple<TYPES...>::get() const {
     return elems.template get<IDX>();
@@ -424,6 +457,29 @@ template<typename... TYPES>
 template<uint32_t IDX, typename E>
 void original::tuple<TYPES...>::set(const E &e) {
     elems.template set<IDX, E>(e);
+}
+
+template<typename... TYPES>
+template<uint32_t BEGIN_IDX, uint32_t N_ELEMS>
+auto original::tuple<TYPES...>::slice() const {
+    if constexpr (BEGIN_IDX >= SIZE || BEGIN_IDX + N_ELEMS > SIZE){
+        error::asserts<outOfBoundError>();
+    }
+    return this->_slice(
+            std::make_integer_sequence<uint32_t, N_ELEMS>{},
+            std::integral_constant<uint32_t, BEGIN_IDX>{}
+    );
+}
+
+template<typename... TYPES>
+template<typename... O_TYPES>
+original::tuple<TYPES..., O_TYPES...>
+original::tuple<TYPES...>::operator+(const original::tuple<O_TYPES...> &other) const {
+    return this->_concat(
+            other,
+            std::make_integer_sequence<uint32_t, this->size()>{},
+            std::make_integer_sequence<uint32_t, other.size()>{}
+    );
 }
 
 template<typename... TYPES>
@@ -442,6 +498,12 @@ std::string original::tuple<TYPES...>::toString(bool enter) const {
 template<typename... TYPES>
 std::string original::tuple<TYPES...>::className() const {
     return "tuple";
+}
+
+template<typename... L_TYPES, typename... R_TYPES>
+original::tuple<L_TYPES..., R_TYPES...>
+original::operator+(const original::tuple<L_TYPES...> &lt, const original::tuple<R_TYPES...> &rt) {
+    return lt + rt;
 }
 
 #endif //TUPLE_H
