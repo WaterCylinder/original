@@ -63,7 +63,7 @@ TEST(TupleTest, SizeMethod) {
 TEST(TupleTest, SetMethod) {
     tuple<int, std::string> t(0, "");
     t.set<0>(100);
-    t.set<1>(std::string("test"));
+    t.set<1>("test");
 
     EXPECT_EQ(t.get<0>(), 100);
     EXPECT_EQ(t.get<1>(), "test");
