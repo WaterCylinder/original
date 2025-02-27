@@ -208,7 +208,7 @@ namespace original{
          * @tparam IDX Zero-based index of the element to modify
          * @tparam E Type of the new value (auto-deduced)
          * @param e New value to assign
-         * The assignment will only succeed if:
+         * @note The assignment will only succeed if:
          * `E` is convertible to the type of the element at the given index (`T`).
          */
         template<uint32_t IDX, typename E>
