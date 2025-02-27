@@ -67,6 +67,8 @@ namespace original{
 
             tupleImpl(const tupleImpl<I, T>& other);
 
+            tupleImpl<I, T>& operator=(tupleImpl<I, T>&& other) noexcept;
+
             template<uint32_t I_DIFF>
             auto get() const;
 
@@ -94,6 +96,8 @@ namespace original{
             tupleImpl(tupleImpl<I, T, TS>&& other) noexcept;
 
             tupleImpl(const tupleImpl<I, T, TS>& other);
+
+            tupleImpl<I, T, TS>& operator=(tupleImpl<I, T, TS>&& other) noexcept;
 
             template<uint32_t I_DIFF>
             auto get() const;
@@ -124,6 +128,8 @@ namespace original{
             tupleImpl(tupleImpl<I, T, TS...>&& other) noexcept;
 
             tupleImpl(const tupleImpl<I, T, TS...>& other);
+
+            tupleImpl<I, T, TS...>& operator=(tupleImpl<I, T, TS...>&& other) noexcept;
 
             template<uint32_t I_DIFF>
             auto get() const;
@@ -298,6 +304,16 @@ original::tuple<TYPES...>::tupleImpl<I, T>::tupleImpl(const tupleImpl<I, T>& oth
 
 template<typename... TYPES>
 template<uint32_t I, typename T>
+original::tuple<TYPES...>::tupleImpl<I, T>&
+original::tuple<TYPES...>::tupleImpl<I, T>::operator=(tupleImpl<I, T> &&other) noexcept {
+    if (this == &other)
+        return *this;
+    cur_elem = std::move(other.cur_elem);
+    return *this;
+}
+
+template<typename... TYPES>
+template<uint32_t I, typename T>
 template<uint32_t I_DIFF>
 auto original::tuple<TYPES...>::tupleImpl<I, T>::get() const {
     if constexpr (I_DIFF == 0){
@@ -337,7 +353,7 @@ std::string original::tuple<TYPES...>::tupleImpl<I, T>::toString(bool enter) con
     std::stringstream ss;
     if constexpr (I != 0)
         ss << ", ";
-    ss << cur_elem;
+    ss << formatString(cur_elem);
     return ss.str();
 }
 
@@ -355,6 +371,17 @@ template<typename... TYPES>
 template<uint32_t I, typename T, typename TS>
 original::tuple<TYPES...>::tupleImpl<I, T, TS>::tupleImpl(const tupleImpl<I, T, TS>& other)
     : cur_elem(other.cur_elem), next(other.next) {}
+
+template<typename... TYPES>
+template<uint32_t I, typename T, typename TS>
+original::tuple<TYPES...>::tupleImpl<I, T, TS>&
+original::tuple<TYPES...>::tupleImpl<I, T, TS>::operator=(tupleImpl<I, T, TS> &&other) noexcept {
+    if (this == &other)
+        return *this;
+    cur_elem = std::move(other.cur_elem);
+    next = std::move(other.next);
+    return *this;
+}
 
 template<typename... TYPES>
 template<uint32_t I, typename T, typename TS>
@@ -397,8 +424,8 @@ std::string original::tuple<TYPES...>::tupleImpl<I, T, TS>::toString(bool enter)
     std::stringstream ss;
     if constexpr (I != 0)
         ss << ", ";
-    ss << cur_elem;
-    ss << next;
+    ss << formatString(cur_elem);
+    ss << formatString(next);
     return ss.str();
 }
 
@@ -421,6 +448,17 @@ template<typename... TYPES>
 template<uint32_t I, typename T, typename... TS>
 original::tuple<TYPES...>::tupleImpl<I, T, TS...>::tupleImpl(const tupleImpl<I, T, TS...>& other)
     : cur_elem(other.cur_elem), next(other.next) {}
+
+template<typename... TYPES>
+template<uint32_t I, typename T, typename... TS>
+original::tuple<TYPES...>::tupleImpl<I, T, TS...>&
+original::tuple<TYPES...>::tupleImpl<I, T, TS...>::operator=(tupleImpl<I, T, TS...> &&other) noexcept {
+    if (this == &other)
+        return *this;
+    cur_elem = std::move(other.cur_elem);
+    next = std::move(other.next);
+    return *this;
+}
 
 template<typename... TYPES>
 template<uint32_t I, typename T, typename... TS>
@@ -463,8 +501,8 @@ std::string original::tuple<TYPES...>::tupleImpl<I, T, TS...>::toString(bool ent
     std::stringstream ss;
     if constexpr (I != 0)
         ss << ", ";
-    ss << cur_elem;
-    ss << next;
+    ss << formatString(cur_elem);
+    ss << formatString(next);
     return ss.str();
 }
 
