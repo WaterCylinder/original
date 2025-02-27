@@ -61,7 +61,9 @@ namespace original{
              * @brief Constructor of tupleImpl that initializes the current element
              * @param cur The current element to be stored
              */
-            explicit tupleImpl(T cur);
+            explicit tupleImpl(const T& cur = T{});
+
+            tupleImpl(tupleImpl<I, T>&& other) noexcept;
 
             tupleImpl(const tupleImpl<I, T>& other);
 
@@ -87,7 +89,9 @@ namespace original{
              * @param cur The current element to be stored
              * @param next_elems next element to storage
              */
-            explicit tupleImpl(T cur, TS next_elems);
+            explicit tupleImpl(const T& cur = T{}, const TS& next_elems = TS{});
+
+            tupleImpl(tupleImpl<I, T, TS>&& other) noexcept;
 
             tupleImpl(const tupleImpl<I, T, TS>& other);
 
@@ -113,7 +117,11 @@ namespace original{
              * @param cur The current element to be stored
              * @param next_elems next elements to storage
              */
-            explicit tupleImpl(T cur, TS... next_elems);
+            explicit tupleImpl(const T& cur, const TS&... next_elems);
+
+            explicit tupleImpl(const T& cur = T{}, const tupleImpl<I + 1, TS...>& nt = tupleImpl<I + 1, TS...>{});
+
+            tupleImpl(tupleImpl<I, T, TS...>&& other) noexcept;
 
             tupleImpl(const tupleImpl<I, T, TS...>& other);
 
@@ -140,6 +148,9 @@ namespace original{
                                             std::integer_sequence<uint32_t, O_SIZE...> os) const;
 
     public:
+
+        explicit tuple();
+
         /**
          * @brief Constructs a tuple with given elements
          * @param e... Elements to initialize the tuple with
@@ -172,13 +183,16 @@ namespace original{
          */
         tuple& operator=(tuple&& other) noexcept;
 
+        /**
+         * @brief Get the number of elements in the tuple
+         * @return The size of the tuple (number of elements)
+         */
         constexpr uint32_t size() const;
 
         /**
          * @brief Get element by index
          * @tparam IDX Zero-based index of the element to retrieve
          * @return Copy of the element at specified index
-         * @throw outOfBoundError If index exceeds tuple size
          */
         template<uint32_t IDX>
         auto get() const;
@@ -188,15 +202,25 @@ namespace original{
          * @tparam IDX Zero-based index of the element to modify
          * @tparam E Type of the new value (auto-deduced)
          * @param e New value to assign
-         * @throw outOfBoundError If index exceeds tuple size
-         * @throw valueError If type E is incompatible with target element type
          */
         template<uint32_t IDX, typename E>
         void set(const E& e);
 
+        /**
+         * @brief Slice the tuple from a specific index
+         * @tparam BEGIN_IDX The starting index for slicing
+         * @tparam N_ELEMS The number of elements to slice
+         * @return A new tuple with the sliced elements
+         */
         template<uint32_t BEGIN_IDX, uint32_t N_ELEMS>
         auto slice() const;
 
+        /**
+         * @brief Concatenate two tuples
+         * @tparam O_TYPES The types of the other tuple's elements
+         * @param other The tuple to concatenate with
+         * @return A new tuple that combines the elements of both tuples
+         */
         template<typename... O_TYPES>
         tuple<TYPES..., O_TYPES...> operator+(const tuple<O_TYPES...>& other) const;
 
@@ -228,15 +252,30 @@ namespace original{
          */
         std::string className() const override;
 
+        /**
+         * @brief Create a tuple from a couple
+         * @tparam F_TYPE Type of the first element
+         * @tparam S_TYPE Type of the second element
+         * @param cp The couple to convert
+         * @return A new tuple with the couple's elements
+         */
         template<typename F_TYPE, typename S_TYPE>
-        friend tuple<F_TYPE, S_TYPE> makeTuple(const original::couple<F_TYPE, S_TYPE> &cp);
+        friend tuple<F_TYPE, S_TYPE> makeTuple(const couple<F_TYPE, S_TYPE>& cp);
 
+        /**
+         * @brief Concatenate two tuples (friend function)
+         * @tparam L_TYPES Types of the left tuple's elements
+         * @tparam R_TYPES Types of the right tuple's elements
+         * @param lt The left tuple
+         * @param rt The right tuple
+         * @return A new tuple combining elements from both tuples
+         */
         template<typename... L_TYPES, typename... R_TYPES>
         friend tuple<L_TYPES..., R_TYPES...> operator+(const tuple<L_TYPES...>& lt, const tuple<R_TYPES...>& rt);
     };
 
     template<typename F_TYPE, typename S_TYPE>
-    tuple<F_TYPE, S_TYPE> makeTuple(const original::couple<F_TYPE, S_TYPE> &cp);
+    tuple<F_TYPE, S_TYPE> makeTuple(const couple<F_TYPE, S_TYPE> &cp);
 
     template<typename... L_TYPES, typename... R_TYPES>
     tuple<L_TYPES..., R_TYPES...> operator+(const tuple<L_TYPES...>& lt, const tuple<R_TYPES...>& rt);
@@ -244,8 +283,13 @@ namespace original{
 
 template<typename... TYPES>
 template<uint32_t I, typename T>
-original::tuple<TYPES...>::tupleImpl<I, T>::tupleImpl(T cur)
+original::tuple<TYPES...>::tupleImpl<I, T>::tupleImpl(const T& cur)
     : cur_elem(cur) {}
+
+template<typename... TYPES>
+template<uint32_t I, typename T>
+original::tuple<TYPES...>::tupleImpl<I, T>::tupleImpl(tupleImpl<I, T>&& other) noexcept
+    : cur_elem(std::move(other.cur_elem)) {}
 
 template<typename... TYPES>
 template<uint32_t I, typename T>
@@ -299,8 +343,13 @@ std::string original::tuple<TYPES...>::tupleImpl<I, T>::toString(bool enter) con
 
 template<typename... TYPES>
 template<uint32_t I, typename T, typename TS>
-original::tuple<TYPES...>::tupleImpl<I, T, TS>::tupleImpl(T cur, TS next_elems)
+original::tuple<TYPES...>::tupleImpl<I, T, TS>::tupleImpl(const T& cur, const TS& next_elems)
     : cur_elem(cur), next(next_elems) {}
+
+template<typename... TYPES>
+template<uint32_t I, typename T, typename TS>
+original::tuple<TYPES...>::tupleImpl<I, T, TS>::tupleImpl(tupleImpl<I, T, TS>&& other) noexcept
+    : cur_elem(std::move(other.cur_elem)), next(std::move(other.next)) {}
 
 template<typename... TYPES>
 template<uint32_t I, typename T, typename TS>
@@ -355,8 +404,18 @@ std::string original::tuple<TYPES...>::tupleImpl<I, T, TS>::toString(bool enter)
 
 template<typename... TYPES>
 template<uint32_t I, typename T, typename... TS>
-original::tuple<TYPES...>::tupleImpl<I, T, TS...>::tupleImpl(T cur, TS... next_elems)
+original::tuple<TYPES...>::tupleImpl<I, T, TS...>::tupleImpl(const T& cur, const TS&... next_elems)
     : cur_elem(cur), next(next_elems...) {}
+
+template<typename... TYPES>
+template<uint32_t I, typename T, typename... TS>
+original::tuple<TYPES...>::tupleImpl<I, T, TS...>::tupleImpl(const T& cur, const tupleImpl<I + 1, TS...>& nt)
+    : cur_elem(cur), next(nt) {}
+
+template<typename... TYPES>
+template<uint32_t I, typename T, typename... TS>
+original::tuple<TYPES...>::tupleImpl<I, T, TS...>::tupleImpl(tupleImpl<I, T, TS...> &&other) noexcept
+    : cur_elem(std::move(other.cur_elem)), next(std::move(other.next)) {}
 
 template<typename... TYPES>
 template<uint32_t I, typename T, typename... TS>
@@ -426,6 +485,9 @@ original::tuple<TYPES...>::_concat(const original::tuple<O_TYPES...> &other,
 }
 
 template<typename... TYPES>
+original::tuple<TYPES...>::tuple() : elems() {}
+
+template<typename... TYPES>
 original::tuple<TYPES...>::tuple(const TYPES&... e) : elems(e...) {}
 
 template<typename... TYPES>
@@ -484,8 +546,8 @@ original::tuple<TYPES..., O_TYPES...>
 original::tuple<TYPES...>::operator+(const original::tuple<O_TYPES...> &other) const {
     return this->_concat(
             other,
-            std::make_integer_sequence<uint32_t, this->size()>{},
-            std::make_integer_sequence<uint32_t, other.size()>{}
+            std::make_integer_sequence<uint32_t, sizeof...(TYPES)>{},
+            std::make_integer_sequence<uint32_t, sizeof...(O_TYPES)>{}
     );
 }
 
