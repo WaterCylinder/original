@@ -157,42 +157,22 @@ void original::callBackChecker::check() {
 template<typename ERR>
 requires original::ExtendsOf<original::error, ERR>
 void original::error::asserts() {
-    static_assert(true, "A static assert called");
-}
-
-template<>
-inline void original::error::asserts<original::outOfBoundError>() {
-    static_assert(true, "Out of the bound of the object");
-}
-
-template<>
-inline void original::error::asserts<original::valueError>() {
-    static_assert(true, "Wrong value given");
-}
-
-template<>
-inline void original::error::asserts<original::nullPointerError>() {
-    static_assert(true, "Attempting to access null pointer");
-}
-
-template<>
-inline void original::error::asserts<original::unSupportedMethodError>() {
-    static_assert(true, "Unsupported Method for class");
-}
-
-template<>
-inline void original::error::asserts<original::noElementError>() {
-    static_assert(true, "No such element");
-}
-
-template<>
-inline void original::error::asserts<original::callbackSignatureError>() {
-    static_assert(true, "Callback signature mismatch");
-}
-
-template<>
-inline void original::error::asserts<original::callbackReturnTypeError>() {
-    static_assert(true, "Return type of callback mismatch");
+    if constexpr (std::is_same_v<ERR, original::error>)
+        static_assert(false, "A static assert called");
+    else if constexpr (std::is_same_v<ERR, valueError>)
+        static_assert(false, "Out of the bound of the object");
+    else if constexpr (std::is_same_v<ERR, outOfBoundError>)
+        static_assert(false, "Wrong value given");
+    else if constexpr (std::is_same_v<ERR, nullPointerError>)
+        static_assert(false, "Attempting to access null pointer");
+    else if constexpr (std::is_same_v<ERR, unSupportedMethodError>)
+        static_assert(false, "Unsupported Method for class");
+    else if constexpr (std::is_same_v<ERR, noElementError>)
+        static_assert(false, "No such element");
+    else if constexpr (std::is_same_v<ERR, callbackSignatureError>)
+        static_assert(false, "Callback signature mismatch");
+    else if constexpr (std::is_same_v<ERR, callbackReturnTypeError>)
+        static_assert(false, "Return type of callback mismatch");
 }
 
 #endif // ERROR_H
