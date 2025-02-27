@@ -40,6 +40,16 @@ TEST(TupleTest, MoveSemantics) {
     EXPECT_TRUE(t1.get<0>().empty());
     EXPECT_TRUE(t1.get<1>().empty());
     EXPECT_TRUE(t1.get<2>().empty());
+    auto t3 = tuple{a, c, s};
+    auto t4 = t3;
+    std::cout << t4 << std::endl;
+    t4 = std::move(t3);
+    EXPECT_EQ(t4.get<0>(), a);
+    EXPECT_EQ(t4.get<1>(), c);
+    EXPECT_EQ(t4.get<2>(), s);
+    EXPECT_TRUE(t3.get<0>().empty());
+    EXPECT_TRUE(t3.get<1>().empty());
+    EXPECT_TRUE(t3.get<2>().empty());
 }
 
 TEST(TupleTest, SizeMethod) {
