@@ -327,8 +327,8 @@ template<typename... TYPES>
 template<uint32_t I, typename T>
 template<uint32_t I_DIFF, typename E>
 void original::tuple<TYPES...>::tupleImpl<I, T>::set(const E& e) {
-    if constexpr (I_DIFF == 0 && std::same_as<T, E>){
-        cur_elem = e;
+    if constexpr (I_DIFF == 0 && std::is_convertible<E, T>::value){
+        cur_elem = static_cast<T>(e);
     } else{
         if constexpr (I_DIFF != 0)
             error::asserts<outOfBoundError>();
@@ -399,9 +399,9 @@ template<uint32_t I, typename T, typename TS>
 template<uint32_t I_DIFF, typename E>
 void original::tuple<TYPES...>::tupleImpl<I, T, TS>::set(const E& e) {
     if constexpr (I_DIFF == 0){
-        if constexpr (!std::same_as<T, E>)
+        if constexpr (!std::is_convertible<E, T>::value)
             error::asserts<valueError>();
-        cur_elem = e;
+        cur_elem = static_cast<T>(e);
     } else{
         next.template set<I_DIFF - 1, E>(e);
     }
@@ -476,9 +476,9 @@ template<uint32_t I, typename T, typename... TS>
 template<uint32_t I_DIFF, typename E>
 void original::tuple<TYPES...>::tupleImpl<I, T, TS...>::set(const E& e) {
     if constexpr (I_DIFF == 0){
-        if constexpr (!std::same_as<T, E>)
+        if constexpr (!std::is_convertible<E, T>::value)
             error::asserts<valueError>();
-        cur_elem = e;
+        cur_elem = static_cast<T>(e);
     } else{
         next.template set<I_DIFF - 1, E>(e);
     }
