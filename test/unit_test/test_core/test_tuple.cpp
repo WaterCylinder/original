@@ -71,7 +71,6 @@ TEST(TupleTest, SetMethod) {
 
 TEST(TupleTest, SliceOperation) {
 tuple<int, double, std::string, char> t(1, 2.3, "slice", 'A');
-
 auto t1 = t.slice<1, 2>();
 EXPECT_EQ(t1.size(), 2);
 EXPECT_DOUBLE_EQ(t1.get<0>(), 2.3);
@@ -81,7 +80,6 @@ EXPECT_EQ(t1.get<1>(), "slice");
 TEST(TupleTest, Concatenation) {
 tuple<int, double> t1(1, 2.3);
 tuple<std::string, char> t2("concat", 'X');
-
 auto t3 = t1 + t2;
 EXPECT_EQ(t3.size(), 4);
 EXPECT_EQ(t3.get<2>(), "concat");
