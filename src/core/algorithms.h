@@ -38,10 +38,10 @@ namespace original
          * @tparam TYPE Element type
          * @param end Ending iterator
          * @param begin Starting iterator
-         * @return int64_t Number of elements between begin and end (negative if reversed)
+         * @return integer Number of elements between begin and end (negative if reversed)
          */
         template<typename TYPE>
-        static int64_t distance(const iterator<TYPE>& end, const iterator<TYPE>& begin);
+        static integer distance(const iterator<TYPE>& end, const iterator<TYPE>& begin);
 
         /**
          * @brief Gets iterator n steps forward
@@ -51,7 +51,7 @@ namespace original
          * @return iterator<TYPE>* New iterator position
          */
         template<typename TYPE>
-        static iterator<TYPE>* frontOf(const iterator<TYPE>& it, int64_t steps);
+        static iterator<TYPE>* frontOf(const iterator<TYPE>& it, integer steps);
 
         /**
          * @brief Gets iterator n steps backward
@@ -61,7 +61,7 @@ namespace original
          * @return iterator<TYPE>* New iterator position
          */
         template<typename TYPE>
-        static iterator<TYPE>* backOf(const iterator<TYPE>& it, int64_t steps);
+        static iterator<TYPE>* backOf(const iterator<TYPE>& it, integer steps);
 
         /**
          * @brief Checks if all elements satisfy condition
@@ -71,7 +71,7 @@ namespace original
          * @param end End iterator
          * @param condition Validation callback
          * @return bool True if all elements pass condition
-         * @requires Condition<Callback, TYPE>
+         * @requires Condition
          */
         template<typename TYPE, typename Callback>
         requires Condition<Callback, TYPE>
@@ -119,15 +119,14 @@ namespace original
         /**
         * @brief Find first element satisfying condition in iterator range
         * @tparam TYPE Element type
-        * @tparam Callback Condition callback type
         * @param begin Start iterator
         * @param n Maximum number of elements to search
-        * @param condition Search condition callback
+        * @param target The target element to find
         * @return iterator<TYPE>* Iterator pointing to found element or end
         * @requires Condition<Callback, TYPE>
         */
         template<typename TYPE>
-        static iterator<TYPE>* find(const iterator<TYPE> &begin, uint32_t n, const TYPE &target);
+        static iterator<TYPE>* find(const iterator<TYPE> &begin, u_integer n, const TYPE &target);
 
         /**
          * @brief Find first element satisfying condition in iterator range
@@ -147,14 +146,15 @@ namespace original
         /**
         * @brief Fill range with value (fixed number of elements)
         * @tparam TYPE Element type
+        * @tparam Callback Finding condition
         * @param begin Start iterator
         * @param n Number of elements to fill
-        * @param value Value to fill with (default constructed if omitted)
+        * @param condition Condition to find element
         * @return iterator<TYPE>* Iterator past last filled element
         */
         template<typename TYPE, typename Callback>
         requires Condition<Callback, TYPE>
-        static iterator<TYPE>* find(const iterator<TYPE> &begin, uint32_t n, const Callback& condition);
+        static iterator<TYPE>* find(const iterator<TYPE> &begin, u_integer n, const Callback& condition);
 
         /**
          * @brief Counts occurrences of a target element in the range
@@ -162,10 +162,10 @@ namespace original
          * @param begin Start iterator
          * @param end End iterator
          * @param target Value to count occurrences of
-         * @return uint32_t The number of occurrences of target in the range
+         * @return u_integer The number of occurrences of target in the range
          */
         template<typename TYPE>
-        static uint32_t count(const iterator<TYPE>& begin, const iterator<TYPE>& end, const TYPE& target);
+        static u_integer count(const iterator<TYPE>& begin, const iterator<TYPE>& end, const TYPE& target);
 
         /**
          * @brief Counts occurrences of elements satisfying condition in the range
@@ -174,12 +174,12 @@ namespace original
          * @param begin Start iterator
          * @param end End iterator
          * @param condition Validation callback
-         * @return uint32_t The number of elements satisfying the condition
+         * @return u_integer The number of elements satisfying the condition
          * @requires Condition<Callback, TYPE>
          */
         template<typename TYPE, typename Callback>
         requires Condition<Callback, TYPE>
-        static uint32_t count(const iterator<TYPE>& begin, const iterator<TYPE>& end, const Callback& condition);
+        static u_integer count(const iterator<TYPE>& begin, const iterator<TYPE>& end, const Callback& condition);
 
         /**
          * @brief Checks if two iterator ranges are equal
@@ -221,7 +221,7 @@ namespace original
          */
         template<typename TYPE, typename Callback>
         requires Operation<Callback, TYPE>
-        static iterator<TYPE>* forEach(const iterator<TYPE> &begin, uint32_t n, Callback operation);
+        static iterator<TYPE>* forEach(const iterator<TYPE> &begin, u_integer n, Callback operation);
 
         /**
         * @brief Apply operation to elements with condition check
@@ -252,7 +252,7 @@ namespace original
         */
         template<typename TYPE, typename Callback_O, typename Callback_C>
         requires Operation<Callback_O, TYPE> && Condition<Callback_C, TYPE>
-        static iterator<TYPE>* forEach(const iterator<TYPE> &begin, uint32_t n, Callback_O operation, const Callback_C& condition);
+        static iterator<TYPE>* forEach(const iterator<TYPE> &begin, u_integer n, Callback_O operation, const Callback_C& condition);
 
         /**
          * @brief Fills a range with a specific value
@@ -275,7 +275,7 @@ namespace original
         * @return iterator<TYPE>* Iterator past last filled element
         */
         template<typename TYPE>
-        static iterator<TYPE>* fill(const iterator<TYPE> &begin, uint32_t n, const TYPE &value = TYPE{});
+        static iterator<TYPE>* fill(const iterator<TYPE> &begin, u_integer n, const TYPE &value = TYPE{});
 
         /**
          * @brief Swaps the values of two elements
@@ -541,7 +541,7 @@ namespace original
         template<typename TYPE, typename Callback>
         requires Compare<Callback, TYPE>
         static void _introSort(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
-                               const Callback& compares, uint32_t depth_limit);
+                               const Callback& compares, u_integer depth_limit);
 
         /**
          * @brief Merges two sorted sub-ranges during merge sort
@@ -588,7 +588,7 @@ namespace original
          * @brief Pointer overload version of @ref distance()
          * */
         template <typename TYPE>
-        static auto distance(const iterator<TYPE>* end, const iterator<TYPE>* begin) -> int64_t
+        static auto distance(const iterator<TYPE>* end, const iterator<TYPE>* begin) -> integer
         {
             return distance(*end, *begin);
         }
@@ -597,7 +597,7 @@ namespace original
          * @brief Pointer overload version of @ref frontOf()
          * */
         template<typename TYPE>
-        static auto frontOf(const iterator<TYPE> *it, int64_t steps) -> iterator<TYPE> * {
+        static auto frontOf(const iterator<TYPE> *it, integer steps) -> iterator<TYPE> * {
             return frontOf(*it, steps);
         }
 
@@ -605,7 +605,7 @@ namespace original
          * @brief Pointer overload version of @ref backOf()
          * */
         template<typename TYPE>
-        static auto backOf(const iterator<TYPE> *it, int64_t steps) -> iterator<TYPE> * {
+        static auto backOf(const iterator<TYPE> *it, integer steps) -> iterator<TYPE> * {
             return backOf(*it, steps);
         }
 
@@ -652,7 +652,7 @@ namespace original
          * @brief Pointer overload version of @ref find()
          * */
         template <typename TYPE>
-        static auto find(const iterator<TYPE>* begin, uint32_t n,
+        static auto find(const iterator<TYPE>* begin, u_integer n,
                          const TYPE& target) -> iterator<TYPE>* {
             return find(*begin, n, target);
         }
@@ -672,7 +672,7 @@ namespace original
          * */
         template <typename TYPE, typename Callback>
         requires original::Condition<Callback, TYPE>
-        static auto find(const iterator<TYPE>* begin, uint32_t n, const Callback& condition) -> iterator<TYPE>* {
+        static auto find(const iterator<TYPE>* begin, u_integer n, const Callback& condition) -> iterator<TYPE>* {
             return find(*begin, n, condition);
         }
 
@@ -681,7 +681,7 @@ namespace original
          * */
         template <typename TYPE>
         static auto count(const iterator<TYPE>* begin, const iterator<TYPE>* end,
-                                         const TYPE& target) -> uint32_t {
+                                         const TYPE& target) -> u_integer {
             return count(*begin, *end, target);
         }
 
@@ -691,7 +691,7 @@ namespace original
         template <typename TYPE, typename Callback>
         requires original::Condition<Callback, TYPE>
         static auto count(const iterator<TYPE>* begin, const iterator<TYPE>* end,
-                                         const Callback& condition) -> uint32_t {
+                                         const Callback& condition) -> u_integer {
             return count(*begin, *end, condition);
         }
 
@@ -719,7 +719,7 @@ namespace original
          * */
         template <typename TYPE, typename Callback>
         requires original::Operation<Callback, TYPE>
-        static auto forEach(const iterator<TYPE>* begin, uint32_t n, Callback operation) -> iterator<TYPE>* {
+        static auto forEach(const iterator<TYPE>* begin, u_integer n, Callback operation) -> iterator<TYPE>* {
             return forEach(*begin, n, operation);
         }
 
@@ -736,7 +736,7 @@ namespace original
          * @brief Pointer overload version of @ref fill()
          * */
         template<typename TYPE>
-        static auto fill(const iterator<TYPE>* begin, uint32_t n, const TYPE& value) -> iterator<TYPE>* {
+        static auto fill(const iterator<TYPE>* begin, u_integer n, const TYPE& value) -> iterator<TYPE>* {
             return fill(*begin, n, value);
         }
 
@@ -849,7 +849,7 @@ namespace original
 }
 
     template <typename TYPE>
-    auto original::algorithms::distance(const iterator<TYPE>& end, const iterator<TYPE>& begin) -> int64_t
+    auto original::algorithms::distance(const iterator<TYPE>& end, const iterator<TYPE>& begin) -> integer
     {
         auto* it1 = end.clone();
         auto* it2 = begin.clone();
@@ -860,12 +860,12 @@ namespace original
     }
 
     template<typename TYPE>
-    original::iterator<TYPE> *original::algorithms::frontOf(const iterator<TYPE> &it, int64_t steps) {
+    original::iterator<TYPE> *original::algorithms::frontOf(const iterator<TYPE> &it, integer steps) {
         return it + steps;
     }
 
     template<typename TYPE>
-    original::iterator<TYPE> *original::algorithms::backOf(const iterator<TYPE> &it, int64_t steps) {
+    original::iterator<TYPE> *original::algorithms::backOf(const iterator<TYPE> &it, integer steps) {
         return it - steps;
     }
 
@@ -929,9 +929,9 @@ namespace original
     }
 
     template <typename TYPE>
-    auto original::algorithms::find(const iterator<TYPE>& begin, const uint32_t n, const TYPE& target) -> iterator<TYPE>* {
+    auto original::algorithms::find(const iterator<TYPE>& begin, const u_integer n, const TYPE& target) -> iterator<TYPE>* {
         auto it = begin.clone();
-        for (uint32_t i = 0; i < n; i += 1, it->next())
+        for (u_integer i = 0; i < n; i += 1, it->next())
         {
             if (it->get() == target) return it;
         }
@@ -955,9 +955,9 @@ namespace original
 
     template <typename TYPE, typename Callback>
     requires original::Condition<Callback, TYPE>
-    auto original::algorithms::find(const iterator<TYPE>& begin, const uint32_t n, const Callback& condition) -> iterator<TYPE>* {
+    auto original::algorithms::find(const iterator<TYPE>& begin, const u_integer n, const Callback& condition) -> iterator<TYPE>* {
         auto it = begin.clone();
-        for (uint32_t i = 0; i < n; i += 1, it->next())
+        for (u_integer i = 0; i < n; i += 1, it->next())
         {
             if (condition(it->get())) return it;
         }
@@ -966,9 +966,9 @@ namespace original
 
     template <typename TYPE>
     auto original::algorithms::count(const iterator<TYPE>& begin, const iterator<TYPE>& end,
-        const TYPE& target) -> uint32_t
+        const TYPE& target) -> u_integer
     {
-        uint32_t cnt = 0;
+        u_integer cnt = 0;
         auto it = begin.clone();
         while (it->isValid() && !end.atPrev(it)) {
             if (it->get() == target) {
@@ -983,9 +983,9 @@ namespace original
     template <typename TYPE, typename Callback>
     requires original::Condition<Callback, TYPE>
     auto original::algorithms::count(const iterator<TYPE>& begin, const iterator<TYPE>& end,
-                                     const Callback& condition) -> uint32_t
+                                     const Callback& condition) -> u_integer
     {
-        uint32_t cnt = 0;
+        u_integer cnt = 0;
         auto it = begin.clone();
         while (it->isValid() && !end.atPrev(it)) {
             if (condition(it->get())) {
@@ -1029,10 +1029,10 @@ namespace original
 
     template <typename TYPE, typename Callback>
     requires original::Operation<Callback, TYPE>
-    auto original::algorithms::forEach(const iterator<TYPE>& begin, const uint32_t n,
+    auto original::algorithms::forEach(const iterator<TYPE>& begin, const u_integer n,
                                        Callback operation) -> iterator<TYPE>* {
         auto it = begin.clone();
-        for (uint32_t i = 0; i < n; i += 1, it->next())
+        for (u_integer i = 0; i < n; i += 1, it->next())
         {
             operation(it->get());
         }
@@ -1054,10 +1054,10 @@ namespace original
 
     template<typename TYPE, typename Callback_O, typename Callback_C>
     requires original::Operation<Callback_O, TYPE> && original::Condition<Callback_C, TYPE>
-    auto original::algorithms::forEach(const iterator<TYPE> &begin, const uint32_t n, Callback_O operation,
+    auto original::algorithms::forEach(const iterator<TYPE> &begin, const u_integer n, Callback_O operation,
                                        const Callback_C &condition) -> iterator<TYPE>* {
         auto it = begin.clone();
-        for (uint32_t i = 0; i < n; i += 1, it->next())
+        for (u_integer i = 0; i < n; i += 1, it->next())
         {
             if (condition(it->get()))
                 operation(it->get());
@@ -1080,9 +1080,9 @@ namespace original
 
     template<typename TYPE>
     auto original::algorithms::fill(const iterator<TYPE>& begin,
-                                    const uint32_t n, const TYPE& value) -> iterator<TYPE>* {
+                                    const u_integer n, const TYPE& value) -> iterator<TYPE>* {
         auto it = begin.clone();
-        for (uint32_t i = 0; i < n; ++i) {
+        for (u_integer i = 0; i < n; ++i) {
             it->set(value);
             it->next();
         }
@@ -1233,11 +1233,11 @@ namespace original
     requires original::Compare<Callback, TYPE>
     void original::algorithms::introSort(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                          const Callback &compares) {
-        int64_t dis = distance(end, begin);
+        integer dis = distance(end, begin);
         if (dis <= 0)
             return;
 
-        uint32_t depth_limit = 2 * std::log2(distance(end, begin));
+        u_integer depth_limit = 2 * std::log2(distance(end, begin));
         _introSort(begin, end, compares, depth_limit);
     }
 
@@ -1342,7 +1342,7 @@ namespace original
     requires original::Compare<Callback, TYPE>
     void
     original::algorithms::_introSort(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
-                                     const Callback &compares, uint32_t depth_limit) {
+                                     const Callback &compares, u_integer depth_limit) {
         if (distance(end, begin) <= 16) {
             insertionSort(begin, end, compares);
             return;
@@ -1419,7 +1419,7 @@ namespace original
     requires original::Compare<Callback, TYPE>
     void original::algorithms::_stableSort(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                            const Callback &compares) {
-        int64_t dis = distance(end, begin);
+        integer dis = distance(end, begin);
 
         if (dis <= 1)
             return;
