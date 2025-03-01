@@ -7,10 +7,10 @@
 
 /**
  * @file blocksList.h
- * @brief A block-based list implementation similar to std::deque.
+ * @brief A block-based list implementation.
  * @details This file provides the definition of the blocksList class, which is a list that stores elements
- *          in blocks. It efficiently handles operations such as insertion and removal at both ends, while
- *          maintaining a structure similar to std::deque. The class supports random access and iteration.
+ *          in blocks. It efficiently handles operations such as insertion and removal at both ends.
+ *          The class supports random access and iteration.
  */
 
 namespace original {
@@ -20,8 +20,8 @@ namespace original {
      * @brief A block-based list implementation.
      * @extends baseList
      * @extends iterationStream
-     * @details The blocksList class is a container that stores elements in blocks, which makes it similar to
-     *          std::deque. The class provides operations for insertion, deletion, and accessing elements
+     * @details The blocksList class is a container that stores elements in blocks.
+     *          The class provides operations for insertion, deletion, and accessing elements
      *          from both ends. The internal structure consists of blocks of a fixed size, and elements are
      *          efficiently managed across these blocks. It also provides bidirectional iteration.
      */
@@ -369,7 +369,7 @@ namespace original {
          * @brief Gets the size of the blocksList.
          * @return The size of the blocksList.
          */
-        [[nodiscard]] uint32_t size() const override;
+        [[nodiscard]] u_integer size() const override;
 
         /**
          * @brief Gets an iterator to the beginning of the blocksList.
@@ -861,7 +861,8 @@ namespace original {
     }
 
     template<typename TYPE>
-    auto original::blocksList<TYPE>::size() const -> uint32_t {
+    auto original::blocksList<TYPE>::size() const -> u_integer
+    {
         return this->size_;
     }
 
