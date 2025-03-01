@@ -136,20 +136,20 @@ namespace original {
              * @brief Advances the iterator by a specified number of steps.
              * @param steps The number of steps to move forward.
              */
-            void operator+=(int64_t steps) const override;
+            void operator+=(integer steps) const override;
 
             /**
              * @brief Moves the iterator backward by a specified number of steps.
              * @param steps The number of steps to move backward.
              */
-            void operator-=(int64_t steps) const override;
+            void operator-=(integer steps) const override;
 
             /**
              * @brief Calculates the distance between this iterator and another iterator.
              * @param other The iterator to compare with.
              * @return The number of steps between the two iterators.
              */
-            int64_t operator-(const iterator<TYPE>& other) const override;
+            integer operator-(const iterator<TYPE>& other) const override;
 
             /**
              * @brief Gets the value of the element the iterator is pointing to.
@@ -382,19 +382,19 @@ namespace original {
     }
 
     template <typename TYPE>
-    auto original::iterable<TYPE>::iterAdaptor::operator+=(int64_t steps) const -> void
+    auto original::iterable<TYPE>::iterAdaptor::operator+=(integer steps) const -> void
     {
         this->it_->operator+=(steps);
     }
 
     template <typename TYPE>
-    auto original::iterable<TYPE>::iterAdaptor::operator-=(int64_t steps) const -> void
+    auto original::iterable<TYPE>::iterAdaptor::operator-=(integer steps) const -> void
     {
         this->it_->operator-=(steps);
     }
 
     template <typename TYPE>
-    auto original::iterable<TYPE>::iterAdaptor::operator-(const iterator<TYPE>& other) const -> int64_t
+    auto original::iterable<TYPE>::iterAdaptor::operator-(const iterator<TYPE>& other) const -> integer
     {
         auto* other_it = dynamic_cast<const iterAdaptor*>(&other);
         if (other_it == nullptr)

@@ -225,7 +225,7 @@ namespace original {
     }
 
     TEST(ChainTest, pushTest) {
-        constexpr int64_t dataSize = 100000;  // 大数据量测试
+        constexpr integer dataSize = 100000;  // 大数据量测试
         std::random_device rd;
         std::mt19937 gen(rd());
 
@@ -233,7 +233,7 @@ namespace original {
         std::list<size_t> l;
         for (int i = 0; i < dataSize; ++i) {
             std::uniform_int_distribution dist(0, i);
-            const int64_t rand = dist(gen);
+            const integer rand = dist(gen);
             auto li = l.begin();
             for (size_t j = 0; j < rand; ++j) {
                 ++li;
@@ -275,7 +275,7 @@ namespace original {
     }
 
     TEST(ChainTest, popTest) {
-        constexpr int64_t dataSize = 100000;  // 大数据量测试
+        constexpr integer dataSize = 100000;  // 大数据量测试
         std::random_device rd;
         std::mt19937 gen(rd());
 
@@ -283,7 +283,7 @@ namespace original {
         std::list<size_t> l;
         for (int i = 0; i < dataSize; ++i) {
             std::uniform_int_distribution dist(0, i);
-            const int64_t rand = dist(gen);
+            const integer rand = dist(gen);
             auto li = l.begin();
             for (size_t j = 0; j < rand; ++j) {
                 ++li;
@@ -293,7 +293,7 @@ namespace original {
         }
         while (!c.empty()) {
             std::uniform_int_distribution dist(0, static_cast<int>(c.size() - 1));
-            const int64_t rand = dist(gen);
+            const integer rand = dist(gen);
             auto li = l.begin();
             for (size_t j = 0; j < rand; ++j) {
                 ++li;

@@ -31,7 +31,7 @@ public:
      *
      * @code{.cpp}
      * container<int>* c = new vector<int>();
-     * uint32_t size = c->size(); // Returns the number of elements
+     * u_integer size = c->size(); // Returns the number of elements
      * @endcode
      */
     [[nodiscard]] virtual u_integer size() const = 0;

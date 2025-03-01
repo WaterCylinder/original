@@ -80,27 +80,27 @@ public:
      * @brief Adds a number of steps to the current position of iterator.
      * @param steps The number of steps to move forward.
      */
-    virtual void operator+=(int64_t steps) const = 0;
+    virtual void operator+=(integer steps) const = 0;
 
     /**
      * @brief Subtracts a number of steps from the current position of iterator.
      * @param steps The number of steps to move backward.
      */
-    virtual void operator-=(int64_t steps) const = 0;
+    virtual void operator-=(integer steps) const = 0;
 
     /**
      * @brief Compares two iterators to determine their relative positions.
      * @param other The iterator to compare with.
      * @return A negative value if this iterator is before the other, zero if equal, and a positive value if after.
      */
-    int64_t compareTo(const iterator& other) const override;
+    integer compareTo(const iterator& other) const override;
 
     /**
      * @brief Returns the distance between this iterator and another iterator.
      * @param other The iterator to compare against.
      * @return The number of steps between the two iterators.
      */
-    virtual int64_t operator-(const iterator& other) const = 0;
+    virtual integer operator-(const iterator& other) const = 0;
 
     /**
      * @brief Creates a clone of the iterator.
@@ -240,10 +240,10 @@ public:
 
     // Friends for operator overloading
     template<typename T>
-    friend iterator<T>* operator+(const iterator<T>& it, int64_t steps);
+    friend iterator<T>* operator+(const iterator<T>& it, integer steps);
 
     template<typename T>
-    friend iterator<T>* operator-(const iterator<T>& it, int64_t steps);
+    friend iterator<T>* operator-(const iterator<T>& it, integer steps);
 };
 
 /**
@@ -280,7 +280,7 @@ public:
  *          advanced by `steps` positions.
  */
 template <typename T>
-auto operator+(const iterator<T>& it, int64_t steps) -> iterator<T>*;
+auto operator+(const iterator<T>& it, integer steps) -> iterator<T>*;
 
 /**
  * @brief Subtracts a number of steps from the iterator's current position and returns a new iterator.
@@ -292,7 +292,7 @@ auto operator+(const iterator<T>& it, int64_t steps) -> iterator<T>*;
  *          moved backward by `steps` positions.
  */
 template <typename T>
-auto operator-(const iterator<T>& it, int64_t steps) -> iterator<T>*;
+auto operator-(const iterator<T>& it, integer steps) -> iterator<T>*;
 
 } // namespace original
     template<typename TYPE>
@@ -326,7 +326,7 @@ auto operator-(const iterator<T>& it, int64_t steps) -> iterator<T>*;
     }
 
     template<typename TYPE>
-    auto original::iterator<TYPE>::compareTo(const iterator &other) const -> int64_t {
+    auto original::iterator<TYPE>::compareTo(const iterator &other) const -> integer {
         return this->operator-(other);
     }
 
@@ -387,7 +387,7 @@ auto operator-(const iterator<T>& it, int64_t steps) -> iterator<T>*;
     }
 
     template <typename TYPE>
-    auto original::operator+(const iterator<TYPE>& it, int64_t steps) -> iterator<TYPE>*
+    auto original::operator+(const iterator<TYPE>& it, integer steps) -> iterator<TYPE>*
     {
         auto* nit = it.clone();
         nit->operator+=(steps);
@@ -395,7 +395,7 @@ auto operator-(const iterator<T>& it, int64_t steps) -> iterator<T>*;
     }
 
     template <typename TYPE>
-    auto original::operator-(const iterator<TYPE>& it, int64_t steps) -> iterator<TYPE>*
+    auto original::operator-(const iterator<TYPE>& it, integer steps) -> iterator<TYPE>*
     {
         auto* nit = it.clone();
         nit->operator-=(steps);

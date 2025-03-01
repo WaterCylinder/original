@@ -50,7 +50,7 @@ namespace original {
          *         -1 if the current stream is less than the other,
          *         1 if greater, and 0 if equal.
          */
-        int64_t compareTo(const iterationStream &other) const override;
+        integer compareTo(const iterationStream &other) const override;
 
         /**
          * @brief Returns the class name.
@@ -89,7 +89,7 @@ auto original::iterationStream<TYPE, DERIVED>::elementsString() const -> std::st
 }
 
 template<typename TYPE, typename DERIVED>
-auto original::iterationStream<TYPE, DERIVED>::compareTo(const iterationStream &other) const -> int64_t {
+auto original::iterationStream<TYPE, DERIVED>::compareTo(const iterationStream &other) const -> integer {
     const auto this_it = this->begin();
     const auto other_it = other.begin();
     for (; this_it.isValid() && other_it.isValid(); ++this_it, ++other_it) {

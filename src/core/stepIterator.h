@@ -50,7 +50,7 @@ namespace original
          * @param end Iterator pointing to the end position
          * @return The number of steps between the two iterators
          */
-        static int64_t ptrDistance(const stepIterator* start, const stepIterator* end);
+        static integer ptrDistance(const stepIterator* start, const stepIterator* end);
 
         /**
          * @brief Equality comparison for two iterators
@@ -120,21 +120,21 @@ namespace original
          * @brief Moves forward by a specified number of steps
          * @param steps The number of positions to move forward
          */
-        void operator+=(int64_t steps) const override;
+        void operator+=(integer steps) const override;
 
         /**
          * @brief Moves backward by a specified number of steps
          * @param steps The number of positions to move backward
          * @details This operation is supported by internally calling `operator+=` with a negative value of `steps`.
          */
-        void operator-=(int64_t steps) const override;
+        void operator-=(integer steps) const override;
 
         /**
          * @brief Calculates the number of steps between the current iterator and another iterator
          * @param other The iterator to compare with
          * @return The number of steps between the two iterators
          */
-        int64_t operator-(const iterator<TYPE>& other) const override;
+        integer operator-(const iterator<TYPE>& other) const override;
 
         /**
          * @brief Creates a new iterator pointing to the next element
@@ -185,11 +185,11 @@ namespace original
         : _ptr(ptr) {}
 
     template <typename TYPE>
-    auto original::stepIterator<TYPE>::ptrDistance(const stepIterator* start, const stepIterator* end) -> int64_t
+    auto original::stepIterator<TYPE>::ptrDistance(const stepIterator* start, const stepIterator* end) -> integer
     {
         auto* s = start->clone();
         auto* e = end->clone();
-        int64_t dis = 0;
+        integer dis = 0;
         while (s->isValid()){
             if (s->_ptr == e->_ptr){
                 return dis;
@@ -198,7 +198,7 @@ namespace original
             s->next();
         }
         if (e->isValid()){
-            dis = std::numeric_limits<int64_t>::max();
+            dis = std::numeric_limits<integer>::max();
         }
         delete s;
         delete e;
@@ -270,48 +270,48 @@ namespace original
     }
 
     template <typename TYPE>
-    auto original::stepIterator<TYPE>::operator+=(const int64_t steps) const -> void
+    auto original::stepIterator<TYPE>::operator+=(const integer steps) const -> void
     {
         if (steps < 0) {
             this->operator-=(original::abs(steps));
             return;
         }
 
-        for (int64_t i = 0; i < steps; i++)
+        for (integer i = 0; i < steps; i++)
         {
             this->next();
         }
     }
 
     template <typename TYPE>
-    auto original::stepIterator<TYPE>::operator-=(const int64_t steps) const -> void
+    auto original::stepIterator<TYPE>::operator-=(const integer steps) const -> void
     {
         if (steps < 0) {
             this->operator+=(original::abs(steps));
             return;
         }
 
-        for (int64_t i = 0; i < steps; i++)
+        for (integer i = 0; i < steps; i++)
         {
             this->prev();
         }
     }
 
     template <typename TYPE>
-    auto original::stepIterator<TYPE>::operator-(const iterator<TYPE>& other) const -> int64_t
+    auto original::stepIterator<TYPE>::operator-(const iterator<TYPE>& other) const -> integer
     {
         auto* other_it = dynamic_cast<const stepIterator*>(&other);
         if (other_it == nullptr)
             return this > &other ?
-                std::numeric_limits<int64_t>::max() :
-                std::numeric_limits<int64_t>::min();
-        if (const int64_t pos_dis = ptrDistance(other_it, this);
-            pos_dis != std::numeric_limits<int64_t>::max()) return pos_dis;
-        if (const int64_t neg_dis = ptrDistance(this, other_it);
-            neg_dis != std::numeric_limits<int64_t>::max()) return -neg_dis;
+                std::numeric_limits<integer>::max() :
+                std::numeric_limits<integer>::min();
+        if (const integer pos_dis = ptrDistance(other_it, this);
+            pos_dis != std::numeric_limits<integer>::max()) return pos_dis;
+        if (const integer neg_dis = ptrDistance(this, other_it);
+            neg_dis != std::numeric_limits<integer>::max()) return -neg_dis;
         return this->_ptr > other_it->_ptr ?
-            std::numeric_limits<int64_t>::max() :
-            std::numeric_limits<int64_t>::min();
+            std::numeric_limits<integer>::max() :
+            std::numeric_limits<integer>::min();
     }
 
     template <typename TYPE>

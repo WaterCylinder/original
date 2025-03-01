@@ -13,10 +13,10 @@ namespace original {
         class arrayIterator : public baseIterator<TYPE> {
         private:
             mutable TYPE* data_;
-            mutable int64_t index_;
+            mutable integer index_;
             mutable size_t max_size;
         public:
-            arrayIterator(TYPE* data, int64_t index, size_t size_) : data_(data), index_(index), max_size(size_) {}
+            arrayIterator(TYPE* data, integer index, size_t size_) : data_(data), index_(index), max_size(size_) {}
 
             bool equalPtr(const iterator<TYPE>* other) const override {
                 auto* otherIt = dynamic_cast<const arrayIterator*>(other);
@@ -61,18 +61,18 @@ namespace original {
                 return other_it && this->index_ == other_it->index_ + 1;
             }
 
-            void operator+=(int64_t steps) const override {
+            void operator+=(integer steps) const override {
                 index_ += steps;
             }
 
-            void operator-=(int64_t steps) const override {
+            void operator-=(integer steps) const override {
                 index_ -= steps;
             }
 
-            int64_t operator-(const iterator<TYPE>& other) const override {
+            integer operator-(const iterator<TYPE>& other) const override {
                 auto* o = dynamic_cast<const arrayIterator*>(&other);
                 if (!o)
-                    return std::numeric_limits<int64_t>::max();
+                    return std::numeric_limits<integer>::max();
                 return this->index_ - o->index_;
             }
 

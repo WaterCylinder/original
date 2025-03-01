@@ -14,7 +14,7 @@ template <size_t N>
             return false;
         }
         bool result = true;
-        for (int64_t i = 0; i < N; ++i) {
+        for (integer i = 0; i < N; ++i) {
             if (a.get(i) != b[i])
             {
                 std::cout << "Not equal at index " << i << std::endl;
@@ -62,7 +62,7 @@ TEST(BitSetTest, IndexOperator) {
 }
 
 TEST(BitSetTest, BitwiseOperators) {
-    constexpr int64_t SIZE = 886;
+    constexpr integer SIZE = 886;
     original::bitSet bs1(SIZE);
     original::bitSet bs2(SIZE);
     std::bitset<SIZE> bs3;
@@ -109,7 +109,7 @@ TEST(BitSetTest, BitwiseOperators) {
 
 TEST(BitSetTest, BitwiseMemberOperators2)
 {
-    constexpr int64_t SIZE = 1025;
+    constexpr integer SIZE = 1025;
     original::bitSet bs1(SIZE);
     original::bitSet bs2(SIZE);
     std::bitset<SIZE> bs3;
@@ -151,7 +151,7 @@ TEST(BitSetTest, BitwiseMemberOperators2)
 }
 
 TEST(BitSetTest, Count) {
-    constexpr int64_t SIZE = 2048;
+    constexpr integer SIZE = 2048;
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_int_distribution<> dist(0, SIZE - 1);
@@ -176,8 +176,8 @@ TEST(BitSetTest, Count) {
 }
 
 TEST(BitSetTest, Resize) {
-    constexpr int64_t SIZE1 = 218;
-    constexpr int64_t SIZE2 = 1024;
+    constexpr integer SIZE1 = 218;
+    constexpr integer SIZE2 = 1024;
     original::bitSet bs1(SIZE1);
     bs1.set(0, true);
     bs1.set(5, true);

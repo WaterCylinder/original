@@ -27,14 +27,14 @@ namespace original {
 
             static constexpr integer BLOCK_MAX_SIZE = sizeof(underlying_type) * 8; ///< Maximum number of bits in a block.
             array<underlying_type> map; ///< Array to store the blocks of bits.
-            uint32_t size_; ///< The total number of bits in the set.
+            u_integer size_; ///< The total number of bits in the set.
 
 
             /**
              * @brief Initializes the bitSet with the given size.
              * @param size The size of the bitSet.
              */
-            void bitsetInit(uint32_t size);
+            void bitsetInit(u_integer size);
 
             /**
             * @brief Gets the value of a specific bit in a block.
@@ -108,7 +108,7 @@ namespace original {
              * @param index The global index.
              * @return A couple containing the block index and bit index within the block.
              */
-            static couple<uint32_t, integer> toInnerIdx(integer index);
+            static couple<u_integer, integer> toInnerIdx(integer index);
 
             /**
              * @brief Converts inner block and bit indices to a global index.
@@ -116,7 +116,7 @@ namespace original {
              * @param cur_bit The bit index within the block.
              * @return The global index.
              */
-            static integer toOuterIdx(uint32_t cur_block, integer cur_bit);
+            static integer toOuterIdx(u_integer cur_block, integer cur_bit);
 
         public:
 
@@ -260,7 +260,7 @@ namespace original {
              * @brief Constructs a bitSet with the given size.
              * @param size The size of the bitSet.
              */
-            explicit bitSet(uint32_t size);
+            explicit bitSet(u_integer size);
 
             /**
              * @brief Constructs a bitSet from an initializer list.
@@ -298,14 +298,14 @@ namespace original {
              * @brief Counts the number of bits set to true.
              * @return The count of true bits.
              */
-            [[nodiscard]] uint32_t count() const;
+            [[nodiscard]] u_integer count() const;
 
             /**
              * @brief Resizes the bitSet to the given size.
              * @param new_size The new size for the bitSet.
              * @return A new resized bitSet.
              */
-            [[nodiscard]] bitSet resize(uint32_t new_size) const;
+            [[nodiscard]] bitSet resize(u_integer new_size) const;
 
             /**
              * @brief Gets the size of the bitSet.
@@ -351,7 +351,7 @@ namespace original {
              * @param e The value to find.
              * @return The index of the first occurrence.
              */
-            [[nodiscard]] uint32_t indexOf(const bool &e) const override;
+            [[nodiscard]] u_integer indexOf(const bool &e) const override;
 
             /**
              * @brief Performs a bitwise AND operation between two bitSets.
@@ -422,7 +422,7 @@ namespace original {
     bitSet operator~(const bitSet& bs);
 }
 
-    inline auto original::bitSet::bitsetInit(const uint32_t size) -> void
+    inline auto original::bitSet::bitsetInit(const u_integer size) -> void
     {
         this->map = array<underlying_type>((size + BLOCK_MAX_SIZE - 1) / BLOCK_MAX_SIZE);
         this->size_ = size;
@@ -466,11 +466,11 @@ namespace original {
         value ? this->setBit(bit, block) : this->clearBit(bit, block);
     }
 
-    inline auto original::bitSet::toInnerIdx(const integer index) -> couple<uint32_t, integer> {
-        return {static_cast<uint32_t>(index / BLOCK_MAX_SIZE), index % BLOCK_MAX_SIZE};
+    inline auto original::bitSet::toInnerIdx(const integer index) -> couple<u_integer, integer> {
+        return {static_cast<u_integer>(index / BLOCK_MAX_SIZE), index % BLOCK_MAX_SIZE};
     }
 
-    inline auto original::bitSet::toOuterIdx(const uint32_t cur_block, const integer cur_bit) -> integer
+    inline auto original::bitSet::toOuterIdx(const u_integer cur_block, const integer cur_bit) -> integer
     {
         return cur_block *  BLOCK_MAX_SIZE + cur_bit;
     }
@@ -586,14 +586,14 @@ namespace original {
         return outer >= 0 && outer < this->container_->size();
     }
 
-    inline original::bitSet::bitSet(const uint32_t size)
+    inline original::bitSet::bitSet(const u_integer size)
         : size_()
     {
         this->bitsetInit(size);
     }
 
     inline original::bitSet::bitSet(const std::initializer_list<bool>& lst) : bitSet(lst.size()) {
-        uint32_t i = 0;
+        u_integer i = 0;
         for (const auto& e : lst) {
             auto idx = toInnerIdx(i);
             this->writeBit(idx.second(), idx.first(), e);
@@ -628,8 +628,8 @@ namespace original {
         return *this;
     }
 
-    inline auto original::bitSet::count() const -> uint32_t {
-        uint32_t count = 0;
+    inline auto original::bitSet::count() const -> u_integer {
+        u_integer count = 0;
         for (const auto& e : this->map) {
             auto n = e;
             while (n) {
@@ -640,15 +640,15 @@ namespace original {
         return count;
     }
 
-    inline auto original::bitSet::resize(const uint32_t new_size) const -> bitSet {
+    inline auto original::bitSet::resize(const u_integer new_size) const -> bitSet {
         if (this->size() == new_size) {
             return *this;
         }
 
         auto nb = bitSet(new_size);
-        const uint32_t blocks_min = min(nb.map.size(),
+        const u_integer blocks_min = min(nb.map.size(),
                                         this->map.size());
-        for (uint32_t i = 0; i < blocks_min; i++) {
+        for (u_integer i = 0; i < blocks_min; i++) {
             nb.map.set(i, this->map.get(i));
         }
         nb.clearRedundantBits();
@@ -687,8 +687,8 @@ namespace original {
         this->writeBit(idx.second(), idx.first(), e);
     }
 
-    inline auto original::bitSet::indexOf(const bool &e) const -> uint32_t {
-        for (uint32_t i = 0; i < this->size(); i++) {
+    inline auto original::bitSet::indexOf(const bool &e) const -> u_integer {
+        for (u_integer i = 0; i < this->size(); i++) {
             if (auto idx = toInnerIdx(i);
                 e == this->getBit(idx.second(), idx.first())) {
                 return i;
@@ -700,11 +700,11 @@ namespace original {
     inline auto original::bitSet::operator&=(const bitSet &other) -> bitSet& {
         if (this->size() != other.size()) {
             const auto resized = other.resize(this->size());
-            for (uint32_t i = 0; i < this->map.size(); i++) {
+            for (u_integer i = 0; i < this->map.size(); i++) {
                 this->map.set(i, this->map.get(i) & resized.map.get(i));
             }
         }else {
-            for (uint32_t i = 0; i < this->map.size(); i++) {
+            for (u_integer i = 0; i < this->map.size(); i++) {
                 this->map.set(i, this->map.get(i) & other.map.get(i));
             }
         }
@@ -714,11 +714,11 @@ namespace original {
     inline auto original::bitSet::operator|=(const bitSet &other) -> bitSet& {
         if (this->size() != other.size()) {
             const auto resized = other.resize(this->size());
-            for (uint32_t i = 0; i < this->map.size(); i++) {
+            for (u_integer i = 0; i < this->map.size(); i++) {
                 this->map.set(i, this->map.get(i) | resized.map.get(i));
             }
         }else {
-            for (uint32_t i = 0; i < this->map.size(); i++) {
+            for (u_integer i = 0; i < this->map.size(); i++) {
                 this->map.set(i, this->map.get(i) | other.map.get(i));
             }
         }
@@ -728,11 +728,11 @@ namespace original {
     inline auto original::bitSet::operator^=(const bitSet &other) -> bitSet& {
         if (this->size() != other.size()) {
             const auto resized = other.resize(this->size());
-            for (uint32_t i = 0; i < this->map.size(); i++) {
+            for (u_integer i = 0; i < this->map.size(); i++) {
                 this->map.set(i, this->map.get(i) ^ resized.map.get(i));
             }
         }else {
-            for (uint32_t i = 0; i < this->map.size(); i++) {
+            for (u_integer i = 0; i < this->map.size(); i++) {
                 this->map.set(i, this->map.get(i) ^ other.map.get(i));
             }
         }
@@ -760,7 +760,7 @@ namespace original {
 
     inline auto original::operator~(const bitSet &bs) -> bitSet {
         bitSet nbs(bs);
-        for (uint32_t i = 0; i < nbs.map.size(); i++) {
+        for (u_integer i = 0; i < nbs.map.size(); i++) {
             nbs.map.set(i, ~nbs.map.get(i));
         }
         nbs.clearRedundantBits();

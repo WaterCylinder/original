@@ -56,7 +56,7 @@ namespace original {
     public:
         /**
          * @brief Returns the number of elements in the adapter
-         * @return uint32_t Current number of stored elements
+         * @return u_integer Current number of stored elements
          * @details Directly delegates to underlying container's size() method
          */
         [[nodiscard]] u_integer size() const override;
@@ -75,7 +75,7 @@ namespace original {
          */
         bool contains(const TYPE &e) const override;
 
-        int64_t compareTo(const containerAdapter &other) const override;
+        integer compareTo(const containerAdapter &other) const override;
 
         /**
          * @brief Gets class name identifier for type information
@@ -123,7 +123,8 @@ namespace original {
 
     template<typename TYPE, template <typename> class SERIAL>
     requires original::ExtendsOf<original::baseList<TYPE>, SERIAL<TYPE>>
-    int64_t original::containerAdapter<TYPE, SERIAL>::compareTo(const containerAdapter& other) const {
+    auto original::containerAdapter<TYPE, SERIAL>::compareTo(const containerAdapter& other) const -> integer
+    {
         return serial_.compareTo(other.serial_);
     }
 

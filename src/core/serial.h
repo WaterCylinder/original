@@ -35,7 +35,7 @@ namespace original {
          * @details This method accounts for negative indices by converting them to positive indices
          *          before performing the bounds check.
          */
-        [[nodiscard]] bool indexOutOfBound(int64_t index) const;
+        [[nodiscard]] bool indexOutOfBound(integer index) const;
 
         /**
          * @brief Converts negative indices into valid positive indices.
@@ -43,7 +43,7 @@ namespace original {
          * @return The corresponding positive index for negative indices, otherwise returns the original index.
          * @details For example, if the index is -1, it will be converted to the last element's index.
          */
-        [[nodiscard]] int64_t parseNegIndex(int64_t index) const;
+        [[nodiscard]] integer parseNegIndex(integer index) const;
 
     public:
         /**
@@ -52,7 +52,7 @@ namespace original {
          * @return The element at the given index.
          * @details Derived classes must implement this method to provide the actual element retrieval.
          */
-        virtual TYPE get(int64_t index) const = 0;
+        virtual TYPE get(integer index) const = 0;
 
         /**
          * @brief Retrieves the first element in the container.
@@ -74,7 +74,7 @@ namespace original {
          * @return A copy of the element at the given index.
          * @details This method calls `get(index)` to retrieve the element, but returns a copy.
          */
-        virtual TYPE operator[](int64_t index) const;
+        virtual TYPE operator[](integer index) const;
 
         /**
          * @brief Retrieves or sets the element at the specified index (non-const version).
@@ -82,7 +82,7 @@ namespace original {
          * @return Reference to the element at the given index.
          * @details This method allows direct modification of the element at the specified index.
          */
-        virtual TYPE& operator[](int64_t index) = 0;
+        virtual TYPE& operator[](integer index) = 0;
 
         /**
          * @brief Sets the element at the specified index.
@@ -90,7 +90,7 @@ namespace original {
          * @param e The new value to store at the specified index.
          * @post get(index) == e
          */
-        virtual void set(int64_t index, const TYPE& e) = 0;
+        virtual void set(integer index, const TYPE& e) = 0;
 
         /**
          * @brief Finds the index of the specified element.
@@ -98,7 +98,7 @@ namespace original {
          * @return The index of the element, or `size()` if not found.
          * @details This method searches for the element in the container and returns its index.
          */
-        virtual uint32_t indexOf(const TYPE& e) const = 0;
+        virtual u_integer indexOf(const TYPE& e) const = 0;
 
         /**
          * @brief Checks if the container contains the specified element.
@@ -113,14 +113,14 @@ namespace original {
 // -------------------- Definitions of serial.h --------------------
 
 template<typename TYPE>
-auto original::serial<TYPE>::indexOutOfBound(const int64_t index) const -> bool
+auto original::serial<TYPE>::indexOutOfBound(const integer index) const -> bool
 {
-    int64_t parsed_index = this->parseNegIndex(index);
+    integer parsed_index = this->parseNegIndex(index);
     return parsed_index < 0 || parsed_index >= this->size();
 }
 
 template<typename TYPE>
-auto original::serial<TYPE>::parseNegIndex(int64_t index) const -> int64_t {
+auto original::serial<TYPE>::parseNegIndex(integer index) const -> integer {
     return index >= 0 ? index : this->size() + index;
 }
 
@@ -135,7 +135,7 @@ auto original::serial<TYPE>::getEnd() const -> TYPE {
 }
 
 template <typename TYPE>
-auto original::serial<TYPE>::operator[](const int64_t index) const -> TYPE
+auto original::serial<TYPE>::operator[](const integer index) const -> TYPE
 {
     return this->get(index);
 }

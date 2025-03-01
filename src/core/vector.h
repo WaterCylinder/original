@@ -28,10 +28,10 @@ namespace original{
      */
     template <typename TYPE>
     class vector final : public baseList<TYPE>, public iterationStream<TYPE, vector<TYPE>>{
-        uint32_t size_;                 ///< Current number of elements
-        const uint32_t INNER_SIZE_INIT = 16; ///< Initial buffer capacity
-        uint32_t max_size;              ///< Current buffer capacity
-        uint32_t inner_begin;           ///< Starting index in circular buffer
+        u_integer size_;                 ///< Current number of elements
+        const u_integer INNER_SIZE_INIT = 16; ///< Initial buffer capacity
+        u_integer max_size;              ///< Current buffer capacity
+        u_integer inner_begin;           ///< Starting index in circular buffer
         TYPE* body;                     ///< Internal storage buffer
 
         /**
@@ -49,7 +49,7 @@ namespace original{
          * @param size The size of the array to initialize.
          * @return Pointer to the newly allocated array.
          */
-        static TYPE* vectorArrayInit(uint32_t size);
+        static TYPE* vectorArrayInit(u_integer size);
 
         /**
          * @brief Moves elements from the old buffer to the new buffer.
@@ -59,34 +59,34 @@ namespace original{
          * @param new_body The new buffer to move elements to.
          * @param offset The offset to apply when moving the elements.
          */
-        static void moveElements(TYPE* old_body, uint32_t inner_idx,
-                                 uint32_t len, TYPE* new_body, integer offset);
+        static void moveElements(TYPE* old_body, u_integer inner_idx,
+                                 u_integer len, TYPE* new_body, integer offset);
 
         /**
          * @brief Converts an index to an inner buffer index.
          * @param index The index to convert.
          * @return The corresponding index in the internal buffer.
          */
-        [[nodiscard]] uint32_t toInnerIdx(integer index) const;
+        [[nodiscard]] u_integer toInnerIdx(integer index) const;
 
         /**
          * @brief Checks if a given increment would exceed the inner buffer size of the vector.
          * @param increment The increment to check.
          * @return True if the increment would exceed max size, false otherwise.
          */
-        [[nodiscard]] bool outOfMaxSize(uint32_t increment) const;
+        [[nodiscard]] bool outOfMaxSize(u_integer increment) const;
 
         /**
          * @brief Grows the vector's internal buffer to accommodate more elements.
          * @param new_size The new size for the buffer.
          */
-        void grow(uint32_t new_size);
+        void grow(u_integer new_size);
 
         /**
          * @brief Adjusts the vector's internal buffer to accommodate an increment in size.
          * @param increment The number of elements to accommodate.
          */
-        void adjust(uint32_t increment);
+        void adjust(u_integer increment);
 
     public:
         /**
@@ -231,7 +231,7 @@ namespace original{
          * @param e The element to find.
          * @return The index of the element, or the size of the vector if not found.
          */
-        uint32_t indexOf(const TYPE &e) const override;
+        u_integer indexOf(const TYPE &e) const override;
 
         /**
          * @brief Inserts an element at the beginning of the vector.
@@ -312,26 +312,26 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::vectorArrayInit(const uint32_t size) -> TYPE* {
+    auto original::vector<TYPE>::vectorArrayInit(const u_integer size) -> TYPE* {
         auto arr = new TYPE[size];
-        for (uint32_t i = 0; i < size; i++) {
+        for (u_integer i = 0; i < size; i++) {
             arr[i] = TYPE{};
         }
         return arr;
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::moveElements(TYPE* old_body, const uint32_t inner_idx,
-                                              const uint32_t len, TYPE* new_body, const integer offset) -> void{
+    auto original::vector<TYPE>::moveElements(TYPE* old_body, const u_integer inner_idx,
+                                              const u_integer len, TYPE* new_body, const integer offset) -> void{
         if (offset > 0)
         {
-            for (uint32_t i = 0; i < len; i += 1)
+            for (u_integer i = 0; i < len; i += 1)
             {
                 new_body[inner_idx + offset + len - 1 - i] = old_body[inner_idx + len - 1 - i];
             }
         }else
         {
-            for (uint32_t i = 0; i < len; i += 1)
+            for (u_integer i = 0; i < len; i += 1)
             {
                 new_body[inner_idx + offset + i] = old_body[inner_idx + i];
             }
@@ -339,22 +339,22 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::toInnerIdx(integer index) const -> uint32_t
+    auto original::vector<TYPE>::toInnerIdx(integer index) const -> u_integer
     {
         return this->inner_begin + index;
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::outOfMaxSize(uint32_t increment) const -> bool
+    auto original::vector<TYPE>::outOfMaxSize(u_integer increment) const -> bool
     {
         return this->inner_begin + this->size() + increment > this->max_size - 1 || static_cast<integer>(this->inner_begin) - static_cast<integer>(increment) < 0;
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::grow(const uint32_t new_size) -> void
+    auto original::vector<TYPE>::grow(const u_integer new_size) -> void
     {
         TYPE* new_body = vector::vectorArrayInit(new_size);
-        uint32_t new_begin = (new_size - 1) / 4;
+        u_integer new_begin = (new_size - 1) / 4;
         const integer offset = static_cast<integer>(new_begin) - static_cast<integer>(this->inner_begin);
         vector::moveElements(this->body, this->inner_begin,
                              this->size(), new_body, offset);
@@ -365,18 +365,18 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::adjust(uint32_t increment) -> void {
+    auto original::vector<TYPE>::adjust(u_integer increment) -> void {
         if (!this->outOfMaxSize(increment)) {
             return;
         }
-        uint32_t new_begin = (this->max_size - this->size() - increment) / 2;
+        u_integer new_begin = (this->max_size - this->size() - increment) / 2;
         if (this->max_size >= this->size_ + increment && new_begin > 0) {
             const integer offset = static_cast<integer>(new_begin) - static_cast<integer>(this->inner_begin);
             vector::moveElements(this->body, this->inner_begin, this->size(),
                                  this->body, offset);
             this->inner_begin = new_begin;
         } else {
-            const uint32_t new_max_size = (this->size() + increment) * 2;
+            const u_integer new_max_size = (this->size() + increment) * 2;
             this->grow(new_max_size);
         }
     }
@@ -458,7 +458,7 @@ namespace original{
         this->inner_begin = other.inner_begin;
         this->size_ = other.size_;
         this->body = vector::vectorArrayInit(this->max_size);
-        for (uint32_t i = 0; i < this->size(); ++i) {
+        for (u_integer i = 0; i < this->size(); ++i) {
             const TYPE& data = other.body[this->toInnerIdx(i)];
             this->body[this->toInnerIdx(i)] = data;
         }
@@ -490,7 +490,7 @@ namespace original{
     original::vector<TYPE>::vector(const array<TYPE>& arr) : vector()
     {
         this->adjust(arr.size());
-        for (uint32_t i = 0; i < arr.size(); i += 1)
+        for (u_integer i = 0; i < arr.size(); i += 1)
         {
             this->body[this->toInnerIdx(i)] = arr.get(i);
             this->size_ += 1;
@@ -542,9 +542,9 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::indexOf(const TYPE &e) const -> uint32_t
+    auto original::vector<TYPE>::indexOf(const TYPE &e) const -> u_integer
     {
-        for (uint32_t i = 0; i < this->size(); i += 1)
+        for (u_integer i = 0; i < this->size(); i += 1)
         {
             if (this->get(i) == e)
             {
@@ -580,7 +580,7 @@ namespace original{
             }
             this->adjust(1);
             index = this->toInnerIdx(this->parseNegIndex(index));
-            uint32_t rel_idx = index - this->inner_begin;
+            u_integer rel_idx = index - this->inner_begin;
             if (index - this->inner_begin <= (this->size() - 1) / 2)
             {
                 vector::moveElements(this->body, this->inner_begin,
@@ -632,7 +632,7 @@ namespace original{
         }
         TYPE res = this->get(index);
         index = this->toInnerIdx(this->parseNegIndex(index));
-        uint32_t rel_idx = index - this->inner_begin;
+        u_integer rel_idx = index - this->inner_begin;
         if (index - this->inner_begin <= (this->size() - 1) / 2)
         {
             vector::moveElements(this->body, this->inner_begin,

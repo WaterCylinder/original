@@ -36,7 +36,7 @@ namespace original {
     protected:
         mutable TYPE* _ptr;             ///< Pointer to the current element
         mutable const container<TYPE>* _container; ///< Reference to the parent container
-        mutable int64_t _pos;           ///< Absolute position in the container
+        mutable integer _pos;           ///< Absolute position in the container
 
         /**
          * @brief Protected constructor for derived classes
@@ -44,7 +44,7 @@ namespace original {
          * @param container Parent container reference
          * @param pos Initial position index
          */
-        explicit randomAccessIterator(TYPE* ptr, const container<TYPE>* container, int64_t pos);
+        explicit randomAccessIterator(TYPE* ptr, const container<TYPE>* container, integer pos);
 
         /**
          * @brief Equality comparison implementation
@@ -114,20 +114,20 @@ namespace original {
          * @brief Moves forward by N positions
          * @param steps Number of positions to advance
          */
-        void operator+=(int64_t steps) const override;
+        void operator+=(integer steps) const override;
 
         /**
          * @brief Moves backward by N positions
          * @param steps Number of positions to retreat
          */
-        void operator-=(int64_t steps) const override;
+        void operator-=(integer steps) const override;
 
         /**
          * @brief Computes the distance between the current iterator and another iterator.
          * @param other The iterator to compare with
          * @return The number of positions between the two iterators
          */
-        int64_t operator-(const iterator<TYPE>& other) const override;
+        integer operator-(const iterator<TYPE>& other) const override;
 
         /**
          * @brief Gets an iterator pointing to the next element
@@ -175,7 +175,7 @@ namespace original {
 
     template<typename TYPE>
     original::randomAccessIterator<TYPE>::randomAccessIterator(TYPE* ptr, const container<TYPE>* container,
-                                                               const int64_t pos)
+                                                               const integer pos)
         : _ptr{ptr}, _container{container}, _pos(pos) {}
 
     template<typename TYPE>
@@ -239,29 +239,29 @@ namespace original {
     }
 
     template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::operator+=(int64_t steps) const -> void {
+    auto original::randomAccessIterator<TYPE>::operator+=(integer steps) const -> void {
         this->_pos += steps;
         this->_ptr += steps;
     }
 
     template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::operator-=(int64_t steps) const -> void {
+    auto original::randomAccessIterator<TYPE>::operator-=(integer steps) const -> void {
         this->_pos -= steps;
         this->_ptr -= steps;
     }
 
     template <typename TYPE>
-    auto original::randomAccessIterator<TYPE>::operator-(const iterator<TYPE>& other) const -> int64_t
+    auto original::randomAccessIterator<TYPE>::operator-(const iterator<TYPE>& other) const -> integer
     {
         auto* other_it = dynamic_cast<const randomAccessIterator*>(&other);
         if (other_it == nullptr)
             return this > &other ?
-                std::numeric_limits<int64_t>::max() :
-                std::numeric_limits<int64_t>::min();
+                std::numeric_limits<integer>::max() :
+                std::numeric_limits<integer>::min();
         if (this->_container != other_it->_container)
             return this->_container > other_it->_container ?
-                std::numeric_limits<int64_t>::max() :
-                std::numeric_limits<int64_t>::min();
+                std::numeric_limits<integer>::max() :
+                std::numeric_limits<integer>::min();
         return this->_ptr - other_it->_ptr;
     }
 
