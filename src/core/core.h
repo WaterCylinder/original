@@ -16,6 +16,7 @@
 
 #include "algorithms.h"
 #include "array.h"
+#include "autoPtr.h"
 #include "baseArray.h"
 #include "baseList.h"
 #include "bitSet.h"
@@ -24,6 +25,7 @@
 #include "cloneable.h"
 #include "comparable.h"
 #include "comparator.h"
+#include "config.h"
 #include "container.h"
 #include "containerAdapter.h"
 #include "couple.h"
@@ -37,6 +39,7 @@
 #include "iterationStream.h"
 #include "iterator.h"
 #include "maths.h"
+#include "ownerPtr.h"
 #include "printable.h"
 #include "prique.h"
 #include "queue.h"
