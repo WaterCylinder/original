@@ -2,7 +2,7 @@
 #define CONTAINER_H
 #pragma once
 
-#include "cstdint"
+#include "config.h"
 
 namespace original {
 
@@ -34,7 +34,7 @@ public:
      * uint32_t size = c->size(); // Returns the number of elements
      * @endcode
      */
-    [[nodiscard]] virtual uint32_t size() const = 0;
+    [[nodiscard]] virtual u_integer size() const = 0;
 
     /**
      * @brief Checks if the container is empty.

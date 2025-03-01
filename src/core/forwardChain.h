@@ -109,7 +109,7 @@ namespace original {
                 static void connect(forwardChainNode* prev, forwardChainNode* next);
         };
 
-        uint32_t size_;         ///< The number of elements in the chain
+        u_integer size_;         ///< The number of elements in the chain
         forwardChainNode* begin_; ///< Pointer to the first node in the chain
 
         /**
@@ -123,7 +123,7 @@ namespace original {
          * @param index The index of the node to find.
          * @return A pointer to the node at the specified index.
          */
-        forwardChainNode* findNode(int64_t index) const;
+        forwardChainNode* findNode(integer index) const;
 
         /**
          * @brief Initializes the chain with a sentinel node.
@@ -251,35 +251,35 @@ namespace original {
          * @brief Gets the size of the forwardChain.
          * @return The number of elements in the forwardChain.
          */
-        [[nodiscard]] uint32_t size() const override;
+        [[nodiscard]] u_integer size() const override;
 
         /**
          * @brief Gets the element at the specified index.
          * @param index The index of the element to retrieve.
          * @return The element at the specified index.
          */
-        TYPE get(int64_t index) const override;
+        TYPE get(integer index) const override;
 
         /**
          * @brief Gets a reference to the element at the specified index.
          * @param index The index of the element to retrieve.
          * @return A reference to the element at the specified index.
          */
-        TYPE& operator[](int64_t index) override;
+        TYPE& operator[](integer index) override;
 
         /**
          * @brief Sets the element at the specified index.
          * @param index The index of the element to set.
          * @param e The value to set the element to.
          */
-        void set(int64_t index, const TYPE &e) override;
+        void set(integer index, const TYPE &e) override;
 
         /**
          * @brief Finds the index of the first occurrence of the specified element.
          * @param e The element to search for.
          * @return The index of the element, or the size of the forwardChain if not found.
          */
-        uint32_t indexOf(const TYPE &e) const override;
+        u_integer indexOf(const TYPE &e) const override;
 
         /**
          * @brief Pushes an element to the beginning of the forwardChain.
@@ -292,7 +292,7 @@ namespace original {
          * @param index The index at which to insert the element.
          * @param e The element to push.
          */
-        void push(int64_t index, const TYPE &e) override;
+        void push(integer index, const TYPE &e) override;
 
         /**
          * @brief Pushes an element to the end of the forwardChain.
@@ -311,7 +311,7 @@ namespace original {
          * @param index The index of the element to pop.
          * @return The element that was popped.
          */
-        TYPE pop(int64_t index) override;
+        TYPE pop(integer index) override;
 
         /**
          * @brief Pops an element from the end of the forwardChain.
@@ -405,10 +405,10 @@ namespace original {
     }
 
     template<typename TYPE>
-    auto original::forwardChain<TYPE>::findNode(const int64_t index) const -> forwardChainNode* {
+    auto original::forwardChain<TYPE>::findNode(const integer index) const -> forwardChainNode* {
         if (this->size() == 0) return this->begin_;
         auto* cur = this->beginNode();
-        for(uint32_t i = 0; i < index; i++)
+        for(u_integer i = 0; i < index; i++)
         {
             cur = cur->getPNext();
         }
@@ -519,7 +519,7 @@ namespace original {
 
     template<typename TYPE>
     original::forwardChain<TYPE>::forwardChain(const array<TYPE>& arr) : forwardChain() {
-        for (uint32_t i = 0; i < arr.size(); i++) {
+        for (u_integer i = 0; i < arr.size(); i++) {
             auto* cur_node = new forwardChainNode(arr.get(i));
             if (this->size() == 0)
             {
@@ -571,12 +571,13 @@ namespace original {
     }
 
     template<typename TYPE>
-    auto original::forwardChain<TYPE>::size() const -> uint32_t {
+    auto original::forwardChain<TYPE>::size() const -> u_integer
+    {
         return this->size_;
     }
 
     template<typename TYPE>
-    auto original::forwardChain<TYPE>::get(int64_t index) const -> TYPE {
+    auto original::forwardChain<TYPE>::get(integer index) const -> TYPE {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
         }
@@ -585,7 +586,7 @@ namespace original {
     }
 
     template<typename TYPE>
-    auto original::forwardChain<TYPE>::operator[](int64_t index) -> TYPE& {
+    auto original::forwardChain<TYPE>::operator[](integer index) -> TYPE& {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
         }
@@ -594,7 +595,7 @@ namespace original {
     }
 
     template<typename TYPE>
-    auto original::forwardChain<TYPE>::set(int64_t index, const TYPE &e) -> void {
+    auto original::forwardChain<TYPE>::set(integer index, const TYPE &e) -> void {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
         }
@@ -603,8 +604,8 @@ namespace original {
     }
 
     template<typename TYPE>
-    auto original::forwardChain<TYPE>::indexOf(const TYPE &e) const -> uint32_t {
-        uint32_t i = 0;
+    auto original::forwardChain<TYPE>::indexOf(const TYPE &e) const -> u_integer {
+        u_integer i = 0;
         for (auto* current = this->begin_; current != nullptr; current = current->getPNext()) {
             if (current->getVal() == e) {
                 return i;
@@ -628,7 +629,7 @@ namespace original {
     }
 
     template<typename TYPE>
-    auto original::forwardChain<TYPE>::push(int64_t index, const TYPE &e) -> void {
+    auto original::forwardChain<TYPE>::push(integer index, const TYPE &e) -> void {
         index = this->parseNegIndex(index);
         if (index == 0){
             this->pushBegin(e);
@@ -680,7 +681,7 @@ namespace original {
     }
 
     template<typename TYPE>
-    auto original::forwardChain<TYPE>::pop(int64_t index) -> TYPE {
+    auto original::forwardChain<TYPE>::pop(integer index) -> TYPE {
         index = this->parseNegIndex(index);
         if (index == 0){
             return this->popBegin();

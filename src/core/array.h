@@ -3,7 +3,7 @@
 #pragma once
 
 #include <initializer_list>
-
+#include "config.h"
 #include "baseArray.h"
 #include "iterationStream.h"
 #include "randomAccessIterator.h"
@@ -38,7 +38,7 @@ namespace original {
      */
     template<typename TYPE>
     class array final : public iterationStream<TYPE, array<TYPE>>, public baseArray<TYPE> {
-        uint32_t size_; ///< Size of the array
+        u_integer size_; ///< Size of the array
         TYPE* body;    ///< Pointer to the array's data
 
         /**
@@ -46,7 +46,7 @@ namespace original {
          * @param size The size of the array to allocate.
          * @details Allocates memory for the array and initializes each element to the default value of TYPE.
          */
-        void arrInit(uint32_t size);
+        void arrInit(u_integer size);
 
         /**
          * @brief Destroys the array and releases its allocated memory.
@@ -72,7 +72,7 @@ namespace original {
          * @param container A pointer to the array container.
          * @param pos The current position of the iterator in the array.
          */
-        explicit Iterator(TYPE* ptr, const array* container, int64_t pos);
+        explicit Iterator(TYPE* ptr, const array* container, integer pos);
 
     public:
         friend array;
@@ -128,7 +128,7 @@ namespace original {
          * @details Initializes the array with a given size, allocating memory for the array and setting
          *          each element to its default value.
          */
-        explicit array(uint32_t size = 0);
+        explicit array(u_integer size = 0);
 
         /**
          * @brief Constructs an array from an initializer list.
@@ -174,7 +174,7 @@ namespace original {
          * @brief Returns the size of the array.
          * @return The number of elements in the array.
          */
-        [[nodiscard]] uint32_t size() const override;
+        [[nodiscard]] u_integer size() const override;
 
         /**
          * @brief Returns a reference to the first element of the array.
@@ -188,7 +188,7 @@ namespace original {
          * @return The element at the specified index.
          * @throws outOfBoundError If the index is out of bounds.
          */
-        TYPE get(int64_t index) const override;
+        TYPE get(integer index) const override;
 
         /**
          * @brief Access an element at a specified index for modification.
@@ -196,7 +196,7 @@ namespace original {
          * @return A reference to the element at the specified index.
          * @throws outOfBoundError If the index is out of bounds.
          */
-        TYPE& operator[](int64_t index) override;
+        TYPE& operator[](integer index) override;
 
         /**
          * @brief Sets the value of an element at the specified index.
@@ -204,14 +204,14 @@ namespace original {
          * @param e The value to assign to the element.
          * @throws outOfBoundError If the index is out of bounds.
          */
-        void set(int64_t index, const TYPE& e) override;
+        void set(integer index, const TYPE& e) override;
 
         /**
          * @brief Finds the index of the specified element in the array.
          * @param e The element to find.
          * @return The index of the element, or the size of the array if the element is not found.
          */
-        uint32_t indexOf(const TYPE& e) const override;
+        u_integer indexOf(const TYPE& e) const override;
 
         /**
          * @brief Returns an iterator to the first element of the array.
@@ -241,10 +241,10 @@ namespace original {
 } // namespace original
 
     template<typename TYPE>
-    void original::array<TYPE>::arrInit(const uint32_t size) {
+    void original::array<TYPE>::arrInit(const u_integer size) {
         this->size_ = size;
         this->body = new TYPE[this->size_];
-        for (uint32_t i = 0; i < this->size(); ++i) {
+        for (u_integer i = 0; i < this->size(); ++i) {
             this->body[i] = TYPE{};
         }
     }
@@ -256,7 +256,7 @@ namespace original {
     }
 
     template <typename TYPE>
-    original::array<TYPE>::Iterator::Iterator(TYPE* ptr, const array* container, int64_t pos)
+    original::array<TYPE>::Iterator::Iterator(TYPE* ptr, const array* container, integer pos)
         : randomAccessIterator<TYPE>(ptr, container, pos) {}
 
     template <typename TYPE>
@@ -299,7 +299,7 @@ namespace original {
     }
 
     template <typename TYPE>
-    original::array<TYPE>::array(const uint32_t size)
+    original::array<TYPE>::array(const u_integer size)
         : size_(), body() {
         this->arrInit(size);
     }
@@ -307,7 +307,7 @@ namespace original {
     template <typename TYPE>
     original::array<TYPE>::array(const std::initializer_list<TYPE>& lst)
         : array(lst.size()) {
-        uint32_t i = 0;
+        u_integer i = 0;
         for (const auto& e : lst) {
             this->body[i] = e;
             i += 1;
@@ -330,7 +330,7 @@ namespace original {
             this->arrDestruct();
 
         this->arrInit(other.size());
-        for (uint32_t i = 0; i < this->size_; i++) {
+        for (u_integer i = 0; i < this->size_; i++) {
             this->body[i] = other.body[i];
         }
         return *this;
@@ -361,7 +361,7 @@ namespace original {
     }
 
     template <typename TYPE>
-    auto original::array<TYPE>::size() const -> uint32_t
+    auto original::array<TYPE>::size() const -> u_integer
     {
         return this->size_;
     }
@@ -372,7 +372,7 @@ namespace original {
     }
 
     template <typename TYPE>
-    auto original::array<TYPE>::get(int64_t index) const -> TYPE
+    auto original::array<TYPE>::get(integer index) const -> TYPE
     {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
@@ -381,7 +381,7 @@ namespace original {
     }
 
     template <typename TYPE>
-    auto original::array<TYPE>::operator[](int64_t index) -> TYPE&
+    auto original::array<TYPE>::operator[](integer index) -> TYPE&
     {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
@@ -390,7 +390,7 @@ namespace original {
     }
 
     template <typename TYPE>
-    auto original::array<TYPE>::set(int64_t index, const TYPE &e) -> void
+    auto original::array<TYPE>::set(integer index, const TYPE &e) -> void
     {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
@@ -399,9 +399,9 @@ namespace original {
     }
 
     template <typename TYPE>
-    auto original::array<TYPE>::indexOf(const TYPE &e) const -> uint32_t
+    auto original::array<TYPE>::indexOf(const TYPE &e) const -> u_integer
     {
-        for (uint32_t i = 0; i < this->size(); i += 1)
+        for (u_integer i = 0; i < this->size(); i += 1)
         {
             if (this->get(i) == e)
             {

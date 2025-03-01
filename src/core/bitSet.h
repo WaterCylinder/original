@@ -23,9 +23,9 @@ namespace original {
      *          and modify them. Iterators are available for traversing through the bits.
      */
     class bitSet final : public baseArray<bool>, public iterationStream<bool, bitSet>{
-            using underlying_type = uint64_t;
+            using underlying_type = u_integer;
 
-            static constexpr int64_t BLOCK_MAX_SIZE = sizeof(underlying_type) * 8; ///< Maximum number of bits in a block.
+            static constexpr integer BLOCK_MAX_SIZE = sizeof(underlying_type) * 8; ///< Maximum number of bits in a block.
             array<underlying_type> map; ///< Array to store the blocks of bits.
             uint32_t size_; ///< The total number of bits in the set.
 
@@ -42,7 +42,7 @@ namespace original {
             * @param bit The bit index within the block.
             * @return The value of the bit (true or false).
             */
-            [[nodiscard]] static bool getBitFromBlock(underlying_type block_value, int64_t bit);
+            [[nodiscard]] static bool getBitFromBlock(underlying_type block_value, integer bit);
 
             /**
              * @brief Sets a specific bit in a block.
@@ -50,7 +50,7 @@ namespace original {
              * @param bit The bit index within the block.
              * @return The new block value with the bit set.
              */
-            [[nodiscard]] static underlying_type setBitFromBlock(underlying_type block_value, int64_t bit);
+            [[nodiscard]] static underlying_type setBitFromBlock(underlying_type block_value, integer bit);
 
             /**
              * @brief Clears a specific bit in a block.
@@ -58,7 +58,7 @@ namespace original {
              * @param bit The bit index within the block.
              * @return The new block value with the bit cleared.
              */
-            [[nodiscard]] static underlying_type clearBitFromBlock(underlying_type block_value, int64_t bit);
+            [[nodiscard]] static underlying_type clearBitFromBlock(underlying_type block_value, integer bit);
 
             /**
              * @brief Clears the higher bits in a block beyond a specified index.
@@ -66,7 +66,7 @@ namespace original {
              * @param bit The index to clear higher bits from.
              * @return The new block value with higher bits cleared.
              */
-            [[nodiscard]] static underlying_type clearHigherBitsFromBlock(underlying_type block_value, int64_t bit);
+            [[nodiscard]] static underlying_type clearHigherBitsFromBlock(underlying_type block_value, integer bit);
 
             /**
              * @brief Clears any redundant bits (bits beyond the logical size of the set).
@@ -79,21 +79,21 @@ namespace original {
              * @param block The block index containing the bit.
              * @return The value of the bit (true or false).
              */
-            [[nodiscard]] bool getBit(int64_t bit, int64_t block) const;
+            [[nodiscard]] bool getBit(integer bit, integer block) const;
 
             /**
              * @brief Sets a specific bit in the bitSet.
              * @param bit The index of the bit to set.
              * @param block The block index to set the bit in.
              */
-            void setBit(int64_t bit, int64_t block);
+            void setBit(integer bit, integer block);
 
             /**
              * @brief Clears a specific bit in the bitSet.
              * @param bit The index of the bit to clear.
              * @param block The block index to clear the bit in.
              */
-            void clearBit(int64_t bit, int64_t block);
+            void clearBit(integer bit, integer block);
 
             /**
              * @brief Writes a specific bit in the bitSet (sets or clears based on value).
@@ -101,14 +101,14 @@ namespace original {
              * @param block The block index.
              * @param value The value to set the bit to (true or false).
              */
-            void writeBit(int64_t bit, int64_t block, bool value);
+            void writeBit(integer bit, integer block, bool value);
 
             /**
              * @brief Converts an index to an inner block and bit index.
              * @param index The global index.
              * @return A couple containing the block index and bit index within the block.
              */
-            static couple<uint32_t, int64_t> toInnerIdx(int64_t index);
+            static couple<uint32_t, integer> toInnerIdx(integer index);
 
             /**
              * @brief Converts inner block and bit indices to a global index.
@@ -116,7 +116,7 @@ namespace original {
              * @param cur_bit The bit index within the block.
              * @return The global index.
              */
-            static int64_t toOuterIdx(uint32_t cur_block, int64_t cur_bit);
+            static integer toOuterIdx(uint32_t cur_block, integer cur_bit);
 
         public:
 
@@ -128,8 +128,8 @@ namespace original {
          *          move forward, backward, and access or modify the bits.
          */
         class Iterator final : public baseIterator<bool> {
-                mutable int64_t cur_bit; ///< The current bit index.
-                mutable int64_t cur_block; ///< The current block index.
+                mutable integer cur_bit; ///< The current bit index.
+                mutable integer cur_block; ///< The current block index.
                 mutable underlying_type* block_; ///< Pointer to the current block.
                 const bitSet* container_; ///< Pointer to the containing bitSet.
 
@@ -140,7 +140,7 @@ namespace original {
                  * @param block_p Pointer to the block data.
                  * @param container The bitSet container the iterator belongs to.
                  */
-                explicit Iterator(int64_t bit, int64_t block, underlying_type* block_p, const bitSet* container);
+                explicit Iterator(integer bit, integer block, underlying_type* block_p, const bitSet* container);
 
                 /**
                  * @brief Checks if two iterators are equal.
@@ -210,20 +210,20 @@ namespace original {
                  * @brief Advances the iterator by the given number of steps.
                  * @param steps The number of steps to move forward.
                  */
-                void operator+=(int64_t steps) const override;
+                void operator+=(integer steps) const override;
 
                 /**
                  * @brief Moves the iterator backward by the given number of steps.
                  * @param steps The number of steps to move backward.
                  */
-                void operator-=(int64_t steps) const override;
+                void operator-=(integer steps) const override;
 
                 /**
                  * @brief Computes the distance between two iterators.
                  * @param other The other iterator.
                  * @return The distance between the two iterators in terms of the number of elements.
                  */
-                int64_t operator-(const iterator& other) const override;
+                integer operator-(const iterator& other) const override;
 
                 /**
                  * @brief Gets the value of the current bit.
@@ -311,7 +311,7 @@ namespace original {
              * @brief Gets the size of the bitSet.
              * @return The size of the bitSet.
              */
-            [[nodiscard]] uint32_t size() const override;
+            [[nodiscard]] u_integer size() const override;
 
             /**
              * @brief Gets the iterator to the beginning of the bitSet.
@@ -330,21 +330,21 @@ namespace original {
              * @param index The index of the bit.
              * @return The value of the bit.
              */
-            [[nodiscard]] bool get(int64_t index) const override;
+            [[nodiscard]] bool get(integer index) const override;
 
             /**
              * @brief Gets the reference of a specific bit by index.
              * @param index The index of the bit.
              * @throw original::unSupportedMethodError
              */
-            bool& operator[](int64_t index) override;
+            bool& operator[](integer index) override;
 
             /**
              * @brief Sets the value of a specific bit by index.
              * @param index The index of the bit.
              * @param e The value to set the bit to.
              */
-            void set(int64_t index, const bool &e) override;
+            void set(integer index, const bool &e) override;
 
             /**
              * @brief Finds the index of the first occurrence of a specific value.
@@ -428,19 +428,19 @@ namespace original {
         this->size_ = size;
     }
 
-    inline auto original::bitSet::getBitFromBlock(const underlying_type block_value, const int64_t bit) -> bool {
+    inline auto original::bitSet::getBitFromBlock(const underlying_type block_value, const integer bit) -> bool {
         return block_value & static_cast<underlying_type>(1) << bit;
     }
 
-    inline auto original::bitSet::setBitFromBlock(const underlying_type block_value, const int64_t bit) -> underlying_type {
+    inline auto original::bitSet::setBitFromBlock(const underlying_type block_value, const integer bit) -> underlying_type {
         return block_value | static_cast<underlying_type>(1) << bit;
     }
 
-    inline auto original::bitSet::clearBitFromBlock(const underlying_type block_value, const int64_t bit) -> underlying_type {
+    inline auto original::bitSet::clearBitFromBlock(const underlying_type block_value, const integer bit) -> underlying_type {
         return block_value & ~(static_cast<underlying_type>(1) << bit);
     }
 
-    inline auto original::bitSet::clearHigherBitsFromBlock(const underlying_type block_value, const int64_t bit) -> underlying_type
+    inline auto original::bitSet::clearHigherBitsFromBlock(const underlying_type block_value, const integer bit) -> underlying_type
     {
         return block_value & (static_cast<underlying_type>(1) << bit + 1) - static_cast<underlying_type>(1);
     }
@@ -450,32 +450,32 @@ namespace original {
         this->map.set(-1, clearHigherBitsFromBlock(this->map.get(-1), toInnerIdx(this->size() - 1).second()));
     }
 
-    inline auto original::bitSet::getBit(const int64_t bit, const int64_t block) const -> bool {
+    inline auto original::bitSet::getBit(const integer bit, const integer block) const -> bool {
         return getBitFromBlock(this->map.get(block), bit);
     }
 
-    inline auto original::bitSet::setBit(const int64_t bit, const int64_t block) -> void {
+    inline auto original::bitSet::setBit(const integer bit, const integer block) -> void {
         this->map.set(block, setBitFromBlock(this->map.get(block), bit));
     }
 
-    inline auto original::bitSet::clearBit(const int64_t bit, const int64_t block) -> void {
+    inline auto original::bitSet::clearBit(const integer bit, const integer block) -> void {
         this->map.set(block, clearBitFromBlock(this->map.get(block), bit));
     }
 
-    inline auto original::bitSet::writeBit(const int64_t bit, const int64_t block, const bool value) -> void {
+    inline auto original::bitSet::writeBit(const integer bit, const integer block, const bool value) -> void {
         value ? this->setBit(bit, block) : this->clearBit(bit, block);
     }
 
-    inline auto original::bitSet::toInnerIdx(const int64_t index) -> couple<uint32_t, int64_t> {
+    inline auto original::bitSet::toInnerIdx(const integer index) -> couple<uint32_t, integer> {
         return {static_cast<uint32_t>(index / BLOCK_MAX_SIZE), index % BLOCK_MAX_SIZE};
     }
 
-    inline auto original::bitSet::toOuterIdx(const uint32_t cur_block, const int64_t cur_bit) -> int64_t
+    inline auto original::bitSet::toOuterIdx(const uint32_t cur_block, const integer cur_bit) -> integer
     {
         return cur_block *  BLOCK_MAX_SIZE + cur_bit;
     }
 
-    inline original::bitSet::Iterator::Iterator(const int64_t bit, const int64_t block, underlying_type* block_p, const bitSet* container)
+    inline original::bitSet::Iterator::Iterator(const integer bit, const integer block, underlying_type* block_p, const bitSet* container)
         : cur_bit(bit), cur_block(block), block_(block_p), container_(container) {}
 
     inline auto original::bitSet::Iterator::equalPtr(const iterator *other) const -> bool {
@@ -533,30 +533,30 @@ namespace original {
         return it;
     }
 
-    inline auto original::bitSet::Iterator::operator+=(const int64_t steps) const -> void
+    inline auto original::bitSet::Iterator::operator+=(const integer steps) const -> void
     {
         auto new_idx = toInnerIdx(toOuterIdx(this->cur_block, this->cur_bit) + steps);
         this->cur_block = new_idx.first();
         this->cur_bit = new_idx.second();
     }
 
-    inline auto original::bitSet::Iterator::operator-=(const int64_t steps) const -> void
+    inline auto original::bitSet::Iterator::operator-=(const integer steps) const -> void
     {
         auto new_idx = toInnerIdx(toOuterIdx(this->cur_block, this->cur_bit) - steps);
         this->cur_block = new_idx.first();
         this->cur_bit = new_idx.second();
     }
 
-    inline auto original::bitSet::Iterator::operator-(const iterator &other) const -> int64_t {
+    inline auto original::bitSet::Iterator::operator-(const iterator &other) const -> integer {
         auto* other_it = dynamic_cast<const Iterator*>(&other);
         if (other_it == nullptr)
             return this > &other ?
-                std::numeric_limits<int64_t>::max() :
-                std::numeric_limits<int64_t>::min();
+                std::numeric_limits<integer>::max() :
+                std::numeric_limits<integer>::min();
         if (this->container_ != other_it->container_)
             return this->container_ > other_it->container_ ?
-                std::numeric_limits<int64_t>::max() :
-                std::numeric_limits<int64_t>::min();
+                std::numeric_limits<integer>::max() :
+                std::numeric_limits<integer>::min();
 
         return toOuterIdx(this->cur_block, this->cur_bit) - toOuterIdx(other_it->cur_block, other_it->cur_bit);
     }
@@ -655,7 +655,8 @@ namespace original {
         return nb;
     }
 
-    inline auto original::bitSet::size() const -> uint32_t {
+    inline auto original::bitSet::size() const -> u_integer
+    {
         return this->size_;
     }
 
@@ -668,18 +669,18 @@ namespace original {
                     &this->map.data() + this->map.size() - 1, this);
     }
 
-    inline auto original::bitSet::get(int64_t index) const -> bool {
+    inline auto original::bitSet::get(integer index) const -> bool {
         if (this->indexOutOfBound(index)) throw outOfBoundError();
         index = this->parseNegIndex(index);
         auto idx = toInnerIdx(index);
         return this->getBit(idx.second(), idx.first());
     }
 
-    inline auto original::bitSet::operator[](int64_t index) -> bool& {
+    inline auto original::bitSet::operator[](integer index) -> bool& {
         throw unSupportedMethodError();
     }
 
-    inline auto original::bitSet::set(int64_t index, const bool &e) -> void {
+    inline auto original::bitSet::set(integer index, const bool &e) -> void {
         if (this->indexOutOfBound(index)) throw outOfBoundError();
         index = this->parseNegIndex(index);
         auto idx = toInnerIdx(index);

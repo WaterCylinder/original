@@ -18,7 +18,7 @@ namespace original {
      * @tparam TYPE Type of elements stored in the deque
      * @tparam SERIAL Underlying container type (default: chain), see constraints from @ref original::containerAdapter
      * @brief Double-ended queue container adapter
-     * @extends original::containerAdapter<TYPE, SERIAL>
+     * @extends original::containerAdapter
      * @details Implements deque operations using the specified underlying container.
      * Supports efficient insertion and removal at both front and back ends.
      * Inherits template constraints from @ref original::containerAdapter.

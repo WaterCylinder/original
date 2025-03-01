@@ -60,14 +60,14 @@ namespace original{
          * @param offset The offset to apply when moving the elements.
          */
         static void moveElements(TYPE* old_body, uint32_t inner_idx,
-                                 uint32_t len, TYPE* new_body, int64_t offset);
+                                 uint32_t len, TYPE* new_body, integer offset);
 
         /**
          * @brief Converts an index to an inner buffer index.
          * @param index The index to convert.
          * @return The corresponding index in the internal buffer.
          */
-        [[nodiscard]] uint32_t toInnerIdx(int64_t index) const;
+        [[nodiscard]] uint32_t toInnerIdx(integer index) const;
 
         /**
          * @brief Checks if a given increment would exceed the inner buffer size of the vector.
@@ -106,7 +106,7 @@ namespace original{
                  * @param container Pointer to the container (vector) the iterator belongs to.
                  * @param pos The position of the iterator within the container.
                  */
-                explicit Iterator(TYPE* ptr, const vector* container, int64_t pos);
+                explicit Iterator(TYPE* ptr, const vector* container, integer pos);
             public:
                 friend vector;
 
@@ -197,7 +197,7 @@ namespace original{
          * @brief Gets the size of the vector.
          * @return The number of elements in the vector.
          */
-        [[nodiscard]] uint32_t size() const override;
+        [[nodiscard]] u_integer size() const override;
 
         /**
          * @brief Gets a reference to the first element in the vector.
@@ -210,21 +210,21 @@ namespace original{
          * @param index The index of the element.
          * @return The element at the specified index.
          */
-        TYPE get(int64_t index) const override;
+        TYPE get(integer index) const override;
 
         /**
          * @brief Gets a reference to the element at the specified index.
          * @param index The index of the element.
          * @return A reference to the element at the specified index.
          */
-        TYPE& operator[](int64_t index) override;
+        TYPE& operator[](integer index) override;
 
         /**
          * @brief Sets the element at the specified index.
          * @param index The index of the element to set.
          * @param e The value to set.
          */
-        void set(int64_t index, const TYPE &e) override;
+        void set(integer index, const TYPE &e) override;
 
         /**
          * @brief Finds the index of the first occurrence of the specified element.
@@ -244,7 +244,7 @@ namespace original{
          * @param index The index to insert the element at.
          * @param e The element to insert.
          */
-        void push(int64_t index, const TYPE &e) override;
+        void push(integer index, const TYPE &e) override;
 
         /**
          * @brief Inserts an element at the end of the vector.
@@ -263,7 +263,7 @@ namespace original{
          * @param index The index of the element to remove.
          * @return The removed element.
          */
-        TYPE pop(int64_t index) override;
+        TYPE pop(integer index) override;
 
         /**
          * @brief Removes and returns the last element in the vector.
@@ -322,7 +322,7 @@ namespace original{
 
     template <typename TYPE>
     auto original::vector<TYPE>::moveElements(TYPE* old_body, const uint32_t inner_idx,
-                                              const uint32_t len, TYPE* new_body, const int64_t offset) -> void{
+                                              const uint32_t len, TYPE* new_body, const integer offset) -> void{
         if (offset > 0)
         {
             for (uint32_t i = 0; i < len; i += 1)
@@ -339,7 +339,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::toInnerIdx(int64_t index) const -> uint32_t
+    auto original::vector<TYPE>::toInnerIdx(integer index) const -> uint32_t
     {
         return this->inner_begin + index;
     }
@@ -347,7 +347,7 @@ namespace original{
     template <typename TYPE>
     auto original::vector<TYPE>::outOfMaxSize(uint32_t increment) const -> bool
     {
-        return this->inner_begin + this->size() + increment > this->max_size - 1 || static_cast<int64_t>(this->inner_begin) - static_cast<int64_t>(increment) < 0;
+        return this->inner_begin + this->size() + increment > this->max_size - 1 || static_cast<integer>(this->inner_begin) - static_cast<integer>(increment) < 0;
     }
 
     template <typename TYPE>
@@ -355,7 +355,7 @@ namespace original{
     {
         TYPE* new_body = vector::vectorArrayInit(new_size);
         uint32_t new_begin = (new_size - 1) / 4;
-        const int64_t offset = static_cast<int64_t>(new_begin) - static_cast<int64_t>(this->inner_begin);
+        const integer offset = static_cast<integer>(new_begin) - static_cast<integer>(this->inner_begin);
         vector::moveElements(this->body, this->inner_begin,
                              this->size(), new_body, offset);
         delete[] this->body;
@@ -371,7 +371,7 @@ namespace original{
         }
         uint32_t new_begin = (this->max_size - this->size() - increment) / 2;
         if (this->max_size >= this->size_ + increment && new_begin > 0) {
-            const int64_t offset = static_cast<int64_t>(new_begin) - static_cast<int64_t>(this->inner_begin);
+            const integer offset = static_cast<integer>(new_begin) - static_cast<integer>(this->inner_begin);
             vector::moveElements(this->body, this->inner_begin, this->size(),
                                  this->body, offset);
             this->inner_begin = new_begin;
@@ -382,7 +382,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    original::vector<TYPE>::Iterator::Iterator(TYPE* ptr, const vector* container, int64_t pos)
+    original::vector<TYPE>::Iterator::Iterator(TYPE* ptr, const vector* container, integer pos)
         : randomAccessIterator<TYPE>(ptr, container, pos) {}
 
     template <typename TYPE>
@@ -498,7 +498,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::size() const -> uint32_t
+    auto original::vector<TYPE>::size() const -> u_integer
     {
         return this->size_;
     }
@@ -509,7 +509,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::get(int64_t index) const -> TYPE
+    auto original::vector<TYPE>::get(integer index) const -> TYPE
     {
         if (this->indexOutOfBound(index))
         {
@@ -520,7 +520,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::operator[](int64_t index) -> TYPE&
+    auto original::vector<TYPE>::operator[](integer index) -> TYPE&
     {
         if (this->indexOutOfBound(index))
         {
@@ -531,7 +531,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::set(int64_t index, const TYPE &e) -> void
+    auto original::vector<TYPE>::set(integer index, const TYPE &e) -> void
     {
         if (this->indexOutOfBound(index))
         {
@@ -564,7 +564,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::push(int64_t index, const TYPE &e) -> void
+    auto original::vector<TYPE>::push(integer index, const TYPE &e) -> void
     {
         if (this->parseNegIndex(index) == this->size())
         {
@@ -617,7 +617,7 @@ namespace original{
     }
 
     template <typename TYPE>
-    auto original::vector<TYPE>::pop(int64_t index) -> TYPE
+    auto original::vector<TYPE>::pop(integer index) -> TYPE
     {
         if (this->parseNegIndex(index) == 0)
         {

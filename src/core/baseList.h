@@ -60,7 +60,7 @@ namespace original {
          * @param e The element to be inserted.
          * @details This method must be implemented by derived classes.
          */
-        virtual void push(int64_t index, const TYPE& e) = 0;
+        virtual void push(integer index, const TYPE& e) = 0;
 
         /**
          * @brief Removes an element from a specific index.
@@ -68,7 +68,7 @@ namespace original {
          * @return The removed element.
          * @details This method must be implemented by derived classes.
          */
-        virtual TYPE pop(int64_t index) = 0;
+        virtual TYPE pop(integer index) = 0;
 
         /**
          * @brief Inserts an element at the beginning of the list.
@@ -109,7 +109,7 @@ namespace original {
     template <typename TYPE>
     auto original::baseList<TYPE>::remove(const TYPE& e) -> TYPE
     {
-        const int64_t index = this->indexOf(e);
+        const integer index = this->indexOf(e);
         return this->pop(index);
     }
 

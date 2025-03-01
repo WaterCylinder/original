@@ -1,6 +1,6 @@
 #ifndef COMPARABLE_H
 #define COMPARABLE_H
-#include <cstdint>
+#include "config.h"
 #include <compare>
 
 
@@ -35,7 +35,7 @@ public:
      * @param other The object to compare against.
      * @return A negative value if less than, zero if equal, and positive if greater than.
      */
-    virtual int64_t compareTo(const DERIVED &other) const = 0;
+    virtual integer compareTo(const DERIVED &other) const = 0;
 
     /**
      * @brief Three-way comparison operator (<=>), returns an ordered comparison result.
@@ -44,8 +44,8 @@ public:
      *          Defined as a friend function to enable symmetric argument handling.
      *
      * @tparam EXTENDED The actual derived type using CRTP pattern.
-     * @param lhs Left-hand side comparable object
-     * @param rhs Right-hand side comparable object
+     * @param lc Left-hand side comparable object
+     * @param rc Right-hand side comparable object
      * @return std::strong_ordering
      *          - std::strong_ordering::less    if lhs < rhs
      *          - std::strong_ordering::equal    if lhs == rhs

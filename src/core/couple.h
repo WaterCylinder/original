@@ -73,25 +73,25 @@ namespace original
          * @tparam IDX element index (0=1st element, 1=2nd element)
          * @return Constant reference to the corresponding element
          */
-        template<uint32_t IDX>
+        template<u_integer IDX>
         auto get() const;
 
         /**
          * @brief element modifies the template method
          * @tparam IDX element index (0=1st element, 1=2nd element)
-         * @tparam T-element type (auto-derivation)
+         * @tparam T Element type (auto-derivation)
          * @param e new element value
          */
-        template<uint32_t IDX, typename T>
+        template<u_integer IDX, typename T>
         void set(const T& e);
 
         /**
          * @brief Lexicographical comparison operation
          * @param other couple to compare with
-         * @return int64_t Negative if less, positive if greater, zero if equal
+         * @return integer Negative if less, positive if greater, zero if equal
          * @details Compares first elements first, then second elements if firsts are equal
          */
-        int64_t compareTo(const couple<F_TYPE, S_TYPE> &other) const override;
+        integer compareTo(const couple &other) const override;
 
         /**
          * @brief Access first element
@@ -150,7 +150,7 @@ namespace original
     }
 
     template<typename F_TYPE, typename S_TYPE>
-    template<uint32_t IDX>
+    template<original::u_integer IDX>
     auto original::couple<F_TYPE, S_TYPE>::get() const {
         if constexpr (IDX == 0){
             return this->first_;
@@ -162,21 +162,20 @@ namespace original
     }
 
     template<typename F_TYPE, typename S_TYPE>
-    template<uint32_t IDX, typename T>
+    template<original::u_integer IDX, typename T>
     void original::couple<F_TYPE, S_TYPE>::set(const T &e) {
         if constexpr (IDX == 0 && std::same_as<T, F_TYPE>){
             this->first_ = e;
-            return;
         } else if constexpr (IDX == 1 && std::same_as<T, S_TYPE>){
             this->second_ = e;
-            return;
         } else {
             error::asserts<valueError>();
         }
     }
 
     template<typename F_TYPE, typename S_TYPE>
-    int64_t original::couple<F_TYPE, S_TYPE>::compareTo(const couple& other) const {
+    auto original::couple<F_TYPE, S_TYPE>::compareTo(const couple& other) const -> integer
+    {
         if constexpr (Comparable<F_TYPE>){
             if (this->first_ < other.first_)
                 return -1;

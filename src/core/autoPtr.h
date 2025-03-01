@@ -1,6 +1,7 @@
 #ifndef AUTOPTR_H
 #define AUTOPTR_H
 
+#include "config.h"
 #include "printable.h"
 #include "comparable.h"
 
@@ -10,17 +11,17 @@ namespace original{
     class autoPtr : public printable, public comparable<DERIVED>{
     protected:
         class refCount {
-            uint32_t strong_refs;
-            uint32_t weak_refs;
+            u_integer strong_refs;
+            u_integer weak_refs;
 
         public:
             friend class autoPtr;
 
             explicit refCount();
 
-            [[nodiscard]] uint32_t strongRefs() const;
+            [[nodiscard]] u_integer strongRefs() const;
 
-            [[nodiscard]] uint32_t weakRefs() const;
+            [[nodiscard]] u_integer weakRefs() const;
 
             void addStrongRef();
 
@@ -48,7 +49,7 @@ namespace original{
 
         bool isValid() const;
 
-        int64_t compareTo(const autoPtr& p) const override;
+        integer compareTo(const autoPtr& p) const override;
     };
 }
 
@@ -57,12 +58,12 @@ original::autoPtr<TYPE, DERIVED>::refCount::refCount()
     : strong_refs(1), weak_refs(0) {}
 
 template<typename TYPE, typename DERIVED>
-uint32_t original::autoPtr<TYPE, DERIVED>::refCount::strongRefs() const {
+original::u_integer original::autoPtr<TYPE, DERIVED>::refCount::strongRefs() const {
     return this->strong_refs;
 }
 
 template<typename TYPE, typename DERIVED>
-uint32_t original::autoPtr<TYPE, DERIVED>::refCount::weakRefs() const {
+original::u_integer original::autoPtr<TYPE, DERIVED>::refCount::weakRefs() const {
     return this->weak_refs;
 }
 
@@ -106,7 +107,7 @@ bool original::autoPtr<TYPE, DERIVED>::isValid() const {
 }
 
 template<typename TYPE, typename DERIVED>
-int64_t original::autoPtr<TYPE, DERIVED>::compareTo(const autoPtr& p) const {
+original::integer original::autoPtr<TYPE, DERIVED>::compareTo(const autoPtr& p) const {
     return this->ptr - p.ptr;
 }
 

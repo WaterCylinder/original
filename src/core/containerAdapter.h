@@ -59,7 +59,7 @@ namespace original {
          * @return uint32_t Current number of stored elements
          * @details Directly delegates to underlying container's size() method
          */
-        [[nodiscard]] uint32_t size() const override;
+        [[nodiscard]] u_integer size() const override;
 
         /**
          * @brief Removes all elements from the adapter
@@ -75,7 +75,7 @@ namespace original {
          */
         bool contains(const TYPE &e) const override;
 
-        int64_t compareTo(const containerAdapter<TYPE, SERIAL> &other) const override;
+        int64_t compareTo(const containerAdapter &other) const override;
 
         /**
          * @brief Gets class name identifier for type information
@@ -104,7 +104,8 @@ namespace original {
 
     template<typename TYPE, template <typename> typename SERIAL>
     requires original::ExtendsOf<original::baseList<TYPE>, SERIAL<TYPE>>
-    auto original::containerAdapter<TYPE, SERIAL>::size() const -> uint32_t {
+    auto original::containerAdapter<TYPE, SERIAL>::size() const -> u_integer
+    {
         return serial_.size();
     }
 
