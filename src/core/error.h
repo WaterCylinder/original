@@ -157,7 +157,7 @@ void original::callBackChecker::check() {
 template<typename ERR>
 requires original::ExtendsOf<original::error, ERR>
 void original::error::asserts() {
-    if constexpr (std::is_same_v<ERR, original::error>)
+    if constexpr (std::is_same_v<ERR, error>)
         static_assert(false, "A static assert called");
     else if constexpr (std::is_same_v<ERR, valueError>)
         static_assert(false, "Out of the bound of the object");
