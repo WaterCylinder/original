@@ -152,24 +152,24 @@ namespace original
     template<typename F_TYPE, typename S_TYPE>
     template<original::u_integer IDX>
     auto original::couple<F_TYPE, S_TYPE>::get() const {
+        staticError<outOfBoundError, (IDX > 1)>{};
         if constexpr (IDX == 0){
             return this->first_;
-        } else if constexpr (IDX == 1){
+        }else {
             return this->second_;
-        } else{
-            error::asserts<outOfBoundError>();
         }
     }
 
     template<typename F_TYPE, typename S_TYPE>
     template<original::u_integer IDX, typename T>
     void original::couple<F_TYPE, S_TYPE>::set(const T &e) {
-        if constexpr (IDX == 0 && std::same_as<T, F_TYPE>){
-            this->first_ = e;
-        } else if constexpr (IDX == 1 && std::same_as<T, S_TYPE>){
-            this->second_ = e;
-        } else {
-            error::asserts<valueError>();
+        staticError<outOfBoundError, (IDX > 1)>{};
+        if constexpr (IDX == 0){
+            staticError<valueError, !std::is_convertible_v<T, F_TYPE>>{};
+            this->first_ = static_cast<F_TYPE>(e);
+        } else{
+            staticError<valueError, !std::is_convertible_v<T, S_TYPE>>{};
+            this->second_ = static_cast<S_TYPE>(e);
         }
     }
 

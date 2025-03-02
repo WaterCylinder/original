@@ -38,11 +38,13 @@ namespace original {
         static void check();
     };
 
-    class error : public std::exception{
-        public:
-            template<typename ERR>
-            requires ExtendsOf<error, ERR>
-            static void asserts();
+    class error : public std::exception{};
+
+    template<typename ERR, const bool FALSE_CONDITION>
+    requires ExtendsOf<error, ERR>
+    class staticError
+    {
+        static_assert(!FALSE_CONDITION);
     };
 
 // ----------------- Exception Classes -----------------
@@ -154,25 +156,52 @@ void original::callBackChecker::check() {
     }
 }
 
-template<typename ERR>
-requires original::ExtendsOf<original::error, ERR>
-void original::error::asserts() {
-    if constexpr (std::is_same_v<ERR, error>)
-        static_assert(false, "A static assert called");
-    else if constexpr (std::is_same_v<ERR, valueError>)
-        static_assert(false, "Out of the bound of the object");
-    else if constexpr (std::is_same_v<ERR, outOfBoundError>)
-        static_assert(false, "Wrong value given");
-    else if constexpr (std::is_same_v<ERR, nullPointerError>)
-        static_assert(false, "Attempting to access null pointer");
-    else if constexpr (std::is_same_v<ERR, unSupportedMethodError>)
-        static_assert(false, "Unsupported Method for class");
-    else if constexpr (std::is_same_v<ERR, noElementError>)
-        static_assert(false, "No such element");
-    else if constexpr (std::is_same_v<ERR, callbackSignatureError>)
-        static_assert(false, "Callback signature mismatch");
-    else if constexpr (std::is_same_v<ERR, callbackReturnTypeError>)
-        static_assert(false, "Return type of callback mismatch");
-}
+template <const bool FALSE_CONDITION>
+class original::staticError<original::error, FALSE_CONDITION>
+{
+    static_assert(!FALSE_CONDITION, "A static assert called");
+};
+
+template <const bool FALSE_CONDITION>
+class original::staticError<original::outOfBoundError, FALSE_CONDITION>
+{
+    static_assert(!FALSE_CONDITION, "Out of the bound of the object");
+};
+
+template <const bool FALSE_CONDITION>
+class original::staticError<original::valueError, FALSE_CONDITION>
+{
+    static_assert(!FALSE_CONDITION, "Wrong value given");
+};
+
+template <const bool FALSE_CONDITION>
+class original::staticError<original::nullPointerError, FALSE_CONDITION>
+{
+    static_assert(!FALSE_CONDITION, "Attempting to access null pointer");
+};
+
+template <const bool FALSE_CONDITION>
+class original::staticError<original::unSupportedMethodError, FALSE_CONDITION>
+{
+    static_assert(!FALSE_CONDITION, "Unsupported Method for class");
+};
+
+template <const bool FALSE_CONDITION>
+class original::staticError<original::noElementError, FALSE_CONDITION>
+{
+    static_assert(!FALSE_CONDITION, "No such element");
+};
+
+template <const bool FALSE_CONDITION>
+class original::staticError<original::callbackSignatureError, FALSE_CONDITION>
+{
+    static_assert(!FALSE_CONDITION, "Return type of callback mismatch");
+};
+
+template <const bool FALSE_CONDITION>
+class original::staticError<original::callbackReturnTypeError, FALSE_CONDITION>
+{
+    static_assert(!FALSE_CONDITION, "Callback signature mismatch");
+};
 
 #endif // ERROR_H
