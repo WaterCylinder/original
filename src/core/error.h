@@ -38,8 +38,35 @@ namespace original {
         static void check();
     };
 
+    /**
+     * @class error
+     * @brief Base interface for all exception types in Original
+     * @details Inherits from std::exception to provide standard exception handling integration.
+     * Serves as the root type for all domain-specific exceptions in Original.
+     *
+     * @note All exceptions in Original should inherit from this class to maintain consistent
+     * error handling behavior across the codebase.
+     */
     class error : public std::exception{};
 
+    /**
+     * @class staticError
+     * @tparam ERR Exception type to associate with the static assertion (must inherit from error)
+     * @tparam FALSE_CONDITION Boolean condition triggering the assertion when true
+     * @brief Compile-time error assertion utility
+     * @details Enforces compile-time constraints by triggering static assertions with
+     * exception-specific error messages. The assertion fires when FALSE_CONDITION evaluates to true.
+     *
+     * @requires ExtendsOf<error, ERR> (ERR must inherit from error)
+     *
+     * @code{.cpp}
+     * template<typename T>
+     * void validate() {
+     *     staticError<valueError, !std::is_arithmetic_v<T>>();
+     * }
+     * // Triggers "Wrong value given" static assertion if T isn't arithmetic
+     * @endcode
+     */
     template<typename ERR, const bool FALSE_CONDITION>
     requires ExtendsOf<error, ERR>
     class staticError
