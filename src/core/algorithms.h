@@ -540,7 +540,7 @@ namespace original
          */
         template<typename TYPE, typename Callback>
         requires Compare<Callback, TYPE>
-        static void _introSort(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
+        static void _introSort(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                const Callback& compares, u_integer depth_limit);
 
         /**
@@ -1224,7 +1224,7 @@ namespace original
 
     template<typename TYPE, typename Callback>
     requires original::Compare<Callback, TYPE>
-    void original::algorithms::sort(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
+    void original::algorithms::sort(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                     const Callback &compares, const bool isStable) {
         isStable ? stableSort(begin, end, compares) : introSort(begin, end, compares);
     }
@@ -1233,8 +1233,7 @@ namespace original
     requires original::Compare<Callback, TYPE>
     void original::algorithms::introSort(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                          const Callback &compares) {
-        integer dis = distance(end, begin);
-        if (dis <= 0)
+        if (const integer dis = distance(end, begin); dis <= 0)
             return;
 
         u_integer depth_limit = 2 * std::log2(distance(end, begin));
@@ -1250,7 +1249,7 @@ namespace original
 
     template<typename TYPE, typename Callback>
     requires original::Compare<Callback, TYPE>
-    void original::algorithms::heapSort(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
+    void original::algorithms::heapSort(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                         const Callback& compares) {
         if (distance(end, begin) <= 0)
             return;
@@ -1288,7 +1287,7 @@ namespace original
     template<typename TYPE, typename Callback>
     requires original::Compare<Callback, TYPE>
     original::iterator<TYPE>*
-    original::algorithms::_introSortGetPivot(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
+    original::algorithms::_introSortGetPivot(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                              const Callback &compares) {
         auto* mid = frontOf(begin, distance(end, begin) / 2);
         if ((!compare(begin, *mid, compares) && !compare(end, begin, compares))
@@ -1307,7 +1306,7 @@ namespace original
     template<typename TYPE, typename Callback>
     requires original::Compare<Callback, TYPE>
     original::iterator<TYPE>*
-    original::algorithms::_introSortPartition(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
+    original::algorithms::_introSortPartition(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                               const Callback &compares) {
         auto* left = begin.clone();
         auto* right = end.clone();
@@ -1341,7 +1340,7 @@ namespace original
     template<typename TYPE, typename Callback>
     requires original::Compare<Callback, TYPE>
     void
-    original::algorithms::_introSort(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
+    original::algorithms::_introSort(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                      const Callback &compares, u_integer depth_limit) {
         if (distance(end, begin) <= 16) {
             insertionSort(begin, end, compares);
@@ -1361,7 +1360,7 @@ namespace original
 
     template<typename TYPE, typename Callback>
     requires original::Compare<Callback, TYPE>
-    void original::algorithms::insertionSort(const original::iterator<TYPE> &begin, const original::iterator<TYPE> &end,
+    void original::algorithms::insertionSort(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                              const Callback &compares) {
         if (distance(end, begin) <= 0)
             return;
@@ -1419,7 +1418,7 @@ namespace original
     requires original::Compare<Callback, TYPE>
     void original::algorithms::_stableSort(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                            const Callback &compares) {
-        integer dis = distance(end, begin);
+        const integer dis = distance(end, begin);
 
         if (dis <= 1)
             return;
