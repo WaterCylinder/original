@@ -186,7 +186,7 @@ void original::callBackChecker::check() {
 template <const bool FALSE_CONDITION>
 class original::staticError<original::error, FALSE_CONDITION>
 {
-    static_assert(!FALSE_CONDITION, "A static assert called");
+    static_assert(!FALSE_CONDITION, "A static assert triggered");
 };
 
 template <const bool FALSE_CONDITION>
