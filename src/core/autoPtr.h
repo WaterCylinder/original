@@ -4,111 +4,197 @@
 #include "config.h"
 #include "printable.h"
 #include "comparable.h"
+#include "deleter.h"
+
 
 namespace original{
-    // todo
-    template<typename TYPE, typename DERIVED>
+    template<typename TYPE, typename DERIVED, typename DELETER = deleter<TYPE>>
     class autoPtr : public printable, public comparable<DERIVED>{
     protected:
         class refCount {
+            TYPE* ptr;
             u_integer strong_refs;
             u_integer weak_refs;
+            DELETER deleter;
 
         public:
             friend class autoPtr;
 
-            explicit refCount();
+            explicit refCount(TYPE* p);
 
-            [[nodiscard]] u_integer strongRefs() const;
+            refCount(refCount&& other) noexcept;
 
-            [[nodiscard]] u_integer weakRefs() const;
+            refCount& operator=(refCount&& other) noexcept;
 
-            void addStrongRef();
+            void destroyPtr() noexcept;
 
-            void removeStrongRef();
-
-            void addWeakRef();
-
-            void removeWeakRef();
+            ~refCount();
         };
 
-        TYPE* ptr;
-        refCount* ref_cnt;
+        refCount* ref_count;
 
-        explicit autoPtr(TYPE* p, refCount* cnt);
+        explicit autoPtr(TYPE* p);
 
-        ~autoPtr() override = default;
+        TYPE* getPtr();
+
+        void setPtr(TYPE* p);
+
+        u_integer strongRefs() const;
+
+        u_integer weakRefs() const;
+
+        void addStrongRef();
+
+        void addWeakRef();
+
+        void removeStrongRef();
+
+        void removeWeakRef();
+
+        void clean() noexcept;
     public:
         void* operator new(size_t) = delete;
 
         void operator delete(void*) = delete;
 
-        const TYPE& operator*() const;
+        bool valid() const;
 
-        const TYPE* operator->() const;
+        bool expired() const;
 
-        bool isValid() const;
+        integer compareTo(const autoPtr& other) const override;
 
-        integer compareTo(const autoPtr& p) const override;
+        std::string className() const override;
+
+        std::string toString(bool enter) const override;
+
+        ~autoPtr() override;
     };
 }
 
-template<typename TYPE, typename DERIVED>
-original::autoPtr<TYPE, DERIVED>::refCount::refCount()
-    : strong_refs(1), weak_refs(0) {}
+template<typename TYPE, typename DERIVED, typename DELETER>
+original::autoPtr<TYPE, DERIVED, DELETER>::refCount::refCount(TYPE* p)
+        : ptr(p), strong_refs(0), weak_refs(0) {}
 
-template<typename TYPE, typename DERIVED>
-original::u_integer original::autoPtr<TYPE, DERIVED>::refCount::strongRefs() const {
-    return this->strong_refs;
+template<typename TYPE, typename DERIVED, typename DELETER>
+original::autoPtr<TYPE, DERIVED, DELETER>::refCount::refCount(refCount &&other) noexcept : refCount(nullptr) {
+    this->operator=(std::move(other));
 }
 
-template<typename TYPE, typename DERIVED>
-original::u_integer original::autoPtr<TYPE, DERIVED>::refCount::weakRefs() const {
-    return this->weak_refs;
+template<typename TYPE, typename DERIVED, typename DELETER>
+original::autoPtr<TYPE, DERIVED, DELETER>::refCount&
+original::autoPtr<TYPE, DERIVED, DELETER>::refCount::operator=(refCount&& other) noexcept {
+    if (this == &other)
+        return *this;
+
+    this->ptr = other->ptr;
+    other.ptr = nullptr;
+    this->strong_refs = other.strong_refs;
+    other.strong_refs = 0;
+    this->weak_refs = other.weak_refs;
+    other.weak_refs = 0;
+    this->deleter = std::move(other.deleter);
+    return *this;
 }
 
-template<typename TYPE, typename DERIVED>
-void original::autoPtr<TYPE, DERIVED>::refCount::addStrongRef() {
-    this->strong_refs += 1;
+template<typename TYPE, typename DERIVED, typename DELETER>
+void original::autoPtr<TYPE, DERIVED, DELETER>::refCount::destroyPtr() noexcept {
+    this->deleter(this->ptr);
+    this->ptr = nullptr;
 }
 
-template<typename TYPE, typename DERIVED>
-void original::autoPtr<TYPE, DERIVED>::refCount::removeStrongRef() {
-    this->strong_refs -= 1;
+template<typename TYPE, typename DERIVED, typename DELETER>
+original::autoPtr<TYPE, DERIVED, DELETER>::refCount::~refCount() {
+    this->destroyPtr();
 }
 
-template<typename TYPE, typename DERIVED>
-void original::autoPtr<TYPE, DERIVED>::refCount::addWeakRef() {
-    this->weak_refs += 1;
+template<typename TYPE, typename DERIVED, typename DELETER>
+original::autoPtr<TYPE, DERIVED, DELETER>::autoPtr(TYPE* p)
+    : ref_count(new refCount(p)) {}
+
+template<typename TYPE, typename DERIVED, typename DELETER>
+TYPE *original::autoPtr<TYPE, DERIVED, DELETER>::getPtr() {
+    return this->ref_count->ptr;
 }
 
-template<typename TYPE, typename DERIVED>
-void original::autoPtr<TYPE, DERIVED>::refCount::removeWeakRef() {
-    this->weak_refs -= 1;
+template<typename TYPE, typename DERIVED, typename DELETER>
+void original::autoPtr<TYPE, DERIVED, DELETER>::setPtr(TYPE* p) {
+    this->ref_count->ptr = p;
 }
 
-template<typename TYPE, typename DERIVED>
-original::autoPtr<TYPE, DERIVED>::autoPtr(TYPE* p, refCount* cnt)
-    : ptr(p), ref_cnt(cnt) {}
-
-template<typename TYPE, typename DERIVED>
-const TYPE& original::autoPtr<TYPE, DERIVED>::operator*() const {
-    return *this->ptr;
+template<typename TYPE, typename DERIVED, typename DELETER>
+original::u_integer original::autoPtr<TYPE, DERIVED, DELETER>::strongRefs() const {
+    return this->ref_count->strong_refs;
 }
 
-template<typename TYPE, typename DERIVED>
-const TYPE* original::autoPtr<TYPE, DERIVED>::operator->() const {
-    return this->ptr;
+template<typename TYPE, typename DERIVED, typename DELETER>
+original::u_integer original::autoPtr<TYPE, DERIVED, DELETER>::weakRefs() const {
+    return this->ref_count->weak_refs;
 }
 
-template<typename TYPE, typename DERIVED>
-bool original::autoPtr<TYPE, DERIVED>::isValid() const {
-    return this->ref_cnt->strongRefs() > 0;
+template<typename TYPE, typename DERIVED, typename DELETER>
+void original::autoPtr<TYPE, DERIVED, DELETER>::addStrongRef() {
+    this->ref_count->strong_refs += 1;
 }
 
-template<typename TYPE, typename DERIVED>
-original::integer original::autoPtr<TYPE, DERIVED>::compareTo(const autoPtr& p) const {
-    return this->ptr - p.ptr;
+template<typename TYPE, typename DERIVED, typename DELETER>
+void original::autoPtr<TYPE, DERIVED, DELETER>::addWeakRef() {
+    this->ref_count->weak_refs += 1;
+}
+
+template<typename TYPE, typename DERIVED, typename DELETER>
+void original::autoPtr<TYPE, DERIVED, DELETER>::removeStrongRef() {
+    this->ref_count->strong_refs -= 1;
+}
+
+template<typename TYPE, typename DERIVED, typename DELETER>
+void original::autoPtr<TYPE, DERIVED, DELETER>::removeWeakRef() {
+    this->ref_count->weak_refs -= 1;
+}
+
+template<typename TYPE, typename DERIVED, typename DELETER>
+void original::autoPtr<TYPE, DERIVED, DELETER>::clean() noexcept {
+    if (!this->valid()){
+        delete this->ref_count;
+    }
+    if (this->expired()){
+        this->ref_count->destroyPtr();
+    }
+}
+
+template<typename TYPE, typename DERIVED, typename DELETER>
+bool original::autoPtr<TYPE, DERIVED, DELETER>::expired() const {
+    return this->strongRefs() == 0;
+}
+
+template<typename TYPE, typename DERIVED, typename DELETER>
+bool original::autoPtr<TYPE, DERIVED, DELETER>::valid() const {
+    return this->strongRefs() > 0 && this->weakRefs() > 0;
+}
+
+template<typename TYPE, typename DERIVED, typename DELETER>
+original::integer original::autoPtr<TYPE, DERIVED, DELETER>::compareTo(const autoPtr& other) const {
+    return this->getPtr() - other->getPtr();
+}
+
+template<typename TYPE, typename DERIVED, typename DELETER>
+std::string original::autoPtr<TYPE, DERIVED, DELETER>::className() const {
+    return "autoPtr";
+}
+
+template<typename TYPE, typename DERIVED, typename DELETER>
+std::string original::autoPtr<TYPE, DERIVED, DELETER>::toString(bool enter) const {
+    std::stringstream ss;
+    ss << this->className() << "(";
+    ss << this->ptr;
+    ss << ")";
+    if (enter)
+        ss << "\n";
+    return ss.str();
+}
+
+template<typename TYPE, typename DERIVED, typename DELETER>
+original::autoPtr<TYPE, DERIVED, DELETER>::~autoPtr() {
+    this->clean();
 }
 
 #endif //AUTOPTR_H
