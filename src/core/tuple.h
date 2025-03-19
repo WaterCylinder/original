@@ -193,7 +193,7 @@ namespace original{
          * @brief Get the number of elements in the tuple
          * @return The size of the tuple (number of elements)
          */
-        static constexpr u_integer size();
+        constexpr u_integer size();
 
         /**
          * @brief Get element by index
