@@ -1,6 +1,7 @@
 #ifndef OWNERPTR_H
 #define OWNERPTR_H
 
+#include <utility>
 #include "autoPtr.h"
 
 namespace original {
@@ -16,14 +17,6 @@ namespace original {
         ownerPtr(ownerPtr&& other) noexcept;
 
         ownerPtr& operator=(ownerPtr&& other) noexcept;
-
-        const TYPE& operator*() const;
-
-        const TYPE* operator->() const;
-
-        TYPE& operator*();
-
-        TYPE* operator->();
 
         TYPE* unlock();
 
@@ -46,42 +39,21 @@ namespace original {
     }
 
     template<typename TYPE, typename DELETER>
-    ownerPtr<TYPE, DELETER>::ownerPtr(ownerPtr &&other) noexcept : ownerPtr(nullptr){
+    ownerPtr<TYPE, DELETER>::ownerPtr(ownerPtr &&other) noexcept : ownerPtr(){
         this->operator=(std::move(other));
     }
 
     template<typename TYPE, typename DELETER>
     ownerPtr<TYPE, DELETER>& ownerPtr<TYPE, DELETER>::operator=(ownerPtr&& other) noexcept {
-        if (this == &other || this->ref_count == other.ref_count)
+        if (this == &other)
             return *this;
 
-        this->ref_count = std::move(other.ref_count);
+        other.ref_count = std::exchange(this->ref_count, other.ref_count);
         return *this;
     }
 
     template<typename TYPE, typename DELETER>
-    const TYPE& ownerPtr<TYPE, DELETER>::operator*() const {
-        return *this->getPtr();
-    }
-
-    template<typename TYPE, typename DELETER>
-    const TYPE* ownerPtr<TYPE, DELETER>::operator->() const {
-        return this->getPtr();
-    }
-
-    template<typename TYPE, typename DELETER>
-    TYPE& ownerPtr<TYPE, DELETER>::operator*() {
-        return *this->getPtr();
-    }
-
-    template<typename TYPE, typename DELETER>
-    TYPE* ownerPtr<TYPE, DELETER>::operator->() {
-        return this->getPtr();
-    }
-
-    template<typename TYPE, typename DELETER>
     TYPE* ownerPtr<TYPE, DELETER>::unlock() {
-        this->removeStrongRef();
         TYPE* p = this->getPtr();
         this->setPtr(nullptr);
         return p;
