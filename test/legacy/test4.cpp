@@ -1,6 +1,5 @@
 #include "forwardChain.h"
 #include <iostream>
-
 #include "vector.h"
 #include "blocksList.h"
 #include "prique.h"
@@ -8,6 +7,9 @@
 #include "tuple.h"
 #include "stack.h"
 #include "bitSet.h"
+#include "ownerPtr.h"
+#include "refCntPtr.h"
+
 
 int main(){
     auto f1 = original::forwardChain({10, 4, 5, 7, 6, 3, 2});
@@ -78,5 +80,24 @@ int main(){
     auto t9 = original::tuple<int>{1};
     t9.set<0>(0.2);
     std::cout << t9 << std::endl;
+    auto op = original::makeOwnerPtr<original::vector<int>>();
+    std::cout << op << ", " << *op << std::endl;
+    op->pushEnd(5);
+    op->pushEnd(8);
+    std::cout << *op << std::endl;
+    int* raw1 = new int(10);
+    int* raw2 = new int(20);
+    auto s1 = original::strongPtr<int>(raw1);
+    auto s2 = original::strongPtr<int>(raw2);
+    auto s3 = s2;
+    auto w1 = original::weakPtr<int>(s1);
+    std::cout << s1 << ", " << s2 << std::endl;
+    std::cout << s3 << ", " << w1 << std::endl;
+//    int* dy_arr = new int[3];
+//    for (int j = 0; j < 3; ++j) {
+//        dy_arr[j] = j;
+//    }
+//    auto op2 = original::ownerPtr<int[]>(dy_arr); // 实现这两个用法
+//    auto op2 = original::ownerPtr<int, original::deleter<int[]>>(dy_arr); // 实现这两个用法
     return 0;
 }
