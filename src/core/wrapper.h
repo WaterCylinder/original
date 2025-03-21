@@ -106,9 +106,9 @@ template<typename TYPE>
 auto original::wrapper<TYPE>::toString(const bool enter) const -> std::string
 {
     std::stringstream ss;
-    ss << printable::className() << "("
-       << printable::formatString(this) << ", "
-       << printable::formatString(this->getVal()) << ")";
+    ss << this->className() << "("
+       << formatString(this) << ", "
+       << formatString(this->getVal()) << ")";
     if (enter) ss << "\n";
     return ss.str();
 }
