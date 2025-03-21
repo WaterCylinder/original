@@ -9,25 +9,13 @@
 
 
 namespace original{
+    template<typename TYPE, typename DELETER>
+    class refCount;
+
     template<typename TYPE, typename DERIVED, typename DELETER>
     class autoPtr : public printable, public comparable<autoPtr<TYPE, DERIVED, DELETER>>{
     protected:
-        class refCount {
-            TYPE* ptr;
-            u_integer strong_refs;
-            u_integer weak_refs;
-            DELETER deleter;
-
-            friend class autoPtr;
-
-            explicit refCount(TYPE* p = nullptr);
-
-            void destroyPtr() noexcept;
-
-            ~refCount();
-        };
-
-        refCount* ref_count;
+        refCount<TYPE, DELETER>* ref_count;
 
         explicit autoPtr(TYPE* p);
 
@@ -73,27 +61,27 @@ namespace original{
 
         ~autoPtr() override;
     };
-}
 
-template<typename TYPE, typename DERIVED, typename DELETER>
-original::autoPtr<TYPE, DERIVED, DELETER>::refCount::refCount(TYPE* p)
-        : ptr(p), strong_refs(0), weak_refs(0) {}
+    template<typename TYPE, typename DELETER>
+    class refCount {
+        template <typename, typename, typename>
+        friend class autoPtr;
 
+        TYPE* ptr;
+        u_integer strong_refs;
+        u_integer weak_refs;
+        DELETER deleter;
 
-template<typename TYPE, typename DERIVED, typename DELETER>
-void original::autoPtr<TYPE, DERIVED, DELETER>::refCount::destroyPtr() noexcept {
-    this->deleter(this->ptr);
-    this->ptr = nullptr;
-}
+        explicit refCount(TYPE* p = nullptr);
+        void destroyPtr() noexcept;
+        ~refCount();
+    };
 
-template<typename TYPE, typename DERIVED, typename DELETER>
-original::autoPtr<TYPE, DERIVED, DELETER>::refCount::~refCount() {
-    this->destroyPtr();
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 original::autoPtr<TYPE, DERIVED, DELETER>::autoPtr(TYPE* p)
-    : ref_count(new refCount(p)) {}
+    : ref_count(new refCount<TYPE, DELETER>(p)) {}
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 TYPE* original::autoPtr<TYPE, DERIVED, DELETER>::getPtr() const {
@@ -218,6 +206,21 @@ std::string original::autoPtr<TYPE, DERIVED, DELETER>::toString(bool enter) cons
 template<typename TYPE, typename DERIVED, typename DELETER>
 original::autoPtr<TYPE, DERIVED, DELETER>::~autoPtr() {
     this->clean();
+}
+
+template<typename TYPE, typename DELETER>
+original::refCount<TYPE, DELETER>::refCount(TYPE *p)
+    : ptr(p), strong_refs(0), weak_refs(0) {}
+
+template<typename TYPE, typename DELETER>
+void original::refCount<TYPE, DELETER>::destroyPtr() noexcept {
+    this->deleter(ptr);
+    this->ptr = nullptr;
+}
+
+template<typename TYPE, typename DELETER>
+original::refCount<TYPE, DELETER>::~refCount() {
+    this->destroyPtr();
 }
 
 #endif //AUTOPTR_H

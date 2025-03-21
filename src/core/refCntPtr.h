@@ -22,14 +22,10 @@ namespace original{
     template<typename TYPE, typename DELETER = deleter<TYPE>>
     class weakPtr;
 
-    class refCntPointers;
-
 
     template<typename TYPE, typename DELETER>
     class strongPtr final : public refCntPtr<TYPE, strongPtr<TYPE, DELETER>, DELETER>{
-        using refCount = autoPtr<TYPE, strongPtr<TYPE, DELETER>, DELETER>::refCount;
         friend class weakPtr<TYPE, DELETER>;
-        friend class refCntPointers;
 
     public:
         explicit strongPtr(TYPE* p = nullptr);
@@ -56,9 +52,7 @@ namespace original{
 
     template<typename TYPE, typename DELETER>
     class weakPtr final : public refCntPtr<TYPE, weakPtr<TYPE, DELETER>, DELETER>{
-        using refCount = autoPtr<TYPE, weakPtr<TYPE, DELETER>, DELETER>::refCount;
         friend class strongPtr<TYPE, DELETER>;
-        friend class refCntPointers;
 
         explicit weakPtr();
     public:
@@ -73,6 +67,8 @@ namespace original{
         weakPtr(weakPtr&& other) noexcept;
 
         weakPtr& operator=(weakPtr&& other) noexcept;
+
+        strongPtr<TYPE, DELETER> lock() const;
 
         const TYPE& operator*() const override;
 
@@ -89,12 +85,6 @@ namespace original{
         [[nodiscard]] std::string className() const override;
 
         ~weakPtr() override;
-    };
-
-    class refCntPointers{
-    public:
-        template <typename T, typename DEL>
-        static strongPtr<T, DEL> lock(const weakPtr<T, DEL>& weak_ptr);
     };
 
     template <typename T, typename DEL = deleter<T>>
@@ -164,7 +154,7 @@ namespace original{
 
     template<typename TYPE, typename DELETER>
     bool strongPtr<TYPE, DELETER>::operator==(const weakPtr<TYPE, DELETER>& other) const noexcept {
-        return this->ref_count == reinterpret_cast<refCount*>(other.ref_count);
+        return this->ref_count == other.ref_count;
     }
 
     template<typename TYPE, typename DELETER>
@@ -180,20 +170,6 @@ namespace original{
     template<typename TYPE, typename DELETER>
     strongPtr<TYPE, DELETER>::~strongPtr() {
         this->removeStrongRef();
-    }
-
-    template<typename T, typename DEL>
-    strongPtr<T, DEL> refCntPointers::lock(const weakPtr<T, DEL>& weak_ptr) {
-        using refCount = autoPtr<T, strongPtr<T, DEL>, DEL>::refCount;
-        if (!weak_ptr.expired()){
-            strongPtr<T, DEL> strong_ptr;
-            strong_ptr.removeStrongRef();
-            strong_ptr.clean();
-            strong_ptr.ref_count = reinterpret_cast<refCount*>(weak_ptr.ref_count);
-            strong_ptr.addStrongRef();
-            return strong_ptr;
-        }
-        return strongPtr<T, DEL>();
     }
 
     template<typename T, typename DEL>
@@ -220,7 +196,7 @@ namespace original{
 
         this->removeWeakRef();
         this->clean();
-        this->ref_count = reinterpret_cast<refCount*>(other.ref_count);
+        this->ref_count = other.ref_count;
         this->addWeakRef();
         return *this;
     }
@@ -258,28 +234,40 @@ namespace original{
     }
 
     template<typename TYPE, typename DELETER>
-    const TYPE &weakPtr<TYPE, DELETER>::operator*() const {
-        return refCntPointers::lock(*this).operator*();
+    strongPtr<TYPE, DELETER> weakPtr<TYPE, DELETER>::lock() const {
+        strongPtr<TYPE, DELETER> strong_ptr;
+        if (!this->expired()){
+            strong_ptr.removeStrongRef();
+            strong_ptr.clean();
+            strong_ptr.ref_count = this->ref_count;
+            strong_ptr.addStrongRef();
+        }
+        return strong_ptr;
     }
 
     template<typename TYPE, typename DELETER>
-    const TYPE *weakPtr<TYPE, DELETER>::operator->() const {
-        return refCntPointers::lock(*this).operator->();
+    const TYPE& weakPtr<TYPE, DELETER>::operator*() const {
+        return this->lock().operator*();
     }
 
     template<typename TYPE, typename DELETER>
-    TYPE &weakPtr<TYPE, DELETER>::operator*() {
-        return refCntPointers::lock(*this).operator*();
+    const TYPE* weakPtr<TYPE, DELETER>::operator->() const {
+        return this->lock().operator->();
     }
 
     template<typename TYPE, typename DELETER>
-    TYPE *weakPtr<TYPE, DELETER>::operator->() {
-        return refCntPointers::lock(*this).operator->();
+    TYPE& weakPtr<TYPE, DELETER>::operator*() {
+        return this->lock().operator*();
+    }
+
+    template<typename TYPE, typename DELETER>
+    TYPE* weakPtr<TYPE, DELETER>::operator->() {
+        return this->lock().operator->();
     }
 
     template<typename TYPE, typename DELETER>
     bool weakPtr<TYPE, DELETER>::operator==(const strongPtr<TYPE, DELETER> &other) const noexcept {
-        return this->ref_count == reinterpret_cast<refCount*>(other.ref_count);
+        return this->ref_count == other.ref_count;
     }
 
     template<typename TYPE, typename DELETER>

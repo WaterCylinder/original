@@ -34,7 +34,7 @@ namespace original {
 
     template<typename TYPE, typename DELETER>
     ownerPtr<TYPE, DELETER>::ownerPtr(TYPE *p)
-        : autoPtr<TYPE, ownerPtr<TYPE>, DELETER>(p) {
+        : autoPtr<TYPE, ownerPtr<TYPE, DELETER>, DELETER>(p) {
         this->addStrongRef();
     }
 
