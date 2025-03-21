@@ -75,7 +75,7 @@ int main(){
     auto t7 = t4.slice<0, 2>();
     std::cout << t7 << std::endl;
     std::cout << t7.size() << std::endl;
-    auto t8 = t4 + t4.slice<2, 1>() + t4.slice<1, 3>() + original::makeTuple(t4.get<1>());
+    auto t8 = t4 + t4.slice<2, 1>() + t4.slice<1, 3>() + makeTuple(t4.get<1>());
     std::cout << t8 << std::endl;
     auto t9 = original::tuple<int>{1};
     t9.set<0>(0.2);
@@ -85,15 +85,24 @@ int main(){
     op->pushEnd(5);
     op->pushEnd(8);
     std::cout << *op << std::endl;
-    int* raw1 = new int(10);
-    int* raw2 = new int(20);
-    auto s1 = original::strongPtr<int>(raw1);
-    auto s2 = original::strongPtr<int>(raw2);
+    auto raw1 = new int(10);
+    auto raw2 = new int(20);
+    auto s1 = original::strongPtr(raw1);
+    auto s2 = original::strongPtr(raw2);
     auto s3 = s2;
-    auto w1 = original::weakPtr<int>(s1);
+    auto w1 = original::weakPtr(s1);
     std::cout << *w1 << ", " << w1 << std::endl;
     std::cout << s1 << ", " << s2 << std::endl;
     std::cout << s3 << ", " << w1 << std::endl;
+    std::cout << *s2 << std::endl;
+    *s3 = 15;
+    std::cout << *w1 << ", " << *s2 << std::endl;
+    original::strongPtr<int> s4 = std::move(s3);
+    std::cout << s3 << std::endl;
+    std::cout << s4 << ", " << *s4 << std::endl;
+    original::weakPtr<int> w2 = std::move(w1);
+    std::cout << w1 << ", " << w2 << std::endl;
+    std::cout << *w2 << std::endl;
 //    int* dy_arr = new int[3];
 //    for (int j = 0; j < 3; ++j) {
 //        dy_arr[j] = j;
