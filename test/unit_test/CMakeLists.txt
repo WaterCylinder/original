@@ -36,7 +36,7 @@ endif()
 FetchContent_Declare(
         GTest
         GIT_REPOSITORY ${GTEST_REPO}
-        GIT_TAG        release-1.11.0
+        GIT_TAG        v1.16.0
 )
 
 FetchContent_MakeAvailable(GTest)
