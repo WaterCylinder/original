@@ -91,6 +91,7 @@ int main(){
     auto s2 = original::strongPtr<int>(raw2);
     auto s3 = s2;
     auto w1 = original::weakPtr<int>(s1);
+    std::cout << *w1 << ", " << w1 << std::endl;
     std::cout << s1 << ", " << s2 << std::endl;
     std::cout << s3 << ", " << w1 << std::endl;
 //    int* dy_arr = new int[3];
