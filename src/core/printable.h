@@ -243,6 +243,9 @@ inline auto original::printable::formatString<bool>(const bool& t) -> std::strin
 template <typename TYPE>
 auto original::printable::formatString(TYPE* const& ptr) -> std::string
 {
+    if (!ptr)
+        return "nullptr";
+
     std::stringstream ss;
     ss << "@" << ptr;
     return ss.str();
