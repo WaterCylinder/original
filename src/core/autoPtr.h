@@ -4,7 +4,6 @@
 #include "config.h"
 #include "printable.h"
 #include "comparable.h"
-#include "deleter.h"
 #include "error.h"
 
 
@@ -38,6 +37,8 @@ namespace original{
         void destroyRefCnt() noexcept;
 
         void clean() noexcept;
+
+        static refCount<TYPE, DELETER>* newRefCount(TYPE* p = nullptr);
     public:
         bool exist() const;
 
@@ -81,7 +82,7 @@ namespace original{
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 original::autoPtr<TYPE, DERIVED, DELETER>::autoPtr(TYPE* p)
-    : ref_count(new refCount<TYPE, DELETER>(p)) {}
+    : ref_count(newRefCount(p)) {}
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 TYPE* original::autoPtr<TYPE, DERIVED, DELETER>::getPtr() const {
@@ -145,6 +146,12 @@ void original::autoPtr<TYPE, DERIVED, DELETER>::clean() noexcept {
     }
 }
 
+template <typename TYPE, typename DERIVED, typename DELETER>
+original::refCount<TYPE, DELETER>* original::autoPtr<TYPE, DERIVED, DELETER>::newRefCount(TYPE* p)
+{
+    return new refCount<TYPE, DELETER>(p);
+}
+
 template<typename TYPE, typename DERIVED, typename DELETER>
 bool original::autoPtr<TYPE, DERIVED, DELETER>::exist() const {
     return this->ref_count && (this->strongRefs() > 0 || this->weakRefs() > 0);
@@ -161,30 +168,38 @@ original::autoPtr<TYPE, DERIVED, DELETER>::operator bool() const {
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
-const TYPE &original::autoPtr<TYPE, DERIVED, DELETER>::operator*() const {
+const TYPE& original::autoPtr<TYPE, DERIVED, DELETER>::operator*() const {
+    if (!this->getPtr())
+        throw nullPointerError();
     return *this->getPtr();
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 const TYPE*
 original::autoPtr<TYPE, DERIVED, DELETER>::operator->() const {
+    if (!this->getPtr())
+        throw nullPointerError();
     return this->getPtr();
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 TYPE &original::autoPtr<TYPE, DERIVED, DELETER>::operator*() {
+    if (!this->getPtr())
+        throw nullPointerError();
     return *this->getPtr();
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 TYPE*
 original::autoPtr<TYPE, DERIVED, DELETER>::operator->() {
+    if (!this->getPtr())
+        throw nullPointerError();
     return this->getPtr();
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 original::integer original::autoPtr<TYPE, DERIVED, DELETER>::compareTo(const autoPtr& other) const {
-    return this->getPtr() - other.getPtr();
+    return this->ref_count - other.ref_count;
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
@@ -193,7 +208,7 @@ std::string original::autoPtr<TYPE, DERIVED, DELETER>::className() const {
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
-std::string original::autoPtr<TYPE, DERIVED, DELETER>::toString(bool enter) const {
+std::string original::autoPtr<TYPE, DERIVED, DELETER>::toString(const bool enter) const {
     std::stringstream ss;
     ss << this->className() << "(";
     ss << formatString(this->getPtr());
@@ -214,7 +229,7 @@ original::refCount<TYPE, DELETER>::refCount(TYPE *p)
 
 template<typename TYPE, typename DELETER>
 void original::refCount<TYPE, DELETER>::destroyPtr() noexcept {
-    this->deleter(ptr);
+    this->deleter(this->ptr);
     this->ptr = nullptr;
 }
 

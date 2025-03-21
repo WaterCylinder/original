@@ -2,6 +2,8 @@
 #define REFCNTPTR_H
 
 #include "autoPtr.h"
+#include "deleter.h"
+
 
 namespace original{
     template<typename TYPE, typename DERIVED, typename DELETER>
@@ -37,10 +39,6 @@ namespace original{
         strongPtr(strongPtr&& other) noexcept;
 
         strongPtr& operator=(strongPtr&& other) noexcept;
-
-        bool operator==(const weakPtr<TYPE, DELETER>& other) const noexcept;
-
-        bool operator!=(const weakPtr<TYPE, DELETER>& other) const noexcept;
 
         [[nodiscard]] std::string className() const override;
 
@@ -78,10 +76,6 @@ namespace original{
 
         TYPE* operator->() override;
 
-        bool operator==(const strongPtr<TYPE, DELETER>& other) const noexcept;
-
-        bool operator!=(const strongPtr<TYPE, DELETER>& other) const noexcept;
-
         [[nodiscard]] std::string className() const override;
 
         ~weakPtr() override;
@@ -104,7 +98,7 @@ namespace original{
     }
 
     template<typename TYPE, typename DERIVED, typename DELETER>
-    std::string refCntPtr<TYPE, DERIVED, DELETER>::toString(bool enter) const {
+    std::string refCntPtr<TYPE, DERIVED, DELETER>::toString(const bool enter) const {
         std::stringstream ss;
         ss << this->className() << "(";
         ss << printable::formatString(this->getPtr()) << ", ";
@@ -117,7 +111,7 @@ namespace original{
 
     template<typename TYPE, typename DELETER>
     strongPtr<TYPE, DELETER>::strongPtr(TYPE *p)
-        : refCntPtr<TYPE, strongPtr<TYPE, DELETER>, DELETER>(p) {
+        : refCntPtr<TYPE, strongPtr, DELETER>(p) {
         this->addStrongRef();
     }
 
@@ -148,18 +142,12 @@ namespace original{
         if (this == &other || this->ref_count == other.ref_count)
             return *this;
 
-        other.ref_count = std::exchange(this->ref_count, other.ref_count);
+        this->removeStrongRef();
+        this->clean();
+        this->ref_count = other.ref_count;
+        other.ref_count = autoPtr<TYPE, strongPtr, DELETER>::newRefCount();
+        other.addStrongRef();
         return *this;
-    }
-
-    template<typename TYPE, typename DELETER>
-    bool strongPtr<TYPE, DELETER>::operator==(const weakPtr<TYPE, DELETER>& other) const noexcept {
-        return this->ref_count == other.ref_count;
-    }
-
-    template<typename TYPE, typename DELETER>
-    bool strongPtr<TYPE, DELETER>::operator!=(const weakPtr<TYPE, DELETER>& other) const noexcept {
-        return !this->operator==(other);
     }
 
     template<typename TYPE, typename DELETER>
@@ -179,7 +167,7 @@ namespace original{
 
     template<typename TYPE, typename DELETER>
     weakPtr<TYPE, DELETER>::weakPtr()
-        : refCntPtr<TYPE, weakPtr<TYPE, DELETER>, DELETER>(nullptr) {
+        : refCntPtr<TYPE, weakPtr, DELETER>(nullptr) {
         this->addWeakRef();
     }
 
@@ -191,7 +179,7 @@ namespace original{
 
     template<typename TYPE, typename DELETER>
     weakPtr<TYPE, DELETER>& weakPtr<TYPE, DELETER>::operator=(const strongPtr<TYPE, DELETER>& other) {
-        if (*this == other)
+        if (this->ref_count == other.ref_count)
             return *this;
 
         this->removeWeakRef();
@@ -229,7 +217,11 @@ namespace original{
         if (this == &other || this->ref_count == other.ref_count)
             return *this;
 
-        other.ref_count = std::exchange(this->ref_count, other.ref_count);
+        this->removeWeakRef();
+        this->clean();
+        this->ref_count = other.ref_count;
+        other.ref_count = autoPtr<TYPE, weakPtr, DELETER>::newRefCount();
+        other.addWeakRef();
         return *this;
     }
 
@@ -263,16 +255,6 @@ namespace original{
     template<typename TYPE, typename DELETER>
     TYPE* weakPtr<TYPE, DELETER>::operator->() {
         return this->lock().operator->();
-    }
-
-    template<typename TYPE, typename DELETER>
-    bool weakPtr<TYPE, DELETER>::operator==(const strongPtr<TYPE, DELETER> &other) const noexcept {
-        return this->ref_count == other.ref_count;
-    }
-
-    template<typename TYPE, typename DELETER>
-    bool weakPtr<TYPE, DELETER>::operator!=(const strongPtr<TYPE, DELETER> &other) const noexcept {
-        return !this->operator==(other);
     }
 
     template<typename TYPE, typename DELETER>

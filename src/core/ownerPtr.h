@@ -3,6 +3,8 @@
 
 #include <utility>
 #include "autoPtr.h"
+#include "deleter.h"
+
 
 namespace original {
     template <typename TYPE, typename DELETER = deleter<TYPE>>
@@ -34,7 +36,7 @@ namespace original {
 
     template<typename TYPE, typename DELETER>
     ownerPtr<TYPE, DELETER>::ownerPtr(TYPE *p)
-        : autoPtr<TYPE, ownerPtr<TYPE, DELETER>, DELETER>(p) {
+        : autoPtr<TYPE, ownerPtr, DELETER>(p) {
         this->addStrongRef();
     }
 
@@ -48,7 +50,11 @@ namespace original {
         if (this == &other)
             return *this;
 
-        other.ref_count = std::exchange(this->ref_count, other.ref_count);
+        this->removeStrongRef();
+        this->clean();
+        this->ref_count = other.ref_count;
+        other.ref_count = autoPtr<TYPE, ownerPtr, DELETER>::newRefCount();
+        other.addStrongRef();
         return *this;
     }
 
