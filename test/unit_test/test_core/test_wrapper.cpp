@@ -56,7 +56,7 @@ TEST(WrapperTest, GetSetValue) {
 
 // 测试用例 2: 测试 toString
 TEST(WrapperTest, ToString) {
-    test_wrapper<int> tw(10);
+    test_wrapper tw(10);
 
     // 断言 toString 输出格式正确
     EXPECT_EQ(tw.toString(false), std::string(
