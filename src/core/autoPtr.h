@@ -295,11 +295,11 @@ void original::autoPtr<TYPE, DERIVED, DELETER>::destroyRefCnt() noexcept {
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 void original::autoPtr<TYPE, DERIVED, DELETER>::clean() noexcept {
-    if (this->expired()){
-        this->ref_count->destroyPtr();
-    }
     if (!this->exist()){
         this->destroyRefCnt();
+    }
+    if (this->expired()){
+        this->ref_count->destroyPtr();
     }
 }
 

@@ -457,7 +457,7 @@ namespace original{
 
     template<typename TYPE, typename DELETER>
     strongPtr<TYPE, DELETER> weakPtr<TYPE, DELETER>::lock() const {
-        strongPtr<TYPE, DELETER> strong_ptr;
+        strongPtr<TYPE, DELETER> strong_ptr{static_cast<TYPE*>(nullptr)};
         if (!this->expired()){
             strong_ptr.removeStrongRef();
             strong_ptr.clean();
@@ -478,8 +478,8 @@ namespace original{
     }
 
     template<typename TYPE, typename DELETER>
-    const TYPE & weakPtr<TYPE, DELETER>::operator[](u_integer index) const {
-        return this.lock().operator[](index);
+    const TYPE& weakPtr<TYPE, DELETER>::operator[](u_integer index) const {
+        return this->lock().operator[](index);
     }
 
     template<typename TYPE, typename DELETER>
@@ -494,7 +494,7 @@ namespace original{
 
     template<typename TYPE, typename DELETER>
     TYPE & weakPtr<TYPE, DELETER>::operator[](u_integer index) {
-        return this.lock().operator[](index);
+        return this->lock().operator[](index);
     }
 
     template<typename TYPE, typename DELETER>
