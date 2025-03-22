@@ -8,7 +8,7 @@ namespace original {
         constexpr deleter() noexcept = default;
         virtual ~deleter() = default;
 
-        void operator()(TYPE* ptr) const noexcept;
+        void operator()(const TYPE* ptr) const noexcept;
     };
 
     template<typename TYPE>
@@ -17,17 +17,17 @@ namespace original {
         constexpr deleter() noexcept = default;
         virtual ~deleter() = default;
 
-        void operator()(TYPE* ptr) const noexcept;
+        void operator()(const TYPE* ptr) const noexcept;
     };
 }
 
 template<typename TYPE>
-void original::deleter<TYPE>::operator()(TYPE* ptr) const noexcept {
+void original::deleter<TYPE>::operator()(const TYPE* ptr) const noexcept {
     delete ptr;
 }
 
 template<typename TYPE>
-void original::deleter<TYPE[]>::operator()(TYPE* ptr) const noexcept {
+void original::deleter<TYPE[]>::operator()(const TYPE* ptr) const noexcept {
     delete[] ptr;
 }
 
