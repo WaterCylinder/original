@@ -122,7 +122,7 @@ namespace original{
 
     template<typename TYPE, typename DELETER>
     strongPtr<TYPE, DELETER>& strongPtr<TYPE, DELETER>::operator=(const strongPtr& other) {
-        if (this == &other || this->ref_count == other.ref_count)
+        if (this == &other || *this == other)
             return *this;
 
         this->removeStrongRef();
@@ -139,7 +139,7 @@ namespace original{
 
     template<typename TYPE, typename DELETER>
     strongPtr<TYPE, DELETER>& strongPtr<TYPE, DELETER>::operator=(strongPtr&& other) noexcept {
-        if (this == &other || this->ref_count == other.ref_count)
+        if (this == &other || *this == other)
             return *this;
 
         this->removeStrongRef();
@@ -197,7 +197,7 @@ namespace original{
 
     template<typename TYPE, typename DELETER>
     weakPtr<TYPE, DELETER>& weakPtr<TYPE, DELETER>::operator=(const weakPtr& other) {
-        if (this == &other || this->ref_count == other.ref_count)
+        if (this == &other || *this == other)
             return *this;
 
         this->removeWeakRef();
@@ -214,7 +214,7 @@ namespace original{
 
     template<typename TYPE, typename DELETER>
     weakPtr<TYPE, DELETER>& weakPtr<TYPE, DELETER>::operator=(weakPtr&& other) noexcept {
-        if (this == &other || this->ref_count == other.ref_count)
+        if (this == &other || *this == other)
             return *this;
 
         this->removeWeakRef();
