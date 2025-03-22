@@ -27,7 +27,7 @@ TEST(OwnerPtrTest, BasicFunctionality) {
 
     // 测试移动赋值
     original::ownerPtr<int> moved_assigned = std::move(moved_ptr);
-    EXPECT_FALSE(static_cast<bool>(moved_ptr)); // NOLINT
+    EXPECT_FALSE(moved_ptr); // NOLINT
     EXPECT_EQ(*moved_assigned, 42);
 }
 
