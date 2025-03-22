@@ -8,9 +8,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_BUILD_TYPE Debug)
 
 include_directories(${CMAKE_SOURCE_DIR})
+set(ORIGINAL_SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 file(GLOB ORIGINAL_HEADERS
-        "${CMAKE_SOURCE_DIR}/src/original.h"
-        "${CMAKE_SOURCE_DIR}/src/core/*.h"
+        "${ORIGINAL_SRC_DIR}/original.h"
+        "${ORIGINAL_SRC_DIR}/core/*.h"
 )
 add_library(original STATIC ${ORIGINAL_HEADERS} src/original.cpp)
 
