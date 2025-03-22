@@ -497,8 +497,8 @@ namespace original {
     requires original::Operation<Callback, TYPE>
     auto original::iterable<TYPE>::forEach(Callback operation) -> void
     {
-        for (auto* it = this->begins(); it->isValid(); it->next()) {
-            operation(it->get());
+        for (auto it = this->first(); it.isValid(); it.next()) {
+            operation(it.get());
         }
     }
 
@@ -506,8 +506,8 @@ namespace original {
     template<typename Callback>
     requires original::Operation<Callback, TYPE>
     auto original::iterable<TYPE>::forEach(const Callback &operation) const -> void {
-        for (auto* it = this->begins(); it->isValid(); it->next()) {
-            operation(it->getElem());
+        for (auto it = this->first(); it.isValid(); it.next()) {
+            operation(it.getElem());
         }
     }
 

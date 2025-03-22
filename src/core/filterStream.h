@@ -351,6 +351,8 @@ namespace original{
         }
         this->stream = stream_post;
         this->ops = ops_post;
+        delete it_ops;
+        delete it_stream;
     }
 
     template <typename TYPE>
@@ -497,6 +499,8 @@ namespace original{
             }
             it_stream->next();
         }
+        delete it_ops;
+        delete it_stream;
         return value_stack[-1];
     }
 

@@ -810,6 +810,7 @@ namespace original {
     original::blocksList<TYPE>& original::blocksList<TYPE>::operator=(const blocksList& other) {
         if (this == &other) return *this;
 
+        this->blocksListDestruct();
         this->map = vector<TYPE*>{};
 
         for (integer i = 0; i < other.map.size(); ++i) {
@@ -842,13 +843,13 @@ namespace original {
 
         this->blocksListDestruct();
 
-        this->map = std::move(other.map);
+        this->map = other.map;
         this->first_ = other.first_;
         this->last_ = other.last_;
         this->first_block = other.first_block;
         this->last_block = other.last_block;
         this->size_ = other.size_;
-        other.blocksListDestruct();
+        other.blocksListInit();
         return *this;
     }
 

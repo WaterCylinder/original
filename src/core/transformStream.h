@@ -133,7 +133,7 @@ namespace original {
     {
         for (const auto& transform: ts.stream)
         {
-            this->pushEnd(*transform->clone());
+            this->pushEnd(*transform);
         }
         return *this;
     }

@@ -326,8 +326,7 @@ namespace original {
         if (this == &other)
             return *this;
 
-        if (!this->empty())
-            this->arrDestruct();
+        this->arrDestruct();
 
         this->arrInit(other.size());
         for (u_integer i = 0; i < this->size_; i++) {
@@ -346,10 +345,9 @@ namespace original {
         if (this == &other)
             return *this;
 
-        if (!this->empty())
-            this->arrDestruct();
+        this->arrDestruct();
 
-        this->body = std::move(other.body);
+        this->body = other.body;
         this->size_ = other.size_;
         other.arrInit(0);
         return *this;

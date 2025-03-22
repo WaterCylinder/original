@@ -468,6 +468,7 @@ namespace original {
     {
         auto* last = this->end_;
         delete last->getPPrev();
+        chainNode::connect(nullptr, last);
         this->chainInit();
         return last;
     }
@@ -737,7 +738,6 @@ namespace original {
             auto* del = this->lastDelete();
             res = del->getVal();
             delete del;
-            this->chainInit();
         } else{
             res = this->begin_->getVal();
             auto* new_begin = this->begin_->getPNext();
@@ -785,7 +785,6 @@ namespace original {
             auto* del = this->lastDelete();
             res = del->getVal();
             delete del;
-            this->chainInit();
         } else{
             res = this->end_->getVal();
             auto* new_end = this->end_->getPPrev();

@@ -192,6 +192,8 @@ namespace original
         integer dis = 0;
         while (s->isValid()){
             if (s->_ptr == e->_ptr){
+                delete s;
+                delete e;
                 return dis;
             }
             dis += 1;
