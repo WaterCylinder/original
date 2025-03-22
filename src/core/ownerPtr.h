@@ -33,7 +33,7 @@ namespace original {
         friend ownerPtr<T, DEL> makeOwnerPtr();
 
         template <typename T, typename DEL>
-        friend ownerPtr<T, DEL> makeOwnerPtr(u_integer index);
+        friend ownerPtr<T, DEL> makeOwnerPtr(u_integer size);
     };
 
     template <typename T, typename DEL = deleter<T>>
