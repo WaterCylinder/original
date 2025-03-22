@@ -50,9 +50,13 @@ namespace original{
 
         virtual const TYPE* operator->() const;
 
+        virtual const TYPE& operator[](u_integer index) const;
+
         virtual TYPE& operator*();
 
         virtual TYPE* operator->();
+
+        virtual TYPE& operator[](u_integer index);
 
         integer compareTo(const autoPtr& other) const override;
 
@@ -183,6 +187,13 @@ original::autoPtr<TYPE, DERIVED, DELETER>::operator->() const {
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
+const TYPE& original::autoPtr<TYPE, DERIVED, DELETER>::operator[](u_integer index) const {
+    if (!this->getPtr())
+        throw nullPointerError();
+    return this->getPtr()[index];
+}
+
+template<typename TYPE, typename DERIVED, typename DELETER>
 TYPE &original::autoPtr<TYPE, DERIVED, DELETER>::operator*() {
     if (!this->getPtr())
         throw nullPointerError();
@@ -195,6 +206,13 @@ original::autoPtr<TYPE, DERIVED, DELETER>::operator->() {
     if (!this->getPtr())
         throw nullPointerError();
     return this->getPtr();
+}
+
+template<typename TYPE, typename DERIVED, typename DELETER>
+TYPE& original::autoPtr<TYPE, DERIVED, DELETER>::operator[](u_integer index) {
+    if (!this->getPtr())
+        throw nullPointerError();
+    return this->getPtr()[index];
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
