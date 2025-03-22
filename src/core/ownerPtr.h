@@ -10,7 +10,10 @@ namespace original {
     template <typename TYPE, typename DELETER = deleter<TYPE>>
     class ownerPtr final : public autoPtr<TYPE, ownerPtr<TYPE, DELETER>, DELETER>{
     public:
-        explicit ownerPtr(TYPE* p = nullptr);
+        explicit ownerPtr(TYPE* p);
+
+        template<typename... Args>
+        explicit ownerPtr(Args&&... args);
 
         ownerPtr(const ownerPtr& other) = delete;
 
@@ -28,10 +31,16 @@ namespace original {
 
         template <typename T, typename DEL>
         friend ownerPtr<T, DEL> makeOwnerPtr();
+
+        template <typename T, typename DEL>
+        friend ownerPtr<T, DEL> makeOwnerPtr(u_integer index);
     };
 
     template <typename T, typename DEL = deleter<T>>
     ownerPtr<T, DEL> makeOwnerPtr();
+
+    template <typename T, typename DEL = deleter<T[]>>
+    ownerPtr<T, DEL> makeOwnerPtr(u_integer size);
 
 
     template<typename TYPE, typename DELETER>
@@ -41,7 +50,13 @@ namespace original {
     }
 
     template<typename TYPE, typename DELETER>
-    ownerPtr<TYPE, DELETER>::ownerPtr(ownerPtr &&other) noexcept : ownerPtr(){
+    template<typename ... Args>
+    ownerPtr<TYPE, DELETER>::ownerPtr(Args&& ...args) : ownerPtr(static_cast<TYPE*>(nullptr)) {
+        this->setPtr(new TYPE(std::forward<Args>(args)...));
+    }
+
+    template<typename TYPE, typename DELETER>
+    ownerPtr<TYPE, DELETER>::ownerPtr(ownerPtr &&other) noexcept : ownerPtr(static_cast<TYPE*>(nullptr)){
         this->operator=(std::move(other));
     }
 
@@ -78,6 +93,11 @@ namespace original {
     template<typename T, typename DEL>
     ownerPtr<T, DEL> makeOwnerPtr() {
         return ownerPtr<T, DEL>(new T{});
+    }
+
+    template<typename T, typename DEL>
+    ownerPtr<T, DEL> makeOwnerPtr(const u_integer size) {
+        return ownerPtr<T, DEL>(new T[size]);
     }
 }
 

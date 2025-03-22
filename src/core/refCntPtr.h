@@ -9,7 +9,7 @@ namespace original{
     template<typename TYPE, typename DERIVED, typename DELETER>
     class refCntPtr : public autoPtr<TYPE, DERIVED, DELETER>{
     protected:
-        explicit refCntPtr(TYPE* p = nullptr);
+        explicit refCntPtr(TYPE* p);
     public:
         [[nodiscard]] std::string className() const override;
 
@@ -30,7 +30,10 @@ namespace original{
         friend class weakPtr<TYPE, DELETER>;
 
     public:
-        explicit strongPtr(TYPE* p = nullptr);
+        explicit strongPtr(TYPE* p);
+
+        template<typename... Args>
+        explicit strongPtr(Args&&... args);
 
         strongPtr(const strongPtr& other);
 
@@ -46,6 +49,9 @@ namespace original{
 
         template <typename T, typename DEL>
         friend strongPtr<T, DEL> makeStrongPtr();
+
+        template <typename T, typename DEL>
+        friend strongPtr<T, DEL> makeStrongPtr(u_integer size);
     };
 
     template<typename TYPE, typename DELETER>
@@ -72,9 +78,13 @@ namespace original{
 
         const TYPE* operator->() const override;
 
+        const TYPE& operator[](u_integer index) const override;
+
         TYPE& operator*() override;
 
         TYPE* operator->() override;
+
+        TYPE& operator[](u_integer index) override;
 
         [[nodiscard]] std::string className() const override;
 
@@ -83,6 +93,9 @@ namespace original{
 
     template <typename T, typename DEL = deleter<T>>
     strongPtr<T, DEL> makeStrongPtr();
+
+    template <typename T, typename DEL = deleter<T[]>>
+    strongPtr<T, DEL> makeStrongPtr(u_integer size);
 
 
     // ----------------- Definitions of refCntPtr.h -----------------
@@ -116,7 +129,13 @@ namespace original{
     }
 
     template<typename TYPE, typename DELETER>
-    strongPtr<TYPE, DELETER>::strongPtr(const strongPtr& other) : strongPtr(){
+    template<typename ... Args>
+    strongPtr<TYPE, DELETER>::strongPtr(Args &&...args) : strongPtr(static_cast<TYPE*>(nullptr)) {
+        this->setPtr(new TYPE(std::forward<Args>(args)...));
+    }
+
+    template<typename TYPE, typename DELETER>
+    strongPtr<TYPE, DELETER>::strongPtr(const strongPtr& other) : strongPtr(static_cast<TYPE*>(nullptr)){
         this->operator=(other);
     }
 
@@ -133,7 +152,7 @@ namespace original{
     }
 
     template<typename TYPE, typename DELETER>
-    strongPtr<TYPE, DELETER>::strongPtr(strongPtr&& other) noexcept : strongPtr() {
+    strongPtr<TYPE, DELETER>::strongPtr(strongPtr&& other) noexcept : strongPtr(static_cast<TYPE*>(nullptr)) {
         this->operator=(std::move(other));
     }
 
@@ -165,9 +184,14 @@ namespace original{
         return strongPtr<T, DEL>(new T{});
     }
 
+    template<typename T, typename DEL>
+    strongPtr<T, DEL> makeStrongPtr(const u_integer size) {
+        return strongPtr<T, DEL>(new T[size]);
+    }
+
     template<typename TYPE, typename DELETER>
     weakPtr<TYPE, DELETER>::weakPtr()
-        : refCntPtr<TYPE, weakPtr, DELETER>(nullptr) {
+        : refCntPtr<TYPE, weakPtr, DELETER>(static_cast<TYPE*>(nullptr)) {
         this->addWeakRef();
     }
 
@@ -248,6 +272,11 @@ namespace original{
     }
 
     template<typename TYPE, typename DELETER>
+    const TYPE & weakPtr<TYPE, DELETER>::operator[](u_integer index) const {
+        return this.lock().operator[](index);
+    }
+
+    template<typename TYPE, typename DELETER>
     TYPE& weakPtr<TYPE, DELETER>::operator*() {
         return this->lock().operator*();
     }
@@ -255,6 +284,11 @@ namespace original{
     template<typename TYPE, typename DELETER>
     TYPE* weakPtr<TYPE, DELETER>::operator->() {
         return this->lock().operator->();
+    }
+
+    template<typename TYPE, typename DELETER>
+    TYPE & weakPtr<TYPE, DELETER>::operator[](u_integer index) {
+        return this.lock().operator[](index);
     }
 
     template<typename TYPE, typename DELETER>
