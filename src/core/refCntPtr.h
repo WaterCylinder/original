@@ -39,14 +39,14 @@ namespace original{
     public:
         /**
         * @brief Get class identifier
-        * @return std::string "refCntPtr"
+        * @return Class name of refCntPtr
         */
         [[nodiscard]] std::string className() const override;
 
         /**
         * @brief Formatted string with reference info
         * @param enter Add newline if true
-        * @return std::string Contains pointer value and ref counts
+        * @return Contains pointer value and ref counts
         */
         [[nodiscard]] std::string toString(bool enter) const override;
 
@@ -125,7 +125,7 @@ namespace original{
 
         /**
         * @brief Get class identifier
-        * @return std::string "strongPtr"
+        * @return Class name of strongPtr
         */
         [[nodiscard]] std::string className() const override;
 

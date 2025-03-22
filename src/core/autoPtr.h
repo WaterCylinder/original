@@ -29,7 +29,6 @@ namespace original {
     * - Strong/weak reference tracking
     * - Automatic cleanup when references reach zero
     * - Custom deletion policies via template parameter
-    * - Thread-safe reference counting (assuming atomic operations)
     * @extends printable
     * @extends comparable
     */
