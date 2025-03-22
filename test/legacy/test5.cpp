@@ -1,6 +1,7 @@
 #include <iostream>
 #include "chain.h"
 #include "ownerPtr.h"
+#include "refCntPtr.h"
 #include "vector.h"
 
 
@@ -30,5 +31,18 @@ int main(){
         std::cout << **p6 << std::endl;
         p6->operator++();
     }
+    std::cout << std::endl;
+    constexpr int size = 10;
+    auto p7 = original::makeOwnerPtr<int>(size);
+    for (int i = 0; i < size; ++i) {
+        p7[i] = i;
+    }
+    for (int i = 0; i < size; ++i) {
+        std::cout << p7[i] << std::endl;
+    }
+    auto p8 = original::ownerPtr<original::array<int>>(10);
+    std::cout << p8 << ", " << *p8 << std::endl;
+    const auto p9 = original::strongPtr<original::array<int>>();
+    std::cout << p9 << ", " << *p9 << std::endl;
     return 0;
 }
