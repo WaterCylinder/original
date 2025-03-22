@@ -1,6 +1,6 @@
 # CMakeLists.txt Main
 
-cmake_minimum_required(VERSION 3.29)
+cmake_minimum_required(VERSION 3.30)
 project(original LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -40,6 +40,14 @@ install(FILES "${CMAKE_BINARY_DIR}/cmake/originalConfig.cmake"
 option(BUILD_TESTING "Build the testing directories" ON)
 
 if (BUILD_TESTING)
+    if(MSVC)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /fsanitize=address /Zi")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /fsanitize=address /Zi")
+    else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -g")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -g")
+    endif()
+
     # test cases
     add_subdirectory(test/legacy)
     add_subdirectory(test/unit_test)
