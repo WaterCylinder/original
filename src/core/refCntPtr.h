@@ -4,17 +4,55 @@
 #include "autoPtr.h"
 #include "deleter.h"
 
+/**
+* @file refCntPtr.h
+* @brief Reference-counted smart pointer hierarchy
+* @details Implements shared ownership semantics through strong/weak reference models.
+* Base class provides common reference counting infrastructure, while derived classes
+* implement specific ownership policies. Supports cyclic reference breaking through
+* weak reference design.
+*/
+
 
 namespace original{
+    /**
+    * @class refCntPtr
+    * @tparam TYPE Managed object type
+    * @tparam DERIVED CRTP pattern parameter
+    * @tparam DELETER Custom deletion policy type
+    * @brief Base class for reference-counted pointers
+    * @details Provides shared infrastructure for:
+    * - Reference counting mechanics
+    * - Object lifetime tracking
+    * - Common operator implementations
+    * @extends autoPtr
+    */
     template<typename TYPE, typename DERIVED, typename DELETER>
     class refCntPtr : public autoPtr<TYPE, DERIVED, DELETER>{
     protected:
+        /**
+        * @brief Construct from raw pointer
+        * @param p Pointer to manage
+        * @note Initializes reference counting system
+        */
         explicit refCntPtr(TYPE* p);
     public:
+        /**
+        * @brief Get class identifier
+        * @return std::string "refCntPtr"
+        */
         [[nodiscard]] std::string className() const override;
 
+        /**
+        * @brief Formatted string with reference info
+        * @param enter Add newline if true
+        * @return std::string Contains pointer value and ref counts
+        */
         [[nodiscard]] std::string toString(bool enter) const override;
 
+        /**
+        * @brief Default destructor of refCntPtr
+        */
         ~refCntPtr() override = default;
     };
 
@@ -25,26 +63,75 @@ namespace original{
     class weakPtr;
 
 
+    /**
+    * @class strongPtr
+    * @tparam TYPE Managed object type
+    * @tparam DELETER Deletion policy type (default: deleter<TYPE>)
+    * @brief Shared ownership smart pointer with strong references
+    * @details Maintains object lifetime through reference counting:
+    * - Increases strong count on copy
+    * - Decreases strong count on destruction
+    * - Destroys object when strong count reaches zero
+    * - Supports copy/move semantics for shared ownership
+    * @extends refCntPtr
+    */
     template<typename TYPE, typename DELETER>
     class strongPtr final : public refCntPtr<TYPE, strongPtr<TYPE, DELETER>, DELETER>{
         friend class weakPtr<TYPE, DELETER>;
 
     public:
+        /**
+        * @brief Construct from raw pointer
+        * @param p Pointer to manage
+        * @warning Shares ownership of existing resource
+        */
         explicit strongPtr(TYPE* p);
 
+        /**
+        * @brief In-place construction with arguments
+        * @tparam Args Constructor argument types
+        * @param args Arguments to forward to TYPE constructor
+        */
         template<typename... Args>
         explicit strongPtr(Args&&... args);
 
+        /**
+        * @brief Copy constructor shares ownership
+        * @param other Source strongPtr to copy from
+        */
         strongPtr(const strongPtr& other);
 
+        /**
+        * @brief Copy assignment shares ownership
+        * @param other Source strongPtr to copy from
+        * @return Reference to this strongPtr
+        */
         strongPtr& operator=(const strongPtr& other);
 
+        /**
+        * @brief Move constructor transfers ownership
+        * @param other Source strongPtr to move from
+        * @post other becomes empty
+        */
         strongPtr(strongPtr&& other) noexcept;
 
+        /**
+        * @brief Move assignment transfers ownership
+        * @param other Source strongPtr to move from
+        * @return Reference to this strongPtr
+        * @post other becomes empty
+        */
         strongPtr& operator=(strongPtr&& other) noexcept;
 
+        /**
+        * @brief Get class identifier
+        * @return std::string "strongPtr"
+        */
         [[nodiscard]] std::string className() const override;
 
+        /**
+        * @brief Destructor decreases strong references count
+        */
         ~strongPtr() override;
 
         template <typename T, typename DEL>
@@ -54,46 +141,165 @@ namespace original{
         friend strongPtr<T, DEL> makeStrongPtr(u_integer size);
     };
 
+    /**
+    * @class weakPtr
+    * @tparam TYPE Managed object type
+    * @tparam DELETER Deletion policy type (default: deleter<TYPE>)
+    * @brief Non-owning reference to shared resource
+    * @details Provides safe access to resources managed by strongPtr:
+    * - Does not affect object lifetime
+    * - Must convert to strongPtr via lock() before access
+    * - Automatically expires when all strong references removed
+    * @extends refCntPtr
+    */
     template<typename TYPE, typename DELETER>
     class weakPtr final : public refCntPtr<TYPE, weakPtr<TYPE, DELETER>, DELETER>{
         friend class strongPtr<TYPE, DELETER>;
 
+        /**
+        * @brief Initialize empty weak reference
+        */
         explicit weakPtr();
     public:
+
+        /**
+        * @brief Construct from strongPtr observer
+        * @param other Source strongPtr to observe
+        * @details Creates weak reference to same resource:
+        * - Shares reference counter with strongPtr
+        * - Increments weak reference count
+        * - Does NOT affect strong reference count
+        */
         explicit weakPtr(const strongPtr<TYPE, DELETER>& other);
 
+        /**
+        * @brief Assign observation from strongPtr
+        * @param other Source strongPtr to observe
+        * @return Reference to this weakPtr
+        * @details Behavior:
+        * 1. Releases current observation (decrements weak count)
+        * 2. Adopts new reference counter from other
+        * 3. Increments new weak reference count
+        * @note Handles self-assignment safely
+        */
         weakPtr& operator=(const strongPtr<TYPE, DELETER>& other);
 
+        /**
+        * @brief Copy constructor duplicates observation
+        * @param other Source weakPtr to copy
+        * @details Shares the same observation target:
+        * - Increments weak reference count
+        * - No change to strong reference count
+        */
         weakPtr(const weakPtr& other);
 
+        /**
+        * @brief Copy assignment duplicates observation
+        * @param other Source weakPtr to copy
+        * @return Reference to this weakPtr
+        * @details Behavior:
+        * 1. Releases current observation
+        * 2. Shares other's reference counter
+        * 3. Increments new weak reference count
+        * @note Safely handles self-assignment
+        */
         weakPtr& operator=(const weakPtr& other);
 
+        /**
+        * @brief Move constructor transfers observation
+        * @param other Source weakPtr to move from
+        * @post other becomes empty observer
+        */
         weakPtr(weakPtr&& other) noexcept;
 
+        /**
+        * @brief Move assignment transfers observation
+        * @param other Source weakPtr to move from
+        * @return Reference to this weakPtr
+        * @post other becomes empty observer
+        */
         weakPtr& operator=(weakPtr&& other) noexcept;
 
+        /**
+        * @brief Attempt to acquire ownership
+        * @return strongPtr<TYPE, DELETER> Valid strongPtr if resource exists
+        * @details Creates temporary strong reference:
+        * - Returns empty strongPtr if object destroyed
+        * - Increments strong count if successful
+        * - Thread-safe atomic reference check
+        * @throws nothing (nothrow guarantee)
+        */
         strongPtr<TYPE, DELETER> lock() const;
 
+        /**
+        * @brief Const dereference via temporary strong reference
+        * @return const TYPE& Reference to observed object
+        */
         const TYPE& operator*() const override;
 
+        /**
+        * @brief Const member access via temporary strong reference
+        * @return Pointer to observed object
+        */
         const TYPE* operator->() const override;
 
+        /**
+        * @brief Const array element access via temporary strong reference
+        * @param index Array position
+        * @return Reference to element
+        */
         const TYPE& operator[](u_integer index) const override;
 
+        /**
+        * @brief Mutable dereference via temporary strong reference
+        * @return Reference to observed object
+        */
         TYPE& operator*() override;
 
+        /**
+        * @brief Mutable member access via temporary strong reference
+        * @return Pointer to observed object
+        */
         TYPE* operator->() override;
 
+        /**
+        * @brief Mutable array element access via temporary strong reference
+        * @param index Array position
+        * @return Reference to element
+        */
         TYPE& operator[](u_integer index) override;
 
+        /**
+        * @brief Get class type identifier
+        * @return std::string "weakPtr"
+        */
         [[nodiscard]] std::string className() const override;
 
+        /**
+        * @brief Destructor releases weak reference
+        * @details Decrements weak reference count:
+        * - Does NOT trigger object destruction
+        * - Final weak reference cleans up counter
+        */
         ~weakPtr() override;
     };
 
+    /**
+    * @brief Factory for default-constructed strongPtr
+    * @tparam T Object type
+    * @tparam DEL Deletion policy (default: deleter<T>)
+    * @return New shared ownership instance
+    */
     template <typename T, typename DEL = deleter<T>>
     strongPtr<T, DEL> makeStrongPtr();
 
+    /**
+    * @brief Factory for array-allocated strongPtr
+    * @tparam T Array element type
+    * @tparam DEL Array deletion policy (default: deleter<T[]>)
+    * @param size Number of elements
+    * @return Shared array ownership
+    */
     template <typename T, typename DEL = deleter<T[]>>
     strongPtr<T, DEL> makeStrongPtr(u_integer size);
 

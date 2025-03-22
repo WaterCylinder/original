@@ -6,82 +6,236 @@
 #include "comparable.h"
 #include "error.h"
 
+/**
+* @file autoPtr.h
+* @brief Base class for reference-counted smart pointers
+* @details Implements core functionality for automatic memory management
+* using reference counting. Supports strong/weak references and custom deleters.
+* Inherits printable and comparable interfaces for debugging and comparison.
+*/
 
-namespace original{
+namespace original {
+    // Forward declaration for friend class
     template<typename TYPE, typename DELETER>
     class refCount;
 
+    /**
+    * @class autoPtr
+    * @tparam TYPE Managed object type
+    * @tparam DERIVED CRTP pattern parameter for inheritance
+    * @tparam DELETER Custom deleter policy type
+    * @brief Base smart pointer with reference counting
+    * @details Provides core resource management capabilities through:
+    * - Strong/weak reference tracking
+    * - Automatic cleanup when references reach zero
+    * - Custom deletion policies via template parameter
+    * - Thread-safe reference counting (assuming atomic operations)
+    * @extends printable
+    * @extends comparable
+    */
     template<typename TYPE, typename DERIVED, typename DELETER>
     class autoPtr : public printable, public comparable<autoPtr<TYPE, DERIVED, DELETER>>{
     protected:
-        refCount<TYPE, DELETER>* ref_count;
+        refCount<TYPE, DELETER>* ref_count; ///< Reference counter object
 
+        /**
+        * @brief Construct from raw pointer
+        * @param p Raw pointer to manage
+        * @warning Ownership is transferred to autoPtr
+        */
         explicit autoPtr(TYPE* p);
 
+        /**
+        * @brief Get managed pointer
+        * @return Raw pointer to managed object
+        * @throws nullPointerError if no active references
+        */
         TYPE* getPtr() const;
 
+        /**
+        * @brief Replace managed pointer
+        * @param p New pointer to manage
+        * @throws nullPointerError if no active references
+        */
         void setPtr(TYPE* p);
 
+        /**
+        * @brief Get strong reference count
+        * @return Current number of strong references
+        */
         u_integer strongRefs() const;
 
+        /**
+        * @brief Get weak reference count
+        * @return Current number of weak references
+        */
         u_integer weakRefs() const;
 
+        /**
+        * @brief Increment strong reference count
+        */
         void addStrongRef();
 
+        /**
+        * @brief Increment weak reference count
+        */
         void addWeakRef();
 
+        /**
+        * @brief Decrement strong reference count
+        */
         void removeStrongRef();
 
+        /**
+        * @brief Decrement weak reference count
+        */
         void removeWeakRef();
 
+        /**
+        * @brief Destroy reference counter
+        * @note Only destroys counter when both ref counts reach zero
+        */
         void destroyRefCnt() noexcept;
 
+        /**
+        * @brief Cleanup resources when expired
+        */
         void clean() noexcept;
 
+        /**
+        * @brief Create new reference counter
+        * @param p Pointer to manage (nullptr allowed)
+        * @return Newly created counter object
+        */
         static refCount<TYPE, DELETER>* newRefCount(TYPE* p = nullptr);
+
     public:
+        /**
+        * @brief Check active ownership
+        * @return True if it has active references
+        */
         bool exist() const;
 
+        /**
+        * @brief Check resource validity
+        * @return True if strong references == 0
+        */
         bool expired() const;
 
+        /**
+        * @brief Boolean conversion operator
+        * @return Equivalent to exist()
+        */
         explicit operator bool() const;
 
+        // Const accessors
+        /**
+        * @brief Const dereference operator
+        * @return Reference to managed object
+        * @throws nullPointerError if no managed object
+        */
         virtual const TYPE& operator*() const;
 
+        /**
+        * @brief Const member access operator
+        * @return Pointer to managed object
+        * @throws nullPointerError if no managed object
+        */
         virtual const TYPE* operator->() const;
 
+        /**
+        * @brief Const array access operator
+        * @param index Array index
+        * @return Reference to element
+        * @throws nullPointerError if no managed array
+        */
         virtual const TYPE& operator[](u_integer index) const;
 
+        // Mutable accessors
+        /**
+        * @brief Mutable dereference operator
+        * @return Reference to managed object
+        * @throws nullPointerError if no managed object
+        */
         virtual TYPE& operator*();
 
+        /**
+        * @brief Mutable member access operator
+        * @return Pointer to managed object
+        * @throws nullPointerError if no managed object
+        */
         virtual TYPE* operator->();
 
+        /**
+        * @brief Mutable array access operator
+        * @param index Array index
+        * @return Reference to element
+        * @throws nullPointerError if no managed array
+        */
         virtual TYPE& operator[](u_integer index);
 
+        /**
+        * @brief Compare reference counters
+        * @param other autoPtr to compare with
+        * @return Difference between refcount addresses
+        */
         integer compareTo(const autoPtr& other) const override;
 
+        /**
+        * @brief Get class name string
+        * @return Name of autoPtr
+        */
         std::string className() const override;
 
+        /**
+        * @brief String representation formatter
+        * @param enter Add newline if true
+        * @return Formatted resource info
+        */
         std::string toString(bool enter) const override;
 
+        /**
+        * @brief Destructor triggers reference cleanup
+        */
         ~autoPtr() override;
     };
 
+    /**
+    * @class refCount
+    * @tparam TYPE Managed object type
+    * @tparam DELETER Custom deleter policy type
+    * @brief Reference counting metadata container
+    * @details Stores:
+    * - Managed pointer
+    * - Strong/weak reference counts
+    * - Deleter policy instance
+    */
     template<typename TYPE, typename DELETER>
     class refCount {
         template <typename, typename, typename>
         friend class autoPtr;
 
-        TYPE* ptr;
-        u_integer strong_refs;
-        u_integer weak_refs;
-        DELETER deleter;
+        TYPE* ptr;             ///< Managed raw pointer
+        u_integer strong_refs; ///< Strong reference counter
+        u_integer weak_refs;   ///< Weak reference counter
+        DELETER deleter;       ///< Deleter policy instance
 
+        /**
+        * @brief Construct refCount object
+        * @param p Pointer to manage (nullptr allowed)
+        */
         explicit refCount(TYPE* p = nullptr);
+
+        /**
+        * @brief Destroy managed pointer using deleter
+        */
         void destroyPtr() noexcept;
+
+        /**
+        * @brief Destructor ensures resource cleanup
+        */
         ~refCount();
     };
-
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
