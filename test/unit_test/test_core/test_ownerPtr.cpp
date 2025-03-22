@@ -17,12 +17,12 @@ int TestDeleter::delete_count = 0;
 TEST(OwnerPtrTest, BasicFunctionality) {
     // 测试构造函数和对象访问
     original::ownerPtr ptr(new int(42));
-    EXPECT_TRUE(static_cast<bool>(ptr));  // 通过operator bool检查有效性
+    EXPECT_TRUE(ptr);  // 通过operator bool检查有效性
     EXPECT_EQ(*ptr, 42);                  // 通过operator*访问值
 
     // 测试移动构造函数
     original::ownerPtr moved_ptr(std::move(ptr));
-    EXPECT_FALSE(static_cast<bool>(ptr)); // 原指针应失效
+    EXPECT_FALSE(ptr); // 原指针应失效
     EXPECT_EQ(*moved_ptr, 42);
 
     // 测试移动赋值
@@ -35,7 +35,7 @@ TEST(OwnerPtrTest, BasicFunctionality) {
 TEST(OwnerPtrTest, FactoryFunctions) {
     // 测试单对象工厂
     auto single = original::makeOwnerPtr<int>();
-    EXPECT_TRUE(static_cast<bool>(single));
+    EXPECT_TRUE(single);
     *single = 10;
     EXPECT_EQ(*single, 10);
 
@@ -61,7 +61,7 @@ TEST(OwnerPtrTest, UnlockOperation) {
     original::ownerPtr ptr(new int(42));
     const int* raw = ptr.unlock();
     EXPECT_EQ(*raw, 42);
-    EXPECT_FALSE(static_cast<bool>(ptr));  // unlock后指针失效
+    EXPECT_FALSE(ptr);  // unlock后指针失效
     delete raw; // 需要手动管理
 }
 
@@ -78,6 +78,6 @@ static_assert(!std::is_copy_assignable_v<original::ownerPtr<int>>,
 TEST(OwnerPtrTest, NullPointerHandling) {
     int* p = nullptr;
     original::ownerPtr ptr(p);
-    EXPECT_FALSE(static_cast<bool>(ptr));          // operator bool返回false
+    EXPECT_FALSE(ptr);          // operator bool返回false
     EXPECT_THROW(*ptr, original::nullPointerError); // operator*抛出异常
 }
