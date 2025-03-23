@@ -134,6 +134,14 @@ namespace original{
         */
         strongPtr(strongPtr&& other) noexcept;
 
+        /**
+        * @brief Resets the smart pointer and releases the managed object
+        * @details Performs the following sequence of operations:
+        * 1. Decrements the current strong reference count
+        * 2. Cleans up the managed pointer and reference counter
+        * 3. Creates a new reference counter and initializes strong references
+        * @post Equivalent to replacing the current strongPtr with a newly constructed empty pointer
+        */
         void reset() noexcept;
 
         /**
