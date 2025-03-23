@@ -3,15 +3,29 @@
 #include "ownerPtr.h"
 
 // 自定义删除器用于验证删除操作
-struct TestDeleter {
+template<typename TYPE>
+struct TestDeleter final : original::deleter<TYPE>{
     static int delete_count;
 
-    void operator()(const int* p) const noexcept {
+    void operator()(const TYPE* p) const noexcept override {
         delete p;
         delete_count++;
     }
 };
-int TestDeleter::delete_count = 0;
+
+template<>
+struct TestDeleter<int[]> final : original::deleter<int[]> {
+    static int delete_count;
+
+    void operator()(const int* p) const noexcept override {
+        delete[] p;
+        delete_count++;
+    }
+};
+
+template<>
+int TestDeleter<int>::delete_count = 0;
+int TestDeleter<int[]>::delete_count = 0;
 
 // 测试基础功能
 TEST(OwnerPtrTest, BasicFunctionality) {
@@ -47,13 +61,25 @@ TEST(OwnerPtrTest, FactoryFunctions) {
 
 // 测试资源释放
 TEST(OwnerPtrTest, ResourceManagement) {
-    TestDeleter::delete_count = 0;
+    TestDeleter<int>::delete_count = 0;
     {
-        original::ownerPtr<int, TestDeleter> ptr(new int(42));
-        EXPECT_EQ(TestDeleter::delete_count, 0);
+        original::ownerPtr<int, TestDeleter<int>> ptr(new int(42));
+        EXPECT_EQ(TestDeleter<int>::delete_count, 0);
         EXPECT_EQ(*ptr, 42);  // 正常访问
     }
-    EXPECT_EQ(TestDeleter::delete_count, 1);  // 确保析构调用删除器
+    EXPECT_EQ(TestDeleter<int>::delete_count, 1);  // 确保析构调用删除器
+    TestDeleter<int[]>::delete_count = 0;
+    {
+        constexpr int size = 10;
+        auto array = original::ownerPtr<int, TestDeleter<int[]>>(new int[size]);
+        for (int i = 0; i < size; i++) {
+            array[i] = i;
+        }
+        for (int i = 0; i < size; i++) {
+            EXPECT_EQ(array[i], i);   // 正常访问
+        }
+    }
+    EXPECT_EQ(TestDeleter<int[]>::delete_count, 1); // 确保析构调用删除器
 }
 
 // 测试解锁功能
