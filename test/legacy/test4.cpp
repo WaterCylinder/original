@@ -103,11 +103,5 @@ int main(){
     original::weakPtr<int> w2 = std::move(w1);
     std::cout << w1 << ", " << w2 << std::endl;
     std::cout << *w2 << std::endl;
-//    int* dy_arr = new int[3];
-//    for (int j = 0; j < 3; ++j) {
-//        dy_arr[j] = j;
-//    }
-//    auto op2 = original::ownerPtr<int[]>(dy_arr); // 实现这两个用法
-//    auto op2 = original::ownerPtr<int, original::deleter<int[]>>(dy_arr); // 实现这两个用法
     return 0;
 }
