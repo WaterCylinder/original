@@ -146,7 +146,7 @@ namespace original {
 
     template<typename TYPE, typename DELETER>
     TYPE* ownerPtr<TYPE, DELETER>::unlock() {
-        TYPE* p = this->getPtr();
+        TYPE* p = this->get();
         this->setPtr(nullptr);
         return p;
     }

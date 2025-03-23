@@ -45,13 +45,6 @@ namespace original {
         explicit autoPtr(TYPE* p);
 
         /**
-        * @brief Get managed pointer
-        * @return Raw pointer to managed object
-        * @throws nullPointerError if no active references
-        */
-        TYPE* getPtr() const;
-
-        /**
         * @brief Replace managed pointer
         * @param p New pointer to manage
         * @throws nullPointerError if no active references
@@ -127,7 +120,13 @@ namespace original {
         */
         explicit operator bool() const;
 
-        // Const accessors
+        /**
+        * @brief Get managed pointer
+        * @return Raw pointer to managed object
+        * @throws nullPointerError if no active references
+        */
+        TYPE* get() const;
+
         /**
         * @brief Const dereference operator
         * @return Reference to managed object
@@ -241,13 +240,6 @@ template<typename TYPE, typename DERIVED, typename DELETER>
 original::autoPtr<TYPE, DERIVED, DELETER>::autoPtr(TYPE* p)
     : ref_count(newRefCount(p)) {}
 
-template<typename TYPE, typename DERIVED, typename DELETER>
-TYPE* original::autoPtr<TYPE, DERIVED, DELETER>::getPtr() const {
-    if (!this->exist()){
-        throw nullPointerError();
-    }
-    return this->ref_count->ptr;
-}
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 void original::autoPtr<TYPE, DERIVED, DELETER>::setPtr(TYPE* p) {
@@ -321,51 +313,59 @@ bool original::autoPtr<TYPE, DERIVED, DELETER>::expired() const {
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 original::autoPtr<TYPE, DERIVED, DELETER>::operator bool() const {
-    return this->exist() && this->getPtr();
+    return this->exist() && this->get();
+}
+
+template<typename TYPE, typename DERIVED, typename DELETER>
+TYPE* original::autoPtr<TYPE, DERIVED, DELETER>::get() const {
+    if (!this->exist()){
+        throw nullPointerError();
+    }
+    return this->ref_count->ptr;
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 const TYPE& original::autoPtr<TYPE, DERIVED, DELETER>::operator*() const {
-    if (!this->getPtr())
+    if (!this->get())
         throw nullPointerError();
-    return *this->getPtr();
+    return *this->get();
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 const TYPE*
 original::autoPtr<TYPE, DERIVED, DELETER>::operator->() const {
-    if (!this->getPtr())
+    if (!this->get())
         throw nullPointerError();
-    return this->getPtr();
+    return this->get();
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 const TYPE& original::autoPtr<TYPE, DERIVED, DELETER>::operator[](u_integer index) const {
-    if (!this->getPtr())
+    if (!this->get())
         throw nullPointerError();
-    return this->getPtr()[index];
+    return this->get()[index];
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 TYPE &original::autoPtr<TYPE, DERIVED, DELETER>::operator*() {
-    if (!this->getPtr())
+    if (!this->get())
         throw nullPointerError();
-    return *this->getPtr();
+    return *this->get();
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 TYPE*
 original::autoPtr<TYPE, DERIVED, DELETER>::operator->() {
-    if (!this->getPtr())
+    if (!this->get())
         throw nullPointerError();
-    return this->getPtr();
+    return this->get();
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 TYPE& original::autoPtr<TYPE, DERIVED, DELETER>::operator[](u_integer index) {
-    if (!this->getPtr())
+    if (!this->get())
         throw nullPointerError();
-    return this->getPtr()[index];
+    return this->get()[index];
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
@@ -382,7 +382,7 @@ template<typename TYPE, typename DERIVED, typename DELETER>
 std::string original::autoPtr<TYPE, DERIVED, DELETER>::toString(const bool enter) const {
     std::stringstream ss;
     ss << this->className() << "(";
-    ss << formatString(this->getPtr());
+    ss << formatString(this->get());
     ss << ")";
     if (enter)
         ss << "\n";

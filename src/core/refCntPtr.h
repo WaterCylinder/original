@@ -333,13 +333,13 @@ namespace original{
     template<typename TYPE, typename DERIVED, typename DELETER>
     template<typename O_DERIVED>
     bool refCntPtr<TYPE, DERIVED, DELETER>::operator==(const refCntPtr<TYPE, O_DERIVED, DELETER>& other) const {
-        return this->ref_count == other.ref_count;
+        return this->get() == other.get();
     }
 
     template<typename TYPE, typename DERIVED, typename DELETER>
     template<typename O_DERIVED>
     bool refCntPtr<TYPE, DERIVED, DELETER>::operator!=(const refCntPtr<TYPE, O_DERIVED, DELETER>& other) const {
-        return this->ref_count != other.ref_count;
+        return this->get() != other.get();
     }
 
     template<typename TYPE, typename DERIVED, typename DELETER>
@@ -351,7 +351,7 @@ namespace original{
     std::string refCntPtr<TYPE, DERIVED, DELETER>::toString(const bool enter) const {
         std::stringstream ss;
         ss << this->className() << "(";
-        ss << printable::formatString(this->getPtr()) << ", ";
+        ss << printable::formatString(this->get()) << ", ";
         ss << "strong ref: " << this->strongRefs() << ", " << "weak ref: " << this->weakRefs();
         ss << ")";
         if (enter)
