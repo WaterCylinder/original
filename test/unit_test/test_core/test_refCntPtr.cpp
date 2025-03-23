@@ -68,3 +68,49 @@ TEST(RefCntPtrTest, ExceptionSafety) {
                  empty_ptr->id; // 访问空指针
     }, original::nullPointerError);
 }
+
+// 定义包含循环引用的 Node 类
+struct Node {
+    original::strongPtr<Node> next;  // 强引用
+    original::weakPtr<Node> prev;    // 弱引用，用于打破循环
+    int value;
+
+    explicit Node(const int val = 0) : next(static_cast<Node *>(nullptr)), value(val) {
+    }
+};
+
+TEST(RefCntPtrTest, BreakCyclicReference) {
+
+    {
+        auto node1 = original::strongPtr<Node>(1);
+        auto node2 = original::strongPtr<Node>(2);
+    }
+
+    {
+        auto node1 = original::strongPtr<Node>(1);
+        auto node2 = original::strongPtr<Node>(2);
+
+        node1->next = node2;  // 强引用
+        node2->prev = node1;  // 弱引用
+    }
+
+    {
+        auto node1 = original::strongPtr<Node>(1);
+        auto node2 = original::strongPtr<Node>(2);
+
+        node1->prev = node2;  // 弱引用
+        node2->prev = node1;  // 弱引用
+    }
+
+    {
+        auto node1 = original::strongPtr<Node>(1);
+        auto node2 = original::strongPtr<Node>(2);
+
+        node1->next = node2;  // node2 强引用
+        node2->next = node1;  // node1 强引用
+
+
+        node1->next.reset();
+        node2->prev = node1;  // node1弱引用
+    }
+}
