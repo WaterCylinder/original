@@ -405,8 +405,9 @@ original::refCount<TYPE, DELETER>::refCount(TYPE *p)
 
 template<typename TYPE, typename DELETER>
 void original::refCount<TYPE, DELETER>::destroyPtr() noexcept {
-    this->deleter(this->ptr);
+    TYPE* tmp = this->ptr;
     this->ptr = nullptr;
+    this->deleter(tmp);
 }
 
 template<typename TYPE, typename DELETER>
