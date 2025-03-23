@@ -44,5 +44,20 @@ int main(){
     std::cout << p8 << ", " << *p8 << std::endl;
     const auto p9 = original::strongPtr<original::array<int>>();
     std::cout << p9 << ", " << *p9 << std::endl;
+    auto p10 = original::makeStrongPtr<int>(size);
+    auto p11 = p10;
+    for (int i = 0; i < size; ++i) {
+        p11[i] = 0;
+    }
+    if (p11) {
+        p11[0] = 8;
+        p11[1] = 9;
+        p11[2] = 10;
+        std::cout << "p11 is valid" << std::endl;
+    }
+    std::cout << p11 << std::endl;
+    for (int i = 0; i < size; ++i) {
+        std::cout << p11[i] << std::endl;
+    }
     return 0;
 }
