@@ -52,18 +52,6 @@ namespace original {
         void setPtr(TYPE* p);
 
         /**
-        * @brief Get strong reference count
-        * @return Current number of strong references
-        */
-        u_integer strongRefs() const;
-
-        /**
-        * @brief Get weak reference count
-        * @return Current number of weak references
-        */
-        u_integer weakRefs() const;
-
-        /**
         * @brief Increment strong reference count
         * @internal Reference set method
         */
@@ -107,6 +95,19 @@ namespace original {
         static refCount<TYPE, DELETER>* newRefCount(TYPE* p = nullptr);
 
     public:
+
+        /**
+        * @brief Get strong reference count
+        * @return Current number of strong references
+        */
+        u_integer strongRefs() const;
+
+        /**
+        * @brief Get weak reference count
+        * @return Current number of weak references
+        */
+        u_integer weakRefs() const;
+
         /**
         * @brief Check active ownership
         * @return True if it has active references
@@ -255,16 +256,6 @@ void original::autoPtr<TYPE, DERIVED, DELETER>::setPtr(TYPE* p) {
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
-original::u_integer original::autoPtr<TYPE, DERIVED, DELETER>::strongRefs() const {
-    return this->ref_count->strong_refs;
-}
-
-template<typename TYPE, typename DERIVED, typename DELETER>
-original::u_integer original::autoPtr<TYPE, DERIVED, DELETER>::weakRefs() const {
-    return this->ref_count->weak_refs;
-}
-
-template<typename TYPE, typename DERIVED, typename DELETER>
 void original::autoPtr<TYPE, DERIVED, DELETER>::addStrongRef() {
     this->ref_count->strong_refs += 1;
 }
@@ -304,6 +295,16 @@ template <typename TYPE, typename DERIVED, typename DELETER>
 original::refCount<TYPE, DELETER>* original::autoPtr<TYPE, DERIVED, DELETER>::newRefCount(TYPE* p)
 {
     return new refCount<TYPE, DELETER>(p);
+}
+
+template<typename TYPE, typename DERIVED, typename DELETER>
+original::u_integer original::autoPtr<TYPE, DERIVED, DELETER>::strongRefs() const {
+    return this->ref_count->strong_refs;
+}
+
+template<typename TYPE, typename DERIVED, typename DELETER>
+original::u_integer original::autoPtr<TYPE, DERIVED, DELETER>::weakRefs() const {
+    return this->ref_count->weak_refs;
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
