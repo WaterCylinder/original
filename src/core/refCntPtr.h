@@ -37,6 +37,25 @@ namespace original{
         */
         explicit refCntPtr(TYPE* p);
     public:
+
+        /**
+        * @brief Equality comparison operator
+        * @tparam O_DERIVED Other derived class type (strongPtr/weakPtr)
+        * @param other Reference-counted pointer to compare with
+        * @return bool True if both pointers share the same reference counter
+        */
+        template<typename O_DERIVED>
+        bool operator==(const refCntPtr<TYPE, O_DERIVED, DELETER>& other) const;
+
+        /**
+        * @brief Inequality comparison operator
+        * @tparam O_DERIVED Other derived class type (strongPtr/weakPtr)
+        * @param other Reference-counted pointer to compare with
+        * @return bool True if pointers use different reference counters
+        */
+        template<typename O_DERIVED>
+        bool operator!=(const refCntPtr<TYPE, O_DERIVED, DELETER>& other) const;
+
         /**
         * @brief Get class identifier
         * @return Class name of refCntPtr
@@ -312,6 +331,18 @@ namespace original{
         : autoPtr<TYPE, DERIVED, DELETER>::autoPtr(p) {}
 
     template<typename TYPE, typename DERIVED, typename DELETER>
+    template<typename O_DERIVED>
+    bool refCntPtr<TYPE, DERIVED, DELETER>::operator==(const refCntPtr<TYPE, O_DERIVED, DELETER>& other) const {
+        return this->ref_count == other.ref_count;
+    }
+
+    template<typename TYPE, typename DERIVED, typename DELETER>
+    template<typename O_DERIVED>
+    bool refCntPtr<TYPE, DERIVED, DELETER>::operator!=(const refCntPtr<TYPE, O_DERIVED, DELETER>& other) const {
+        return this->ref_count != other.ref_count;
+    }
+
+    template<typename TYPE, typename DERIVED, typename DELETER>
     std::string refCntPtr<TYPE, DERIVED, DELETER>::className() const {
         return "refCntPtr";
     }
@@ -409,7 +440,7 @@ namespace original{
 
     template<typename TYPE, typename DELETER>
     weakPtr<TYPE, DELETER>& weakPtr<TYPE, DELETER>::operator=(const strongPtr<TYPE, DELETER>& other) {
-        if (this->ref_count == other.ref_count)
+        if (*this == other)
             return *this;
 
         this->removeWeakRef();
