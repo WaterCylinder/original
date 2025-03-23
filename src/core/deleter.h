@@ -27,7 +27,7 @@ namespace original {
         * @param ptr Pointer to the object to delete
         * @note Uses standard delete operator. Do not use with array types.
         */
-        void operator()(const TYPE* ptr) const noexcept;
+        virtual void operator()(const TYPE* ptr) const noexcept;
     };
 
     /**
@@ -48,7 +48,7 @@ namespace original {
         * @param ptr Pointer to the array to delete
         * @note Uses delete[] operator. Required for array type cleanup.
         */
-        void operator()(const TYPE* ptr) const noexcept;
+        virtual void operator()(const TYPE* ptr) const noexcept;
     };
 }
 
