@@ -134,6 +134,8 @@ namespace original{
         */
         strongPtr(strongPtr&& other) noexcept;
 
+        void reset() noexcept;
+
         /**
         * @brief Move assignment transfers ownership
         * @param other Source strongPtr to move from
@@ -175,11 +177,12 @@ namespace original{
     class weakPtr final : public refCntPtr<TYPE, weakPtr<TYPE, DELETER>, DELETER>{
         friend class strongPtr<TYPE, DELETER>;
 
+    public:
+
         /**
         * @brief Initialize empty weak reference
         */
         explicit weakPtr();
-    public:
 
         /**
         * @brief Construct from strongPtr observer
@@ -391,6 +394,14 @@ namespace original{
     template<typename TYPE, typename DELETER>
     strongPtr<TYPE, DELETER>::strongPtr(strongPtr&& other) noexcept : strongPtr(static_cast<TYPE*>(nullptr)) {
         this->operator=(std::move(other));
+    }
+
+    template<typename TYPE, typename DELETER>
+    void strongPtr<TYPE, DELETER>::reset() noexcept {
+        this->removeStrongRef();
+        this->clean();
+        this->ref_count = autoPtr<TYPE, strongPtr, DELETER>::newRefCount();
+        this->addStrongRef();
     }
 
     template<typename TYPE, typename DELETER>
