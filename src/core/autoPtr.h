@@ -65,21 +65,25 @@ namespace original {
 
         /**
         * @brief Increment strong reference count
+        * @internal Reference set method
         */
         void addStrongRef();
 
         /**
         * @brief Increment weak reference count
+        * @internal Reference set method
         */
         void addWeakRef();
 
         /**
         * @brief Decrement strong reference count
+        * @internal Reference set method
         */
         void removeStrongRef();
 
         /**
         * @brief Decrement weak reference count
+        * @internal Reference set method
         */
         void removeWeakRef();
 
@@ -91,6 +95,7 @@ namespace original {
 
         /**
         * @brief Cleanup resources when expired
+        * @internal Resource management method
         */
         void clean() noexcept;
 
