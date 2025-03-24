@@ -99,6 +99,20 @@ static_assert(!std::is_copy_assignable_v<original::ownerPtr<int>>,
               "ownerPtr should not be copy assignable");
 }
 
+TEST(OwnerPtrTest, SwapTest) {
+    original::ownerPtr ptr1(new int(42));
+    original::ownerPtr ptr2(new int(24));
+    EXPECT_TRUE(ptr1);
+    EXPECT_TRUE(ptr2);
+
+    ptr1.swap(ptr2);
+    EXPECT_EQ(*ptr1, 24);
+    EXPECT_EQ(*ptr2, 42);
+
+    ptr2.swap(ptr1);
+    EXPECT_EQ(*ptr1, 42);
+    EXPECT_EQ(*ptr2, 24);
+}
 
 // 测试空指针处理
 TEST(OwnerPtrTest, NullPointerHandling) {
