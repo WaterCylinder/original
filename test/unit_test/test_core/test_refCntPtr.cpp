@@ -27,6 +27,7 @@ TEST(RefCntPtrTest, StrongPtrBasic) {
         constexpr int id = 5;
         ptr2->id = id;
         EXPECT_EQ(ptr1->id, id);
+        EXPECT_FALSE(ptr1 == nullptr);
     }
     EXPECT_EQ(TrackedObject::alive_count, 0); // 确保完全释放
 }

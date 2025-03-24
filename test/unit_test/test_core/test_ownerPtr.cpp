@@ -31,7 +31,7 @@ int TestDeleter<int[]>::delete_count = 0;
 TEST(OwnerPtrTest, BasicFunctionality) {
     // 测试构造函数和对象访问
     original::ownerPtr ptr(new int(42));
-    EXPECT_TRUE(ptr);  // 通过operator bool检查有效性
+    EXPECT_TRUE(ptr != nullptr);  // 检查有效性
     EXPECT_EQ(*ptr, 42);                  // 通过operator*访问值
 
     // 测试移动构造函数
