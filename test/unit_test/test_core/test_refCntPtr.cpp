@@ -69,6 +69,61 @@ TEST(RefCntPtrTest, ExceptionSafety) {
     }, original::nullPointerError);
 }
 
+TEST(RefCntPtrTest, LockAndResetTest) {
+    TrackedObject::alive_count = 0;
+    {
+        auto p1 = original::strongPtr(new TrackedObject(10));
+        EXPECT_EQ(TrackedObject::alive_count, 1);
+        EXPECT_EQ(p1->id, 10);
+
+        auto p2 = p1;
+        p2->id = 20;
+        EXPECT_EQ(p1->id, 20);
+
+        auto p3 = original::weakPtr(p2);
+        EXPECT_EQ(p3.strongRefs(), 2);
+        EXPECT_EQ(p3.weakRefs(), 1);
+        EXPECT_EQ(p3->id, 20);
+
+        const auto p4 = p3.lock();
+        EXPECT_EQ(p4.strongRefs(), 3);
+        EXPECT_EQ(p4.weakRefs(), 1);
+
+        p1.reset();
+        EXPECT_FALSE(p1);
+        EXPECT_EQ(p2.strongRefs(), 2);
+        EXPECT_EQ(p2.weakRefs(), 1);
+    }
+    EXPECT_EQ(TrackedObject::alive_count, 0);
+}
+
+TEST(RefCntPtrTest, SwapTest) {
+    TrackedObject::alive_count = 0;
+    {
+        auto p1 = original::strongPtr(new TrackedObject(10));
+        EXPECT_EQ(TrackedObject::alive_count, 1);
+        auto p2 = original::strongPtr(new TrackedObject(20));
+        EXPECT_EQ(TrackedObject::alive_count, 2);
+
+        auto p3 = original::weakPtr(p1);
+        auto p4 = original::weakPtr(p2);
+        EXPECT_EQ(TrackedObject::alive_count, 2);
+
+        p3.swap(p4);
+        EXPECT_EQ(p1->id, 10);
+        EXPECT_EQ(p2->id, 20);
+        EXPECT_EQ(p3->id, 20);
+        EXPECT_EQ(p4->id, 10);
+
+        p1.swap(p2);
+        EXPECT_EQ(p1->id, 20);
+        EXPECT_EQ(p2->id, 10);
+        EXPECT_EQ(p3->id, 20);
+        EXPECT_EQ(p4->id, 10);
+    }
+    EXPECT_EQ(TrackedObject::alive_count, 0);
+}
+
 // 定义包含循环引用的 Node 类
 struct Node {
     original::strongPtr<Node> next;  // 强引用
