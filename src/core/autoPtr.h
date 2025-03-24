@@ -185,6 +185,15 @@ namespace original {
         */
         virtual TYPE& operator[](u_integer index);
 
+        /**
+        * @brief Swaps the reference counters between two autoPtr instances
+        * @param other Another autoPtr instance to swap with
+        *
+        * @post After swapping:
+        * - Current object acquires other's reference counter
+        * - Other object acquires current object's reference counter
+        * - Managed object ownership transfers implicitly
+        */
         void swap(autoPtr& other) noexcept;
 
         /**
