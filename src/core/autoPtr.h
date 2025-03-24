@@ -122,9 +122,23 @@ namespace original {
 
         /**
         * @brief Boolean conversion operator
-        * @return Equivalent to exist()
+        * @return Equivalent to a non null managed pointer
         */
         explicit operator bool() const;
+
+        /**
+        * @brief Equality comparison operator to nullptr
+        * @param null A nullptr to compare against
+        * @return True if the managed pointer is null, otherwise false
+        */
+        bool operator==(const std::nullptr_t& null) const;
+
+        /**
+        * @brief Inequality comparison operator to nullptr
+        * @param null A nullptr to compare against
+        * @return True if the managed pointer is not null, otherwise false
+        */
+        bool operator!=(const std::nullptr_t& null) const;
 
         /**
         * @brief Get managed pointer const version
@@ -338,6 +352,16 @@ bool original::autoPtr<TYPE, DERIVED, DELETER>::expired() const {
 template<typename TYPE, typename DERIVED, typename DELETER>
 original::autoPtr<TYPE, DERIVED, DELETER>::operator bool() const {
     return this->exist() && this->get();
+}
+
+template<typename TYPE, typename DERIVED, typename DELETER>
+bool original::autoPtr<TYPE, DERIVED, DELETER>::operator==(const std::nullptr_t&) const {
+    return !this->operator bool();
+}
+
+template<typename TYPE, typename DERIVED, typename DELETER>
+bool original::autoPtr<TYPE, DERIVED, DELETER>::operator!=(const std::nullptr_t&) const {
+    return this->operator bool();
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>

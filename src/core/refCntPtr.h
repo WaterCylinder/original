@@ -37,6 +37,8 @@ namespace original{
         */
         explicit refCntPtr(TYPE* p);
     public:
+        using autoPtr<TYPE, DERIVED, DELETER>::operator==;
+        using autoPtr<TYPE, DERIVED, DELETER>::operator!=;
 
         /**
         * @brief Equality comparison operator
