@@ -127,11 +127,18 @@ namespace original {
         explicit operator bool() const;
 
         /**
+        * @brief Get managed pointer const version
+        * @return Raw pointer to managed object
+        * @throws nullPointerError if no active references
+        */
+        const TYPE* get() const;
+
+        /**
         * @brief Get managed pointer
         * @return Raw pointer to managed object
         * @throws nullPointerError if no active references
         */
-        TYPE* get() const;
+        TYPE* get();
 
         /**
         * @brief Const dereference operator
@@ -177,6 +184,8 @@ namespace original {
         * @throws nullPointerError if no managed array
         */
         virtual TYPE& operator[](u_integer index);
+
+        void swap(autoPtr& other) noexcept;
 
         /**
         * @brief Compare reference counters
@@ -323,7 +332,15 @@ original::autoPtr<TYPE, DERIVED, DELETER>::operator bool() const {
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
-TYPE* original::autoPtr<TYPE, DERIVED, DELETER>::get() const {
+const TYPE* original::autoPtr<TYPE, DERIVED, DELETER>::get() const {
+    if (!this->exist()){
+        throw nullPointerError();
+    }
+    return this->ref_count->ptr;
+}
+
+template<typename TYPE, typename DERIVED, typename DELETER>
+TYPE* original::autoPtr<TYPE, DERIVED, DELETER>::get() {
     if (!this->exist()){
         throw nullPointerError();
     }
@@ -372,6 +389,13 @@ TYPE& original::autoPtr<TYPE, DERIVED, DELETER>::operator[](u_integer index) {
     if (!this->get())
         throw nullPointerError();
     return this->get()[index];
+}
+
+template<typename TYPE, typename DERIVED, typename DELETER>
+void original::autoPtr<TYPE, DERIVED, DELETER>::swap(autoPtr& other) noexcept {
+    auto other_ref_count = other.ref_count;
+    other.ref_count = this->ref_count;
+    this->ref_count = other_ref_count;
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
