@@ -543,7 +543,7 @@ namespace original{
     }
 
     template<typename TYPE, typename DELETER>
-    TYPE & weakPtr<TYPE, DELETER>::operator[](u_integer index) {
+    TYPE& weakPtr<TYPE, DELETER>::operator[](u_integer index) {
         return this->lock().operator[](index);
     }
 
