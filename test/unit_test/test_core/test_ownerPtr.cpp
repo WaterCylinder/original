@@ -4,7 +4,7 @@
 
 // 自定义删除器用于验证删除操作
 template<typename TYPE>
-struct TestDeleter final : original::deleter<TYPE>{
+struct TestDeleter final : original::deleterBase<TYPE>{
     static int delete_count;
 
     void operator()(const TYPE* p) const noexcept override {
@@ -14,7 +14,7 @@ struct TestDeleter final : original::deleter<TYPE>{
 };
 
 template<>
-struct TestDeleter<int[]> final : original::deleter<int[]> {
+struct TestDeleter<int[]> final : original::deleterBase<int[]> {
     static int delete_count;
 
     void operator()(const int* p) const noexcept override {
