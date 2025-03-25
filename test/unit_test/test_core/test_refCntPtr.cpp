@@ -66,7 +66,7 @@ TEST(RefCntPtrTest, ExceptionSafety) {
     original::strongPtr<TrackedObject> empty_ptr;
     original::strongPtr<TrackedObject> target_ptr = std::move(empty_ptr);
     EXPECT_THROW({
-                 empty_ptr->id; // 访问空指针
+        std::cout << empty_ptr->id << std::endl; // 访问空指针
     }, original::nullPointerError);
 }
 
@@ -135,8 +135,16 @@ struct Node {
     }
 };
 
-TEST(RefCntPtrTest, BreakCyclicReference) {
+struct CNode {
+    original::weakPtr<CNode> next;  // 弱引用
+    original::weakPtr<CNode> prev;    // 弱引用
+    int value;
 
+    explicit CNode(const int val = 0) : value(val) {
+    }
+};
+
+TEST(RefCntPtrTest, BreakCyclicReference) {
     {
         auto node1 = original::strongPtr<Node>(1);
         auto node2 = original::strongPtr<Node>(2);
@@ -168,5 +176,15 @@ TEST(RefCntPtrTest, BreakCyclicReference) {
 
         node1->next.reset();
         node2->prev = node1;  // node1弱引用
+    }
+
+    {
+        auto node1 = original::strongPtr<CNode>(1);
+        auto node2 = original::strongPtr<CNode>(2);
+
+        node1->prev = node2;
+        node1->next = node2;
+        node2->prev = node1;
+        node2->next = node1;
     }
 }
