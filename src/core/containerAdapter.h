@@ -95,48 +95,47 @@ namespace original {
         /// @brief Virtual destructor for proper polymorphic cleanup
         ~containerAdapter() override = default;
     };
-}
 
     template<typename TYPE, template <typename> typename SERIAL>
-    requires original::ExtendsOf<original::baseList<TYPE>, SERIAL<TYPE>>
-    original::containerAdapter<TYPE, SERIAL>::containerAdapter(const SERIAL<TYPE>& serial)
-        : serial_(serial) {}
+    requires ExtendsOf<baseList<TYPE>, SERIAL<TYPE>>
+    containerAdapter<TYPE, SERIAL>::containerAdapter(const SERIAL<TYPE>& serial)
+            : serial_(serial) {}
 
     template<typename TYPE, template <typename> typename SERIAL>
-    requires original::ExtendsOf<original::baseList<TYPE>, SERIAL<TYPE>>
-    auto original::containerAdapter<TYPE, SERIAL>::size() const -> u_integer
+    requires ExtendsOf<baseList<TYPE>, SERIAL<TYPE>>
+    auto containerAdapter<TYPE, SERIAL>::size() const -> u_integer
     {
         return serial_.size();
     }
 
     template<typename TYPE, template <typename> typename SERIAL>
-    requires original::ExtendsOf<original::baseList<TYPE>, SERIAL<TYPE>>
-    auto original::containerAdapter<TYPE, SERIAL>::clear() -> void {
+    requires ExtendsOf<baseList<TYPE>, SERIAL<TYPE>>
+    auto containerAdapter<TYPE, SERIAL>::clear() -> void {
         serial_.clear();
     }
 
-    template<typename TYPE, template <typename> class SERIAL>
-    requires original::ExtendsOf<original::baseList<TYPE>, SERIAL<TYPE>>
-    auto original::containerAdapter<TYPE, SERIAL>::contains(const TYPE &e) const -> bool {
+    template<typename TYPE, template <typename> typename SERIAL>
+    requires ExtendsOf<baseList<TYPE>, SERIAL<TYPE>>
+    auto containerAdapter<TYPE, SERIAL>::contains(const TYPE &e) const -> bool {
         return serial_.contains(e);
     }
 
-    template<typename TYPE, template <typename> class SERIAL>
-    requires original::ExtendsOf<original::baseList<TYPE>, SERIAL<TYPE>>
-    auto original::containerAdapter<TYPE, SERIAL>::compareTo(const containerAdapter& other) const -> integer
+    template<typename TYPE, template <typename> typename SERIAL>
+    requires ExtendsOf<baseList<TYPE>, SERIAL<TYPE>>
+    auto containerAdapter<TYPE, SERIAL>::compareTo(const containerAdapter& other) const -> integer
     {
         return serial_.compareTo(other.serial_);
     }
 
     template<typename TYPE, template <typename> typename SERIAL>
-    requires original::ExtendsOf<original::baseList<TYPE>, SERIAL<TYPE>>
-    auto original::containerAdapter<TYPE, SERIAL>::className() const -> std::string {
+    requires ExtendsOf<baseList<TYPE>, SERIAL<TYPE>>
+    auto containerAdapter<TYPE, SERIAL>::className() const -> std::string {
         return "containerAdapter";
     }
 
     template<typename TYPE, template <typename> typename SERIAL>
-    requires original::ExtendsOf<original::baseList<TYPE>, SERIAL<TYPE>>
-    auto original::containerAdapter<TYPE, SERIAL>::toString(const bool enter) const -> std::string {
+    requires ExtendsOf<baseList<TYPE>, SERIAL<TYPE>>
+    auto containerAdapter<TYPE, SERIAL>::toString(const bool enter) const -> std::string {
         std::stringstream ss;
         ss << this->className() << "(";
         bool first = true;
@@ -150,5 +149,6 @@ namespace original {
         if (enter) ss << "\n";
         return ss.str();
     }
+}
 
 #endif //CONTAINERADAPTER_H
