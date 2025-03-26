@@ -5,8 +5,8 @@
 #include "gtest/gtest.h"
 
 
-template <size_t N>
-    bool compareBitSets(const original::bitSet& a, const std::bitset<N>& b)
+    template <size_t N, template <typename> typename ALLOC = original::allocator>
+    bool compareBitSets(const original::bitSet<ALLOC>& a, const std::bitset<N>& b)
     {
         if (a.size() != N)
         {
