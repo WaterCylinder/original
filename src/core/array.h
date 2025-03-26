@@ -36,8 +36,8 @@ namespace original {
      *          This class offers both copy and move semantics, along with an iterator class that supports
      *          random access operations.
      */
-    template<typename TYPE>
-    class array final : public iterationStream<TYPE, array<TYPE>>, public baseArray<TYPE> {
+    template<typename TYPE, typename ALLOC = allocator<TYPE>>
+    class array final : public iterationStream<TYPE, array<TYPE>>, public baseArray<TYPE, ALLOC> {
         u_integer size_; ///< Size of the array
         TYPE* body;    ///< Pointer to the array's data
 
@@ -52,7 +52,7 @@ namespace original {
          * @brief Destroys the array and releases its allocated memory.
          * @details Deallocates the memory used by the array.
          */
-        void arrDestruct() const;
+        void arrDestruct() noexcept;
 
     public:
 
@@ -128,7 +128,7 @@ namespace original {
          * @details Initializes the array with a given size, allocating memory for the array and setting
          *          each element to its default value.
          */
-        explicit array(u_integer size = 0);
+        explicit array(u_integer size = 0, const ALLOC& alloc = ALLOC{});
 
         /**
          * @brief Constructs an array from an initializer list.
@@ -240,34 +240,39 @@ namespace original {
 
 } // namespace original
 
-    template<typename TYPE>
-    void original::array<TYPE>::arrInit(const u_integer size) {
+    template<typename TYPE, typename ALLOC>
+    void original::array<TYPE, ALLOC>::arrInit(const u_integer size) {
         this->size_ = size;
-        this->body = new TYPE[this->size_];
+        this->body = this->allocate(this->size_);
         for (u_integer i = 0; i < this->size(); ++i) {
-            this->body[i] = TYPE{};
+            this->construct(&this->body[i]);
         }
     }
 
-    template<typename TYPE>
-    void original::array<TYPE>::arrDestruct() const
+    template<typename TYPE, typename ALLOC>
+    void original::array<TYPE, ALLOC>::arrDestruct() noexcept
     {
-        delete[] this->body;
+        if (this->body){
+            for (u_integer i = 0; i < this->size_; ++i) {
+                this->destroy(&(this->body[i]));
+            }
+            this->deallocate(this->body, this->size_);
+        }
     }
 
-    template <typename TYPE>
-    original::array<TYPE>::Iterator::Iterator(TYPE* ptr, const array* container, integer pos)
+    template<typename TYPE, typename ALLOC>
+    original::array<TYPE, ALLOC>::Iterator::Iterator(TYPE* ptr, const array* container, integer pos)
         : randomAccessIterator<TYPE>(ptr, container, pos) {}
 
-    template <typename TYPE>
-    original::array<TYPE>::Iterator::Iterator(const Iterator& other)
+    template<typename TYPE, typename ALLOC>
+    original::array<TYPE, ALLOC>::Iterator::Iterator(const Iterator& other)
         : randomAccessIterator<TYPE>(nullptr, nullptr, 0)
     {
         this->operator=(other);
     }
 
-    template <typename TYPE>
-    auto original::array<TYPE>::Iterator::operator=(const Iterator& other) -> Iterator&
+    template<typename TYPE, typename ALLOC>
+    auto original::array<TYPE, ALLOC>::Iterator::operator=(const Iterator& other) -> Iterator&
     {
         if (this == &other) {
             return *this;
@@ -276,36 +281,36 @@ namespace original {
         return *this;
     }
 
-    template<typename TYPE>
-    auto original::array<TYPE>::Iterator::clone() const -> Iterator* {
+    template<typename TYPE, typename ALLOC>
+    auto original::array<TYPE, ALLOC>::Iterator::clone() const -> Iterator* {
         return new Iterator(*this);
     }
 
-    template<typename TYPE>
-    auto original::array<TYPE>::Iterator::atPrev(const iterator<TYPE> *other) const -> bool {
+    template<typename TYPE, typename ALLOC>
+    auto original::array<TYPE, ALLOC>::Iterator::atPrev(const iterator<TYPE> *other) const -> bool {
         auto other_it = dynamic_cast<const Iterator*>(other);
         return this->_ptr + 1 == other_it->_ptr;
     }
 
-    template<typename TYPE>
-    auto original::array<TYPE>::Iterator::atNext(const iterator<TYPE> *other) const -> bool {
+    template<typename TYPE, typename ALLOC>
+    auto original::array<TYPE, ALLOC>::Iterator::atNext(const iterator<TYPE> *other) const -> bool {
         auto other_it = dynamic_cast<const Iterator*>(other);
         return other_it->_ptr + 1 == this->_ptr;
     }
 
-    template<typename TYPE>
-    auto original::array<TYPE>::Iterator::className() const -> std::string {
+    template<typename TYPE, typename ALLOC>
+    auto original::array<TYPE, ALLOC>::Iterator::className() const -> std::string {
         return "array::Iterator";
     }
 
-    template <typename TYPE>
-    original::array<TYPE>::array(const u_integer size)
-        : size_(), body() {
+    template<typename TYPE, typename ALLOC>
+    original::array<TYPE, ALLOC>::array(const u_integer size, const ALLOC& alloc)
+        : size_(), body(), baseArray<TYPE, ALLOC>(alloc) {
         this->arrInit(size);
     }
 
-    template <typename TYPE>
-    original::array<TYPE>::array(const std::initializer_list<TYPE>& lst)
+    template<typename TYPE, typename ALLOC>
+    original::array<TYPE, ALLOC>::array(const std::initializer_list<TYPE>& lst)
         : array(lst.size()) {
         u_integer i = 0;
         for (const auto& e : lst) {
@@ -314,14 +319,14 @@ namespace original {
         }
     }
 
-    template <typename TYPE>
-    original::array<TYPE>::array(const array& other)
+    template<typename TYPE, typename ALLOC>
+    original::array<TYPE, ALLOC>::array(const array& other)
         : array(other.size()) {
         this->operator=(other);
     }
 
-    template <typename TYPE>
-    auto original::array<TYPE>::operator=(const array& other) -> array&
+    template<typename TYPE, typename ALLOC>
+    auto original::array<TYPE, ALLOC>::operator=(const array& other) -> array&
     {
         if (this == &other)
             return *this;
@@ -332,16 +337,19 @@ namespace original {
         for (u_integer i = 0; i < this->size_; i++) {
             this->body[i] = other.body[i];
         }
+        if constexpr (ALLOC::propagate_on_container_copy_assignment::value){
+            this->allocator = other.allocator;
+        }
         return *this;
     }
 
-    template<typename TYPE>
-    original::array<TYPE>::array(array&& other) noexcept : size_(0) {
+    template<typename TYPE, typename ALLOC>
+    original::array<TYPE, ALLOC>::array(array&& other) noexcept : size_(0) {
         this->operator=(std::move(other));
     }
 
-    template<typename TYPE>
-    original::array<TYPE>& original::array<TYPE>::operator=(array&& other) noexcept {
+    template<typename TYPE, typename ALLOC>
+    original::array<TYPE, ALLOC>& original::array<TYPE, ALLOC>::operator=(array&& other) noexcept {
         if (this == &other)
             return *this;
 
@@ -350,27 +358,30 @@ namespace original {
         this->body = other.body;
         this->size_ = other.size_;
         other.arrInit(0);
+        if constexpr (ALLOC::propagate_on_container_move_assignment::value){
+            this->allocator = std::move(other.allocator);
+        }
         return *this;
     }
 
-    template <typename TYPE>
-    original::array<TYPE>::~array() {
+    template<typename TYPE, typename ALLOC>
+    original::array<TYPE, ALLOC>::~array() {
         this->arrDestruct();
     }
 
-    template <typename TYPE>
-    auto original::array<TYPE>::size() const -> u_integer
+    template<typename TYPE, typename ALLOC>
+    auto original::array<TYPE, ALLOC>::size() const -> u_integer
     {
         return this->size_;
     }
 
-    template<typename TYPE>
-    TYPE& original::array<TYPE>::data() const {
+    template<typename TYPE, typename ALLOC>
+    TYPE& original::array<TYPE, ALLOC>::data() const {
         return this->body[0];
     }
 
-    template <typename TYPE>
-    auto original::array<TYPE>::get(integer index) const -> TYPE
+    template<typename TYPE, typename ALLOC>
+    auto original::array<TYPE, ALLOC>::get(integer index) const -> TYPE
     {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
@@ -378,8 +389,8 @@ namespace original {
         return this->body[this->parseNegIndex(index)];
     }
 
-    template <typename TYPE>
-    auto original::array<TYPE>::operator[](integer index) -> TYPE&
+    template<typename TYPE, typename ALLOC>
+    auto original::array<TYPE, ALLOC>::operator[](integer index) -> TYPE&
     {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
@@ -387,8 +398,8 @@ namespace original {
         return this->body[this->parseNegIndex(index)];
     }
 
-    template <typename TYPE>
-    auto original::array<TYPE>::set(integer index, const TYPE &e) -> void
+    template<typename TYPE, typename ALLOC>
+    auto original::array<TYPE, ALLOC>::set(integer index, const TYPE &e) -> void
     {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
@@ -396,8 +407,8 @@ namespace original {
         this->body[this->parseNegIndex(index)] = e;
     }
 
-    template <typename TYPE>
-    auto original::array<TYPE>::indexOf(const TYPE &e) const -> u_integer
+    template<typename TYPE, typename ALLOC>
+    auto original::array<TYPE, ALLOC>::indexOf(const TYPE &e) const -> u_integer
     {
         for (u_integer i = 0; i < this->size(); i += 1)
         {
@@ -409,18 +420,18 @@ namespace original {
         return this->size();
     }
 
-    template<typename TYPE>
-    auto original::array<TYPE>::begins() const -> Iterator* {
+    template<typename TYPE, typename ALLOC>
+    auto original::array<TYPE, ALLOC>::begins() const -> Iterator* {
         return new Iterator(&this->body[0], this, 0);
     }
 
-    template<typename TYPE>
-    auto original::array<TYPE>::ends() const -> Iterator* {
+    template<typename TYPE, typename ALLOC>
+    auto original::array<TYPE, ALLOC>::ends() const -> Iterator* {
         return new Iterator(&this->body[this->size() - 1], this, this->size() - 1);
     }
 
-    template <typename TYPE>
-    std::string original::array<TYPE>::className() const
+    template<typename TYPE, typename ALLOC>
+    std::string original::array<TYPE, ALLOC>::className() const
     {
         return "array";
     }

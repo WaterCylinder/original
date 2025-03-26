@@ -25,9 +25,11 @@ namespace original {
      *          It provides methods for element retrieval, bounds checking, and negative index handling.
      *          Derived classes must implement `get()`, `operator[]`, `set()`, and `indexOf()` methods.
      */
-    template <typename TYPE>
-    class serial : public container<TYPE> {
+    template <typename TYPE, typename ALLOC = allocator<TYPE>>
+    class serial : public container<TYPE, ALLOC> {
     protected:
+        using container<TYPE, ALLOC>::container;
+
         /**
          * @brief Checks if the provided index is out of bounds.
          * @param index The index to check.
@@ -112,36 +114,36 @@ namespace original {
 
 // -------------------- Definitions of serial.h --------------------
 
-template<typename TYPE>
-auto original::serial<TYPE>::indexOutOfBound(const integer index) const -> bool
+template<typename TYPE, typename ALLOC>
+auto original::serial<TYPE, ALLOC>::indexOutOfBound(const integer index) const -> bool
 {
     integer parsed_index = this->parseNegIndex(index);
     return parsed_index < 0 || parsed_index >= this->size();
 }
 
-template<typename TYPE>
-auto original::serial<TYPE>::parseNegIndex(integer index) const -> integer {
+template<typename TYPE, typename ALLOC>
+auto original::serial<TYPE, ALLOC>::parseNegIndex(integer index) const -> integer {
     return index >= 0 ? index : this->size() + index;
 }
 
-template<typename TYPE>
-auto original::serial<TYPE>::getBegin() const -> TYPE {
+template<typename TYPE, typename ALLOC>
+auto original::serial<TYPE, ALLOC>::getBegin() const -> TYPE {
     return this->get(0);
 }
 
-template<typename TYPE>
-auto original::serial<TYPE>::getEnd() const -> TYPE {
+template<typename TYPE, typename ALLOC>
+auto original::serial<TYPE, ALLOC>::getEnd() const -> TYPE {
     return this->get(-1);
 }
 
-template <typename TYPE>
-auto original::serial<TYPE>::operator[](const integer index) const -> TYPE
+template<typename TYPE, typename ALLOC>
+auto original::serial<TYPE, ALLOC>::operator[](const integer index) const -> TYPE
 {
     return this->get(index);
 }
 
-template <typename TYPE>
-auto original::serial<TYPE>::contains(const TYPE &e) const -> bool
+template<typename TYPE, typename ALLOC>
+auto original::serial<TYPE, ALLOC>::contains(const TYPE &e) const -> bool
 {
     return this->indexOf(e) != this->size();
 }

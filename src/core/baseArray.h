@@ -26,8 +26,11 @@ namespace original {
      *          Derived classes must implement specific behavior for accessing and modifying elements, but cannot
      *          alter the size of the container.
      */
-    template <typename TYPE>
-    class baseArray : public serial<TYPE> {};
+    template <typename TYPE, typename ALLOC = allocator<TYPE>>
+    class baseArray : public serial<TYPE, ALLOC> {
+    protected:
+        using serial<TYPE, ALLOC>::serial;
+    };
 
 } // namespace original
 

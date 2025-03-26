@@ -30,8 +30,8 @@ namespace original {
      *          This class defines the basic functionality for variable-size containers but requires derived classes
      *          to implement certain actions like element insertion and removal at arbitrary positions.
      */
-    template <typename TYPE>
-    class baseList : public serial<TYPE> {
+    template <typename TYPE, typename ALLOC = allocator<TYPE>>
+    class baseList : public serial<TYPE, ALLOC> {
     public:
         /**
          * @brief Adds an element to the end of the list.
@@ -100,21 +100,21 @@ namespace original {
     };
 }
 
-    template <typename TYPE>
-    auto original::baseList<TYPE>::add(const TYPE &e) -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::baseList<TYPE, ALLOC>::add(const TYPE &e) -> void
     {
         this->pushEnd(e);
     }
 
-    template <typename TYPE>
-    auto original::baseList<TYPE>::remove(const TYPE& e) -> TYPE
+    template <typename TYPE, typename ALLOC>
+    auto original::baseList<TYPE, ALLOC>::remove(const TYPE& e) -> TYPE
     {
         const integer index = this->indexOf(e);
         return this->pop(index);
     }
 
-    template<typename TYPE>
-    auto original::baseList<TYPE>::clear() -> void {
+    template <typename TYPE, typename ALLOC>
+    auto original::baseList<TYPE, ALLOC>::clear() -> void {
         while (!this->empty()) {
             this->popEnd();
         }

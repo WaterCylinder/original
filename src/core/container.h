@@ -3,6 +3,8 @@
 #pragma once
 
 #include "config.h"
+#include "allocator.h"
+
 
 namespace original {
 
@@ -21,8 +23,22 @@ namespace original {
  * @details Provides a common interface for container classes to manage a collection of elements.
  *          Supports querying the size, checking for emptiness, and checking if an element is contained.
  */
-template <typename TYPE>
+template <typename TYPE, typename ALLOC = allocator<TYPE>>
 class container {
+protected:
+    ALLOC allocator;
+
+    explicit container(const ALLOC& alloc = ALLOC{});
+
+    TYPE* allocate(u_integer size);
+
+    void deallocate(TYPE* ptr, u_integer size);
+
+    template<typename O_TYPE, typename... Args>
+    void construct(O_TYPE* o_ptr, Args&&... args);
+
+    template<typename O_TYPE>
+    void destroy(O_TYPE* o_ptr);
 public:
     /**
      * @brief Gets the number of elements in the container.
@@ -72,8 +88,34 @@ public:
 
 // ----------------- Definitions of container.h -----------------
 
-template <typename TYPE>
-bool original::container<TYPE>::empty() const {
+template<typename TYPE, typename ALLOC>
+original::container<TYPE, ALLOC>::container(const ALLOC& alloc)
+    : allocator(alloc) {}
+
+template<typename TYPE, typename ALLOC>
+TYPE* original::container<TYPE, ALLOC>::allocate(original::u_integer size) {
+    return this->allocator.allocate(size);
+}
+
+template<typename TYPE, typename ALLOC>
+void original::container<TYPE, ALLOC>::deallocate(TYPE *ptr, original::u_integer size) {
+    this->allocator.deallocate(ptr, size);
+}
+
+template<typename TYPE, typename ALLOC>
+template<typename O_TYPE, typename... Args>
+void original::container<TYPE, ALLOC>::construct(O_TYPE *o_ptr, Args &&... args) {
+    this->allocator.construct(o_ptr, std::forward<Args>(args)...);
+}
+
+template<typename TYPE, typename ALLOC>
+template<typename O_TYPE>
+void original::container<TYPE, ALLOC>::destroy(O_TYPE *o_ptr) {
+    this->allocator.destroy(o_ptr);
+}
+
+template <typename TYPE, typename ALLOC>
+bool original::container<TYPE, ALLOC>::empty() const {
     return this->size() == 0;
 }
 
