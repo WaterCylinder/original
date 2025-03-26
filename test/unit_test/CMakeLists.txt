@@ -6,7 +6,7 @@ set(MIRROR_REPO "https://gitee.com/mirrors/googletest.git")
 set(GTEST_GIT_REPO "git@github.com:google/googletest.git")
 set(GTEST_HTTPS_REPO "https://github.com/google/googletest.git")
 
-set(GTEST_VERSION_STABLE release-1.11.0)
+set(GTEST_VERSION_STABLE release-1.12.1)
 set(GTEST_VERSION_LATEST v1.16.0)
 
 set(REPO_PRIORITY_LIST
