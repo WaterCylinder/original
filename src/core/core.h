@@ -15,6 +15,7 @@
  */
 
 #include "algorithms.h"
+#include "allocator.h"
 #include "array.h"
 #include "autoPtr.h"
 #include "baseArray.h"
