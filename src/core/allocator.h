@@ -5,6 +5,8 @@ namespace original {
     template<typename TYPE>
     class allocatorBase{
     public:
+        using propagate_on_container_copy_assignment = std::false_type;
+        using propagate_on_container_move_assignment = std::false_type;
 
         constexpr allocatorBase() = default;
 
@@ -23,6 +25,11 @@ namespace original {
 
     template<typename TYPE>
     class allocator : public allocatorBase<TYPE> {
+    public:
+        using typename allocatorBase<TYPE>::propagate_on_container_copy_assignment;
+        using typename allocatorBase<TYPE>::propagate_on_container_move_assignment;
+
+
         TYPE* allocate(u_integer size) override;
 
         void deallocate(TYPE* ptr, u_integer size) override;
