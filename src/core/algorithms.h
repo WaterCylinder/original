@@ -1048,7 +1048,9 @@ namespace original
             if (condition(it->get()))
                 operation(it->get());
         }
-        operation(it->get());
+
+        if (condition(it->get()))
+            operation(it->get());
         delete it;
     }
 
