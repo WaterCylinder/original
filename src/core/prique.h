@@ -120,7 +120,7 @@ namespace original
 }
 
 
-template <typename TYPE, template <typename> class Callback, template <typename> typename SERIAL>
+    template <typename TYPE, template <typename> class Callback, template <typename> typename SERIAL>
     requires original::Compare<Callback<TYPE>, TYPE>
     original::prique<TYPE, Callback, SERIAL>::prique(const SERIAL<TYPE>& serial, const Callback<TYPE>& compare)
         : containerAdapter<TYPE, SERIAL>(serial), compare_(compare)
