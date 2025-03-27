@@ -174,5 +174,8 @@ int main(){
         std::cout << p3.pop() << std::endl;
         std::cout << "p3: " << p3 << std::endl;
     }
+    std::cout << c2 << std::endl;
+    original::algorithms::forEach(c2.first(), c2.last(), original::addOptTransform(2), original::lessFilter(4));
+    std::cout << c2 << std::endl;
     return 0;
 }
