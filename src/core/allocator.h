@@ -1,6 +1,10 @@
 #ifndef ALLOCATOR_H
 #define ALLOCATOR_H
 
+#include "type_traits"
+#include "utility"
+
+
 namespace original {
     template<typename TYPE>
     class allocatorBase{
