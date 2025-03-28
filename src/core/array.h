@@ -254,7 +254,7 @@ namespace original {
     {
         if (this->body){
             for (u_integer i = 0; i < this->size_; ++i) {
-                this->destroy(&(this->body[i]));
+                this->destroy(&this->body[i]);
             }
             this->deallocate(this->body, this->size_);
         }
@@ -305,7 +305,7 @@ namespace original {
 
     template<typename TYPE, typename ALLOC>
     original::array<TYPE, ALLOC>::array(const u_integer size, const ALLOC& alloc)
-        : size_(), body(), baseArray<TYPE, ALLOC>(alloc) {
+        : baseArray<TYPE, ALLOC>(alloc), size_(), body(nullptr) {
         this->arrInit(size);
     }
 
@@ -344,7 +344,7 @@ namespace original {
     }
 
     template<typename TYPE, typename ALLOC>
-    original::array<TYPE, ALLOC>::array(array&& other) noexcept : size_(0) {
+    original::array<TYPE, ALLOC>::array(array&& other) noexcept : array() {
         this->operator=(std::move(other));
     }
 
