@@ -262,7 +262,7 @@ namespace original {
              * @brief Constructs a bitSet with the given size.
              * @param size The size of the bitSet.
              */
-            bitSet(u_integer size, const ALLOC<underlying_type>& allocator = ALLOC<underlying_type>{});
+            explicit bitSet(u_integer size, const ALLOC<underlying_type>& allocator = ALLOC<underlying_type>{});
 
             /**
              * @brief Constructs a bitSet from an initializer list.
@@ -355,6 +355,8 @@ namespace original {
              */
             [[nodiscard]] u_integer indexOf(const bool &e) const override;
 
+            ~bitSet() override = default;
+
             /**
              * @brief Performs a bitwise AND operation between two bitSets.
              * @param other The bitSet to AND with.
@@ -436,76 +438,76 @@ namespace original {
 }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::bitsetInit(const u_integer size) -> void
+    auto original::bitSet<ALLOC>::bitsetInit(const u_integer size) -> void
     {
         this->map = array<underlying_type, ALLOC<underlying_type>>((size + BLOCK_MAX_SIZE - 1) / BLOCK_MAX_SIZE, this->allocator_underlying);
         this->size_ = size;
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::getBitFromBlock(const underlying_type block_value, const integer bit) -> bool {
+    auto original::bitSet<ALLOC>::getBitFromBlock(const underlying_type block_value, const integer bit) -> bool {
         return block_value & static_cast<underlying_type>(1) << bit;
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::setBitFromBlock(const underlying_type block_value, const integer bit) -> underlying_type {
+    auto original::bitSet<ALLOC>::setBitFromBlock(const underlying_type block_value, const integer bit) -> underlying_type {
         return block_value | static_cast<underlying_type>(1) << bit;
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::clearBitFromBlock(const underlying_type block_value, const integer bit) -> underlying_type {
+    auto original::bitSet<ALLOC>::clearBitFromBlock(const underlying_type block_value, const integer bit) -> underlying_type {
         return block_value & ~(static_cast<underlying_type>(1) << bit);
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::clearHigherBitsFromBlock(const underlying_type block_value, const integer bit) -> underlying_type
+    auto original::bitSet<ALLOC>::clearHigherBitsFromBlock(const underlying_type block_value, const integer bit) -> underlying_type
     {
         return block_value & (static_cast<underlying_type>(1) << (bit + 1)) - static_cast<underlying_type>(1);
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::clearRedundantBits() -> void
+    auto original::bitSet<ALLOC>::clearRedundantBits() -> void
     {
         this->map.set(-1, clearHigherBitsFromBlock(this->map.get(-1), toInnerIdx(this->size() - 1).second()));
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::getBit(const integer bit, const integer block) const -> bool {
+    auto original::bitSet<ALLOC>::getBit(const integer bit, const integer block) const -> bool {
         return getBitFromBlock(this->map.get(block), bit);
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::setBit(const integer bit, const integer block) -> void {
+    auto original::bitSet<ALLOC>::setBit(const integer bit, const integer block) -> void {
         this->map.set(block, setBitFromBlock(this->map.get(block), bit));
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::clearBit(const integer bit, const integer block) -> void {
+    auto original::bitSet<ALLOC>::clearBit(const integer bit, const integer block) -> void {
         this->map.set(block, clearBitFromBlock(this->map.get(block), bit));
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::writeBit(const integer bit, const integer block, const bool value) -> void {
+    auto original::bitSet<ALLOC>::writeBit(const integer bit, const integer block, const bool value) -> void {
         value ? this->setBit(bit, block) : this->clearBit(bit, block);
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::toInnerIdx(const integer index) -> couple<u_integer, integer> {
+    auto original::bitSet<ALLOC>::toInnerIdx(const integer index) -> couple<u_integer, integer> {
         return {static_cast<u_integer>(index / BLOCK_MAX_SIZE), index % BLOCK_MAX_SIZE};
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::toOuterIdx(const u_integer cur_block, const integer cur_bit) -> integer
+    auto original::bitSet<ALLOC>::toOuterIdx(const u_integer cur_block, const integer cur_bit) -> integer
     {
         return cur_block *  BLOCK_MAX_SIZE + cur_bit;
     }
 
     template<template <typename> typename ALLOC>
-    inline original::bitSet<ALLOC>::Iterator::Iterator(const integer bit, const integer block, underlying_type* block_p, const bitSet* container)
+    original::bitSet<ALLOC>::Iterator::Iterator(const integer bit, const integer block, underlying_type* block_p, const bitSet* container)
         : cur_bit(bit), cur_block(block), block_(block_p), container_(container) {}
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::Iterator::equalPtr(const iterator *other) const -> bool {
+    auto original::bitSet<ALLOC>::Iterator::equalPtr(const iterator *other) const -> bool {
         auto* other_it = dynamic_cast<const Iterator*>(other);
         return other_it != nullptr
             && this->cur_bit == other_it->cur_bit
@@ -513,22 +515,22 @@ namespace original {
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::Iterator::clone() const -> Iterator* {
+    auto original::bitSet<ALLOC>::Iterator::clone() const -> Iterator* {
         return new Iterator(*this);
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::Iterator::hasNext() const -> bool {
+    auto original::bitSet<ALLOC>::Iterator::hasNext() const -> bool {
         return toOuterIdx(this->cur_block, this->cur_bit) < this->container_->size() - 1;
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::Iterator::hasPrev() const -> bool {
+    auto original::bitSet<ALLOC>::Iterator::hasPrev() const -> bool {
         return toOuterIdx(this->cur_block, this->cur_bit) > 0;
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::Iterator::atPrev(const iterator *other) const -> bool {
+    auto original::bitSet<ALLOC>::Iterator::atPrev(const iterator *other) const -> bool {
         auto* other_it = dynamic_cast<const Iterator*>(other);
         if (other_it == nullptr)
             return false;
@@ -536,7 +538,7 @@ namespace original {
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::Iterator::atNext(const iterator *other) const -> bool {
+    auto original::bitSet<ALLOC>::Iterator::atNext(const iterator *other) const -> bool {
         auto* other_it = dynamic_cast<const Iterator*>(other);
         if (other_it == nullptr)
             return false;
@@ -544,17 +546,17 @@ namespace original {
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::Iterator::next() const -> void {
+    auto original::bitSet<ALLOC>::Iterator::next() const -> void {
         this->operator+=(1);
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::Iterator::prev() const -> void {
+    auto original::bitSet<ALLOC>::Iterator::prev() const -> void {
         this->operator-=(1);
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::Iterator::getPrev() const -> Iterator* {
+    auto original::bitSet<ALLOC>::Iterator::getPrev() const -> Iterator* {
         if (!this->isValid()) throw outOfBoundError();
         auto* it = this->clone();
         it->prev();
@@ -562,7 +564,7 @@ namespace original {
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::Iterator::getNext() const -> Iterator* {
+    auto original::bitSet<ALLOC>::Iterator::getNext() const -> Iterator* {
         if (!this->isValid()) throw outOfBoundError();
         auto* it = this->clone();
         it->next();
@@ -570,7 +572,7 @@ namespace original {
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::Iterator::operator+=(const integer steps) const -> void
+    auto original::bitSet<ALLOC>::Iterator::operator+=(const integer steps) const -> void
     {
         auto new_idx = toInnerIdx(toOuterIdx(this->cur_block, this->cur_bit) + steps);
         this->cur_block = new_idx.first();
@@ -578,7 +580,7 @@ namespace original {
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::Iterator::operator-=(const integer steps) const -> void
+    auto original::bitSet<ALLOC>::Iterator::operator-=(const integer steps) const -> void
     {
         auto new_idx = toInnerIdx(toOuterIdx(this->cur_block, this->cur_bit) - steps);
         this->cur_block = new_idx.first();
@@ -586,7 +588,7 @@ namespace original {
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::Iterator::operator-(const iterator &other) const -> integer {
+    auto original::bitSet<ALLOC>::Iterator::operator-(const iterator &other) const -> integer {
         auto* other_it = dynamic_cast<const Iterator*>(&other);
         if (other_it == nullptr)
             return this > &other ?
@@ -601,43 +603,43 @@ namespace original {
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::Iterator::get() -> bool & {
+    auto original::bitSet<ALLOC>::Iterator::get() -> bool & {
         throw unSupportedMethodError();
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::Iterator::className() const -> std::string {
+    auto original::bitSet<ALLOC>::Iterator::className() const -> std::string {
         return "bitSet::Iterator";
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::Iterator::get() const -> bool
+    auto original::bitSet<ALLOC>::Iterator::get() const -> bool
     {
         if (!this->isValid()) throw outOfBoundError();
         return getBitFromBlock(*this->block_, this->cur_bit);
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::Iterator::set(const bool &data) -> void {
+    auto original::bitSet<ALLOC>::Iterator::set(const bool &data) -> void {
         if (!this->isValid()) throw outOfBoundError();
         *this->block_ = data ?
          setBitFromBlock(*this->block_, this->cur_bit) : clearBitFromBlock(*this->block_, this->cur_bit);
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::Iterator::isValid() const -> bool {
+    auto original::bitSet<ALLOC>::Iterator::isValid() const -> bool {
         const auto outer = toOuterIdx(this->cur_block, this->cur_bit);
         return outer >= 0 && outer < this->container_->size();
     }
 
     template<template <typename> typename ALLOC>
-    original::bitSet<ALLOC>::bitSet(original::u_integer size, const ALLOC<underlying_type>& allocator)
-        : size_(), allocator_underlying(allocator), baseArray<bool, ALLOC<bool>>(ALLOC<bool>{}) {
+    original::bitSet<ALLOC>::bitSet(const u_integer size, const ALLOC<underlying_type>& allocator)
+        : baseArray<bool, ALLOC<bool>>(ALLOC<bool>{}), size_(), allocator_underlying(allocator) {
             this->bitsetInit(size);
     }
 
     template<template <typename> typename ALLOC>
-    inline original::bitSet<ALLOC>::bitSet(const std::initializer_list<bool>& lst) : bitSet(lst.size()) {
+    original::bitSet<ALLOC>::bitSet(const std::initializer_list<bool>& lst) : bitSet(lst.size()) {
         u_integer i = 0;
         for (const auto& e : lst) {
             auto idx = toInnerIdx(i);
@@ -647,12 +649,12 @@ namespace original {
     }
 
     template<template <typename> typename ALLOC>
-    inline original::bitSet<ALLOC>::bitSet(const bitSet &other) : bitSet(other.size()) {
+    original::bitSet<ALLOC>::bitSet(const bitSet &other) : bitSet(other.size()) {
         this->operator=(other);
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::operator=(const bitSet &other) -> bitSet& {
+    auto original::bitSet<ALLOC>::operator=(const bitSet &other) -> bitSet& {
         if (this == &other) return *this;
         this->map = other.map;
         this->size_ = other.size_;
@@ -663,13 +665,13 @@ namespace original {
     }
 
     template<template <typename> typename ALLOC>
-    inline original::bitSet<ALLOC>::bitSet(bitSet&& other)  noexcept : bitSet(0)
+    original::bitSet<ALLOC>::bitSet(bitSet&& other)  noexcept : bitSet(0)
     {
         this->operator=(std::move(other));
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::operator=(bitSet&& other)  noexcept -> bitSet&
+    auto original::bitSet<ALLOC>::operator=(bitSet&& other)  noexcept -> bitSet&
     {
         if (this == &other)
             return *this;
@@ -684,7 +686,7 @@ namespace original {
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::count() const -> u_integer {
+    auto original::bitSet<ALLOC>::count() const -> u_integer {
         u_integer count = 0;
         for (const auto& e : this->map) {
             auto n = e;
@@ -697,7 +699,7 @@ namespace original {
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::resize(const u_integer new_size) const -> bitSet {
+    auto original::bitSet<ALLOC>::resize(const u_integer new_size) const -> bitSet {
         if (this->size() == new_size) {
             return *this;
         }
@@ -713,24 +715,24 @@ namespace original {
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::size() const -> u_integer
+    auto original::bitSet<ALLOC>::size() const -> u_integer
     {
         return this->size_;
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::begins() const -> Iterator* {
+    auto original::bitSet<ALLOC>::begins() const -> Iterator* {
         return new Iterator(0, 0, &this->map.data(), this);
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::ends() const -> Iterator* {
+    auto original::bitSet<ALLOC>::ends() const -> Iterator* {
         return new Iterator(toInnerIdx(this->size() - 1).second(), this->map.size() - 1,
                     &this->map.data() + this->map.size() - 1, this);
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::get(integer index) const -> bool {
+    auto original::bitSet<ALLOC>::get(integer index) const -> bool {
         if (this->indexOutOfBound(index)) throw outOfBoundError();
         index = this->parseNegIndex(index);
         auto idx = toInnerIdx(index);
@@ -738,12 +740,12 @@ namespace original {
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::operator[](integer) -> bool& {
+    auto original::bitSet<ALLOC>::operator[](integer) -> bool& {
         throw unSupportedMethodError();
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::set(integer index, const bool &e) -> void {
+    auto original::bitSet<ALLOC>::set(integer index, const bool &e) -> void {
         if (this->indexOutOfBound(index)) throw outOfBoundError();
         index = this->parseNegIndex(index);
         auto idx = toInnerIdx(index);
@@ -751,7 +753,7 @@ namespace original {
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::indexOf(const bool &e) const -> u_integer {
+    auto original::bitSet<ALLOC>::indexOf(const bool &e) const -> u_integer {
         for (u_integer i = 0; i < this->size(); i++) {
             if (auto idx = toInnerIdx(i);
                 e == this->getBit(idx.second(), idx.first())) {
@@ -762,7 +764,7 @@ namespace original {
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::operator&=(const bitSet &other) -> bitSet& {
+    auto original::bitSet<ALLOC>::operator&=(const bitSet &other) -> bitSet& {
         if (this->size() != other.size()) {
             const auto resized = other.resize(this->size());
             for (u_integer i = 0; i < this->map.size(); i++) {
@@ -777,7 +779,7 @@ namespace original {
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::operator|=(const bitSet &other) -> bitSet& {
+    auto original::bitSet<ALLOC>::operator|=(const bitSet &other) -> bitSet& {
         if (this->size() != other.size()) {
             const auto resized = other.resize(this->size());
             for (u_integer i = 0; i < this->map.size(); i++) {
@@ -792,7 +794,7 @@ namespace original {
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::operator^=(const bitSet &other) -> bitSet& {
+    auto original::bitSet<ALLOC>::operator^=(const bitSet &other) -> bitSet& {
         if (this->size() != other.size()) {
             const auto resized = other.resize(this->size());
             for (u_integer i = 0; i < this->map.size(); i++) {
@@ -807,30 +809,30 @@ namespace original {
     }
 
     template<template <typename> typename ALLOC>
-    inline auto original::bitSet<ALLOC>::className() const -> std::string {
+    auto original::bitSet<ALLOC>::className() const -> std::string {
         return "bitSet";
     }
 
     template<template <typename> typename ALLOC_>
-    inline auto original::operator&(const bitSet<ALLOC_> &lbs, const bitSet<ALLOC_> &rbs) -> bitSet<ALLOC_> {
+    auto original::operator&(const bitSet<ALLOC_> &lbs, const bitSet<ALLOC_> &rbs) -> bitSet<ALLOC_> {
         bitSet bs(lbs);
         return bs &= rbs;
     }
 
     template<template <typename> typename ALLOC_>
-    inline auto original::operator|(const bitSet<ALLOC_> &lbs, const bitSet<ALLOC_> &rbs) -> bitSet<ALLOC_> {
+    auto original::operator|(const bitSet<ALLOC_> &lbs, const bitSet<ALLOC_> &rbs) -> bitSet<ALLOC_> {
         bitSet bs(lbs);
         return bs |= rbs;
     }
 
     template<template <typename> typename ALLOC_>
-    inline auto original::operator^(const bitSet<ALLOC_> &lbs, const bitSet<ALLOC_> &rbs) -> bitSet<ALLOC_> {
+    auto original::operator^(const bitSet<ALLOC_> &lbs, const bitSet<ALLOC_> &rbs) -> bitSet<ALLOC_> {
         bitSet bs(lbs);
         return bs ^= rbs;
     }
 
     template<template <typename> typename ALLOC_>
-    inline auto original::operator~(const bitSet<ALLOC_> &bs) -> bitSet<ALLOC_> {
+    auto original::operator~(const bitSet<ALLOC_> &bs) -> bitSet<ALLOC_> {
         bitSet nbs(bs);
         for (u_integer i = 0; i < nbs.map.size(); i++) {
             nbs.map.set(i, ~nbs.map.get(i));
