@@ -32,6 +32,8 @@ namespace original {
      */
     template <typename TYPE, typename ALLOC = allocator<TYPE>>
     class baseList : public serial<TYPE, ALLOC> {
+    protected:
+        using serial<TYPE, ALLOC>::serial;
     public:
         /**
          * @brief Adds an element to the end of the list.
