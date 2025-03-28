@@ -25,8 +25,8 @@ namespace original {
      *          from both ends. The internal structure consists of blocks of a fixed size, and elements are
      *          efficiently managed across these blocks. It also provides bidirectional iteration.
      */
-    template <typename TYPE>
-    class blocksList final : public baseList<TYPE>, public iterationStream<TYPE, blocksList<TYPE>> {
+    template <typename TYPE, typename ALLOC = allocator<TYPE>>
+    class blocksList final : public baseList<TYPE, ALLOC>, public iterationStream<TYPE, blocksList<TYPE, ALLOC>> {
         static constexpr u_integer BLOCK_MAX_SIZE = 16; ///< The maximum size of each block
         static constexpr u_integer POS_INIT = (BLOCK_MAX_SIZE - 1) / 2 + 1; ///< Initial position in a block
 
@@ -45,13 +45,13 @@ namespace original {
         /**
          * @brief Destroys the blocksList by deleting all blocks.
          */
-        void blocksListDestruct() const;
+        void blocksListDestruct() noexcept;
 
         /**
          * @brief Initializes a block array.
          * @return A pointer to the new block array.
          */
-        static TYPE* blockArrayInit();
+        TYPE* blockArrayInit();
 
         /**
          * @brief Converts the block and position to an absolute index.
@@ -318,7 +318,7 @@ namespace original {
         /**
          * @brief Default constructor for blocksList.
          */
-        explicit blocksList();
+        explicit blocksList(const ALLOC& alloc = ALLOC{});
 
         /**
          * @brief Constructs a blocksList from an initializer list.
@@ -455,10 +455,10 @@ namespace original {
     };
 }// namespace original
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::blocksListInit() -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::blocksListInit() -> void
     {
-        this->map = vector({blockArrayInit()});
+        this->map = vector({this->blockArrayInit()});
         this->size_ = 0;
         this->first_ = POS_INIT + 1;
         this->last_ = POS_INIT;
@@ -466,99 +466,102 @@ namespace original {
         this->last_block = this->map.size() / 2;
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::blocksListDestruct() const -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::blocksListDestruct() noexcept -> void
     {
         for (auto* block : this->map) {
-            delete[] block;
+            for (u_integer i = 0; i < BLOCK_MAX_SIZE; ++i) {
+                this->destroy(&(block[i]));
+            }
+            this->deallocate(block, BLOCK_MAX_SIZE);
         }
     }
 
-    template<typename TYPE>
-    auto original::blocksList<TYPE>::blockArrayInit() -> TYPE* {
-        auto arr = new TYPE[BLOCK_MAX_SIZE];
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::blockArrayInit() -> TYPE* {
+        auto arr = this->allocate(BLOCK_MAX_SIZE);
         for (u_integer i = 0; i < BLOCK_MAX_SIZE; i++) {
-            arr[i] = TYPE{};
+            this->construct(&arr[i]);
         }
         return arr;
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::innerIdxToAbsIdx(const u_integer block, const u_integer pos) -> u_integer
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::innerIdxToAbsIdx(const u_integer block, const u_integer pos) -> u_integer
     {
         return block * BLOCK_MAX_SIZE + pos;
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::firstAbsIdx() const -> u_integer
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::firstAbsIdx() const -> u_integer
     {
         return innerIdxToAbsIdx(this->first_block, this->first_);
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::lastAbsIdx() const -> u_integer
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::lastAbsIdx() const -> u_integer
     {
         return innerIdxToAbsIdx(this->last_block, this->last_);
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::absIdxToOuterIdx(const u_integer absIdx) const -> integer
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::absIdxToOuterIdx(const u_integer absIdx) const -> integer
     {
         return absIdx - this->firstAbsIdx();
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::outerIdxToAbsIdx(const integer outerIdx) const -> u_integer
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::outerIdxToAbsIdx(const integer outerIdx) const -> u_integer
     {
         return this->firstAbsIdx() + outerIdx;
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::absIdxToInnerIdx(const u_integer absIdx) -> couple<u_integer, u_integer>
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::absIdxToInnerIdx(const u_integer absIdx) -> couple<u_integer, u_integer>
     {
         return {absIdx / BLOCK_MAX_SIZE, absIdx % BLOCK_MAX_SIZE};
     }
 
-    template<typename TYPE>
-    auto original::blocksList<TYPE>::innerIdxOffset(const u_integer block, const u_integer pos,
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::innerIdxOffset(const u_integer block, const u_integer pos,
                                                     const integer offset) -> couple<u_integer, u_integer>
     {
         return absIdxToInnerIdx(static_cast<u_integer>(static_cast<integer>(innerIdxToAbsIdx(block, pos)) + offset));
     }
 
-    template<typename TYPE>
-    auto original::blocksList<TYPE>::outerIdxToInnerIdx(const integer outerIdx) const -> couple<u_integer, u_integer>
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::outerIdxToInnerIdx(const integer outerIdx) const -> couple<u_integer, u_integer>
     {
         return absIdxToInnerIdx(this->outerIdxToAbsIdx(outerIdx));
     }
 
-    template<typename TYPE>
-    auto original::blocksList<TYPE>::innerIdxToOuterIdx(const u_integer block, const u_integer pos) const -> integer
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::innerIdxToOuterIdx(const u_integer block, const u_integer pos) const -> integer
     {
         return this->absIdxToOuterIdx(innerIdxToAbsIdx(block, pos));
     }
 
-    template<typename TYPE>
-    auto original::blocksList<TYPE>::getElem(u_integer block, u_integer pos) const -> TYPE&
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::getElem(u_integer block, u_integer pos) const -> TYPE&
     {
         return this->map.get(block)[pos];
     }
 
-    template<typename TYPE>
-    auto original::blocksList<TYPE>::setElem(u_integer block, u_integer pos, const TYPE& e) -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::setElem(u_integer block, u_integer pos, const TYPE& e) -> void
     {
         this->map.get(block)[pos] = e;
     }
 
-    template<typename TYPE>
-    auto original::blocksList<TYPE>::growNeeded(const u_integer increment, bool is_first) const -> bool
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::growNeeded(const u_integer increment, bool is_first) const -> bool
     {
         return is_first ? firstAbsIdx() < increment
         : lastAbsIdx() + increment > innerIdxToAbsIdx(this->map.size() - 1, BLOCK_MAX_SIZE - 1);
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::moveElements(const u_integer start_block, const u_integer start_pos,
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::moveElements(const u_integer start_block, const u_integer start_pos,
                                                   const u_integer len, const integer offset) -> void
     {
         if (offset > 0)
@@ -582,15 +585,15 @@ namespace original {
         }
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::addBlock(bool is_first) -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::addBlock(bool is_first) -> void
     {
-        auto* new_block = blockArrayInit();
+        auto* new_block = this->blockArrayInit();
         is_first ? this->map.pushBegin(new_block) : this->map.pushEnd(new_block);
     }
 
-    template<typename TYPE>
-    auto original::blocksList<TYPE>::adjust(const u_integer increment, const bool is_first) -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::adjust(const u_integer increment, const bool is_first) -> void
     {
         if (this->growNeeded(increment, is_first)){
             u_integer new_blocks_cnt = increment / BLOCK_MAX_SIZE + 1;
@@ -604,12 +607,12 @@ namespace original {
         }
     }
 
-    template <typename TYPE>
-    original::blocksList<TYPE>::Iterator::Iterator(const integer pos, const integer block, TYPE** data_ptr, const blocksList* container)
+    template <typename TYPE, typename ALLOC>
+    original::blocksList<TYPE, ALLOC>::Iterator::Iterator(const integer pos, const integer block, TYPE** data_ptr, const blocksList* container)
         : cur_pos(pos), cur_block(block), data_(data_ptr), container_(container) {}
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::Iterator::equalPtr(const iterator<TYPE>* other) const -> bool
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::Iterator::equalPtr(const iterator<TYPE>* other) const -> bool
     {
         auto* other_it = dynamic_cast<const Iterator*>(other);
         return other_it != nullptr
@@ -619,14 +622,14 @@ namespace original {
                && this->container_ == other_it->container_;
     }
 
-    template <typename TYPE>
-    original::blocksList<TYPE>::Iterator::Iterator(const Iterator& other) : Iterator(0, 0, nullptr, nullptr)
+    template <typename TYPE, typename ALLOC>
+    original::blocksList<TYPE, ALLOC>::Iterator::Iterator(const Iterator& other) : Iterator(0, 0, nullptr, nullptr)
     {
         this->operator=(other);
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::Iterator::operator=(const Iterator& other) -> Iterator&
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::Iterator::operator=(const Iterator& other) -> Iterator&
     {
         if (this == &other)
             return *this;
@@ -638,54 +641,54 @@ namespace original {
         return *this;
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::Iterator::clone() const -> Iterator*
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::Iterator::clone() const -> Iterator*
     {
         return new Iterator(*this);
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::Iterator::hasNext() const -> bool
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::Iterator::hasNext() const -> bool
     {
         return blocksList::innerIdxToAbsIdx(this->cur_block, this->cur_pos) < this->container_->lastAbsIdx();
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::Iterator::hasPrev() const -> bool
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::Iterator::hasPrev() const -> bool
     {
         return blocksList::innerIdxToAbsIdx(this->cur_block, this->cur_pos) > this->container_->firstAbsIdx();
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::Iterator::next() const -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::Iterator::next() const -> void
     {
         this->operator+=(1);
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::Iterator::prev() const -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::Iterator::prev() const -> void
     {
         this->operator-=(1);
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::Iterator::operator+=(const integer steps) const -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::Iterator::operator+=(const integer steps) const -> void
     {
         auto new_idx = innerIdxOffset(this->cur_block, this->cur_pos, steps);
         this->cur_block = new_idx.first();
         this->cur_pos = new_idx.second();
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::Iterator::operator-=(const integer steps) const -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::Iterator::operator-=(const integer steps) const -> void
     {
         auto new_idx = innerIdxOffset(this->cur_block, this->cur_pos, -steps);
         this->cur_block = new_idx.first();
         this->cur_pos = new_idx.second();
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::Iterator::operator-(const iterator<TYPE>& other) const -> integer
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::Iterator::operator-(const iterator<TYPE>& other) const -> integer
     {
         auto* other_it = dynamic_cast<const Iterator*>(&other);
         if (other_it == nullptr)
@@ -701,8 +704,8 @@ namespace original {
                static_cast<integer>(innerIdxToAbsIdx(other_it->cur_block, other_it->cur_pos));
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::Iterator::getPrev() const -> Iterator*
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::Iterator::getPrev() const -> Iterator*
     {
         if (!this->isValid()) throw outOfBoundError();
         auto* it = this->clone();
@@ -710,8 +713,8 @@ namespace original {
         return it;
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::Iterator::getNext() const -> Iterator*
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::Iterator::getNext() const -> Iterator*
     {
         if (!this->isValid()) throw outOfBoundError();
         auto* it = this->clone();
@@ -719,36 +722,36 @@ namespace original {
         return it;
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::Iterator::get() -> TYPE&
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::Iterator::get() -> TYPE&
     {
         if (!this->isValid()) throw outOfBoundError();
         return this->data_[this->cur_block][this->cur_pos];
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::Iterator::get() const -> TYPE
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::Iterator::get() const -> TYPE
     {
         if (!this->isValid()) throw outOfBoundError();
         return this->data_[this->cur_block][this->cur_pos];
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::Iterator::set(const TYPE& data) -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::Iterator::set(const TYPE& data) -> void
     {
         if (!this->isValid()) throw outOfBoundError();
         this->data_[this->cur_block][this->cur_pos] = data;
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::Iterator::isValid() const -> bool
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::Iterator::isValid() const -> bool
     {
         return this->container_->innerIdxToOuterIdx(this->cur_block, this->cur_pos) >= 0 &&
                this->container_->innerIdxToOuterIdx(this->cur_block, this->cur_pos) < this->container_->size();
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::Iterator::atPrev(const iterator<TYPE>* other) const -> bool
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::Iterator::atPrev(const iterator<TYPE>* other) const -> bool
     {
         auto* other_it = dynamic_cast<const Iterator*>(other);
         if (other_it == nullptr)
@@ -756,8 +759,8 @@ namespace original {
         return this->operator-(*other_it) == -1;
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::Iterator::atNext(const iterator<TYPE>* other) const -> bool
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::Iterator::atNext(const iterator<TYPE>* other) const -> bool
     {
         auto* other_it = dynamic_cast<const Iterator*>(other);
         if (other_it == nullptr)
@@ -765,20 +768,20 @@ namespace original {
         return this->operator-(*other_it) == 1;
     }
 
-    template<typename TYPE>
-    auto original::blocksList<TYPE>::Iterator::className() const -> std::string {
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::Iterator::className() const -> std::string {
         return "blocksList::Iterator";
     }
 
-    template<typename TYPE>
-    original::blocksList<TYPE>::blocksList()
-        : map(), size_(), first_(), last_(), first_block(), last_block()
+    template <typename TYPE, typename ALLOC>
+    original::blocksList<TYPE, ALLOC>::blocksList(const ALLOC& alloc)
+        : map(), size_(), first_(), last_(), first_block(), last_block(), baseList<TYPE, ALLOC>(alloc)
     {
         this->blocksListInit();
     }
 
-    template<typename TYPE>
-    original::blocksList<TYPE>::blocksList(const std::initializer_list<TYPE>& lst) : blocksList() {
+    template <typename TYPE, typename ALLOC>
+    original::blocksList<TYPE, ALLOC>::blocksList(const std::initializer_list<TYPE>& lst) : blocksList() {
         this->adjust(lst.size(), false);
         for (const auto& e : lst) {
             auto new_idx = innerIdxOffset(this->last_block, this->last_, 1);
@@ -789,8 +792,8 @@ namespace original {
         }
     }
 
-    template<typename TYPE>
-    original::blocksList<TYPE>::blocksList(const array<TYPE>& arr) : blocksList() {
+    template <typename TYPE, typename ALLOC>
+    original::blocksList<TYPE, ALLOC>::blocksList(const array<TYPE>& arr) : blocksList() {
         this->adjust(arr.size(), false);
         for (const auto& e : arr) {
             auto new_idx = innerIdxOffset(this->last_block, this->last_, 1);
@@ -801,20 +804,20 @@ namespace original {
         }
     }
 
-    template<typename TYPE>
-    original::blocksList<TYPE>::blocksList(const blocksList& other) : blocksList() {
+    template <typename TYPE, typename ALLOC>
+    original::blocksList<TYPE, ALLOC>::blocksList(const blocksList& other) : blocksList() {
         this->operator=(other);
     }
 
-    template<typename TYPE>
-    original::blocksList<TYPE>& original::blocksList<TYPE>::operator=(const blocksList& other) {
+    template <typename TYPE, typename ALLOC>
+    original::blocksList<TYPE, ALLOC>& original::blocksList<TYPE, ALLOC>::operator=(const blocksList& other) {
         if (this == &other) return *this;
 
         this->blocksListDestruct();
         this->map = vector<TYPE*>{};
 
         for (integer i = 0; i < other.map.size(); ++i) {
-            auto* block = blockArrayInit();
+            auto* block = this->blockArrayInit();
             for (u_integer j = 0; j < BLOCK_MAX_SIZE; ++j) {
                 block[j] = other.getElem(i, j);
             }
@@ -829,14 +832,14 @@ namespace original {
         return *this;
     }
 
-    template <typename TYPE>
-    original::blocksList<TYPE>::blocksList(blocksList&& other) noexcept : blocksList()
+    template <typename TYPE, typename ALLOC>
+    original::blocksList<TYPE, ALLOC>::blocksList(blocksList&& other) noexcept : blocksList()
     {
         this->operator=(std::move(other));
     }
 
-    template <typename TYPE>
-    auto original::blocksList<TYPE>::operator=(blocksList&& other) noexcept -> blocksList&
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::operator=(blocksList&& other) noexcept -> blocksList&
     {
         if (this == &other)
             return *this;
@@ -853,48 +856,48 @@ namespace original {
         return *this;
     }
 
-    template<typename TYPE>
-    auto original::blocksList<TYPE>::get(integer index) const -> TYPE {
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::get(integer index) const -> TYPE {
         if (this->indexOutOfBound(this->parseNegIndex(index))) throw outOfBoundError();
         index = this->parseNegIndex(index);
         auto inner_idx = this->outerIdxToInnerIdx(index);
         return this->getElem(inner_idx.first(), inner_idx.second());
     }
 
-    template<typename TYPE>
-    auto original::blocksList<TYPE>::size() const -> u_integer
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::size() const -> u_integer
     {
         return this->size_;
     }
 
-    template<typename TYPE>
-    auto original::blocksList<TYPE>::begins() const -> Iterator* {
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::begins() const -> Iterator* {
         return new Iterator(this->first_, this->first_block, &this->map.data(), this);
     }
 
-    template<typename TYPE>
-    auto original::blocksList<TYPE>::ends() const -> Iterator* {
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::ends() const -> Iterator* {
         return new Iterator(this->last_, this->last_block, &this->map.data(), this);
     }
 
-    template<typename TYPE>
-    auto original::blocksList<TYPE>::operator[](integer index) -> TYPE& {
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::operator[](integer index) -> TYPE& {
         if (this->indexOutOfBound(this->parseNegIndex(index))) throw outOfBoundError();
         index = this->parseNegIndex(index);
         auto inner_idx = this->outerIdxToInnerIdx(index);
         return this->getElem(inner_idx.first(), inner_idx.second());
     }
 
-    template<typename TYPE>
-    auto original::blocksList<TYPE>::set(integer index, const TYPE &e) -> void {
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::set(integer index, const TYPE &e) -> void {
         if (this->indexOutOfBound(index)) throw outOfBoundError();
         index = this->parseNegIndex(index);
         auto inner_idx = this->outerIdxToInnerIdx(index);
         this->setElem(inner_idx.first(), inner_idx.second(), e);
     }
 
-    template<typename TYPE>
-    auto original::blocksList<TYPE>::indexOf(const TYPE &e) const -> u_integer {
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::indexOf(const TYPE &e) const -> u_integer {
         for (u_integer i = 0; i < this->size(); ++i) {
             if (auto idx = this->outerIdxToInnerIdx(i);
                 this->getElem(idx.first(), idx.second()) == e)
@@ -903,8 +906,8 @@ namespace original {
         return this->size();
     }
 
-    template<typename TYPE>
-    auto original::blocksList<TYPE>::push(integer index, const TYPE& e) -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::push(integer index, const TYPE& e) -> void
     {
         if (this->parseNegIndex(index) == this->size())
         {
@@ -937,8 +940,8 @@ namespace original {
         }
     }
 
-    template<typename TYPE>
-    auto original::blocksList<TYPE>::pop(integer index) -> TYPE
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::pop(integer index) -> TYPE
     {
         if (this->parseNegIndex(index) == 0)
             return this->popBegin();
@@ -966,8 +969,8 @@ namespace original {
         return res;
     }
 
-    template<typename TYPE>
-    auto original::blocksList<TYPE>::pushBegin(const TYPE& e) -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::pushBegin(const TYPE& e) -> void
     {
         this->adjust(1, true);
         auto new_idx = innerIdxOffset(this->first_block, this->first_, -1);
@@ -977,8 +980,8 @@ namespace original {
         this->size_ += 1;
     }
 
-    template<typename TYPE>
-    auto original::blocksList<TYPE>::popBegin() -> TYPE
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::popBegin() -> TYPE
     {
         if (this->empty()) throw noElementError();
 
@@ -990,8 +993,8 @@ namespace original {
         return res;
     }
 
-    template<typename TYPE>
-    auto original::blocksList<TYPE>::pushEnd(const TYPE& e) -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::pushEnd(const TYPE& e) -> void
     {
         this->adjust(1, false);
         auto new_idx = innerIdxOffset(this->last_block, this->last_, 1);
@@ -1001,8 +1004,8 @@ namespace original {
         this->size_ += 1;
     }
 
-    template<typename TYPE>
-    auto original::blocksList<TYPE>::popEnd() -> TYPE
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::popEnd() -> TYPE
     {
         if (this->empty()) throw noElementError();
 
@@ -1014,13 +1017,13 @@ namespace original {
         return res;
     }
 
-    template<typename TYPE>
-    auto original::blocksList<TYPE>::className() const -> std::string {
+    template <typename TYPE, typename ALLOC>
+    auto original::blocksList<TYPE, ALLOC>::className() const -> std::string {
         return "blocksList";
     }
 
-    template<typename TYPE>
-    original::blocksList<TYPE>::~blocksList() {
+    template <typename TYPE, typename ALLOC>
+    original::blocksList<TYPE, ALLOC>::~blocksList() {
         this->blocksListDestruct();
     }
 
