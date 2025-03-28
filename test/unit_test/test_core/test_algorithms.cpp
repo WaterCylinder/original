@@ -10,31 +10,25 @@ namespace original {
     // 测试 distance 方法
     TEST(AlgorithmsTest, DistanceTest) {
         const array arr = {1, 2, 3, 4, 5};
-        const auto beginIt = arr.begins();
-        const auto endIt = arr.ends();
+        const auto beginIt = arr.first();
+        const auto endIt = arr.last();
         EXPECT_EQ(algorithms::distance(endIt, beginIt), 4);
-        delete beginIt;
-        delete endIt;
     }
 
     // 测试 frontOf 方法
     TEST(AlgorithmsTest, FrontOfTest) {
         const array arr = {1, 2, 3, 4, 5};
-        const auto beginIt = arr.begins();
+        const auto beginIt = arr.first();
         const auto newIt = algorithms::frontOf(beginIt, 2);
         EXPECT_EQ(newIt->get(), 3);
-        delete beginIt;
-        delete newIt;
     }
 
     // 测试 backOf 方法
     TEST(AlgorithmsTest, BackOfTest) {
         const array arr = {1, 2, 3, 4, 5};
-        const auto endIt = arr.ends();
+        const auto endIt = arr.last();
         const auto newIt = algorithms::backOf(endIt, 1);
         EXPECT_EQ(newIt->get(), 4);
-        delete endIt;
-        delete newIt;
     }
 
     // 测试 allOf 方法
@@ -63,7 +57,6 @@ namespace original {
         const vector vec = {1, 2, 3, 4, 5};
         const auto result = algorithms::find(vec.first(), vec.last(), 3);
         EXPECT_EQ(result->get(), 3);
-        delete result;
     }
 
     // 测试 count 方法（计数元素出现次数）
@@ -105,14 +98,12 @@ namespace original {
     // 测试 swap 方法（交换元素）
     TEST(AlgorithmsTest, SwapTest) {
         const array arr = {1, 2, 3, 4, 5};
-        const auto it1 = arr.begins();
-        const auto it2 = arr.begins();
-        it2->next();
+        const auto it1 = arr.first();
+        const auto it2 = arr.first();
+        it2.next();
         algorithms::swap(it1, it2);
-        EXPECT_EQ(it1->get(), 2);
-        EXPECT_EQ(it2->get(), 1);
-        delete it1;
-        delete it2;
+        EXPECT_EQ(it1.get(), 2);
+        EXPECT_EQ(it2.get(), 1);
     }
 
     // 测试 copy 方法（拷贝元素）

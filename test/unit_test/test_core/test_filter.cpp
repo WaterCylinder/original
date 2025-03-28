@@ -17,8 +17,7 @@ namespace original {
     auto customFilter<TYPE>::match(const array<TYPE> &t) const -> bool {
         auto reversed = t;
         auto i = algorithms::reverse(reversed.first(), reversed.last());
-        delete i;
-        return reversed == t;
+        return reversed.compareTo(t) == 0;
     }
 
     // 测试 equalFilter 类
