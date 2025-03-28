@@ -5,18 +5,16 @@ namespace original {
 
     template <typename TYPE>
     class testArray {
-    private:
         TYPE* data_;
         size_t size_;
 
     public:
-        class arrayIterator : public baseIterator<TYPE> {
-        private:
+        class arrayIterator final : public baseIterator<TYPE> {
             mutable TYPE* data_;
             mutable integer index_;
             mutable size_t max_size;
         public:
-            arrayIterator(TYPE* data, integer index, size_t size_) : data_(data), index_(index), max_size(size_) {}
+            arrayIterator(TYPE* data, const integer index, const size_t size_) : data_(data), index_(index), max_size(size_) {}
 
             bool equalPtr(const iterator<TYPE>* other) const override {
                 auto* otherIt = dynamic_cast<const arrayIterator*>(other);
@@ -100,7 +98,7 @@ namespace original {
             }
         };
 
-        explicit testArray(size_t size) : size_(size) {
+        explicit testArray(const size_t size) : size_(size) {
             data_ = new TYPE[size_];
         }
 
@@ -160,7 +158,7 @@ namespace original {
         --it;
         EXPECT_EQ(*it, 2);
 
-        auto it2 = arr.begin();
+        const auto it2 = arr.begin();
         ++it2;
         EXPECT_TRUE(it == it2);
 
@@ -176,12 +174,14 @@ namespace original {
             arr[i] = static_cast<int>(i * 2);
         }
 
-        auto it = arr.begin();
-        auto it1 = it + 3;
+        const auto it = arr.begin();
+        const auto it1 = it + 3;
         EXPECT_EQ(**it1, 6);
 
-        auto it2 = *it1 - 2;
+        const auto it2 = *it1 - 2;
         EXPECT_EQ(**it2, 2);
+        delete it2;
+        delete it1;
     }
 
     // 测试迭代器的相等与不相等
@@ -191,9 +191,9 @@ namespace original {
             arr[i] = static_cast<int>(i * 2);
         }
 
-        auto it1 = arr.begin();
-        auto it2 = arr.begin();
-        auto it3 = arr.begin();
+        const auto it1 = arr.begin();
+        const auto it2 = arr.begin();
+        const auto it3 = arr.begin();
         ++it3;
 
         EXPECT_TRUE(it1 == it2);
@@ -220,8 +220,8 @@ namespace original {
     TEST(ArrayTest, EmptyArrayIterator) {
         testArray<int> arr(0);  // 创建空数组
 
-        auto it = arr.begin();
-        auto it_end = arr.end();
+        const auto it = arr.begin();
+        const auto it_end = arr.end();
 
         // 空数组的 begin() 和 end() 应该相等
         EXPECT_TRUE(it == it_end);
@@ -238,7 +238,7 @@ namespace original {
         }
 
         // 假设你有一个 reverseIterator 方法（这只是示例）
-        auto rit = arr.end() - 1;
+        const auto rit = arr.end() - 1;
         EXPECT_EQ(**rit, 8);
         --*rit;
         EXPECT_EQ(**rit, 6);
@@ -248,6 +248,8 @@ namespace original {
         EXPECT_EQ(**rit, 2);
         --*rit;
         EXPECT_EQ(**rit, 0);
+
+        delete rit;
     }
 
     // 测试迭代器越界行为
@@ -257,7 +259,7 @@ namespace original {
             arr[i] = static_cast<int>(i * 2);
         }
 
-        auto it = arr.begin();
+        const auto it = arr.begin();
         // 迭代到越界
         ++it;
         ++it;
@@ -323,9 +325,13 @@ namespace original {
             arr[i] = static_cast<int>(i * 2);
         }
 
-        auto it = arr.begin();
-        EXPECT_EQ(**(it + 2), 4);  // 随机访问到索引2
-        EXPECT_EQ(**(it + 4), 8);  // 随机访问到索引4
+        const auto it = arr.begin();
+        const auto it1 = it + 2;
+        const auto it2 = it + 4;
+        EXPECT_EQ(**it1, 4);  // 随机访问到索引2
+        EXPECT_EQ(**it2, 8);  // 随机访问到索引4
+        delete it2;
+        delete it1;
     }
 
 } // namespace original
