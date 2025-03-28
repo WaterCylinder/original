@@ -37,7 +37,7 @@ namespace original {
      *          random access operations.
      */
     template<typename TYPE, typename ALLOC = allocator<TYPE>>
-    class array final : public iterationStream<TYPE, array<TYPE>>, public baseArray<TYPE, ALLOC> {
+    class array final : public iterationStream<TYPE, array<TYPE, ALLOC>>, public baseArray<TYPE, ALLOC> {
         u_integer size_; ///< Size of the array
         TYPE* body;    ///< Pointer to the array's data
 
