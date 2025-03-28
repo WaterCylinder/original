@@ -7,6 +7,8 @@
 #include "filter.h"
 #include "iterator.h"
 #include "types.h"
+#include "refCntPtr.h"
+
 
 /**
  * @file algorithms.h
@@ -48,20 +50,20 @@ namespace original
          * @tparam TYPE Element type
          * @param it Base iterator
          * @param steps Number of steps to advance
-         * @return iterator<TYPE>* New iterator position
+         * @return strongPtr<iterator<TYPE>> New iterator position
          */
         template<typename TYPE>
-        static iterator<TYPE>* frontOf(const iterator<TYPE>& it, integer steps);
+        static strongPtr<iterator<TYPE>> frontOf(const iterator<TYPE>& it, integer steps);
 
         /**
          * @brief Gets iterator n steps backward
          * @tparam TYPE Element type
          * @param it Base iterator
          * @param steps Number of steps to retreat
-         * @return iterator<TYPE>* New iterator position
+         * @return strongPtr<iterator<TYPE>> New iterator position
          */
         template<typename TYPE>
-        static iterator<TYPE>* backOf(const iterator<TYPE>& it, integer steps);
+        static strongPtr<iterator<TYPE>> backOf(const iterator<TYPE>& it, integer steps);
 
         /**
          * @brief Checks if all elements satisfy condition
@@ -111,10 +113,10 @@ namespace original
          * @param begin Start iterator
          * @param end End iterator
          * @param target Value to search for
-         * @return iterator<TYPE>* Iterator pointing to found element or end
+         * @return strongPtr<iterator<TYPE>> Iterator pointing to found element or end
          */
         template<typename TYPE>
-        static iterator<TYPE>* find(const iterator<TYPE> &begin, const iterator<TYPE> &end, const TYPE &target);
+        static strongPtr<iterator<TYPE>> find(const iterator<TYPE> &begin, const iterator<TYPE> &end, const TYPE &target);
 
         /**
         * @brief Find first element satisfying condition in iterator range
@@ -122,11 +124,11 @@ namespace original
         * @param begin Start iterator
         * @param n Maximum number of elements to search
         * @param target The target element to find
-        * @return iterator<TYPE>* Iterator pointing to found element or end
+        * @return strongPtr<iterator<TYPE>> Iterator pointing to found element or end
         * @requires Condition<Callback, TYPE>
         */
         template<typename TYPE>
-        static iterator<TYPE>* find(const iterator<TYPE> &begin, u_integer n, const TYPE &target);
+        static strongPtr<iterator<TYPE>> find(const iterator<TYPE> &begin, u_integer n, const TYPE &target);
 
         /**
          * @brief Find first element satisfying condition in iterator range
@@ -135,12 +137,12 @@ namespace original
          * @param begin Start iterator
          * @param end End iterator
          * @param condition Search condition callback
-         * @return iterator<TYPE>* Iterator pointing to found element or end
+         * @return strongPtr<iterator<TYPE>> Iterator pointing to found element or end
          * @requires Condition<Callback, TYPE>
          */
         template<typename TYPE, typename Callback>
         requires Condition<Callback, TYPE>
-        static iterator<TYPE>* find(const iterator<TYPE> &begin,
+        static strongPtr<iterator<TYPE>> find(const iterator<TYPE> &begin,
                                     const iterator<TYPE> &end, const Callback& condition);
 
         /**
@@ -150,11 +152,11 @@ namespace original
         * @param begin Start iterator
         * @param n Number of elements to fill
         * @param condition Condition to find element
-        * @return iterator<TYPE>* Iterator past last filled element
+        * @return strongPtr<iterator<TYPE>> Iterator past last filled element
         */
         template<typename TYPE, typename Callback>
         requires Condition<Callback, TYPE>
-        static iterator<TYPE>* find(const iterator<TYPE> &begin, u_integer n, const Callback& condition);
+        static strongPtr<iterator<TYPE>> find(const iterator<TYPE> &begin, u_integer n, const Callback& condition);
 
         /**
          * @brief Counts occurrences of a target element in the range
@@ -216,12 +218,12 @@ namespace original
          * @param begin Start iterator
          * @param n Number of elements to process
          * @param operation Operation to apply to each element
-         * @return iterator<TYPE>* Iterator to the element after the last processed element
+         * @return strongPtr<iterator<TYPE>> Iterator to the element after the last processed element
          * @requires Operation<Callback, TYPE>
          */
         template<typename TYPE, typename Callback>
         requires Operation<Callback, TYPE>
-        static iterator<TYPE>* forEach(const iterator<TYPE> &begin, u_integer n, Callback operation);
+        static strongPtr<iterator<TYPE>> forEach(const iterator<TYPE> &begin, u_integer n, Callback operation);
 
         /**
         * @brief Apply operation to elements with condition check
@@ -247,12 +249,12 @@ namespace original
         * @param n Maximum number of elements to process
         * @param operation Operation to apply
         * @param condition Filter condition
-        * @return iterator<TYPE>* Iterator past last processed element
+        * @return strongPtr<iterator<TYPE>> Iterator past last processed element
         * @requires Operation<Callback_O, TYPE> && Condition<Callback_C, TYPE>
         */
         template<typename TYPE, typename Callback_O, typename Callback_C>
         requires Operation<Callback_O, TYPE> && Condition<Callback_C, TYPE>
-        static iterator<TYPE>* forEach(const iterator<TYPE> &begin, u_integer n, Callback_O operation, const Callback_C& condition);
+        static strongPtr<iterator<TYPE>> forEach(const iterator<TYPE> &begin, u_integer n, Callback_O operation, const Callback_C& condition);
 
         /**
          * @brief Fills a range with a specific value
@@ -272,10 +274,10 @@ namespace original
         * @param begin Start iterator
         * @param n Number of elements to fill
         * @param value Value to fill with (default constructed if omitted)
-        * @return iterator<TYPE>* Iterator past last filled element
+        * @return strongPtr<iterator<TYPE>> Iterator past last filled element
         */
         template<typename TYPE>
-        static iterator<TYPE>* fill(const iterator<TYPE> &begin, u_integer n, const TYPE &value = TYPE{});
+        static strongPtr<iterator<TYPE>> fill(const iterator<TYPE> &begin, u_integer n, const TYPE &value = TYPE{});
 
         /**
          * @brief Swaps the values of two elements
@@ -293,10 +295,10 @@ namespace original
          * @param begin_src Start iterator of source range
          * @param end_src End iterator of source range
          * @param begin_tar Start iterator of target range
-         * @return iterator<TYPE>* Iterator pointing past the last copied element
+         * @return strongPtr<iterator<TYPE>> Iterator pointing past the last copied element
          */
         template<typename TYPE>
-        static iterator<TYPE>* copy(const iterator<TYPE> &begin_src, const iterator<TYPE> &end_src,
+        static strongPtr<iterator<TYPE>> copy(const iterator<TYPE> &begin_src, const iterator<TYPE> &end_src,
                                     const iterator<TYPE> &begin_tar);
 
         /**
@@ -307,12 +309,12 @@ namespace original
         * @param end_src Source end iterator
         * @param begin_tar Target start iterator
         * @param condition Filter condition for elements
-        * @return iterator<TYPE>* Iterator past last copied element
+        * @return strongPtr<iterator<TYPE>> Iterator past last copied element
         * @requires Condition<Callback, TYPE>
         */
         template<typename TYPE, typename Callback>
         requires Condition<Callback, TYPE>
-        static iterator<TYPE>* copy(const iterator<TYPE> &begin_src, const iterator<TYPE> &end_src,
+        static strongPtr<iterator<TYPE>> copy(const iterator<TYPE> &begin_src, const iterator<TYPE> &end_src,
                                     const iterator<TYPE> &begin_tar, Callback condition = filter<TYPE>{});
 
         /**
@@ -320,11 +322,11 @@ namespace original
         * @tparam TYPE Element type
         * @param begin Start iterator
         * @param end End iterator
-        * @return iterator<TYPE>* Iterator to new end of reversed range
+        * @return strongPtr<iterator<TYPE>> Iterator to new end of reversed range
         * @note Performs in-place reversal of elements
         */
         template<typename TYPE>
-        static iterator<TYPE>* reverse(const iterator<TYPE> &begin, const iterator<TYPE> &end);
+        static strongPtr<iterator<TYPE>> reverse(const iterator<TYPE> &begin, const iterator<TYPE> &end);
 
         /**
          * @brief Compares two elements using a comparison callback
@@ -486,13 +488,13 @@ namespace original
         * @param range Valid heap range boundary
         * @param parent Parent node iterator
         * @param compares Comparison callback
-        * @return iterator<TYPE>* Iterator to higher-priority child node
+        * @return strongPtr<iterator<TYPE>> Iterator to higher-priority child node
         * @requires Compare<Callback, TYPE>
         * @note Protected helper for heap operations
         */
         template<typename TYPE, typename Callback>
         requires Compare<Callback, TYPE>
-        static iterator<TYPE>* _heapGetPrior(const iterator<TYPE>& begin, const iterator<TYPE>& range,
+        static strongPtr<iterator<TYPE>> _heapGetPrior(const iterator<TYPE>& begin, const iterator<TYPE>& range,
                                              const iterator<TYPE>& parent, const Callback& compares);
 
         /**
@@ -502,13 +504,13 @@ namespace original
          * @param begin Start iterator of the partition
          * @param end End iterator of the partition
          * @param compares Comparison callback
-         * @return iterator<TYPE>* Median-of-three pivot element
+         * @return strongPtr<iterator<TYPE>> Median-of-three pivot element
          * @private
          * @note Internal helper for introspective sort
          */
         template<typename TYPE, typename Callback>
         requires Compare<Callback, TYPE>
-        static iterator<TYPE>* _introSortGetPivot(const iterator<TYPE>& begin, const iterator<TYPE>& end,
+        static strongPtr<iterator<TYPE>> _introSortGetPivot(const iterator<TYPE>& begin, const iterator<TYPE>& end,
                                                   const Callback& compares);
 
         /**
@@ -518,13 +520,13 @@ namespace original
          * @param begin Start iterator of the partition
          * @param end End iterator of the partition
          * @param compares Comparison callback
-         * @return iterator<TYPE>* Final pivot position
+         * @return strongPtr<iterator<TYPE>> Final pivot position
          * @private
          * @note Internal helper for introspective sort
          */
         template<typename TYPE, typename Callback>
         requires Compare<Callback, TYPE>
-        static iterator<TYPE>* _introSortPartition(const iterator<TYPE>& begin, const iterator<TYPE>& end,
+        static strongPtr<iterator<TYPE>> _introSortPartition(const iterator<TYPE>& begin, const iterator<TYPE>& end,
                                                    const Callback& compares);
 
         /**
@@ -588,7 +590,7 @@ namespace original
          * @brief Pointer overload version of @ref distance()
          * */
         template <typename TYPE>
-        static auto distance(const iterator<TYPE>* end, const iterator<TYPE>* begin) -> integer
+        static auto distance(const strongPtr<iterator<TYPE>> end, const strongPtr<iterator<TYPE>> begin) -> integer
         {
             return distance(*end, *begin);
         }
@@ -597,7 +599,7 @@ namespace original
          * @brief Pointer overload version of @ref frontOf()
          * */
         template<typename TYPE>
-        static auto frontOf(const iterator<TYPE> *it, integer steps) -> iterator<TYPE> * {
+        static auto frontOf(const strongPtr<iterator<TYPE>> it, integer steps) -> strongPtr<iterator<TYPE>> {
             return frontOf(*it, steps);
         }
 
@@ -605,7 +607,7 @@ namespace original
          * @brief Pointer overload version of @ref backOf()
          * */
         template<typename TYPE>
-        static auto backOf(const iterator<TYPE> *it, integer steps) -> iterator<TYPE> * {
+        static auto backOf(const strongPtr<iterator<TYPE>> it, integer steps) -> strongPtr<iterator<TYPE>> {
             return backOf(*it, steps);
         }
 
@@ -614,7 +616,7 @@ namespace original
          * */
         template<typename TYPE, typename Callback>
         requires original::Condition<Callback, TYPE>
-        static auto allOf(const iterator<TYPE> *begin, const iterator<TYPE> *end,
+        static auto allOf(const strongPtr<iterator<TYPE>> begin, const strongPtr<iterator<TYPE>> end,
                           const Callback &condition) -> bool {
             return allOf(*begin, *end, condition);
         }
@@ -624,7 +626,7 @@ namespace original
          * */
         template<typename TYPE, typename Callback>
         requires original::Condition<Callback, TYPE>
-        static auto anyOf(const iterator<TYPE> *begin, const iterator<TYPE> *end,
+        static auto anyOf(const strongPtr<iterator<TYPE>> begin, const strongPtr<iterator<TYPE>> end,
                           const Callback &condition) -> bool {
             return anyOf(*begin, *end, condition);
         }
@@ -634,7 +636,7 @@ namespace original
          * */
         template<typename TYPE, typename Callback>
         requires original::Condition<Callback, TYPE>
-        static auto noneOf(const iterator<TYPE> *begin, const iterator<TYPE> *end,
+        static auto noneOf(const strongPtr<iterator<TYPE>> begin, const strongPtr<iterator<TYPE>> end,
                            const Callback &condition) -> bool {
             return noneOf(*begin, *end, condition);
         }
@@ -643,8 +645,8 @@ namespace original
          * @brief Pointer overload version of @ref find()
          * */
         template <typename TYPE>
-        static auto find(const iterator<TYPE>* begin, const iterator<TYPE>* end,
-                         const TYPE& target) -> iterator<TYPE>* {
+        static auto find(const strongPtr<iterator<TYPE>> begin, const strongPtr<iterator<TYPE>> end,
+                         const TYPE& target) -> strongPtr<iterator<TYPE>> {
             return find(*begin, *end, target);
         }
 
@@ -652,8 +654,8 @@ namespace original
          * @brief Pointer overload version of @ref find()
          * */
         template <typename TYPE>
-        static auto find(const iterator<TYPE>* begin, u_integer n,
-                         const TYPE& target) -> iterator<TYPE>* {
+        static auto find(const strongPtr<iterator<TYPE>> begin, u_integer n,
+                         const TYPE& target) -> strongPtr<iterator<TYPE>> {
             return find(*begin, n, target);
         }
 
@@ -662,8 +664,8 @@ namespace original
          * */
         template<typename TYPE, typename Callback>
         requires original::Condition<Callback, TYPE>
-        static auto find(const iterator<TYPE>* begin, const iterator<TYPE>* end,
-                         const Callback& condition) -> iterator<TYPE>* {
+        static auto find(const strongPtr<iterator<TYPE>> begin, const strongPtr<iterator<TYPE>> end,
+                         const Callback& condition) -> strongPtr<iterator<TYPE>> {
             return find(*begin, *end, condition);
         }
 
@@ -672,7 +674,7 @@ namespace original
          * */
         template <typename TYPE, typename Callback>
         requires original::Condition<Callback, TYPE>
-        static auto find(const iterator<TYPE>* begin, u_integer n, const Callback& condition) -> iterator<TYPE>* {
+        static auto find(const strongPtr<iterator<TYPE>> begin, u_integer n, const Callback& condition) -> strongPtr<iterator<TYPE>> {
             return find(*begin, n, condition);
         }
 
@@ -680,7 +682,7 @@ namespace original
          * @brief Pointer overload version of @ref count()
          * */
         template <typename TYPE>
-        static auto count(const iterator<TYPE>* begin, const iterator<TYPE>* end,
+        static auto count(const strongPtr<iterator<TYPE>> begin, const strongPtr<iterator<TYPE>> end,
                                          const TYPE& target) -> u_integer {
             return count(*begin, *end, target);
         }
@@ -690,7 +692,7 @@ namespace original
          * */
         template <typename TYPE, typename Callback>
         requires original::Condition<Callback, TYPE>
-        static auto count(const iterator<TYPE>* begin, const iterator<TYPE>* end,
+        static auto count(const strongPtr<iterator<TYPE>> begin, const strongPtr<iterator<TYPE>> end,
                                          const Callback& condition) -> u_integer {
             return count(*begin, *end, condition);
         }
@@ -699,8 +701,8 @@ namespace original
          * @brief Pointer overload version of @ref equal()
          * */
         template <typename TYPE>
-        static auto equal(const iterator<TYPE>* begin1, const iterator<TYPE>* end1,
-                                         const iterator<TYPE>* begin2, const iterator<TYPE>* end2) -> bool {
+        static auto equal(const strongPtr<iterator<TYPE>> begin1, const strongPtr<iterator<TYPE>> end1,
+                                         const strongPtr<iterator<TYPE>> begin2, const strongPtr<iterator<TYPE>> end2) -> bool {
             return equal(*begin1, *end1, *begin2, *end2);
         }
 
@@ -709,7 +711,7 @@ namespace original
          * */
         template <typename TYPE, typename Callback>
         requires original::Operation<Callback, TYPE>
-        static auto forEach(const iterator<TYPE>* begin, const iterator<TYPE>* end,
+        static auto forEach(const strongPtr<iterator<TYPE>> begin, const strongPtr<iterator<TYPE>> end,
                                            Callback operation) -> void {
             forEach(*begin, *end, operation);
         }
@@ -719,7 +721,7 @@ namespace original
          * */
         template <typename TYPE, typename Callback>
         requires original::Operation<Callback, TYPE>
-        static auto forEach(const iterator<TYPE>* begin, u_integer n, Callback operation) -> iterator<TYPE>* {
+        static auto forEach(const strongPtr<iterator<TYPE>> begin, u_integer n, Callback operation) -> strongPtr<iterator<TYPE>> {
             return forEach(*begin, n, operation);
         }
 
@@ -727,7 +729,7 @@ namespace original
          * @brief Pointer overload version of @ref fill()
          * */
         template<typename TYPE>
-        static auto fill(const iterator<TYPE>* begin, const iterator<TYPE>* end,
+        static auto fill(const strongPtr<iterator<TYPE>> begin, const strongPtr<iterator<TYPE>> end,
                                         const TYPE& value) -> void {
             fill(*begin, *end, value);
         }
@@ -736,7 +738,7 @@ namespace original
          * @brief Pointer overload version of @ref fill()
          * */
         template<typename TYPE>
-        static auto fill(const iterator<TYPE>* begin, u_integer n, const TYPE& value) -> iterator<TYPE>* {
+        static auto fill(const strongPtr<iterator<TYPE>> begin, u_integer n, const TYPE& value) -> strongPtr<iterator<TYPE>> {
             return fill(*begin, n, value);
         }
 
@@ -744,7 +746,7 @@ namespace original
          * @brief Pointer overload version of @ref swap()
          * */
         template <typename TYPE>
-        static auto swap(const iterator<TYPE>* it1, const iterator<TYPE>* it2) noexcept -> void {
+        static auto swap(const strongPtr<iterator<TYPE>> it1, const strongPtr<iterator<TYPE>> it2) noexcept -> void {
             swap(*it1, *it2);
         }
 
@@ -752,8 +754,8 @@ namespace original
          * @brief Pointer overload version of @ref copy()
          * */
         template <typename TYPE>
-        static auto copy(const iterator<TYPE>* begin_src, const iterator<TYPE>* end_src,
-                                        const iterator<TYPE>* begin_tar) -> iterator<TYPE>* {
+        static auto copy(const strongPtr<iterator<TYPE>> begin_src, const strongPtr<iterator<TYPE>> end_src,
+                                        const strongPtr<iterator<TYPE>> begin_tar) -> strongPtr<iterator<TYPE>> {
             return copy(*begin_src, *end_src, *begin_tar);
         }
 
@@ -762,8 +764,8 @@ namespace original
          * */
         template<typename TYPE, typename Callback>
         requires original::Condition<Callback, TYPE>
-        static auto copy(const iterator<TYPE>* begin_src, const iterator<TYPE>* end_src,
-                                        const iterator<TYPE>* begin_tar, Callback condition) -> iterator<TYPE>* {
+        static auto copy(const strongPtr<iterator<TYPE>> begin_src, const strongPtr<iterator<TYPE>> end_src,
+                                        const strongPtr<iterator<TYPE>> begin_tar, Callback condition) -> strongPtr<iterator<TYPE>> {
             return copy(*begin_src, *end_src, *begin_tar, condition);
         }
 
@@ -771,7 +773,7 @@ namespace original
          * @brief Pointer overload version of @ref reverse()
          * */
         template<typename TYPE>
-        static auto reverse(const iterator<TYPE>* begin, const iterator<TYPE>* end) -> iterator<TYPE>* {
+        static auto reverse(const strongPtr<iterator<TYPE>> begin, const strongPtr<iterator<TYPE>> end) -> strongPtr<iterator<TYPE>> {
             return reverse(*begin, *end);
         }
 
@@ -780,7 +782,7 @@ namespace original
          * */
         template <typename TYPE, typename Callback>
         requires original::Compare<Callback, TYPE>
-        static auto compare(const iterator<TYPE>* it1, const iterator<TYPE>* it2,
+        static auto compare(const strongPtr<iterator<TYPE>> it1, const strongPtr<iterator<TYPE>> it2,
                                            const Callback& compares) -> bool {
             return compare(*it1, *it2, compares);
         }
@@ -790,8 +792,8 @@ namespace original
          * */
         template<typename TYPE, typename Callback>
         requires original::Compare<Callback, TYPE>
-        static auto heapAdjustDown(const iterator<TYPE>* begin, const iterator<TYPE>* range,
-                                                  const iterator<TYPE>* current, const Callback& compares) -> void {
+        static auto heapAdjustDown(const strongPtr<iterator<TYPE>> begin, const strongPtr<iterator<TYPE>> range,
+                                                  const strongPtr<iterator<TYPE>> current, const Callback& compares) -> void {
             heapAdjustDown(*begin, *range, *current, compares);
         }
 
@@ -800,7 +802,7 @@ namespace original
          * */
         template<typename TYPE, typename Callback>
         requires original::Compare<Callback, TYPE>
-        static auto heapAdjustUp(const iterator<TYPE>* begin, const iterator<TYPE>* current,
+        static auto heapAdjustUp(const strongPtr<iterator<TYPE>> begin, const strongPtr<iterator<TYPE>> current,
                                                 const Callback& compares) -> void {
             heapAdjustUp(*begin, *current, compares);
         }
@@ -810,7 +812,7 @@ namespace original
          * */
         template<typename TYPE, typename Callback>
         requires original::Compare<Callback, TYPE>
-        static auto heapInit(const iterator<TYPE>* begin, const iterator<TYPE>* end,
+        static auto heapInit(const strongPtr<iterator<TYPE>> begin, const strongPtr<iterator<TYPE>> end,
                                             const Callback& compares) -> void {
             heapInit(*begin, *end, compares);
         }
@@ -820,7 +822,7 @@ namespace original
          * */
         template<typename TYPE, typename Callback>
         requires original::Compare<Callback, TYPE>
-        static auto heapSort(const iterator<TYPE>* begin, const iterator<TYPE>* end,
+        static auto heapSort(const strongPtr<iterator<TYPE>> begin, const strongPtr<iterator<TYPE>> end,
                              const Callback& compares) -> void{
             heapSort(*begin, *end, compares);
         }
@@ -830,7 +832,7 @@ namespace original
          * */
         template<typename TYPE, typename Callback>
         requires original::Compare<Callback, TYPE>
-        static auto insertionSort(const iterator<TYPE>* begin, const iterator<TYPE>* end,
+        static auto insertionSort(const strongPtr<iterator<TYPE>> begin, const strongPtr<iterator<TYPE>> end,
                              const Callback& compares) -> void{
             insertionSort(*begin, *end, compares);
         }
@@ -841,8 +843,8 @@ namespace original
          * */
         template<typename TYPE, typename Callback>
         requires original::Compare<Callback, TYPE>
-        static auto _heapGetPrior(const iterator<TYPE>* begin, const iterator<TYPE>* range,
-                                  const iterator<TYPE>* parent, const Callback& compares) -> iterator<TYPE>* {
+        static auto _heapGetPrior(const strongPtr<iterator<TYPE>> begin, const strongPtr<iterator<TYPE>> range,
+                                  const strongPtr<iterator<TYPE>> parent, const Callback& compares) -> strongPtr<iterator<TYPE>> {
             return _heapGetPrior(*begin, *range, *parent, compares);
         }
     };
@@ -851,36 +853,31 @@ namespace original
     template <typename TYPE>
     auto original::algorithms::distance(const iterator<TYPE>& end, const iterator<TYPE>& begin) -> integer
     {
-        auto* it1 = end.clone();
-        auto* it2 = begin.clone();
-        auto dis = it1->operator-(*it2);
-        delete it1;
-        delete it2;
-        return dis;
+        auto it1 = strongPtr(end.clone());
+        auto it2 = strongPtr(begin.clone());
+        return *it1 - *it2;
     }
 
     template<typename TYPE>
-    original::iterator<TYPE> *original::algorithms::frontOf(const iterator<TYPE> &it, integer steps) {
-        return it + steps;
+    original::strongPtr<original::iterator<TYPE>> original::algorithms::frontOf(const iterator<TYPE> &it, integer steps) {
+        return strongPtr(it + steps);
     }
 
     template<typename TYPE>
-    original::iterator<TYPE> *original::algorithms::backOf(const iterator<TYPE> &it, integer steps) {
-        return it - steps;
+    original::strongPtr<original::iterator<TYPE>> original::algorithms::backOf(const iterator<TYPE> &it, integer steps) {
+        return strongPtr(it - steps);
     }
 
     template<typename TYPE, typename Callback>
     requires original::Condition<Callback, TYPE>
     bool original::algorithms::allOf(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                      const Callback& condition) {
-        auto* it = begin.clone();
+        auto it = strongPtr(begin.clone());
         for (; distance(*it, end) <= 0; it->next()){
             if (!condition(it->get())){
-                delete it;
                 return false;
             }
         }
-        delete it;
         return true;
     }
 
@@ -888,14 +885,12 @@ namespace original
     requires original::Condition<Callback, TYPE>
     bool original::algorithms::anyOf(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                      const Callback& condition) {
-        auto* it = begin.clone();
+        auto it = strongPtr(begin.clone());
         for (; distance(*it, end) <= 0; it->next()){
             if (condition(it->get())){
-                delete it;
                 return true;
             }
         }
-        delete it;
         return false;
     }
 
@@ -903,34 +898,31 @@ namespace original
     requires original::Condition<Callback, TYPE>
     bool original::algorithms::noneOf(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                       const Callback& condition) {
-        auto* it = begin.clone();
+        auto it = strongPtr(begin.clone());
         for (; distance(*it, end) <= 0; it->next()){
             if (condition(it->get())){
-                delete it;
                 return false;
             }
         }
-        delete it;
         return true;
     }
 
     template <typename TYPE>
     auto original::algorithms::find(const iterator<TYPE>& begin, const iterator<TYPE>& end,
-        const TYPE& target) -> iterator<TYPE>* {
-        auto it = begin.clone();
+        const TYPE& target) -> strongPtr<iterator<TYPE>> {
+        auto it = strongPtr(begin.clone());
         while (it->isValid() && !it->equal(end)) {
             if (it->get() == target) {
                 return it;
             }
             it->next();
         }
-        delete it;
-        return end.clone();
+        return strongPtr(end.clone());
     }
 
     template <typename TYPE>
-    auto original::algorithms::find(const iterator<TYPE>& begin, const u_integer n, const TYPE& target) -> iterator<TYPE>* {
-        auto it = begin.clone();
+    auto original::algorithms::find(const iterator<TYPE>& begin, const u_integer n, const TYPE& target) -> strongPtr<iterator<TYPE>> {
+        auto it = strongPtr(begin.clone());
         for (u_integer i = 0; i < n; i += 1, it->next())
         {
             if (it->get() == target) return it;
@@ -941,22 +933,21 @@ namespace original
     template<typename TYPE, typename Callback>
     requires original::Condition<Callback, TYPE>
     auto original::algorithms::find(const iterator<TYPE> &begin, const iterator<TYPE> &end,
-                                    const Callback& condition) -> iterator<TYPE>* {
-        auto it = begin.clone();
+                                    const Callback& condition) -> strongPtr<iterator<TYPE>> {
+        auto it = strongPtr(begin.clone());
         while (it->isValid() && !it->equal(end)) {
             if (condition(it->get())) {
                 return it;
             }
             it->next();
         }
-        delete it;
-        return end.clone();
+        return strongPtr(end.clone());
     }
 
     template <typename TYPE, typename Callback>
     requires original::Condition<Callback, TYPE>
-    auto original::algorithms::find(const iterator<TYPE>& begin, const u_integer n, const Callback& condition) -> iterator<TYPE>* {
-        auto it = begin.clone();
+    auto original::algorithms::find(const iterator<TYPE>& begin, const u_integer n, const Callback& condition) -> strongPtr<iterator<TYPE>> {
+        auto it = strongPtr(begin.clone());
         for (u_integer i = 0; i < n; i += 1, it->next())
         {
             if (condition(it->get())) return it;
@@ -969,14 +960,13 @@ namespace original
         const TYPE& target) -> u_integer
     {
         u_integer cnt = 0;
-        auto it = begin.clone();
-        while (it->isValid() && !end.atPrev(it)) {
+        auto it = strongPtr(begin.clone());
+        while (it->isValid() && distance(end, *it) != -1) {
             if (it->get() == target) {
                 cnt += 1;
             }
             it->next();
         }
-        delete it;
         return cnt;
     }
 
@@ -986,14 +976,13 @@ namespace original
                                      const Callback& condition) -> u_integer
     {
         u_integer cnt = 0;
-        auto it = begin.clone();
-        while (it->isValid() && !end.atPrev(it)) {
+        auto it = strongPtr(begin.clone());
+        while (it->isValid() && distance(end, *it) != -1) {
             if (condition(it->get())) {
                 cnt += 1;
             }
             it->next();
         }
-        delete it;
         return cnt;
     }
 
@@ -1001,16 +990,14 @@ namespace original
     auto original::algorithms::equal(const iterator<TYPE>& begin1, const iterator<TYPE>& end1,
                                      const iterator<TYPE>& begin2, const iterator<TYPE>& end2) -> bool
     {
-        auto it1 = begin1.clone();
-        auto it2 = begin2.clone();
+        auto it1 = strongPtr(begin1.clone());
+        auto it2 = strongPtr(begin2.clone());
 
         while (it1->isValid() && it2->isValid() && !it1->equal(end1) && !it2->equal(end2)) {
             it1->next();
             it2->next();
         }
         const bool res = it1->equal(end1) && it2->equal(end2) && it1->get() == it2->get();
-        delete it1;
-        delete it2;
         return res;
     }
 
@@ -1019,19 +1006,18 @@ namespace original
     auto original::algorithms::forEach(const iterator<TYPE>& begin, const iterator<TYPE>& end,
                                        Callback operation) -> void
     {
-        auto it = begin.clone();
+        auto it = strongPtr(begin.clone());
         for (; !it->equal(end); it->next()) {
             operation(it->get());
         }
         operation(it->get());
-        delete it;
     }
 
     template <typename TYPE, typename Callback>
     requires original::Operation<Callback, TYPE>
     auto original::algorithms::forEach(const iterator<TYPE>& begin, const u_integer n,
-                                       Callback operation) -> iterator<TYPE>* {
-        auto it = begin.clone();
+                                       Callback operation) -> strongPtr<iterator<TYPE>> {
+        auto it = strongPtr(begin.clone());
         for (u_integer i = 0; i < n; i += 1, it->next())
         {
             operation(it->get());
@@ -1043,7 +1029,7 @@ namespace original
     requires original::Operation<Callback_O, TYPE> && original::Condition<Callback_C, TYPE>
     auto original::algorithms::forEach(const iterator<TYPE> &begin, const iterator<TYPE> &end, Callback_O operation,
                                        const Callback_C &condition) -> void {
-        auto it = begin.clone();
+        auto it = strongPtr(begin.clone());
         for (; !it->equal(end); it->next()) {
             if (condition(it->get()))
                 operation(it->get());
@@ -1051,14 +1037,13 @@ namespace original
 
         if (condition(it->get()))
             operation(it->get());
-        delete it;
     }
 
     template<typename TYPE, typename Callback_O, typename Callback_C>
     requires original::Operation<Callback_O, TYPE> && original::Condition<Callback_C, TYPE>
     auto original::algorithms::forEach(const iterator<TYPE> &begin, const u_integer n, Callback_O operation,
-                                       const Callback_C &condition) -> iterator<TYPE>* {
-        auto it = begin.clone();
+                                       const Callback_C &condition) -> strongPtr<iterator<TYPE>> {
+        auto it = strongPtr(begin.clone());
         for (u_integer i = 0; i < n; i += 1, it->next())
         {
             if (condition(it->get()))
@@ -1071,19 +1056,18 @@ namespace original
     auto original::algorithms::fill(const iterator<TYPE>& begin,
                                     const iterator<TYPE>& end, const TYPE& value) -> void
     {
-        auto it = begin.clone();
+        auto it = strongPtr(begin.clone());
         while (!it->equal(end)){
             it->set(value);
             it->next();
         }
         it->set(value);
-        delete it;
     }
 
     template<typename TYPE>
     auto original::algorithms::fill(const iterator<TYPE>& begin,
-                                    const u_integer n, const TYPE& value) -> iterator<TYPE>* {
-        auto it = begin.clone();
+                                    const u_integer n, const TYPE& value) -> strongPtr<iterator<TYPE>> {
+        auto it = strongPtr(begin.clone());
         for (u_integer i = 0; i < n; ++i) {
             it->set(value);
             it->next();
@@ -1094,20 +1078,18 @@ namespace original
     template <typename TYPE>
     auto original::algorithms::swap(const iterator<TYPE>& it1, const iterator<TYPE>& it2) noexcept -> void
     {
-        auto it_1 = it1.clone();
-        auto it_2 = it2.clone();
+        auto it_1 = strongPtr(it1.clone());
+        auto it_2 = strongPtr(it2.clone());
         TYPE tmp = it_2->get();
         it_2->set(it_1->get());
         it_1->set(tmp);
-        delete it_1;
-        delete it_2;
     }
 
     template <typename TYPE>
     auto original::algorithms::copy(const iterator<TYPE>& begin_src, const iterator<TYPE>& end_src,
-                        const iterator<TYPE>& begin_tar) -> iterator<TYPE>* {
-        auto it_src = begin_src.clone();
-        auto it_tar = begin_tar.clone();
+                        const iterator<TYPE>& begin_tar) -> strongPtr<iterator<TYPE>> {
+        auto it_src = strongPtr(begin_src.clone());
+        auto it_tar = strongPtr(begin_tar.clone());
         while (!it_src->equal(end_src)){
             it_tar->set(it_src->get());
             it_src->next();
@@ -1115,16 +1097,15 @@ namespace original
         }
         it_tar->set(it_src->get());
         it_tar->next();
-        delete it_src;
         return it_tar;
     }
 
     template<typename TYPE, typename Callback>
     requires original::Condition<Callback, TYPE>
     auto original::algorithms::copy(const iterator<TYPE>& begin_src, const iterator<TYPE>& end_src,
-                               const iterator<TYPE>& begin_tar, Callback condition) -> iterator<TYPE>* {
-        auto it_src = begin_src.clone();
-        auto it_tar = begin_tar.clone();
+                               const iterator<TYPE>& begin_tar, Callback condition) -> strongPtr<iterator<TYPE>> {
+        auto it_src = strongPtr(begin_src.clone());
+        auto it_tar = strongPtr(begin_tar.clone());
         while (!it_src->equal(end_src)){
             if (condition(it_src->get())){
                 it_tar->set(it_src->get());
@@ -1136,21 +1117,19 @@ namespace original
             it_tar->set(it_src->get());
         }
         it_tar->next();
-        delete it_src;
         return it_tar;
     }
 
     template<typename TYPE>
     auto original::algorithms::reverse(const iterator<TYPE>& begin,
-                                       const iterator<TYPE>& end) -> iterator<TYPE>* {
-        auto left = begin.clone();
-        auto right = end.clone();
-        while (!left->equal(right) && !left->atNext(right)){
+                                       const iterator<TYPE>& end) -> strongPtr<iterator<TYPE>> {
+        auto left = strongPtr(begin.clone());
+        auto right = strongPtr(end.clone());
+        while (distance(right, left) > 0){
             swap(left, right);
             left->next();
             right->prev();
         }
-        delete right;
         return left;
     }
 
@@ -1170,21 +1149,17 @@ namespace original
         if (distance(current, begin) < 0)
             return;
 
-        auto* it = current.clone();
+        auto it = strongPtr(current.clone());
         while ((distance(*it, begin) + 1) * 2 - 1 <= distance(range, begin))
         {
-            auto* child = _heapGetPrior(begin, range, *it, compares);
+            auto child = _heapGetPrior(begin, range, *it, compares);
             if (compare(it, child, compares))
             {
-                delete child;
                 break;
             }
             swap(it, child);
-            delete it;
-            it = child->clone();
-            delete child;
+            it = strongPtr(child->clone());
         }
-        delete it;
     }
 
     template <typename TYPE, typename Callback>
@@ -1192,23 +1167,19 @@ namespace original
     auto original::algorithms::heapAdjustUp(const iterator<TYPE>& begin, const iterator<TYPE>& current,
                                             const Callback& compares) -> void
     {
-        auto* it = current.clone();
+        auto it = strongPtr(current.clone());
         while (distance(*it, begin) > 0)
         {
-            auto* parent = frontOf(begin, (distance(*it, begin) + 1) / 2 - 1);
+            auto parent = frontOf(begin, (distance(*it, begin) + 1) / 2 - 1);
             if (compare(it, parent, compares))
             {
                 swap(it, parent);
-                delete it;
-                it = parent->clone();
+                it = strongPtr(parent->clone());
             }else
             {
-                delete parent;
                 break;
             }
-            delete parent;
         }
-        delete it;
     }
 
     template <typename TYPE, typename Callback>
@@ -1216,12 +1187,11 @@ namespace original
     auto original::algorithms::heapInit(const iterator<TYPE>& begin, const iterator<TYPE>& end,
                                         const Callback& compares) -> void
     {
-        auto* it = frontOf(begin, (distance(end, begin) + 1) / 2 - 1);
+        auto it = frontOf(begin, (distance(end, begin) + 1) / 2 - 1);
         for (; distance(*it, begin) >= 0; it->prev())
         {
             heapAdjustDown(begin, end, *it, compares);
         }
-        delete it;
     }
 
     template<typename TYPE, typename Callback>
@@ -1257,30 +1227,27 @@ namespace original
             return;
 
         heapInit(begin, end, std::not_fn(compares));
-        auto* right = end.clone();
+        auto right = strongPtr(end.clone());
         while (distance(*right, begin) > 0){
             swap(begin, *right);
             right->prev();
             heapAdjustDown(begin, *right, begin, std::not_fn(compares));
         }
-        delete right;
     }
 
     template <typename TYPE, typename Callback>
     requires original::Compare<Callback, TYPE>
     auto original::algorithms::_heapGetPrior(const iterator<TYPE>& begin, const iterator<TYPE>& range,
-                                             const iterator<TYPE>& parent, const Callback& compares) -> iterator<TYPE>*
+                                             const iterator<TYPE>& parent, const Callback& compares) -> strongPtr<iterator<TYPE>>
     {
         if ((distance(parent, begin) + 1) * 2 <= distance(range, begin))
         {
-            auto* left = frontOf(begin, (distance(parent, begin) + 1) * 2 - 1);
-            auto* right = frontOf(begin, (distance(parent, begin) + 1) * 2);
+            auto left = frontOf(begin, (distance(parent, begin) + 1) * 2 - 1);
+            auto right = frontOf(begin, (distance(parent, begin) + 1) * 2);
             if (compare(left, right, compares))
             {
-                delete right;
                 return left;
             }
-            delete left;
             return right;
         }
         return frontOf(begin, (distance(parent, begin) + 1) * 2 - 1);
@@ -1288,34 +1255,31 @@ namespace original
 
     template<typename TYPE, typename Callback>
     requires original::Compare<Callback, TYPE>
-    original::iterator<TYPE>*
+    original::strongPtr<original::iterator<TYPE>>
     original::algorithms::_introSortGetPivot(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                              const Callback &compares) {
-        auto* mid = frontOf(begin, distance(end, begin) / 2);
+        auto mid = frontOf(begin, distance(end, begin) / 2);
         if ((!compare(begin, *mid, compares) && !compare(end, begin, compares))
          || (!compare(*mid, begin, compares) && !compare(begin, end, compares))){
-            delete mid;
-            return begin.clone();
+            return strongPtr(begin.clone());
         }
         if ((!compare(*mid, begin, compares) && !compare(end, *mid, compares))
             || (!compare(begin, *mid, compares) && !compare(*mid, end, compares))){
             return mid;
         }
-        delete mid;
-        return end.clone();
+        return strongPtr(end.clone());
     }
 
     template<typename TYPE, typename Callback>
     requires original::Compare<Callback, TYPE>
-    original::iterator<TYPE>*
+    original::strongPtr<original::iterator<TYPE>>
     original::algorithms::_introSortPartition(const iterator<TYPE> &begin, const iterator<TYPE> &end,
                                               const Callback &compares) {
-        auto* left = begin.clone();
-        auto* right = end.clone();
-        auto* pivot = _introSortGetPivot(begin, end, compares);
+        auto left = strongPtr(begin.clone());
+        auto right = strongPtr(end.clone());
+        auto pivot = _introSortGetPivot(begin, end, compares);
         TYPE tmp = left->getElem();
         left->set(pivot->getElem());
-        delete pivot;
         bool move_right = true;
         while (distance(right, left) > 0) {
             if (move_right){
@@ -1334,7 +1298,6 @@ namespace original
                 }
             }
         }
-        delete right;
         left->set(tmp);
         return left;
     }
@@ -1354,10 +1317,9 @@ namespace original
             return;
         }
 
-        auto* pivot = _introSortPartition(begin, end, compares);
+        auto pivot = _introSortPartition(begin, end, compares);
         _introSort(begin, *pivot, compares, depth_limit - 1);
         _introSort(*pivot, end, compares, depth_limit - 1);
-        delete pivot;
     }
 
     template<typename TYPE, typename Callback>
@@ -1367,20 +1329,17 @@ namespace original
         if (distance(end, begin) <= 0)
             return;
 
-        auto* left = frontOf(begin, 1);
+        auto left = frontOf(begin, 1);
         while (distance(end, *left) >= 0) {
-            auto* current = left->clone();
-            auto* prev = backOf(current, 1);
+            auto current = strongPtr(left->clone());
+            auto prev = backOf(current, 1);
             while (distance(*current, begin) > 0 && compare(current, prev, compares)){
                 swap(current, prev);
                 current->prev();
                 prev->prev();
             }
-            delete prev;
-            delete current;
             left->next();
         }
-        delete left;
     }
 
     template<typename TYPE, typename Callback>
@@ -1388,8 +1347,8 @@ namespace original
     void original::algorithms::_stableSortMerge(const iterator<TYPE> &begin, const iterator<TYPE> &mid,
                                                 const iterator<TYPE> &end, const Callback &compares) {
         vector<TYPE> tmp;
-        auto* left = begin.clone();
-        auto* right = mid.clone();
+        auto left = strongPtr(begin.clone());
+        auto right = strongPtr(mid.clone());
 
         while (distance(mid, *left) > 0 && distance(end, *right) > 0){
             if (compare(left, right, compares)){
@@ -1412,8 +1371,6 @@ namespace original
         }
 
         copy(tmp.first(), tmp.last(), begin);
-        delete right;
-        delete left;
     }
 
     template<typename TYPE, typename Callback>
@@ -1430,11 +1387,10 @@ namespace original
             return;
         }
 
-        auto* mid = frontOf(begin, dis / 2);
+        auto mid = frontOf(begin, dis / 2);
         _stableSort(begin, *mid, compares);
         _stableSort(*mid, end, compares);
         _stableSortMerge(begin, *mid, end, compares);
-        delete mid;
     }
 
 #endif // ALGORITHMS_H
