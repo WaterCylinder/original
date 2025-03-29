@@ -180,9 +180,9 @@ namespace original {
      * @extends transform
      * @details This transformation copies an element into a specified container.
      */
-    template<typename TYPE>
+    template<typename TYPE, typename ALLOC = allocator<TYPE>>
     class copyTransform final : public transform<TYPE> {
-        baseList<TYPE>* container_; ///< The container to copy the element into
+        baseList<TYPE, ALLOC>* container_; ///< The container to copy the element into
 
         /**
          * @brief Applies the transformation by copying the element into the container.
@@ -201,7 +201,7 @@ namespace original {
          * @brief Constructs a copyTransform with the specified container.
          * @param container The container to copy the element into.
          */
-        explicit copyTransform(baseList<TYPE>& container);
+        explicit copyTransform(baseList<TYPE, ALLOC>& container);
     };
 
 } // namespace original
@@ -279,18 +279,18 @@ namespace original {
         t = original::abs(t);
     }
 
-    template<typename TYPE>
-    original::copyTransform<TYPE>::copyTransform(baseList<TYPE>& container)
+    template<typename TYPE, typename ALLOC>
+    original::copyTransform<TYPE, ALLOC>::copyTransform(baseList<TYPE, ALLOC>& container)
         : container_(&container) {}
 
-    template <typename TYPE>
-    auto original::copyTransform<TYPE>::clone() const -> copyTransform*
+    template<typename TYPE, typename ALLOC>
+    auto original::copyTransform<TYPE, ALLOC>::clone() const -> copyTransform*
     {
         return new copyTransform(*this);
     }
 
-    template<typename TYPE>
-    auto original::copyTransform<TYPE>::apply(TYPE& t) -> void
+    template<typename TYPE, typename ALLOC>
+    auto original::copyTransform<TYPE, ALLOC>::apply(TYPE& t) -> void
     {
         this->container_->add(t);
     }
