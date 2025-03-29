@@ -31,7 +31,7 @@ namespace original {
      * - Deep copy semantics
      */
     template <typename TYPE, typename ALLOC = allocator<TYPE>>
-    class chain final : public baseList<TYPE>, public iterationStream<TYPE, chain<TYPE, ALLOC>>{
+    class chain final : public baseList<TYPE, ALLOC>, public iterationStream<TYPE, chain<TYPE, ALLOC>>{
         /**
          * @class chainNode
          * @brief Internal node structure for chain elements
