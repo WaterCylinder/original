@@ -127,20 +127,6 @@ namespace original {
         explicit operator bool() const;
 
         /**
-        * @brief Equality comparison operator to nullptr
-        * @param null A nullptr to compare against
-        * @return True if the managed pointer is null, otherwise false
-        */
-        bool operator==(const std::nullptr_t& null) const;
-
-        /**
-        * @brief Inequality comparison operator to nullptr
-        * @param null A nullptr to compare against
-        * @return True if the managed pointer is not null, otherwise false
-        */
-        bool operator!=(const std::nullptr_t& null) const;
-
-        /**
         * @brief Get managed pointer const version
         * @return Raw pointer to managed object
         * @throws nullPointerError if no active references
@@ -234,7 +220,31 @@ namespace original {
         * @brief Destructor triggers reference cleanup
         */
         ~autoPtr() override;
+
+        template<typename T, typename DER, typename DEL>
+        friend bool operator==(const autoPtr<T, DER, DEL>& ptr, const std::nullptr_t& null);
+
+        template<typename T, typename DER, typename DEL>
+        friend bool operator!=(const autoPtr<T, DER, DEL>& ptr, const std::nullptr_t& null);
+
+        template<typename T, typename DER, typename DEL>
+        friend bool operator==(const std::nullptr_t& null, const autoPtr<T, DER, DEL>& ptr);
+
+        template<typename T, typename DER, typename DEL>
+        friend bool operator!=(const std::nullptr_t& null, const autoPtr<T, DER, DEL>& ptr);
     };
+
+    template<typename T, typename DER, typename DEL>
+    bool operator==(const autoPtr<T, DER, DEL>& ptr, const std::nullptr_t& null);
+
+    template<typename T, typename DER, typename DEL>
+    bool operator!=(const autoPtr<T, DER, DEL>& ptr, const std::nullptr_t& null);
+
+    template<typename T, typename DER, typename DEL>
+    bool operator==(const std::nullptr_t& null, const autoPtr<T, DER, DEL>& ptr);
+
+    template<typename T, typename DER, typename DEL>
+    bool operator!=(const std::nullptr_t& null, const autoPtr<T, DER, DEL>& ptr);
 
     /**
     * @class refCount
@@ -355,16 +365,6 @@ original::autoPtr<TYPE, DERIVED, DELETER>::operator bool() const {
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
-bool original::autoPtr<TYPE, DERIVED, DELETER>::operator==(const std::nullptr_t&) const {
-    return !this->operator bool();
-}
-
-template<typename TYPE, typename DERIVED, typename DELETER>
-bool original::autoPtr<TYPE, DERIVED, DELETER>::operator!=(const std::nullptr_t&) const {
-    return this->operator bool();
-}
-
-template<typename TYPE, typename DERIVED, typename DELETER>
 const TYPE* original::autoPtr<TYPE, DERIVED, DELETER>::get() const {
     if (!this->exist()){
         throw nullPointerError();
@@ -455,6 +455,26 @@ std::string original::autoPtr<TYPE, DERIVED, DELETER>::toString(const bool enter
 template<typename TYPE, typename DERIVED, typename DELETER>
 original::autoPtr<TYPE, DERIVED, DELETER>::~autoPtr() {
     this->clean();
+}
+
+template<typename T, typename DER, typename DEL>
+bool original::operator==(const autoPtr<T, DER, DEL>& ptr, const std::nullptr_t&) {
+    return !ptr.operator bool();
+}
+
+template<typename T, typename DER, typename DEL>
+bool original::operator!=(const autoPtr<T, DER, DEL>& ptr, const std::nullptr_t&) {
+    return ptr.operator bool();
+}
+
+template<typename T, typename DER, typename DEL>
+bool original::operator==(const std::nullptr_t&, const autoPtr<T, DER, DEL>& ptr) {
+    return !ptr.operator bool();
+}
+
+template<typename T, typename DER, typename DEL>
+bool original::operator!=(const std::nullptr_t&, const autoPtr<T, DER, DEL>& ptr) {
+    return ptr.operator bool();
 }
 
 template<typename TYPE, typename DELETER>
