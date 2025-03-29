@@ -471,7 +471,7 @@ namespace original {
     {
         for (auto* block : this->map) {
             for (u_integer i = 0; i < BLOCK_MAX_SIZE; ++i) {
-                this->destroy(&(block[i]));
+                this->destroy(&block[i]);
             }
             this->deallocate(block, BLOCK_MAX_SIZE);
         }
@@ -775,7 +775,7 @@ namespace original {
 
     template <typename TYPE, typename ALLOC>
     original::blocksList<TYPE, ALLOC>::blocksList(const ALLOC& alloc)
-        : map(), size_(), first_(), last_(), first_block(), last_block(), baseList<TYPE, ALLOC>(alloc)
+        : baseList<TYPE, ALLOC>(alloc), map(), size_(), first_(), last_(), first_block(), last_block()
     {
         this->blocksListInit();
     }
@@ -829,6 +829,9 @@ namespace original {
         this->size_ = other.size_;
         this->first_block = other.first_block;
         this->last_block = other.last_block;
+        if constexpr (ALLOC::propagate_on_container_copy_assignment::value){
+            this->allocator = other.allocator;
+        }
         return *this;
     }
 
@@ -853,6 +856,9 @@ namespace original {
         this->last_block = other.last_block;
         this->size_ = other.size_;
         other.blocksListInit();
+        if constexpr (ALLOC::propagate_on_container_move_assignment::value){
+            this->allocator = std::move(other.allocator);
+        }
         return *this;
     }
 
