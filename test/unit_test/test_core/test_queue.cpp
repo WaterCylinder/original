@@ -6,7 +6,7 @@
 #include "blocksList.h"
 
 // Helper function to compare two queues (original::queue and std::queue)
-template <typename T, template <typename> typename SERIAL>
+template <typename T, template <typename, typename> typename SERIAL>
 bool compareQueues(const original::queue<T, SERIAL>& originalQueue, const std::queue<T>& stdQueue) {
     if (originalQueue.size() != stdQueue.size()) return false;
 

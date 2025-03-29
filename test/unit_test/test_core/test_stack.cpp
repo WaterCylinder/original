@@ -6,7 +6,7 @@
 #include "blocksList.h"
 
 // Helper function to check stack equality (compare original::stack with std::stack)
-template <typename T, template <typename> typename SERIAL>
+template <typename T, template <typename, typename> typename SERIAL>
 bool compareStacks(const original::stack<T, SERIAL>& originalStack, const std::stack<T>& stdStack) {
     if (originalStack.size() != stdStack.size()) return false;
 

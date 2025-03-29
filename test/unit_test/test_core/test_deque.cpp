@@ -6,7 +6,7 @@
 #include "vector.h"
 
 // Helper function to compare two deques (original::deque and std::deque)
-template <typename T, template <typename> typename SERIAL>
+template <typename T, template <typename, typename> typename SERIAL>
 bool compareDeques(const original::deque<T, SERIAL>& originalDeque, const std::deque<T>& stdDeque) {
     if (originalDeque.size() != stdDeque.size()) return false;
 

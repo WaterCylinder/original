@@ -24,7 +24,7 @@ auto initPriQue(const std::initializer_list<T> &list) -> std::priority_queue<T, 
 // Helper function to compare two priques (original::prique and std::priority_queue)
 template <typename T,
           template <typename> typename Callback,
-          template <typename> typename SERIAL,
+          template <typename, typename> typename SERIAL,
           typename Container = std::vector<T>,
           typename Comparator = std::greater<T>>
 bool comparePriques(const original::prique<T, Callback, SERIAL>& originalPrique,
