@@ -16,6 +16,7 @@ namespace original{
     /**
      * @class vector
      * @tparam TYPE Element type stored in the vector
+     * @tparam ALLOC Allocator type for memory management (default: allocator<TYPE>)
      * @brief Dynamic array container with amortized constant time operations
      * @extends baseList
      * @extends iterationStream
@@ -25,6 +26,17 @@ namespace original{
      * - Bidirectional element insertion/removal
      * - STL-style iterator support
      * - Initializer list and array conversion
+     *
+     * Memory management characteristics:
+     * - Uses the provided allocator for all memory operations
+     * - Grows exponentially (2x) when capacity is exceeded
+     * - Maintains centered memory layout for efficient front/back operations
+     * - Allocator propagation follows C++ standard rules
+     *
+     * The ALLOC type must meet C++ allocator requirements and provide:
+     * - allocate()/deallocate() methods
+     * - construct()/destroy() methods
+     * - propagate_on_container_copy_assignment/move_assignment typedefs
      */
     template <typename TYPE, typename ALLOC = allocator<TYPE>>
     class vector final : public baseList<TYPE, ALLOC>, public iterationStream<TYPE, vector<TYPE, ALLOC>>{
@@ -40,14 +52,36 @@ namespace original{
         void vectorInit();
 
         /**
-         * @brief Destroys the internal storage of the vector.
+         * @brief Destroys and deallocates the internal buffer using the vector's allocator
+         * @details Performs the following operations in sequence:
+         * 1. Destroys all constructed elements in reverse order (from last to first)
+         *    using the allocator's `destroy()` method
+         * 2. Deallocates the raw memory buffer using the allocator's `deallocate()`
+         *
+         * @note Key characteristics:
+         * - No-throw guarantee: Marked noexcept as vector must remain destructible even if
+         *   element destructors throw (though this may lead to resource leaks)
+         * - Idempotent: Safe to call multiple times (checks nullptr)
+         * - Preserves allocator state: The allocator object itself remains valid after destruction
+         *
+         * @warning If TYPE's destructor throws, some elements may not be destroyed properly.
+         *          This is a trade-off for maintaining noexcept guarantee.
+         *
+         * @invariant After execution:
+         * - `body` pointer is set to nullptr (implicitly, via de-allocation)
+         * - Allocator remains in valid state
+         * - No memory leaks occur for properly destructible elements
+         *
          */
         void vectorArrayDestruct() noexcept;
 
         /**
-         * @brief Allocates and initializes an array of a given size.
-         * @param size The size of the array to initialize.
-         * @return Pointer to the newly allocated array.
+         * @brief Allocates and constructs a new array
+         * @param size Number of elements to allocate
+         * @return Pointer to allocated memory
+         * @details Uses the vector's allocator to:
+         * - Allocate raw memory
+         * - Default-construct elements
          */
         TYPE* vectorArrayInit(u_integer size);
 
@@ -77,8 +111,13 @@ namespace original{
         [[nodiscard]] bool outOfMaxSize(u_integer increment) const;
 
         /**
-         * @brief Grows the vector's internal buffer to accommodate more elements.
-         * @param new_size The new size for the buffer.
+         * @brief Expands the vector's storage capacity
+         * @param new_size New capacity (must be > current size)
+         * @details Performs the following steps:
+         * 1. Allocates new storage using the allocator
+         * 2. Moves existing elements to new storage
+         * 3. Destroys old elements and deallocates old storage
+         * @exception Strong guarantee - original content preserved on failure
          */
         void grow(u_integer new_size);
 
@@ -151,8 +190,11 @@ namespace original{
         };
 
         /**
-          * @brief Default constructor for the vector.
-          */
+         * @brief Constructs a vector with specified allocator
+         * @param alloc Allocator instance to use (default: default-constructed ALLOC)
+         * @details Initializes the vector with default capacity (16 elements).
+         * The allocator will be used for all subsequent memory operations.
+         */
         explicit vector(const ALLOC& alloc = ALLOC{});
 
         /**

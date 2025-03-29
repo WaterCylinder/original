@@ -17,41 +17,55 @@ namespace original {
     /**
      * @class blocksList
      * @tparam TYPE Type of elements stored in the blocksList
+     * @tparam ALLOC Allocator type to use for memory management (default: allocator<TYPE>)
      * @brief A block-based list implementation.
      * @extends baseList
      * @extends iterationStream
      * @details The blocksList class is a container that stores elements in blocks.
      *          The class provides operations for insertion, deletion, and accessing elements
-     *          from both ends. The internal structure consists of blocks of a fixed size, and elements are
-     *          efficiently managed across these blocks. It also provides bidirectional iteration.
+     *          from both ends. Memory management is handled through the specified allocator type,
+     *          which is used for both block allocation and element construction/destruction.
      */
     template <typename TYPE, typename ALLOC = allocator<TYPE>>
     class blocksList final : public baseList<TYPE, ALLOC>, public iterationStream<TYPE, blocksList<TYPE, ALLOC>> {
         static constexpr u_integer BLOCK_MAX_SIZE = 16; ///< The maximum size of each block
         static constexpr u_integer POS_INIT = (BLOCK_MAX_SIZE - 1) / 2 + 1; ///< Initial position in a block
 
-        vector<TYPE*> map; ///< Vector to store blocks of elements
+        /**
+         * @brief Vector storing pointers to allocated blocks.
+         * @details Uses a rebound allocator to manage the block pointers.
+         *          The actual element storage is managed by the main allocator.
+         */
+        vector<TYPE*> map;
+
         u_integer size_; ///< Current size of the list
         u_integer first_; ///< Position of the first element
         u_integer last_; ///< Position of the last element
         u_integer first_block; ///< Block index of the first element
         u_integer last_block; ///< Block index of the last element
 
+
+        /**
+         * @brief Initializes a new block array.
+         * @return Pointer to the newly allocated block
+         * @details Allocates memory for a new block using the configured allocator
+         *          and default-constructs all elements in the block.
+         */
+        TYPE* blockArrayInit();
+
         /**
          * @brief Initializes the blocksList with an initial block.
+         * @details Uses the configured allocator to allocate the initial block
+         *          and sets up the initial positions and indices.
          */
         void blocksListInit();
 
         /**
          * @brief Destroys the blocksList by deleting all blocks.
+         * @details Uses the configured allocator to destroy all elements
+         *          and deallocate all memory blocks.
          */
         void blocksListDestruct() noexcept;
-
-        /**
-         * @brief Initializes a block array.
-         * @return A pointer to the new block array.
-         */
-        TYPE* blockArrayInit();
 
         /**
          * @brief Converts the block and position to an absolute index.
@@ -153,14 +167,18 @@ namespace original {
 
         /**
          * @brief Adds a new block to the blocksList.
-         * @param is_first Flag indicating whether the block should be added at the beginning or the end.
+         * @param is_first Whether to add at beginning (true) or end (false)
+         * @details Allocates a new block using the configured allocator
+         *          and adds it to the appropriate end of the blocksList.
          */
         void addBlock(bool is_first);
 
         /**
-         * @brief Adjusts the blocksList to accommodate a specified number of elements.
-         * @param increment The number of elements to accommodate.
-         * @param is_first Flag indicating whether the adjustment is for the first or last block.
+         * @brief Adjusts the blocksList to accommodate new elements.
+         * @param increment Number of elements to accommodate
+         * @param is_first Whether adjustment is for beginning (true) or end (false)
+         * @details Ensures sufficient blocks are allocated (using the configured allocator)
+         *          to accommodate the specified number of new elements.
          */
         void adjust(u_integer increment, bool is_first);
 
@@ -316,7 +334,10 @@ namespace original {
         friend Iterator;
 
         /**
-         * @brief Default constructor for blocksList.
+         * @brief Constructs an empty blocksList.
+         * @param alloc Allocator instance to use for memory management
+         * @details Initializes an empty blocksList with one initial block allocated
+         *          using the provided allocator.
          */
         explicit blocksList(const ALLOC& alloc = ALLOC{});
 
@@ -333,28 +354,36 @@ namespace original {
         explicit blocksList(const array<TYPE>& arr);
 
         /**
-         * @brief Copy constructor for blocksList.
+         * @brief Copy constructor.
          * @param other The blocksList to copy from.
+         * @details Creates a deep copy of another blocksList.
+         *          If ALLOC::propagate_on_container_copy_assignment is true, the allocator is also copied.
          */
         blocksList(const blocksList& other);
 
         /**
-         * @brief Assignment operator for blocksList.
+         * @brief Copy assignment operator.
          * @param other The blocksList to assign from.
          * @return A reference to this blocksList.
+         * @details Performs a deep copy of another blocksList.
+         *          If ALLOC::propagate_on_container_copy_assignment is true, the allocator is also copied.
          */
         blocksList& operator=(const blocksList& other);
 
         /**
-         * @brief Move constructor for blocksList.
+         * @brief Move constructor.
          * @param other The blocksList to move from.
+         * @details Moves the contents of another blocksList into this one.
+         *          If ALLOC::propagate_on_container_move_assignment is true, the allocator is also moved.
          */
         blocksList(blocksList&& other) noexcept;
 
         /**
-         * @brief Move assignment operator for blocksList.
+         * @brief Move assignment operator.
          * @param other The blocksList to move from.
          * @return A reference to this blocksList.
+         * @details Moves the contents of another blocksList into this one.
+         *          If ALLOC::propagate_on_container_move_assignment is true, the allocator is also moved.
          */
         blocksList& operator=(blocksList&& other) noexcept;
 

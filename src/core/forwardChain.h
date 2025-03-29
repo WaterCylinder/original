@@ -21,11 +21,13 @@ namespace original {
     /**
      * @class forwardChain
      * @tparam TYPE The type of elements stored in the forward chain
+     * @tparam ALLOC Allocator type for memory management (default: allocator<TYPE>)
      * @brief A singly linked list implementation.
      * @extends baseList
      * @extends iterationStream
      * @details The forwardChain class implements a singly linked list where elements are stored in nodes.
      *          Each node points to the next node, and the list supports operations like push, pop, get, and indexOf.
+     *          Uses the provided allocator for all memory management operations, including node allocation.
      */
     template <typename TYPE, typename ALLOC = allocator<TYPE>>
     class forwardChain final : public baseList<TYPE, ALLOC>, public iterationStream<TYPE, forwardChain<TYPE, ALLOC>>{
@@ -109,6 +111,11 @@ namespace original {
                 static void connect(forwardChainNode* prev, forwardChainNode* next);
         };
 
+        /**
+         * @brief Rebound allocator type for node allocation
+         * @details The allocator rebound to allocate forwardChainNode objects instead of TYPE elements.
+         *          Used internally for all node allocations and de-allocations.
+         */
         using rebind_alloc_node = typename ALLOC::template rebind_alloc<forwardChainNode>;
 
         u_integer size_;         ///< The number of elements in the chain
@@ -129,8 +136,21 @@ namespace original {
          */
         forwardChainNode* findNode(integer index) const;
 
+        /**
+         * @brief Creates a new node using the rebound allocator
+         * @param value The value to store in the new node
+         * @param next Pointer to the next node (default: nullptr)
+         * @return Pointer to the newly created node
+         * @details Uses the rebound allocator to allocate memory and construct the node
+         */
         forwardChainNode* createNode(const TYPE& value = TYPE{}, forwardChainNode* next = nullptr);
 
+        /**
+         * @brief Destroys a node using the rebound allocator
+         * @param node Pointer to the node to destroy
+         * @note No-throw guarantee
+         * @details Uses the rebound allocator to destroy and deallocate the node
+         */
         void destroyNode(forwardChainNode* node) noexcept;
 
         /**
@@ -213,13 +233,16 @@ namespace original {
         };
 
         /**
-         * @brief Default constructor for forwardChain.
+         * @brief Constructs an empty forwardChain with specified allocator
+         * @param alloc Allocator instance to use (default: default-constructed ALLOC)
+         * @details Initializes the chain with a sentinel node using the provided allocator
          */
         explicit forwardChain(const ALLOC& alloc = ALLOC{});
 
         /**
-         * @brief Copy constructor for forwardChain.
-         * @param other The forwardChain to copy from.
+         * @brief Copy constructs a forwardChain with allocator propagation
+         * @param other The forwardChain to copy from
+         * @note The allocator is copied if ALLOC::propagate_on_container_copy_assignment is true
          */
         forwardChain(const forwardChain& other);
 
@@ -239,12 +262,15 @@ namespace original {
          * @brief Assignment operator for forwardChain.
          * @param other The forwardChain to assign from.
          * @return A reference to this forwardChain.
+         * @note The allocator is copied if ALLOC::propagate_on_container_copy_assignment is true
          */
         forwardChain& operator=(const forwardChain& other);
 
         /**
-         * @brief Move constructor for forwardChain.
-         * @param other The forwardChain to move from.
+         * @brief Move constructs a forwardChain with allocator propagation
+         * @param other The forwardChain to move from
+         * @note The allocator is moved if ALLOC::propagate_on_container_move_assignment is true
+         * @note noexcept guarantees exception safety during move
          */
         forwardChain(forwardChain&& other) noexcept;
 
@@ -252,6 +278,7 @@ namespace original {
          * @brief Move assignment operator for forwardChain.
          * @param other The forwardChain to move from.
          * @return A reference to this forwardChain.
+         * @note The allocator is moved if ALLOC::propagate_on_container_move_assignment is true
          */
         forwardChain& operator=(forwardChain&& other) noexcept;
 
@@ -290,8 +317,9 @@ namespace original {
         u_integer indexOf(const TYPE &e) const override;
 
         /**
-         * @brief Pushes an element to the beginning of the forwardChain.
-         * @param e The element to push to the beginning.
+         * @brief Inserts element at the beginning of the chain
+         * @param e Element to insert
+         * @details Uses the chain's allocator to construct the new node
          */
         void pushBegin(const TYPE &e) override;
 
@@ -299,18 +327,22 @@ namespace original {
          * @brief Pushes an element at the specified index in the forwardChain.
          * @param index The index at which to insert the element.
          * @param e The element to push.
+         * @details Uses the chain's allocator to construct the new node
          */
         void push(integer index, const TYPE &e) override;
 
         /**
-         * @brief Pushes an element to the end of the forwardChain.
-         * @param e The element to push to the end.
+         * @brief Inserts element at the end of the chain
+         * @param e Element to insert
+         * @details Uses the chain's allocator to construct the new node
          */
         void pushEnd(const TYPE &e) override;
 
         /**
-         * @brief Pops an element from the beginning of the forwardChain.
-         * @return The element that was popped.
+         * @brief Removes and returns the first element
+         * @return The removed element
+         * @pre Chain must not be empty
+         * @note Uses the chain's allocator to destroy the removed node
          */
         TYPE popBegin() override;
 
@@ -318,12 +350,15 @@ namespace original {
          * @brief Pops an element at the specified index in the forwardChain.
          * @param index The index of the element to pop.
          * @return The element that was popped.
+         * @note Uses the chain's allocator to destroy the removed node
          */
         TYPE pop(integer index) override;
 
         /**
-         * @brief Pops an element from the end of the forwardChain.
-         * @return The element that was popped.
+         * @brief Removes and returns the last element
+         * @return The removed element
+         * @pre Chain must not be empty
+         * @note Uses the chain's allocator to destroy the removed node
          */
         TYPE popEnd() override;
 

@@ -17,22 +17,37 @@ namespace original {
     /**
      * @class baseList
      * @tparam TYPE Type of the elements contained in the base list
+     * @tparam ALLOC Allocator type for dynamic memory management (default depends on derived class)
      * @brief Base class for variable-size serial containers.
      * @extends serial
      * @details This class serves as the base class for containers that can dynamically grow or shrink in size.
      *          It inherits from @ref original::serial and provides an interface for manipulating elements in a
      *          variable-size sequence.
      *
-     *          Derived classes can implement their own logic for adding, removing, and managing elements in the list.
-     *          It supports various operations for inserting and removing elements at the beginning, end, or specific
-     *          indices within the container.
+     *          The allocator is used for all dynamic memory operations including:
+     *          - Memory allocation/de-allocation when growing/shrinking
+     *          - Element construction/destruction
+     *          - Node allocation in linked implementations
      *
-     *          This class defines the basic functionality for variable-size containers but requires derived classes
-     *          to implement certain actions like element insertion and removal at arbitrary positions.
+     *          Key memory characteristics:
+     *          - Dynamic resizing operations may trigger reallocations
+     *          - Allocator state is preserved during copy/move operations
+     *          - Strong exception safety guarantee for most operations
+     *
+     *          The ALLOC type must meet C++ allocator requirements and provide:
+     *          - allocate()/deallocate() methods
+     *          - construct()/destroy() methods
+     *          - propagate_on_container_copy_assignment/move_assignment typedefs
      */
     template <typename TYPE, typename ALLOC>
     class baseList : public serial<TYPE, ALLOC> {
     protected:
+        /**
+         * @brief Constructs a baseList with specified allocator
+         * @param alloc Allocator instance to use (default: default-constructed ALLOC)
+         * @details The allocator will be used for all dynamic memory operations.
+         *          Derived classes should use this allocator for their storage management.
+         */
         using serial<TYPE, ALLOC>::serial;
     public:
         /**
@@ -51,8 +66,11 @@ namespace original {
         virtual TYPE remove(const TYPE& e);
 
         /**
-         * @brief Clears all elements from the list.
-         * @details This method removes all elements from the container by repeatedly calling `popEnd`.
+         * @brief Removes all elements
+         * @details Uses the allocator to:
+         *          - Destroy all elements
+         *          - Deallocate storage if applicable
+         * @note No-throw guarantee if element destructors don't throw
          */
         virtual void clear();
 

@@ -19,24 +19,62 @@ namespace original {
 /**
  * @class container
  * @tparam TYPE Type of the elements stored in the container.
+ * @tparam ALLOC Allocator type for memory management (default is allocator<TYPE>)
  * @brief Abstract base class for containers.
  * @details Provides a common interface for container classes to manage a collection of elements.
  *          Supports querying the size, checking for emptiness, and checking if an element is contained.
+ *          Uses the provided allocator for all memory management operations.
  */
 template <typename TYPE, typename ALLOC>
 class container {
 protected:
+    /**
+     * @brief The allocator instance used for memory management
+     * @details Used by derived classes to allocate/deallocate memory and construct/destroy elements
+     */
     ALLOC allocator;
 
+    /**
+     * @brief Constructs a container with specified allocator
+     * @param alloc Allocator instance to use for memory management (has default-constructed ALLOC)
+     * @details Initializes the container with the given allocator. The allocator will be used for
+     *          all memory operations performed by the container.
+     */
     explicit container(const ALLOC& alloc = ALLOC{});
 
+    /**
+     * @brief Allocates raw memory for elements
+     * @param size Number of elements to allocate memory for
+     * @return Pointer to the allocated memory
+     * @note The memory is allocated but elements are not constructed
+     */
     TYPE* allocate(u_integer size);
 
+    /**
+     * @brief Deallocates memory previously allocated by allocate()
+     * @param ptr Pointer to the memory to deallocate
+     * @param size Number of elements the memory was allocated for
+     * @note Elements must be destroyed before de-allocation
+     */
     void deallocate(TYPE* ptr, u_integer size);
 
+    /**
+     * @brief Constructs an element in-place
+     * @tparam O_TYPE Type of object to construct (must be compatible with TYPE)
+     * @tparam Args Types of constructor arguments
+     * @param o_ptr Pointer to the memory where the object should be constructed
+     * @param args Arguments to forward to the constructor
+     * @details Uses the container's allocator to construct an object of type O_TYPE
+     */
     template<typename O_TYPE, typename... Args>
     void construct(O_TYPE* o_ptr, Args&&... args);
 
+    /**
+     * @brief Destroys an element
+     * @tparam O_TYPE Type of object to destroy (must be compatible with TYPE)
+     * @param o_ptr Pointer to the object to destroy
+     * @details Uses the container's allocator to properly destroy the object
+     */
     template<typename O_TYPE>
     void destroy(O_TYPE* o_ptr);
 public:

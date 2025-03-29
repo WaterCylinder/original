@@ -21,6 +21,7 @@ namespace original {
     /**
      * @class chain
      * @tparam TYPE Type of elements stored in the list
+     * @tparam ALLOC Allocator type for memory management (default is allocator<TYPE>)
      * @brief Non-cyclic doubly linked list container
      * @extends baseList
      * @extends iterationStream
@@ -29,6 +30,7 @@ namespace original {
      * - Bidirectional traversal capabilities
      * - Index-based element access (O(n) complexity)
      * - Deep copy semantics
+     * - Custom memory allocation through allocator
      */
     template <typename TYPE, typename ALLOC = allocator<TYPE>>
     class chain final : public baseList<TYPE, ALLOC>, public iterationStream<TYPE, chain<TYPE, ALLOC>>{
@@ -122,7 +124,10 @@ namespace original {
                 static void connect(chainNode* prev, chainNode* next);
         };
 
-
+        /**
+         * @brief Rebound allocator type for chainNode allocation
+         * @details Used internally to allocate and deallocate chainNode objects
+         */
         using rebind_alloc_node = typename ALLOC::template rebind_alloc<chainNode>;
 
         u_integer size_;         ///< Current element count
@@ -138,8 +143,20 @@ namespace original {
          */
         chainNode* findNode(integer index) const;
 
+        /**
+         * @brief Creates a new node using the rebound allocator
+         * @param value The value to store in the new node
+         * @param prev Pointer to the previous node (default is nullptr)
+         * @param next Pointer to the next node (default is nullptr)
+         * @return Pointer to the newly created node
+         */
         chainNode* createNode(const TYPE& value = TYPE{}, chainNode* prev = nullptr, chainNode* next = nullptr);
 
+        /**
+         * @brief Destroys a node using the rebound allocator
+         * @param node Pointer to the node to destroy
+         * @note No-throw guarantee
+         */
         void destroyNode(chainNode* node) noexcept;
 
         /**
@@ -226,13 +243,15 @@ namespace original {
         };
 
         /**
-         * @brief Default constructor for chain.
+         * @brief Constructs an empty chain with specified allocator
+         * @param alloc Allocator instance to use (has default-constructed ALLOC)
          */
         explicit chain(const ALLOC& alloc = ALLOC{});
 
         /**
-         * @brief Copy constructor for chain.
-         * @param other The chain to copy.
+         * @brief Copy constructs a chain with optional allocator
+         * @param other The chain to copy from
+         * @note Allocator is copied if ALLOC::propagate_on_container_copy_assignment is true
          */
         chain(const chain& other);
 
@@ -249,22 +268,25 @@ namespace original {
         explicit chain(const array<TYPE>& arr);
 
         /**
-         * @brief Assignment operator for chain.
-         * @param other The chain to assign.
-         * @return A reference to this chain.
+         * @brief Copy assignment operator with allocator propagation
+         * @param other The chain to copy from
+         * @return Reference to this chain
+         * @note Allocator is copied if ALLOC::propagate_on_container_copy_assignment is true
          */
         chain& operator=(const chain& other);
 
         /**
-         * @brief Move constructor for chain.
-         * @param other The chain to move.
+         * @brief Move constructs a chain with optional allocator
+         * @param other The chain to move from
+         * @note Allocator is moved if ALLOC::propagate_on_container_move_assignment is true
          */
         chain(chain&& other) noexcept;
 
         /**
-         * @brief Move assignment operator for chain.
-         * @param other The chain to move.
-         * @return A reference to this chain.
+         * @brief Move assignment operator with allocator propagation
+         * @param other Chain to move from
+         * @return Reference to this chain
+         * @note Allocator is moved if ALLOC::propagate_on_container_move_assignment is true
          */
         chain& operator=(chain&& other) noexcept;
 

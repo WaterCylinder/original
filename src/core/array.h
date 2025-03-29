@@ -25,6 +25,7 @@ namespace original {
     /**
      * @class array
      * @tparam TYPE Type of the elements contained in the array
+     * @tparam ALLOC Allocator type to use for memory management (default: allocator<TYPE>)
      * @brief A fixed-size array container with random access.
      * @extends baseArray
      * @extends iterationStream
@@ -33,7 +34,7 @@ namespace original {
      *          used to traverse the container from beginning to end, and vice versa.
      *
      *          This class offers both copy and move semantics, along with an iterator class that supports
-     *          random access operations.
+     *          random access operations. Memory management is handled through the specified allocator type.
      */
     template<typename TYPE, typename ALLOC = allocator<TYPE>>
     class array final : public iterationStream<TYPE, array<TYPE, ALLOC>>, public baseArray<TYPE, ALLOC> {
@@ -43,13 +44,15 @@ namespace original {
         /**
          * @brief Initializes the array with a specified size.
          * @param size The size of the array to allocate.
-         * @details Allocates memory for the array and initializes each element to the default value of TYPE.
+         * @details Allocates memory for the array using the configured allocator and initializes
+         *          each element to the default value of TYPE.
          */
         void arrInit(u_integer size);
 
         /**
          * @brief Destroys the array and releases its allocated memory.
-         * @details Deallocates the memory used by the array.
+         * @details Deallocates the memory used by the array through the configured allocator.
+         *          Destroys all elements before de-allocation.
          */
         void arrDestruct() noexcept;
 
@@ -59,10 +62,11 @@ namespace original {
      * @class Iterator
      * @brief Iterator for the array class that supports random access.
      * @tparam TYPE The type of elements stored in the array.
+     * @tparam ALLOC The allocator type used by the parent array.
      * @details The `Iterator` class provides random access to the elements of an `array`. It supports
      *          operations like `operator++`, `operator--`, and comparisons to iterate through the array
-     *          elements in a bidirectional manner. The `Iterator` is an internal class used for providing
-     *          iterator functionality on the `array` container.
+     *          elements in a bidirectional manner. The iterator is aware of the parent array's allocator
+     *          through the base randomAccessIterator class.
      */
     class Iterator final : public randomAccessIterator<TYPE, ALLOC> {
         /**
@@ -124,8 +128,9 @@ namespace original {
         /**
          * @brief Constructs an empty array.
          * @param size The initial size of the array.
-         * @details Initializes the array with a given size, allocating memory for the array and setting
-         *          each element to its default value.
+         * @param alloc Allocator instance to use for memory management
+         * @details Initializes the array with a given size, allocating memory for the array using the specified
+         *          allocator and setting each element to its default value.
          */
         explicit array(u_integer size = 0, const ALLOC& alloc = ALLOC{});
 
@@ -141,6 +146,7 @@ namespace original {
          * @brief Copy constructor.
          * @param other The array to copy from.
          * @details Initializes the array by copying the elements from another array.
+         *          If ALLOC::propagate_on_container_copy_assignment is true, the allocator is also copied.
          */
         array(const array& other);
 
@@ -149,6 +155,7 @@ namespace original {
          * @param other The array to copy from.
          * @return The assigned array.
          * @details Copies the elements of another array into this array.
+         *          If ALLOC::propagate_on_container_copy_assignment is true, the allocator is also copied.
          */
         array& operator=(const array& other);
 
@@ -156,7 +163,8 @@ namespace original {
          * @brief Move constructor.
          * @param other The array to move from.
          * @details Moves the elements and resources from another array into this one, leaving the source array
-         *          in a valid but unspecified state.
+         *          in a valid but unspecified state. If ALLOC::propagate_on_container_move_assignment is true,
+         *          the allocator is also moved.
          */
         array(array&& other) noexcept;
 
@@ -165,7 +173,8 @@ namespace original {
          * @param other The array to move from.
          * @return The moved array.
          * @details Moves the elements and resources from another array into this one, leaving the source array
-         *          in a valid but unspecified state.
+         *          in a valid but unspecified state. If ALLOC::propagate_on_container_move_assignment is true,
+         *          the allocator is also moved.
          */
         array& operator=(array&& other) noexcept;
 

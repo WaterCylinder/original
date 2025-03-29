@@ -18,6 +18,7 @@ namespace original {
     /**
      * @class randomAccessIterator
      * @tparam TYPE Type of elements being iterated
+     * @tparam ALLOC Allocator type used by the parent container for memory management
      * @brief Abstract base class for random-access iterators
      * @extends baseIterator
      * @details Implements core functionality for iterators that support:
@@ -26,9 +27,12 @@ namespace original {
      * - Position validity checking
      * - Element access/modification
      *
+     * @note The ALLOC template parameter must match the allocator type of the parent container.
+     *       It is used to ensure type compatibility between the iterator and its container.
+     *
      * @note Maintains three state markers:
      * - Raw pointer to the current element
-     * - Reference to parent container
+     * - Reference to parent container (which uses the ALLOC allocator)
      * - Absolute position index
      */
     template<typename TYPE, typename ALLOC>

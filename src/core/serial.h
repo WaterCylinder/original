@@ -19,15 +19,26 @@ namespace original {
     /**
      * @class serial
      * @tparam TYPE Type of the elements contained in the serial container
+     * @tparam ALLOC Allocator type for memory management (default: depends on derived class)
      * @brief Abstract base class for sequential containers with index-based access.
      * @extends container
      * @details Defines common interface for containers that support index-based access to their elements.
      *          It provides methods for element retrieval, bounds checking, and negative index handling.
      *          Derived classes must implement `get()`, `operator[]`, `set()`, and `indexOf()` methods.
+     *
+     *          The allocator is inherited from the base container class and is propagated to derived
+     *          classes for consistent memory management. The ALLOC type must meet the C++ allocator
+     *          requirements.
      */
     template <typename TYPE, typename ALLOC>
     class serial : public container<TYPE, ALLOC> {
     protected:
+        /**
+         * @brief Constructs a serial container with specified allocator
+         * @param alloc Allocator instance to use (default: default-constructed ALLOC)
+         * @details The allocator will be used by derived classes for all memory operations.
+         *          Derived classes should properly initialize their storage using this allocator.
+         */
         using container<TYPE, ALLOC>::container;
 
         /**
@@ -73,16 +84,20 @@ namespace original {
         /**
          * @brief Retrieves the element at the specified index (const version).
          * @param index The index of the element.
-         * @return A copy of the element at the given index.
-         * @details This method calls `get(index)` to retrieve the element, but returns a copy.
+         * @return Reference/copy of the element at the given index.
+         * @details The non-const version allows direct modification of elements in allocator-managed storage.
+         *          The const version returns a copy of the element.
+         * @throw May throw original::outOfBoundError exceptions for invalid indices
          */
         virtual TYPE operator[](integer index) const;
 
         /**
-         * @brief Retrieves or sets the element at the specified index (non-const version).
+         * @brief Retrieves or sets the element at the specified index.
          * @param index The index of the element.
-         * @return Reference to the element at the given index.
-         * @details This method allows direct modification of the element at the specified index.
+         * @return Reference/copy of the element at the given index.
+         * @details The non-const version allows direct modification of elements in allocator-managed storage.
+         *          The const version returns a copy of the element.
+         * @throw May throw original::outOfBoundError exceptions for invalid indices
          */
         virtual TYPE& operator[](integer index) = 0;
 

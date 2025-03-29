@@ -15,27 +15,45 @@ namespace original {
 
     /**
      * @class bitSet
+     * @tparam ALLOC Allocator type to use for memory management (default: allocator<bool>)
      * @brief A class representing a set of bits, offering functionality to manipulate and query individual bits.
      * @extends baseArray
      * @extends iterationStream
      * @details The bitSet class allows efficient manipulation of individual bits using bitwise operations.
      *          It utilizes a dynamic array of 64-bit blocks to store bits and provides methods to access
-     *          and modify them. Iterators are available for traversing through the bits.
+     *          and modify them. Iterators are available for traversing through the bits. Memory management
+     *          is handled through the specified allocator type.
      */
     template<typename ALLOC = allocator<bool>>
     class bitSet final : public baseArray<bool, ALLOC>, public iterationStream<bool, bitSet<ALLOC>>{
+            /**
+             * @brief Underlying storage type for bit blocks (unsigned integer)
+             */
             using underlying_type = u_integer;
+
+            /**
+             * @brief Rebound allocator type for underlying storage
+             * @details This is the allocator type rebound to manage underlying_type (u_integer)
+             *          instead of bool, since we store bits in blocks of unsigned integers.
+             */
             using rebind_alloc_underlying = typename ALLOC::template rebind_alloc<underlying_type>;
 
-
             static constexpr integer BLOCK_MAX_SIZE = sizeof(underlying_type) * 8; ///< Maximum number of bits in a block.
-            array<underlying_type, rebind_alloc_underlying> map; ///< Array to store the blocks of bits.
+
+            /**
+             * @brief Array to store the blocks of bits.
+             * @details Uses a rebound allocator to manage memory for the underlying storage blocks.
+             */
+            array<underlying_type, rebind_alloc_underlying> map;
+
             u_integer size_; ///< The total number of bits in the set.
 
 
             /**
              * @brief Initializes the bitSet with the given size.
              * @param size The size of the bitSet.
+             * @details Allocates memory for the bit blocks using the rebound allocator.
+             *          The actual number of blocks allocated is ceil(size/BLOCK_MAX_SIZE).
              */
             void bitsetInit(u_integer size);
 
@@ -262,6 +280,9 @@ namespace original {
             /**
              * @brief Constructs a bitSet with the given size.
              * @param size The size of the bitSet.
+             * @param allocator Allocator instance to use for memory management
+             * @details Initializes the bitSet with the specified size, allocating memory blocks
+             *          using the provided allocator. All bits are initially set to false.
              */
             explicit bitSet(u_integer size, const ALLOC& allocator = ALLOC{});
 
@@ -274,6 +295,8 @@ namespace original {
             /**
              * @brief Copy constructor.
              * @param other The bitSet to copy.
+             * @details Creates a new bitSet by copying the contents of another bitSet.
+             *          If ALLOC::propagate_on_container_copy_assignment is true, the allocator is also copied.
              */
             bitSet(const bitSet& other);
 
@@ -281,12 +304,17 @@ namespace original {
              * @brief Copy assignment operator.
              * @param other The bitSet to copy.
              * @return A reference to this bitSet.
+             * @details Copies the contents of another bitSet into this one.
+             *          If ALLOC::propagate_on_container_copy_assignment is true, the allocator is also copied.
              */
             bitSet& operator=(const bitSet& other);
 
             /**
              * @brief Move constructor.
              * @param other The bitSet to move.
+             * @details Moves the contents of another bitSet into this one, leaving the source
+             *          in a valid but unspecified state. If ALLOC::propagate_on_container_move_assignment
+             *          is true, the allocator is also moved.
              */
             bitSet(bitSet&& other) noexcept;
 
@@ -294,6 +322,9 @@ namespace original {
              * @brief Move assignment operator.
              * @param other The bitSet to move.
              * @return A reference to this bitSet.
+             * @details Moves the contents of another bitSet into this one, leaving the source
+             *          in a valid but unspecified state. If ALLOC::propagate_on_container_move_assignment
+             *          is true, the allocator is also moved.
              */
             bitSet& operator=(bitSet&& other) noexcept;
 

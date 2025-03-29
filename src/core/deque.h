@@ -16,33 +16,44 @@ namespace original {
     /**
      * @class deque
      * @tparam TYPE Type of elements stored in the deque
-     * @tparam SERIAL Underlying container type (default: chain), see constraints from @ref original::containerAdapter
+     * @tparam SERIAL Underlying container type (default: chain)
+     * @tparam ALLOC Allocator template for memory management (default: allocator)
      * @brief Double-ended queue container adapter
      * @extends original::containerAdapter
      * @details Implements deque operations using the specified underlying container.
      * Supports efficient insertion and removal at both front and back ends.
      * Inherits template constraints from @ref original::containerAdapter.
+     *
+     * The allocator is propagated to both the deque adapter and the underlying serial
+     * container for consistent memory management.
      */
     template <typename TYPE,
               template <typename, typename> typename SERIAL = chain,
               template <typename> typename ALLOC = allocator>
     class deque final : public containerAdapter<TYPE, SERIAL, ALLOC> {
     public:
+
         /**
-         * @brief Constructs deque with specified underlying container
+         * @brief Constructs deque with specified underlying container and allocator
          * @param serial Container instance to initialize deque (default: empty)
+         * @details The allocator from the provided container will be used for all memory
+         * operations. If no container is provided, a default-constructed container with
+         * default allocator will be used.
          */
         explicit deque(const SERIAL<TYPE, ALLOC<TYPE>>& serial = SERIAL<TYPE, ALLOC<TYPE>>{});
 
         /**
-         * @brief Constructs deque from initializer list
+         * @brief Constructs deque from initializer list with allocator
          * @param lst List of elements for initial content
+         * @details Uses the default allocator to construct the underlying container
+         * and populate it with elements from the initializer list.
          */
         deque(const std::initializer_list<TYPE>& lst);
 
         /**
-         * @brief Copy constructor
+         * @brief Copy constructs a deque with allocator propagation
          * @param other Deque instance to copy from
+         * @note The allocator is copied if ALLOC::propagate_on_container_copy_assignment is true
          */
         deque(const deque& other);
 
@@ -54,8 +65,9 @@ namespace original {
         deque& operator=(const deque& other);
 
         /**
-         * @brief Move constructor
+         * @brief Move constructs a deque with allocator propagation
          * @param other Deque instance to move from
+         * @note The allocator is moved if ALLOC::propagate_on_container_move_assignment is true
          * @note noexcept guarantees exception safety during move
          */
         deque(deque&& other) noexcept;
@@ -71,12 +83,14 @@ namespace original {
         /**
          * @brief Inserts element at the front
          * @param e Element to insert
+         * @details Uses the deque's allocator to construct the new element at the front
          */
         void pushBegin(const TYPE &e);
 
         /**
          * @brief Inserts element at the back
          * @param e Element to insert
+         * @details Uses the deque's allocator to construct the new element at the back
          */
         void pushEnd(const TYPE &e);
 
@@ -84,6 +98,7 @@ namespace original {
          * @brief Removes and returns front element
          * @return The removed front element
          * @pre Deque must not be empty
+         * @note Uses the deque's allocator to destroy the removed element
          */
         TYPE popBegin();
 
@@ -91,6 +106,7 @@ namespace original {
          * @brief Removes and returns back element
          * @return The removed back element
          * @pre Deque must not be empty
+         * @note Uses the deque's allocator to destroy the removed element
          */
         TYPE popEnd();
 
