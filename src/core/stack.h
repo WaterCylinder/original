@@ -27,14 +27,16 @@ namespace original {
      * @note The SERIAL template parameter inherits constraints from its base class
      * @ref original::containerAdapter. See base class documentation for requirements.
      */
-    template<typename TYPE, template <typename> typename SERIAL = chain>
-    class stack final : public containerAdapter<TYPE, SERIAL> {
+    template<typename TYPE,
+             template <typename, typename> typename SERIAL = chain,
+             template <typename> typename ALLOC = allocator>
+    class stack final : public containerAdapter<TYPE, SERIAL, ALLOC> {
     public:
         /**
          * @brief Constructs a stack with specified underlying container
          * @param serial Container instance to initialize stack (default: empty)
          */
-        explicit stack(const SERIAL<TYPE>& serial = SERIAL<TYPE>{});
+        explicit stack(const SERIAL<TYPE, ALLOC<TYPE>>& serial = SERIAL<TYPE, ALLOC<TYPE>>{});
 
         /**
          * @brief Constructs stack from initializer list
@@ -98,59 +100,79 @@ namespace original {
     };
 }
 
-template<typename TYPE, template <typename> typename SERIAL>
-    original::stack<TYPE, SERIAL>::stack(const SERIAL<TYPE>& serial)
-        : containerAdapter<TYPE, SERIAL>(serial) {}
+    template<typename TYPE,
+             template <typename, typename> typename SERIAL,
+             template <typename> typename ALLOC>
+    original::stack<TYPE, SERIAL, ALLOC>::stack(const SERIAL<TYPE, ALLOC<TYPE>>& serial)
+        : containerAdapter<TYPE, SERIAL, ALLOC>(serial) {}
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    original::stack<TYPE, SERIAL>::stack(const std::initializer_list<TYPE> &lst)
-        : stack(SERIAL<TYPE>(lst)) {}
+    template<typename TYPE,
+             template <typename, typename> typename SERIAL,
+             template <typename> typename ALLOC>
+    original::stack<TYPE, SERIAL, ALLOC>::stack(const std::initializer_list<TYPE> &lst)
+        : stack(SERIAL<TYPE, ALLOC<TYPE>>(lst)) {}
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    original::stack<TYPE, SERIAL>::stack(const stack& other)
-        : containerAdapter<TYPE, SERIAL>(other.serial_) {}
+    template<typename TYPE,
+             template <typename, typename> typename SERIAL,
+             template <typename> typename ALLOC>
+    original::stack<TYPE, SERIAL, ALLOC>::stack(const stack& other)
+        : containerAdapter<TYPE, SERIAL, ALLOC>(other.serial_) {}
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    auto original::stack<TYPE, SERIAL>::operator=(const stack& other) -> stack& {
+    template<typename TYPE,
+             template <typename, typename> typename SERIAL,
+             template <typename> typename ALLOC>
+    auto original::stack<TYPE, SERIAL, ALLOC>::operator=(const stack& other) -> stack& {
         if (this == &other) return *this;
         this->serial_ = other.serial_;
         return *this;
     }
 
-    template <typename TYPE, template <typename> class SERIAL>
-    original::stack<TYPE, SERIAL>::stack(stack&& other) noexcept : stack()
+    template<typename TYPE,
+             template <typename, typename> typename SERIAL,
+             template <typename> typename ALLOC>
+    original::stack<TYPE, SERIAL, ALLOC>::stack(stack&& other) noexcept : stack()
     {
         this->operator=(std::move(other));
     }
 
-    template <typename TYPE, template <typename> class SERIAL>
-    auto original::stack<TYPE, SERIAL>::operator=(stack&& other) noexcept -> stack&
+template<typename TYPE,
+         template <typename, typename> typename SERIAL,
+         template <typename> typename ALLOC>
+    auto original::stack<TYPE, SERIAL, ALLOC>::operator=(stack&& other) noexcept -> stack&
     {
         if (this == &other)
             return *this;
 
         this->serial_ = std::move(other.serial_);
-        other.serial_ = SERIAL<TYPE>{};
+        other.serial_ = SERIAL<TYPE, ALLOC<TYPE>>{};
         return *this;
     }
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    auto original::stack<TYPE, SERIAL>::push(const TYPE& e) -> void {
+    template<typename TYPE,
+             template <typename, typename> typename SERIAL,
+             template <typename> typename ALLOC>
+    auto original::stack<TYPE, SERIAL, ALLOC>::push(const TYPE& e) -> void {
         this->serial_.pushEnd(e);
     }
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    auto original::stack<TYPE, SERIAL>::pop() -> TYPE {
+    template<typename TYPE,
+             template <typename, typename> typename SERIAL,
+             template <typename> typename ALLOC>
+    auto original::stack<TYPE, SERIAL, ALLOC>::pop() -> TYPE {
         return this->serial_.popEnd();
     }
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    auto original::stack<TYPE, SERIAL>::top() const -> TYPE {
+    template<typename TYPE,
+             template <typename, typename> typename SERIAL,
+             template <typename> typename ALLOC>
+    auto original::stack<TYPE, SERIAL, ALLOC>::top() const -> TYPE {
         return this->serial_.getEnd();
     }
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    std::string original::stack<TYPE, SERIAL>::className() const {
+    template<typename TYPE,
+             template <typename, typename> typename SERIAL,
+             template <typename> typename ALLOC>
+    std::string original::stack<TYPE, SERIAL, ALLOC>::className() const {
         return "stack";
     }
 

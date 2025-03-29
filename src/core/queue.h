@@ -24,14 +24,16 @@ namespace original {
      * Supports insertion at back and removal from front. Inherits template constraints
      * from @ref original::containerAdapter.
      */
-    template<typename TYPE, template <typename> typename SERIAL = chain>
-    class queue final : public containerAdapter<TYPE, SERIAL> {
+    template<typename TYPE,
+             template <typename, typename> typename SERIAL = chain,
+             template <typename> typename ALLOC = allocator>
+    class queue final : public containerAdapter<TYPE, SERIAL, ALLOC> {
     public:
         /**
          * @brief Constructs queue with specified underlying container
          * @param serial Container instance to initialize queue (default: empty)
          */
-        explicit queue(const SERIAL<TYPE>& serial = SERIAL<TYPE>{});
+        explicit queue(const SERIAL<TYPE, ALLOC<TYPE>>& serial = SERIAL<TYPE, ALLOC<TYPE>>{});
 
         /**
          * @brief Constructs queue from initializer list
@@ -102,64 +104,86 @@ namespace original {
     };
 }
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    original::queue<TYPE, SERIAL>::queue(const SERIAL<TYPE>& serial)
-        : containerAdapter<TYPE, SERIAL>(serial) {}
+    template<typename TYPE,
+             template <typename, typename> typename SERIAL,
+             template <typename> typename ALLOC>
+    original::queue<TYPE, SERIAL, ALLOC>::queue(const SERIAL<TYPE, ALLOC<TYPE>>& serial)
+        : containerAdapter<TYPE, SERIAL, ALLOC>(serial) {}
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    original::queue<TYPE, SERIAL>::queue(const std::initializer_list<TYPE> &lst)
-        : queue(SERIAL<TYPE>(lst)) {}
+    template<typename TYPE,
+             template <typename, typename> typename SERIAL,
+             template <typename> typename ALLOC>
+    original::queue<TYPE, SERIAL, ALLOC>::queue(const std::initializer_list<TYPE> &lst)
+        : queue(SERIAL<TYPE, ALLOC<TYPE>>(lst)) {}
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    original::queue<TYPE, SERIAL>::queue(const queue& other)
-        : containerAdapter<TYPE, SERIAL>(other.serial_) {}
+    template<typename TYPE,
+         template <typename, typename> typename SERIAL,
+         template <typename> typename ALLOC>
+    original::queue<TYPE, SERIAL, ALLOC>::queue(const queue& other)
+        : containerAdapter<TYPE, SERIAL, ALLOC>(other.serial_) {}
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    auto original::queue<TYPE, SERIAL>::operator=(const queue& other) -> queue& {
+    template<typename TYPE,
+         template <typename, typename> typename SERIAL,
+         template <typename> typename ALLOC>
+    auto original::queue<TYPE, SERIAL, ALLOC>::operator=(const queue& other) -> queue& {
         if (this == &other) return *this;
         this->serial_ = other.serial_;
         return *this;
     }
 
-    template <typename TYPE, template <typename> class SERIAL>
-    original::queue<TYPE, SERIAL>::queue(queue&& other) noexcept : queue()
+    template<typename TYPE,
+             template <typename, typename> typename SERIAL,
+             template <typename> typename ALLOC>
+    original::queue<TYPE, SERIAL, ALLOC>::queue(queue&& other) noexcept : queue()
     {
         this->operator=(std::move(other));
     }
 
-    template <typename TYPE, template <typename> class SERIAL>
-    auto original::queue<TYPE, SERIAL>::operator=(queue&& other) noexcept -> queue&
+    template<typename TYPE,
+             template <typename, typename> typename SERIAL,
+             template <typename> typename ALLOC>
+    auto original::queue<TYPE, SERIAL, ALLOC>::operator=(queue&& other) noexcept -> queue&
     {
         if (this == &other)
             return *this;
 
         this->serial_ = std::move(other.serial_);
-        other.serial_ = SERIAL<TYPE>{};
+        other.serial_ = SERIAL<TYPE, ALLOC<TYPE>>{};
         return *this;
     }
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    auto original::queue<TYPE, SERIAL>::push(const TYPE& e) -> void {
+    template<typename TYPE,
+         template <typename, typename> typename SERIAL,
+         template <typename> typename ALLOC>
+    auto original::queue<TYPE, SERIAL, ALLOC>::push(const TYPE& e) -> void {
         this->serial_.pushEnd(e);
     }
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    auto original::queue<TYPE, SERIAL>::pop() -> TYPE {
+    template<typename TYPE,
+         template <typename, typename> typename SERIAL,
+         template <typename> typename ALLOC>
+    auto original::queue<TYPE, SERIAL, ALLOC>::pop() -> TYPE {
         return this->serial_.popBegin();
     }
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    auto original::queue<TYPE, SERIAL>::head() const -> TYPE {
+    template<typename TYPE,
+         template <typename, typename> typename SERIAL,
+         template <typename> typename ALLOC>
+    auto original::queue<TYPE, SERIAL, ALLOC>::head() const -> TYPE {
         return this->serial_.getBegin();
     }
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    auto original::queue<TYPE, SERIAL>::tail() const -> TYPE {
+    template<typename TYPE,
+         template <typename, typename> typename SERIAL,
+         template <typename> typename ALLOC>
+    auto original::queue<TYPE, SERIAL, ALLOC>::tail() const -> TYPE {
         return this->serial_.getEnd();
     }
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    std::string original::queue<TYPE, SERIAL>::className() const {
+    template<typename TYPE,
+         template <typename, typename> typename SERIAL,
+         template <typename> typename ALLOC>
+    std::string original::queue<TYPE, SERIAL, ALLOC>::className() const {
         return "queue";
     }
 

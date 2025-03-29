@@ -36,14 +36,16 @@ namespace original {
      * @endcode
      * Which enforces SERIAL to be a subclass of baseList<TYPE>.
      */
-    template <typename TYPE, template <typename> typename SERIAL>
-    requires ExtendsOf<baseList<TYPE>, SERIAL<TYPE>>
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    requires ExtendsOf<baseList<TYPE, ALLOC<TYPE>>, SERIAL<TYPE, ALLOC<TYPE>>>
     class containerAdapter
             : public printable,
-              public container<TYPE>,
-              public comparable<containerAdapter<TYPE, SERIAL>>{
+              public container<TYPE, ALLOC<TYPE>>,
+              public comparable<containerAdapter<TYPE, SERIAL, ALLOC>>{
     protected:
-        SERIAL<TYPE> serial_; ///< Underlying container instance used for storage
+        SERIAL<TYPE, ALLOC<TYPE>> serial_; ///< Underlying container instance used for storage
 
         /**
          * @brief Protected constructor for derived class initialization
@@ -51,7 +53,7 @@ namespace original {
          * @details Only accessible to derived classes (stack/queue/etc adapters).
          * Enforces proper initialization through concrete adapter types.
          */
-        explicit containerAdapter(const SERIAL<TYPE>& serial);
+        explicit containerAdapter(const SERIAL<TYPE, ALLOC<TYPE>>& serial);
 
     public:
         /**
@@ -96,46 +98,60 @@ namespace original {
         ~containerAdapter() override = default;
     };
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    requires ExtendsOf<baseList<TYPE>, SERIAL<TYPE>>
-    containerAdapter<TYPE, SERIAL>::containerAdapter(const SERIAL<TYPE>& serial)
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    requires ExtendsOf<baseList<TYPE, ALLOC<TYPE>>, SERIAL<TYPE, ALLOC<TYPE>>>
+    containerAdapter<TYPE, SERIAL, ALLOC>::containerAdapter(const SERIAL<TYPE, ALLOC<TYPE>>& serial)
             : serial_(serial) {}
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    requires ExtendsOf<baseList<TYPE>, SERIAL<TYPE>>
-    auto containerAdapter<TYPE, SERIAL>::size() const -> u_integer
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    requires ExtendsOf<baseList<TYPE, ALLOC<TYPE>>, SERIAL<TYPE, ALLOC<TYPE>>>
+    auto containerAdapter<TYPE, SERIAL, ALLOC>::size() const -> u_integer
     {
         return serial_.size();
     }
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    requires ExtendsOf<baseList<TYPE>, SERIAL<TYPE>>
-    auto containerAdapter<TYPE, SERIAL>::clear() -> void {
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    requires ExtendsOf<baseList<TYPE, ALLOC<TYPE>>, SERIAL<TYPE, ALLOC<TYPE>>>
+    auto containerAdapter<TYPE, SERIAL, ALLOC>::clear() -> void {
         serial_.clear();
     }
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    requires ExtendsOf<baseList<TYPE>, SERIAL<TYPE>>
-    auto containerAdapter<TYPE, SERIAL>::contains(const TYPE &e) const -> bool {
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    requires ExtendsOf<baseList<TYPE, ALLOC<TYPE>>, SERIAL<TYPE, ALLOC<TYPE>>>
+    auto containerAdapter<TYPE, SERIAL, ALLOC>::contains(const TYPE &e) const -> bool {
         return serial_.contains(e);
     }
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    requires ExtendsOf<baseList<TYPE>, SERIAL<TYPE>>
-    auto containerAdapter<TYPE, SERIAL>::compareTo(const containerAdapter& other) const -> integer
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    requires ExtendsOf<baseList<TYPE, ALLOC<TYPE>>, SERIAL<TYPE, ALLOC<TYPE>>>
+    auto containerAdapter<TYPE, SERIAL, ALLOC>::compareTo(const containerAdapter& other) const -> integer
     {
         return serial_.compareTo(other.serial_);
     }
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    requires ExtendsOf<baseList<TYPE>, SERIAL<TYPE>>
-    auto containerAdapter<TYPE, SERIAL>::className() const -> std::string {
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    requires ExtendsOf<baseList<TYPE, ALLOC<TYPE>>, SERIAL<TYPE, ALLOC<TYPE>>>
+    auto containerAdapter<TYPE, SERIAL, ALLOC>::className() const -> std::string {
         return "containerAdapter";
     }
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    requires ExtendsOf<baseList<TYPE>, SERIAL<TYPE>>
-    auto containerAdapter<TYPE, SERIAL>::toString(const bool enter) const -> std::string {
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    requires ExtendsOf<baseList<TYPE, ALLOC<TYPE>>, SERIAL<TYPE, ALLOC<TYPE>>>
+    auto containerAdapter<TYPE, SERIAL, ALLOC>::toString(const bool enter) const -> std::string {
         std::stringstream ss;
         ss << this->className() << "(";
         bool first = true;

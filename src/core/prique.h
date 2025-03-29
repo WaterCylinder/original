@@ -37,9 +37,10 @@ namespace original
      */
     template<typename TYPE,
             template <typename> typename Callback = increaseComparator,
-            template <typename> typename SERIAL = blocksList>
+            template <typename, typename> typename SERIAL = blocksList,
+            template <typename> typename ALLOC = allocator>
     requires Compare<Callback<TYPE>, TYPE>
-    class prique final : public containerAdapter<TYPE, SERIAL>
+    class prique final : public containerAdapter<TYPE, SERIAL, ALLOC>
     {
         Callback<TYPE> compare_; ///< Comparison functor instance for priority ordering
 
@@ -50,7 +51,7 @@ namespace original
          * @param compare Comparison functor instance (default: default-constructed)
          * @details Initializes heap structure using algorithms::heapInit
          */
-        explicit prique(const SERIAL<TYPE>& serial = SERIAL<TYPE>{},
+        explicit prique(const SERIAL<TYPE, ALLOC<TYPE>>& serial = SERIAL<TYPE, ALLOC<TYPE>>{},
                         const Callback<TYPE>& compare = Callback<TYPE>{});
 
         /**
@@ -120,27 +121,39 @@ namespace original
 }
 
 
-    template <typename TYPE, template <typename> class Callback, template <typename> typename SERIAL>
+    template<typename TYPE,
+            template <typename> typename Callback,
+            template <typename, typename> typename SERIAL,
+            template <typename> typename ALLOC>
     requires original::Compare<Callback<TYPE>, TYPE>
-    original::prique<TYPE, Callback, SERIAL>::prique(const SERIAL<TYPE>& serial, const Callback<TYPE>& compare)
-        : containerAdapter<TYPE, SERIAL>(serial), compare_(compare)
+    original::prique<TYPE, Callback, SERIAL, ALLOC>::prique(const SERIAL<TYPE, ALLOC<TYPE>>& serial, const Callback<TYPE>& compare)
+        : containerAdapter<TYPE, SERIAL, ALLOC>(serial), compare_(compare)
     {
         algorithms::heapInit(this->serial_.begin(), this->serial_.last(), this->compare_);
     }
 
-    template <typename TYPE, template <typename> class Callback, template <typename> typename SERIAL>
+    template<typename TYPE,
+            template <typename> typename Callback,
+            template <typename, typename> typename SERIAL,
+            template <typename> typename ALLOC>
     requires original::Compare<Callback<TYPE>, TYPE>
-    original::prique<TYPE, Callback, SERIAL>::prique(const std::initializer_list<TYPE>& lst, const Callback<TYPE>& compare)
-        : prique(SERIAL<TYPE>(lst), compare) {}
+    original::prique<TYPE, Callback, SERIAL, ALLOC>::prique(const std::initializer_list<TYPE>& lst, const Callback<TYPE>& compare)
+        : prique(SERIAL<TYPE, ALLOC<TYPE>>(lst), compare) {}
 
-    template <typename TYPE, template <typename> class Callback, template <typename> typename SERIAL>
+    template<typename TYPE,
+            template <typename> typename Callback,
+            template <typename, typename> typename SERIAL,
+            template <typename> typename ALLOC>
     requires original::Compare<Callback<TYPE>, TYPE>
-    original::prique<TYPE, Callback, SERIAL>::prique(const prique& other)
-        : containerAdapter<TYPE, SERIAL>(other.serial_), compare_(other.compare_) {}
+    original::prique<TYPE, Callback, SERIAL, ALLOC>::prique(const prique& other)
+        : containerAdapter<TYPE, SERIAL, ALLOC>(other.serial_), compare_(other.compare_) {}
 
-    template <typename TYPE, template <typename> class Callback, template <typename> typename SERIAL>
+    template<typename TYPE,
+            template <typename> typename Callback,
+            template <typename, typename> typename SERIAL,
+            template <typename> typename ALLOC>
     requires original::Compare<Callback<TYPE>, TYPE>
-    auto original::prique<TYPE, Callback, SERIAL>::operator=(const prique& other) -> prique&
+    auto original::prique<TYPE, Callback, SERIAL, ALLOC>::operator=(const prique& other) -> prique&
     {
         if (this == &other) return *this;
         this->serial_ = other.serial_;
@@ -148,38 +161,50 @@ namespace original
         return *this;
     }
 
-    template <typename TYPE, template <typename> class Callback, template <typename> typename SERIAL>
+    template<typename TYPE,
+            template <typename> typename Callback,
+            template <typename, typename> typename SERIAL,
+            template <typename> typename ALLOC>
     requires original::Compare<Callback<TYPE>, TYPE>
-    original::prique<TYPE, Callback, SERIAL>::prique(prique&& other) noexcept : prique()
+    original::prique<TYPE, Callback, SERIAL, ALLOC>::prique(prique&& other) noexcept : prique()
     {
         this->operator=(std::move(other));
     }
 
-    template <typename TYPE, template <typename> class Callback, template <typename> typename SERIAL>
+    template<typename TYPE,
+            template <typename> typename Callback,
+            template <typename, typename> typename SERIAL,
+            template <typename> typename ALLOC>
     requires original::Compare<Callback<TYPE>, TYPE>
-    auto original::prique<TYPE, Callback, SERIAL>::operator=(prique&& other) noexcept -> prique&
+    auto original::prique<TYPE, Callback, SERIAL, ALLOC>::operator=(prique&& other) noexcept -> prique&
     {
         if (this == &other)
             return *this;
 
         this->serial_ = std::move(other.serial_);
         this->compare_ = std::move(other.compare_);
-        other.serial_ = SERIAL<TYPE>{};
+        other.serial_ = SERIAL<TYPE, ALLOC<TYPE>>{};
         other.compare_ = Callback<TYPE>{};
         return *this;
     }
 
-    template <typename TYPE, template <typename> class Callback, template <typename> typename SERIAL>
+    template<typename TYPE,
+            template <typename> typename Callback,
+            template <typename, typename> typename SERIAL,
+            template <typename> typename ALLOC>
     requires original::Compare<Callback<TYPE>, TYPE>
-    auto original::prique<TYPE, Callback, SERIAL>::push(const TYPE& e) -> void
+    auto original::prique<TYPE, Callback, SERIAL, ALLOC>::push(const TYPE& e) -> void
     {
         this->serial_.pushEnd(e);
         algorithms::heapAdjustUp(this->serial_.begin(), this->serial_.last(), this->compare_);
     }
 
-    template <typename TYPE, template <typename> class Callback, template <typename> typename SERIAL>
+    template<typename TYPE,
+            template <typename> typename Callback,
+            template <typename, typename> typename SERIAL,
+            template <typename> typename ALLOC>
     requires original::Compare<Callback<TYPE>, TYPE>
-    auto original::prique<TYPE, Callback, SERIAL>::pop() -> TYPE
+    auto original::prique<TYPE, Callback, SERIAL, ALLOC>::pop() -> TYPE
     {
         if (this->empty()) throw noElementError();
 
@@ -189,16 +214,22 @@ namespace original
         return res;
     }
 
-    template <typename TYPE, template <typename> class Callback, template <typename> typename SERIAL>
+    template<typename TYPE,
+            template <typename> typename Callback,
+            template <typename, typename> typename SERIAL,
+            template <typename> typename ALLOC>
     requires original::Compare<Callback<TYPE>, TYPE>
-    auto original::prique<TYPE, Callback, SERIAL>::top() const -> TYPE
+    auto original::prique<TYPE, Callback, SERIAL, ALLOC>::top() const -> TYPE
     {
         return this->serial_.getBegin();
     }
 
-    template <typename TYPE, template <typename> class Callback, template <typename> typename SERIAL>
+    template<typename TYPE,
+            template <typename> typename Callback,
+            template <typename, typename> typename SERIAL,
+            template <typename> typename ALLOC>
     requires original::Compare<Callback<TYPE>, TYPE>
-    auto original::prique<TYPE, Callback, SERIAL>::className() const -> std::string
+    auto original::prique<TYPE, Callback, SERIAL, ALLOC>::className() const -> std::string
     {
         return "prique";
     }
