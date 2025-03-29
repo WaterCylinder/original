@@ -33,18 +33,18 @@ int main(){
     }
     std::cout << std::endl;
     constexpr int size = 10;
-    auto p7 = original::makeOwnerPtr<int>(size);
+    auto p7 = original::makeOwnerPtrArray<int>(size);
     for (int i = 0; i < size; ++i) {
         p7[i] = i;
     }
     for (int i = 0; i < size; ++i) {
         std::cout << p7[i] << std::endl;
     }
-    auto p8 = original::ownerPtr<original::array<int>>(10);
+    auto p8 = original::makeOwnerPtrArray<original::array<int>>(10);
     std::cout << p8 << ", " << *p8 << std::endl;
-    const auto p9 = original::strongPtr<original::array<int>>();
+    const auto p9 = original::makeStrongPtr<original::array<int>>(std::initializer_list{10, 7});
     std::cout << p9 << ", " << *p9 << std::endl;
-    auto p10 = original::makeStrongPtr<int>(size);
+    auto p10 = original::makeStrongPtrArray<int>(size);
     auto p11 = p10;
     for (int i = 0; i < size; ++i) {
         p11[i] = 0;
