@@ -7,7 +7,8 @@ public:
     static int alive_count;
     int id;
 
-    explicit TrackedObject(const int i = 0) : id(i) { alive_count++; }
+    TrackedObject() :TrackedObject(0) {}
+    explicit TrackedObject(const int i) : id(i) { alive_count++; }
     ~TrackedObject() { alive_count--; }
 };
 int TrackedObject::alive_count = 0;
@@ -53,7 +54,7 @@ TEST(RefCntPtrTest, MoveSemantics) {
 
 // 测试数组支持
 TEST(RefCntPtrTest, ArraySupport) {
-    auto arr = original::makeStrongPtr<TrackedObject>(3); // 创建含3个元素的数组
+    auto arr = original::makeStrongPtrArray<TrackedObject>(3); // 创建含3个元素的数组
     arr[0].id = 1;
     arr[1].id = 2;
     arr[2].id = 3;
@@ -146,29 +147,29 @@ struct CNode {
 
 TEST(RefCntPtrTest, BreakCyclicReference) {
     {
-        auto node1 = original::strongPtr<Node>(1);
-        auto node2 = original::strongPtr<Node>(2);
+        auto node1 = original::makeStrongPtr<Node>(1);
+        auto node2 = original::makeStrongPtr<Node>(2);
     }
 
     {
-        auto node1 = original::strongPtr<Node>(1);
-        auto node2 = original::strongPtr<Node>(2);
+        auto node1 = original::makeStrongPtr<Node>(1);
+        auto node2 = original::makeStrongPtr<Node>(2);
 
         node1->next = node2;  // 强引用
         node2->prev = node1;  // 弱引用
     }
 
     {
-        auto node1 = original::strongPtr<Node>(1);
-        auto node2 = original::strongPtr<Node>(2);
+        auto node1 = original::makeStrongPtr<Node>(1);
+        auto node2 = original::makeStrongPtr<Node>(2);
 
         node1->prev = node2;  // 弱引用
         node2->prev = node1;  // 弱引用
     }
 
     {
-        auto node1 = original::strongPtr<Node>(1);
-        auto node2 = original::strongPtr<Node>(2);
+        auto node1 = original::makeStrongPtr<Node>(1);
+        auto node2 = original::makeStrongPtr<Node>(2);
 
         node1->next = node2;  // node2 强引用
         node2->next = node1;  // node1 强引用
@@ -179,8 +180,8 @@ TEST(RefCntPtrTest, BreakCyclicReference) {
     }
 
     {
-        auto node1 = original::strongPtr<CNode>(1);
-        auto node2 = original::strongPtr<CNode>(2);
+        auto node1 = original::makeStrongPtr<CNode>(1);
+        auto node2 = original::makeStrongPtr<CNode>(2);
 
         node1->prev = node2;
         node1->next = node2;

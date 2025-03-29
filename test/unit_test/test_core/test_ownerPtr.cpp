@@ -5,6 +5,8 @@
 // 自定义删除器用于验证删除操作
 template<typename TYPE>
 struct TestDeleter final : original::deleterBase<TYPE>{
+    ~TestDeleter() override = default;
+
     static int delete_count;
 
     void operator()(const TYPE* p) const noexcept override {
@@ -34,6 +36,9 @@ TEST(OwnerPtrTest, BasicFunctionality) {
     EXPECT_TRUE(ptr != nullptr);  // 检查有效性
     EXPECT_EQ(*ptr, 42);                  // 通过operator*访问值
 
+    const original::ownerPtr ptr2(new int(42));
+    EXPECT_TRUE(ptr2 != ptr);
+
     // 测试移动构造函数
     original::ownerPtr moved_ptr(std::move(ptr));
     EXPECT_FALSE(ptr); // 原指针应失效
@@ -47,14 +52,14 @@ TEST(OwnerPtrTest, BasicFunctionality) {
 
 // 测试工厂函数
 TEST(OwnerPtrTest, FactoryFunctions) {
-    // 测试单对象工厂
     auto single = original::makeOwnerPtr<int>();
     EXPECT_TRUE(single);
+    EXPECT_EQ(*single, 0);
     *single = 10;
     EXPECT_EQ(*single, 10);
 
     // 测试数组工厂
-    auto array = original::makeOwnerPtr<int>(5);
+    auto array = original::makeOwnerPtrArray<int>(5);
     array[3] = 7;       // 通过operator[]访问
     EXPECT_EQ(array[3], 7);
 }
