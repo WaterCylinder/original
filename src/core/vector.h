@@ -26,8 +26,8 @@ namespace original{
      * - STL-style iterator support
      * - Initializer list and array conversion
      */
-    template <typename TYPE>
-    class vector final : public baseList<TYPE>, public iterationStream<TYPE, vector<TYPE>>{
+    template <typename TYPE, typename ALLOC = allocator<TYPE>>
+    class vector final : public baseList<TYPE, ALLOC>, public iterationStream<TYPE, vector<TYPE, ALLOC>>{
         u_integer size_;                 ///< Current number of elements
         const u_integer INNER_SIZE_INIT = 16; ///< Initial buffer capacity
         u_integer max_size;              ///< Current buffer capacity
@@ -42,14 +42,14 @@ namespace original{
         /**
          * @brief Destroys the internal storage of the vector.
          */
-        void vectorDestruct() const;
+        void vectorArrayDestruct() noexcept;
 
         /**
          * @brief Allocates and initializes an array of a given size.
          * @param size The size of the array to initialize.
          * @return Pointer to the newly allocated array.
          */
-        static TYPE* vectorArrayInit(u_integer size);
+        TYPE* vectorArrayInit(u_integer size);
 
         /**
          * @brief Moves elements from the old buffer to the new buffer.
@@ -98,7 +98,7 @@ namespace original{
          * - Element dereferencing
          * - Comparison operators
          */
-        class Iterator final : public randomAccessIterator<TYPE>
+        class Iterator final : public randomAccessIterator<TYPE, ALLOC>
         {
                 /**
                  * @brief Constructs an iterator for the vector.
@@ -153,7 +153,7 @@ namespace original{
         /**
           * @brief Default constructor for the vector.
           */
-        explicit vector();
+        explicit vector(const ALLOC& alloc = ALLOC{});
 
         /**
          * @brief Copy constructor for the vector.
@@ -296,8 +296,8 @@ namespace original{
     };
 }
 
-    template <typename TYPE>
-    auto original::vector<TYPE>::vectorInit() -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::vectorInit() -> void
     {
         this->size_ = 0;
         this->max_size = this->INNER_SIZE_INIT;
@@ -305,23 +305,28 @@ namespace original{
         this->body = vector::vectorArrayInit(this->INNER_SIZE_INIT);
     }
 
-    template <typename TYPE>
-    auto original::vector<TYPE>::vectorDestruct() const -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::vectorArrayDestruct() noexcept -> void
     {
-        delete[] this->body;
+        if (this->body) {
+            for (u_integer i = 0; i < this->max_size; ++i) {
+                this->destroy(&this->body[i]);
+            }
+            this->deallocate(this->body, this->max_size);
+        }
     }
 
-    template <typename TYPE>
-    auto original::vector<TYPE>::vectorArrayInit(const u_integer size) -> TYPE* {
-        auto arr = new TYPE[size];
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::vectorArrayInit(const u_integer size) -> TYPE* {
+        auto arr = this->allocate(size);
         for (u_integer i = 0; i < size; i++) {
-            arr[i] = TYPE{};
+            this->construct(&arr[i]);
         }
         return arr;
     }
 
-    template <typename TYPE>
-    auto original::vector<TYPE>::moveElements(TYPE* old_body, const u_integer inner_idx,
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::moveElements(TYPE* old_body, const u_integer inner_idx,
                                               const u_integer len, TYPE* new_body, const integer offset) -> void{
         if (offset > 0)
         {
@@ -338,34 +343,34 @@ namespace original{
         }
     }
 
-    template <typename TYPE>
-    auto original::vector<TYPE>::toInnerIdx(integer index) const -> u_integer
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::toInnerIdx(integer index) const -> u_integer
     {
         return this->inner_begin + index;
     }
 
-    template <typename TYPE>
-    auto original::vector<TYPE>::outOfMaxSize(u_integer increment) const -> bool
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::outOfMaxSize(u_integer increment) const -> bool
     {
         return this->inner_begin + this->size() + increment > this->max_size - 1 || static_cast<integer>(this->inner_begin) - static_cast<integer>(increment) < 0;
     }
 
-    template <typename TYPE>
-    auto original::vector<TYPE>::grow(const u_integer new_size) -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::grow(const u_integer new_size) -> void
     {
         TYPE* new_body = vector::vectorArrayInit(new_size);
         u_integer new_begin = (new_size - 1) / 4;
         const integer offset = static_cast<integer>(new_begin) - static_cast<integer>(this->inner_begin);
         vector::moveElements(this->body, this->inner_begin,
                              this->size(), new_body, offset);
-        delete[] this->body;
+        this->vectorArrayDestruct();
         this->body = new_body;
         this->max_size = new_size;
         this->inner_begin = new_begin;
     }
 
-    template <typename TYPE>
-    auto original::vector<TYPE>::adjust(u_integer increment) -> void {
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::adjust(u_integer increment) -> void {
         if (!this->outOfMaxSize(increment)) {
             return;
         }
@@ -381,62 +386,63 @@ namespace original{
         }
     }
 
-    template <typename TYPE>
-    original::vector<TYPE>::Iterator::Iterator(TYPE* ptr, const vector* container, integer pos)
-        : randomAccessIterator<TYPE>(ptr, container, pos) {}
+    template <typename TYPE, typename ALLOC>
+    original::vector<TYPE, ALLOC>::Iterator::Iterator(TYPE* ptr, const vector* container, integer pos)
+        : randomAccessIterator<TYPE, ALLOC>(ptr, container, pos) {}
 
-    template <typename TYPE>
-    original::vector<TYPE>::Iterator::Iterator(const Iterator& other)
-        : randomAccessIterator<TYPE>(nullptr, nullptr, 0)
+    template <typename TYPE, typename ALLOC>
+    original::vector<TYPE, ALLOC>::Iterator::Iterator(const Iterator& other)
+        : randomAccessIterator<TYPE, ALLOC>(nullptr, nullptr, 0)
     {
         this->operator=(other);
     }
 
-    template <typename TYPE>
-    auto original::vector<TYPE>::Iterator::operator=(const Iterator& other) -> Iterator&
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::Iterator::operator=(const Iterator& other) -> Iterator&
     {
         if (this == &other) {
             return *this;
         }
-        randomAccessIterator<TYPE>::operator=(other);
+        randomAccessIterator<TYPE, ALLOC>::operator=(other);
         return *this;
     }
 
-    template<typename TYPE>
-    auto original::vector<TYPE>::Iterator::clone() const -> Iterator* {
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::Iterator::clone() const -> Iterator* {
         return new Iterator(*this);
     }
 
-    template<typename TYPE>
-    auto original::vector<TYPE>::Iterator::atPrev(const iterator<TYPE> *other) const -> bool {
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::Iterator::atPrev(const iterator<TYPE> *other) const -> bool {
         auto other_it = dynamic_cast<const Iterator*>(other);
         return this->_ptr + 1 == other_it->_ptr;
     }
 
-    template<typename TYPE>
-    auto original::vector<TYPE>::Iterator::atNext(const iterator<TYPE> *other) const -> bool {
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::Iterator::atNext(const iterator<TYPE> *other) const -> bool {
         auto other_it = dynamic_cast<const Iterator*>(other);
         return other_it->_ptr + 1 == this->_ptr;
     }
 
-    template<typename TYPE>
-    auto original::vector<TYPE>::Iterator::className() const -> std::string {
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::Iterator::className() const -> std::string {
         return "vector::Iterator";
     }
 
-    template <typename TYPE>
-    original::vector<TYPE>::vector() : size_(), max_size(), inner_begin()
+    template <typename TYPE, typename ALLOC>
+    original::vector<TYPE, ALLOC>::vector(const ALLOC& alloc)
+        : baseList<TYPE, ALLOC>(alloc), size_(), max_size(), inner_begin()
     {
         this->vectorInit();
     }
 
-    template<typename TYPE>
-    original::vector<TYPE>::vector(const vector& other) : vector(){
+    template <typename TYPE, typename ALLOC>
+    original::vector<TYPE, ALLOC>::vector(const vector& other) : vector(){
         this->operator=(other);
     }
 
-    template <typename TYPE>
-    original::vector<TYPE>::vector(const std::initializer_list<TYPE>& list) : vector()
+    template <typename TYPE, typename ALLOC>
+    original::vector<TYPE, ALLOC>::vector(const std::initializer_list<TYPE>& list) : vector()
     {
         this->adjust(list.size());
         for (const TYPE& e: list)
@@ -446,13 +452,13 @@ namespace original{
         }
     }
 
-    template<typename TYPE>
-    auto original::vector<TYPE>::operator=(const vector& other) -> vector&
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::operator=(const vector& other) -> vector&
     {
         if (this == &other)
             return *this;
 
-        this->vectorDestruct();
+        this->vectorArrayDestruct();
 
         this->max_size = other.max_size;
         this->inner_begin = other.inner_begin;
@@ -462,32 +468,38 @@ namespace original{
             const TYPE& data = other.body[this->toInnerIdx(i)];
             this->body[this->toInnerIdx(i)] = data;
         }
+        if constexpr (ALLOC::propagate_on_container_copy_assignment::value){
+            this->allocator = other.allocator;
+        }
         return *this;
     }
 
-    template <typename TYPE>
-    original::vector<TYPE>::vector(vector&& other) noexcept : vector()
+    template <typename TYPE, typename ALLOC>
+    original::vector<TYPE, ALLOC>::vector(vector&& other) noexcept : vector()
     {
         this->operator=(std::move(other));
     }
 
-    template <typename TYPE>
-    auto original::vector<TYPE>::operator=(vector&& other) noexcept -> vector&
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::operator=(vector&& other) noexcept -> vector&
     {
         if (this == &other)
             return *this;
 
-        this->vectorDestruct();
+        this->vectorArrayDestruct();
         this->body = std::move(other.body);
         this->max_size = other.max_size;
         this->inner_begin = other.inner_begin;
         this->size_ = other.size_;
         other.vectorInit();
+        if constexpr (ALLOC::propagate_on_container_move_assignment::value){
+            this->allocator = std::move(other.allocator);
+        }
         return *this;
     }
 
-    template <typename TYPE>
-    original::vector<TYPE>::vector(const array<TYPE>& arr) : vector()
+    template <typename TYPE, typename ALLOC>
+    original::vector<TYPE, ALLOC>::vector(const array<TYPE>& arr) : vector()
     {
         this->adjust(arr.size());
         for (u_integer i = 0; i < arr.size(); i += 1)
@@ -497,19 +509,19 @@ namespace original{
         }
     }
 
-    template <typename TYPE>
-    auto original::vector<TYPE>::size() const -> u_integer
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::size() const -> u_integer
     {
         return this->size_;
     }
 
-    template<typename TYPE>
-    auto original::vector<TYPE>::data() const -> TYPE& {
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::data() const -> TYPE& {
         return this->body[this->toInnerIdx(0)];
     }
 
-    template <typename TYPE>
-    auto original::vector<TYPE>::get(integer index) const -> TYPE
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::get(integer index) const -> TYPE
     {
         if (this->indexOutOfBound(index))
         {
@@ -519,8 +531,8 @@ namespace original{
         return this->body[index];
     }
 
-    template <typename TYPE>
-    auto original::vector<TYPE>::operator[](integer index) -> TYPE&
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::operator[](integer index) -> TYPE&
     {
         if (this->indexOutOfBound(index))
         {
@@ -530,8 +542,8 @@ namespace original{
         return this->body[index];
     }
 
-    template <typename TYPE>
-    auto original::vector<TYPE>::set(integer index, const TYPE &e) -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::set(integer index, const TYPE &e) -> void
     {
         if (this->indexOutOfBound(index))
         {
@@ -541,8 +553,8 @@ namespace original{
         this->body[index] = e;
     }
 
-    template <typename TYPE>
-    auto original::vector<TYPE>::indexOf(const TYPE &e) const -> u_integer
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::indexOf(const TYPE &e) const -> u_integer
     {
         for (u_integer i = 0; i < this->size(); i += 1)
         {
@@ -554,8 +566,8 @@ namespace original{
         return this->size();
     }
 
-    template <typename TYPE>
-    auto original::vector<TYPE>::pushBegin(const TYPE &e) -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::pushBegin(const TYPE &e) -> void
     {
         this->adjust(1);
         this->inner_begin -= 1;
@@ -563,8 +575,8 @@ namespace original{
         this->size_ += 1;
     }
 
-    template <typename TYPE>
-    auto original::vector<TYPE>::push(integer index, const TYPE &e) -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::push(integer index, const TYPE &e) -> void
     {
         if (this->parseNegIndex(index) == this->size())
         {
@@ -596,16 +608,16 @@ namespace original{
         }
     }
 
-    template <typename TYPE>
-    auto original::vector<TYPE>::pushEnd(const TYPE &e) -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::pushEnd(const TYPE &e) -> void
     {
         this->adjust(1);
         this->body[this->toInnerIdx(this->size())] = e;
         this->size_ += 1;
     }
 
-    template <typename TYPE>
-    auto original::vector<TYPE>::popBegin() -> TYPE
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::popBegin() -> TYPE
     {
         if (this->size() == 0){
             throw noElementError();
@@ -616,8 +628,8 @@ namespace original{
         return res;
     }
 
-    template <typename TYPE>
-    auto original::vector<TYPE>::pop(integer index) -> TYPE
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::pop(integer index) -> TYPE
     {
         if (this->parseNegIndex(index) == 0)
         {
@@ -647,8 +659,8 @@ namespace original{
         return res;
     }
 
-    template <typename TYPE>
-    auto original::vector<TYPE>::popEnd() -> TYPE
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::popEnd() -> TYPE
     {
         if (this->size() == 0){
             throw noElementError();
@@ -658,25 +670,25 @@ namespace original{
         return res;
     }
 
-    template<typename TYPE>
-    auto original::vector<TYPE>::begins() const -> Iterator* {
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::begins() const -> Iterator* {
         return new Iterator(&this->body[this->toInnerIdx(0)], this, 0);
     }
 
-    template<typename TYPE>
-    auto original::vector<TYPE>::ends() const -> Iterator* {
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::ends() const -> Iterator* {
         return new Iterator(&this->body[this->toInnerIdx(this->size() - 1)], this, this->size() - 1);
     }
 
-    template <typename TYPE>
-    auto original::vector<TYPE>::className() const -> std::string
+    template <typename TYPE, typename ALLOC>
+    auto original::vector<TYPE, ALLOC>::className() const -> std::string
     {
         return "vector";
     }
 
-    template <typename TYPE>
-    original::vector<TYPE>::~vector() {
-        this->vectorDestruct();
+    template <typename TYPE, typename ALLOC>
+    original::vector<TYPE, ALLOC>::~vector() {
+        this->vectorArrayDestruct();
     }
 
 #endif //VECTOR_H

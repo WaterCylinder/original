@@ -10,7 +10,6 @@
 #include "error.h"
 
 namespace original {
-
     /**
      * @file array.h
      * @brief Provides the `array` class for a fixed-size container with random access.
@@ -65,7 +64,7 @@ namespace original {
      *          elements in a bidirectional manner. The `Iterator` is an internal class used for providing
      *          iterator functionality on the `array` container.
      */
-    class Iterator final : public randomAccessIterator<TYPE> {
+    class Iterator final : public randomAccessIterator<TYPE, ALLOC> {
         /**
          * @brief Constructs an iterator for the given position.
          * @param ptr A pointer to the element at the current position.
@@ -262,11 +261,11 @@ namespace original {
 
     template<typename TYPE, typename ALLOC>
     original::array<TYPE, ALLOC>::Iterator::Iterator(TYPE* ptr, const array* container, integer pos)
-        : randomAccessIterator<TYPE>(ptr, container, pos) {}
+        : randomAccessIterator<TYPE, ALLOC>(ptr, container, pos) {}
 
     template<typename TYPE, typename ALLOC>
     original::array<TYPE, ALLOC>::Iterator::Iterator(const Iterator& other)
-        : randomAccessIterator<TYPE>(nullptr, nullptr, 0)
+        : randomAccessIterator<TYPE, ALLOC>(nullptr, nullptr, 0)
     {
         this->operator=(other);
     }
@@ -277,7 +276,7 @@ namespace original {
         if (this == &other) {
             return *this;
         }
-        randomAccessIterator<TYPE>::operator=(other);
+        randomAccessIterator<TYPE, ALLOC>::operator=(other);
         return *this;
     }
 

@@ -31,11 +31,11 @@ namespace original {
      * - Reference to parent container
      * - Absolute position index
      */
-    template<typename TYPE>
+    template<typename TYPE, typename ALLOC>
     class randomAccessIterator : public baseIterator<TYPE> {
     protected:
         mutable TYPE* _ptr;             ///< Pointer to the current element
-        mutable const container<TYPE>* _container; ///< Reference to the parent container
+        mutable const container<TYPE, ALLOC>* _container; ///< Reference to the parent container
         mutable integer _pos;           ///< Absolute position in the container
 
         /**
@@ -44,7 +44,7 @@ namespace original {
          * @param container Parent container reference
          * @param pos Initial position index
          */
-        explicit randomAccessIterator(TYPE* ptr, const container<TYPE>* container, integer pos);
+        explicit randomAccessIterator(TYPE* ptr, const container<TYPE, ALLOC>* container, integer pos);
 
         /**
          * @brief Equality comparison implementation
@@ -173,24 +173,24 @@ namespace original {
     };
 }
 
-    template<typename TYPE>
-    original::randomAccessIterator<TYPE>::randomAccessIterator(TYPE* ptr, const container<TYPE>* container,
+    template<typename TYPE, typename ALLOC>
+    original::randomAccessIterator<TYPE, ALLOC>::randomAccessIterator(TYPE* ptr, const container<TYPE, ALLOC>* container,
                                                                const integer pos)
         : _ptr{ptr}, _container{container}, _pos(pos) {}
 
-    template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::equalPtr(const iterator<TYPE> *other) const -> bool {
+    template<typename TYPE, typename ALLOC>
+    auto original::randomAccessIterator<TYPE, ALLOC>::equalPtr(const iterator<TYPE> *other) const -> bool {
         auto* other_it = dynamic_cast<const randomAccessIterator*>(other);
         return other_it != nullptr && _ptr == other_it->_ptr;
     }
 
-    template<typename TYPE>
-    original::randomAccessIterator<TYPE>::randomAccessIterator(const randomAccessIterator &other) : _pos(0) {
+    template<typename TYPE, typename ALLOC>
+    original::randomAccessIterator<TYPE, ALLOC>::randomAccessIterator(const randomAccessIterator &other) : _pos(0) {
         this->operator=(other);
     }
 
-    template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::operator=(
+    template<typename TYPE, typename ALLOC>
+    auto original::randomAccessIterator<TYPE, ALLOC>::operator=(
         const randomAccessIterator &other) -> randomAccessIterator& {
         if (this == &other) {
             return *this;
@@ -201,57 +201,57 @@ namespace original {
         return *this;
     }
 
-    template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::clone() const -> randomAccessIterator* {
+    template<typename TYPE, typename ALLOC>
+    auto original::randomAccessIterator<TYPE, ALLOC>::clone() const -> randomAccessIterator* {
         return new randomAccessIterator{_ptr, _container, _pos};
     }
 
-    template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::hasNext() const -> bool {
+    template<typename TYPE, typename ALLOC>
+    auto original::randomAccessIterator<TYPE, ALLOC>::hasNext() const -> bool {
         return this->isValid() && this->_pos <= this->_container->size() - 1;
     }
 
-    template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::hasPrev() const -> bool {
+    template<typename TYPE, typename ALLOC>
+    auto original::randomAccessIterator<TYPE, ALLOC>::hasPrev() const -> bool {
         return this->isValid() && this->_pos >= 1;
     }
 
-    template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::atPrev(const iterator<TYPE>*) const -> bool {
+    template<typename TYPE, typename ALLOC>
+    auto original::randomAccessIterator<TYPE, ALLOC>::atPrev(const iterator<TYPE>*) const -> bool {
         throw unSupportedMethodError();
     }
 
-    template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::atNext(const iterator<TYPE>*) const -> bool {
+    template<typename TYPE, typename ALLOC>
+    auto original::randomAccessIterator<TYPE, ALLOC>::atNext(const iterator<TYPE>*) const -> bool {
         throw unSupportedMethodError();
     }
 
-    template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::next() const -> void {
+    template<typename TYPE, typename ALLOC>
+    auto original::randomAccessIterator<TYPE, ALLOC>::next() const -> void {
         ++this->_pos;
         ++this->_ptr;
     }
 
-    template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::prev() const -> void {
+    template<typename TYPE, typename ALLOC>
+    auto original::randomAccessIterator<TYPE, ALLOC>::prev() const -> void {
         --this->_pos;
         --this->_ptr;
     }
 
-    template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::operator+=(integer steps) const -> void {
+    template<typename TYPE, typename ALLOC>
+    auto original::randomAccessIterator<TYPE, ALLOC>::operator+=(integer steps) const -> void {
         this->_pos += steps;
         this->_ptr += steps;
     }
 
-    template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::operator-=(integer steps) const -> void {
+    template<typename TYPE, typename ALLOC>
+    auto original::randomAccessIterator<TYPE, ALLOC>::operator-=(integer steps) const -> void {
         this->_pos -= steps;
         this->_ptr -= steps;
     }
 
-    template <typename TYPE>
-    auto original::randomAccessIterator<TYPE>::operator-(const iterator<TYPE>& other) const -> integer
+    template<typename TYPE, typename ALLOC>
+    auto original::randomAccessIterator<TYPE, ALLOC>::operator-(const iterator<TYPE>& other) const -> integer
     {
         auto* other_it = dynamic_cast<const randomAccessIterator*>(&other);
         if (other_it == nullptr)
@@ -265,48 +265,48 @@ namespace original {
         return this->_ptr - other_it->_ptr;
     }
 
-    template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::getNext() const -> randomAccessIterator* {
+    template<typename TYPE, typename ALLOC>
+    auto original::randomAccessIterator<TYPE, ALLOC>::getNext() const -> randomAccessIterator* {
         if (!this->isValid()) throw outOfBoundError();
         auto it = this->clone();
         it->next();
         return it;
     }
 
-    template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::getPrev() const -> randomAccessIterator* {
+    template<typename TYPE, typename ALLOC>
+    auto original::randomAccessIterator<TYPE, ALLOC>::getPrev() const -> randomAccessIterator* {
         if (!this->isValid()) throw outOfBoundError();
         auto it = this->clone();
         it->prev();
         return it;
     }
 
-    template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::get() -> TYPE& {
+    template<typename TYPE, typename ALLOC>
+    auto original::randomAccessIterator<TYPE, ALLOC>::get() -> TYPE& {
         if (!this->isValid()) throw outOfBoundError();
         return *this->_ptr;
     }
 
-    template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::set(const TYPE& data) -> void {
+    template<typename TYPE, typename ALLOC>
+    auto original::randomAccessIterator<TYPE, ALLOC>::set(const TYPE& data) -> void {
         if (!this->isValid()) throw outOfBoundError();
         *this->_ptr = data;
     }
 
-    template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::get() const -> TYPE
+    template<typename TYPE, typename ALLOC>
+    auto original::randomAccessIterator<TYPE, ALLOC>::get() const -> TYPE
     {
         if (!this->isValid()) throw outOfBoundError();
         return *this->_ptr;
     }
 
-    template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::isValid() const -> bool {
+    template<typename TYPE, typename ALLOC>
+    auto original::randomAccessIterator<TYPE, ALLOC>::isValid() const -> bool {
         return this->_pos >= 0 && this->_pos < this->_container->size();
     }
 
-    template<typename TYPE>
-    auto original::randomAccessIterator<TYPE>::className() const -> std::string {
+    template<typename TYPE, typename ALLOC>
+    auto original::randomAccessIterator<TYPE, ALLOC>::className() const -> std::string {
         return "RandomAccessIterator";
     }
 
