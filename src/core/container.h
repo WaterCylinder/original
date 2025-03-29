@@ -93,12 +93,12 @@ original::container<TYPE, ALLOC>::container(const ALLOC& alloc)
     : allocator(alloc) {}
 
 template<typename TYPE, typename ALLOC>
-TYPE* original::container<TYPE, ALLOC>::allocate(original::u_integer size) {
+TYPE* original::container<TYPE, ALLOC>::allocate(u_integer size) {
     return this->allocator.allocate(size);
 }
 
 template<typename TYPE, typename ALLOC>
-void original::container<TYPE, ALLOC>::deallocate(TYPE *ptr, original::u_integer size) {
+void original::container<TYPE, ALLOC>::deallocate(TYPE *ptr, u_integer size) {
     this->allocator.deallocate(ptr, size);
 }
 
