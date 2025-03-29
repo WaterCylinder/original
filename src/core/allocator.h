@@ -42,7 +42,6 @@ namespace original {
         * @brief Allocates raw memory
         * @param size Number of elements to allocate
         * @return Pointer to allocated memory
-        * @throws std::bad_alloc on allocation failure
         */
         virtual TYPE* allocate(u_integer size) = 0;
 
