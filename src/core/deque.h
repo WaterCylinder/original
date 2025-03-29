@@ -23,14 +23,16 @@ namespace original {
      * Supports efficient insertion and removal at both front and back ends.
      * Inherits template constraints from @ref original::containerAdapter.
      */
-    template<typename TYPE, template <typename> typename SERIAL = chain>
-    class deque final : public containerAdapter<TYPE, SERIAL> {
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL = chain,
+              template <typename> typename ALLOC = allocator>
+    class deque final : public containerAdapter<TYPE, SERIAL, ALLOC> {
     public:
         /**
          * @brief Constructs deque with specified underlying container
          * @param serial Container instance to initialize deque (default: empty)
          */
-        explicit deque(const SERIAL<TYPE>& serial = SERIAL<TYPE>{});
+        explicit deque(const SERIAL<TYPE, ALLOC<TYPE>>& serial = SERIAL<TYPE, ALLOC<TYPE>>{});
 
         /**
          * @brief Constructs deque from initializer list
@@ -114,75 +116,100 @@ namespace original {
     };
 }
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    original::deque<TYPE, SERIAL>::deque(const SERIAL<TYPE>& serial)
-        : containerAdapter<TYPE, SERIAL>(serial) {}
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    original::deque<TYPE, SERIAL, ALLOC>::deque(const SERIAL<TYPE, ALLOC<TYPE>>& serial)
+        : containerAdapter<TYPE, SERIAL, ALLOC>(serial) {}
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    original::deque<TYPE, SERIAL>::deque(const std::initializer_list<TYPE> &lst)
-        : deque(SERIAL<TYPE>(lst)) {}
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    original::deque<TYPE, SERIAL, ALLOC>::deque(const std::initializer_list<TYPE> &lst)
+        : deque(SERIAL<TYPE, ALLOC<TYPE>>(lst)) {}
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    original::deque<TYPE, SERIAL>::deque(const deque& other) : deque() {
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    original::deque<TYPE, SERIAL, ALLOC>::deque(const deque& other) : deque() {
         this->operator=(other);
     }
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    auto original::deque<TYPE, SERIAL>::operator=(const deque& other) -> deque& {
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    auto original::deque<TYPE, SERIAL, ALLOC>::operator=(const deque& other) -> deque& {
         if (this == &other) return *this;
         this->serial_ = other.serial_;
         return *this;
     }
 
-    template <typename TYPE, template <typename> class SERIAL>
-    original::deque<TYPE, SERIAL>::deque(deque&& other) noexcept : deque()
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    original::deque<TYPE, SERIAL, ALLOC>::deque(deque&& other) noexcept : deque()
     {
         this->operator=(std::move(other));
     }
 
-    template <typename TYPE, template <typename> class SERIAL>
-    auto original::deque<TYPE, SERIAL>::operator=(deque&& other) noexcept -> deque&
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    auto original::deque<TYPE, SERIAL, ALLOC>::operator=(deque&& other) noexcept -> deque&
     {
         if (this == &other)
             return *this;
 
         this->serial_ = std::move(other.serial_);
-        other.serial_ = SERIAL<TYPE>{};
         return *this;
     }
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    auto original::deque<TYPE, SERIAL>::pushBegin(const TYPE &e) -> void {
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    auto original::deque<TYPE, SERIAL, ALLOC>::pushBegin(const TYPE &e) -> void {
         this->serial_.pushBegin(e);
     }
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    auto original::deque<TYPE, SERIAL>::pushEnd(const TYPE &e) -> void {
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    auto original::deque<TYPE, SERIAL, ALLOC>::pushEnd(const TYPE &e) -> void {
         this->serial_.pushEnd(e);
     }
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    auto original::deque<TYPE, SERIAL>::popBegin() -> TYPE {
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    auto original::deque<TYPE, SERIAL, ALLOC>::popBegin() -> TYPE {
         return this->serial_.popBegin();
     }
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    auto original::deque<TYPE, SERIAL>::popEnd() -> TYPE {
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    auto original::deque<TYPE, SERIAL, ALLOC>::popEnd() -> TYPE {
         return this->serial_.popEnd();
     }
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    auto original::deque<TYPE, SERIAL>::head() const -> TYPE {
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    auto original::deque<TYPE, SERIAL, ALLOC>::head() const -> TYPE {
         return this->serial_.getBegin();
     }
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    auto original::deque<TYPE, SERIAL>::tail() const -> TYPE {
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    auto original::deque<TYPE, SERIAL, ALLOC>::tail() const -> TYPE {
         return this->serial_.getEnd();
     }
 
-    template<typename TYPE, template <typename> typename SERIAL>
-    auto original::deque<TYPE, SERIAL>::className() const -> std::string {
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    auto original::deque<TYPE, SERIAL, ALLOC>::className() const -> std::string {
         return "deque";
     }
 
