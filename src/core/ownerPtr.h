@@ -81,9 +81,40 @@ namespace original {
         friend ownerPtr<T, DEL> makeOwnerPtrArray(u_integer size, Args&&... args);
     };
 
+    /**
+    * @brief Creates a new ownerPtr managing a dynamically allocated object
+    * @tparam T Type of object to create and manage
+    * @tparam DEL Deleter policy type (default: deleter<T>)
+    * @tparam Args Argument types for object construction
+    * @param args Arguments to forward to T's constructor
+    * @return ownerPtr<T, DEL> owning the newly created object
+    * @note Provides exception-safe object creation
+    * @warning The returned ownerPtr has exclusive ownership of the object
+    *
+    * @code
+    * // Create an ownerPtr managing a new MyClass constructed with args
+    * auto ptr = makeOwnerPtr<MyClass>(arg1, arg2);
+    * @endcode
+    */
     template <typename T, typename DEL = deleter<T>, typename... Args>
     ownerPtr<T, DEL> makeOwnerPtr(Args&&... args);
 
+    /**
+    * @brief Creates a new ownerPtr managing a dynamically allocated array
+    * @tparam T Type of array elements to create
+    * @tparam DEL Deleter policy type (default: deleter<T[]>)
+    * @tparam Args Argument types for array element initialization
+    * @param size Number of elements in the array
+    * @param args Arguments to forward to each element's constructor
+    * @return ownerPtr<T, DEL> owning the newly created array
+    * @note Provides exception-safe array creation
+    * @warning The returned ownerPtr has exclusive ownership of the array
+    *
+    * @code
+    * // Create an ownerPtr managing a new MyClass[10] array
+    * auto arr = makeOwnerPtrArray<MyClass>(10);
+    * @endcode
+    */
     template <typename T, typename DEL = deleter<T[]>, typename... Args>
     ownerPtr<T, DEL> makeOwnerPtrArray(u_integer size, Args&&... args);
 

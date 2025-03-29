@@ -234,15 +234,55 @@ namespace original {
         friend bool operator!=(const std::nullptr_t& null, const autoPtr<T, DER, DEL>& ptr);
     };
 
+    /**
+    * @brief Equality comparison with nullptr
+    * @tparam T Managed object type
+    * @tparam DER CRTP derived class type
+    * @tparam DEL Deleter policy type
+    * @param ptr autoPtr to compare
+    * @param null nullptr_t to compare against
+    * @return true if the autoPtr is empty (no managed object)
+    * @note Equivalent to checking !operator bool() of ptr
+    */
     template<typename T, typename DER, typename DEL>
     bool operator==(const autoPtr<T, DER, DEL>& ptr, const std::nullptr_t& null);
 
+    /**
+    * @brief Inequality comparison with nullptr
+    * @tparam T Managed object type
+    * @tparam DER CRTP derived class type
+    * @tparam DEL Deleter policy type
+    * @param ptr autoPtr to compare
+    * @param null nullptr_t to compare against
+    * @return true if the autoPtr is not empty (has a managed object)
+    * @note Equivalent to checking operator bool() of ptr
+    */
     template<typename T, typename DER, typename DEL>
     bool operator!=(const autoPtr<T, DER, DEL>& ptr, const std::nullptr_t& null);
 
+    /**
+    * @brief Equality comparison with nullptr (reversed operands)
+    * @tparam T Managed object type
+    * @tparam DER CRTP derived class type
+    * @tparam DEL Deleter policy type
+    * @param ptr autoPtr to compare
+    * @param null nullptr_t to compare against
+    * @return true if the autoPtr is empty (no managed object)
+    * @note Equivalent to checking !operator bool() of ptr
+    */
     template<typename T, typename DER, typename DEL>
     bool operator==(const std::nullptr_t& null, const autoPtr<T, DER, DEL>& ptr);
 
+    /**
+    * @brief Inequality comparison with nullptr (reversed operands)
+    * @tparam T Managed object type
+    * @tparam DER CRTP derived class type
+    * @tparam DEL Deleter policy type
+    * @param ptr autoPtr to compare
+    * @param null nullptr_t to compare against
+    * @return true if the autoPtr is not empty (has a managed object)
+    * @note Equivalent to checking operator bool() of ptr
+    */
     template<typename T, typename DER, typename DEL>
     bool operator!=(const std::nullptr_t& null, const autoPtr<T, DER, DEL>& ptr);
 

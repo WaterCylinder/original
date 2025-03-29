@@ -308,9 +308,40 @@ namespace original{
         ~weakPtr() override;
     };
 
+    /**
+    * @brief Creates a new strongPtr managing a shared object
+    * @tparam T Type of object to create and manage
+    * @tparam DEL Deleter policy type (default: deleter<T>)
+    * @tparam Args Argument types for object construction
+    * @param args Arguments to forward to T's constructor
+    * @return strongPtr<T, DEL> sharing ownership of the new object
+    * @note Provides exception-safe object creation with shared ownership
+    * @details The object will be destroyed when all strong references are released
+    *
+    * @code
+    * // Create a strongPtr managing a new MyClass constructed with args
+    * auto ptr = makeStrongPtr<MyClass>(arg1, arg2);
+    * @endcode
+    */
     template <typename T, typename DEL = deleter<T>, typename... Args>
     strongPtr<T, DEL> makeStrongPtr(Args&&... args);
 
+    /**
+    * @brief Creates a new strongPtr managing a shared array
+    * @tparam T Type of array elements to create
+    * @tparam DEL Deleter policy type (default: deleter<T[]>)
+    * @tparam Args Argument types for array element initialization
+    * @param size Number of elements in the array
+    * @param args Arguments to forward to each element's constructor
+    * @return strongPtr<T, DEL> sharing ownership of the new array
+    * @note Provides exception-safe array creation with shared ownership
+    * @details The array will be destroyed when all strong references are released
+    *
+    * @code
+    * // Create a strongPtr managing a new MyClass[10] array
+    * auto arr = makeStrongPtrArray<MyClass>(10);
+    * @endcode
+    */
     template <typename T, typename DEL = deleter<T[]>, typename... Args>
     strongPtr<T, DEL> makeStrongPtrArray(u_integer size, Args&&... args);
 
