@@ -30,8 +30,8 @@ namespace original {
      * - Index-based element access (O(n) complexity)
      * - Deep copy semantics
      */
-    template <typename TYPE>
-    class chain final : public baseList<TYPE>, public iterationStream<TYPE, chain<TYPE>>{
+    template <typename TYPE, typename ALLOC = allocator<TYPE>>
+    class chain final : public baseList<TYPE>, public iterationStream<TYPE, chain<TYPE, ALLOC>>{
         /**
          * @class chainNode
          * @brief Internal node structure for chain elements
@@ -45,11 +45,6 @@ namespace original {
             public:
                 friend class iterator<TYPE>;
                 friend class chain;
-            private:
-                TYPE data_;         ///< Element storage
-                chainNode* prev;    ///< Pointer to previous node
-                chainNode* next;    ///< Pointer to next node
-            protected:
 
                 /**
                  * @brief Constructs a chainNode with given data, previous, and next pointers.
@@ -58,6 +53,11 @@ namespace original {
                  * @param next Pointer to the next node (default is nullptr).
                  */
                 explicit chainNode(const TYPE& data = TYPE{}, chainNode* prev = nullptr, chainNode* next = nullptr);
+            private:
+                TYPE data_;         ///< Element storage
+                chainNode* prev;    ///< Pointer to previous node
+                chainNode* next;    ///< Pointer to next node
+            protected:
 
                 /**
                 * @brief Copy constructor for chainNode.
@@ -122,9 +122,14 @@ namespace original {
                 static void connect(chainNode* prev, chainNode* next);
         };
 
+
+        using rebind_alloc_node = typename ALLOC::template rebind_alloc<chainNode>;
+
         u_integer size_;         ///< Current element count
         chainNode* begin_;      ///< Pointer to first element node
         chainNode* end_;        ///< Pointer to end sentinel node
+        rebind_alloc_node rebind_alloc{};
+
 
         /**
          * @brief Finds the node at the given index.
@@ -132,6 +137,10 @@ namespace original {
          * @return The node at the given index.
          */
         chainNode* findNode(integer index) const;
+
+        chainNode* createNode(const TYPE& value = TYPE{}, chainNode* prev = nullptr, chainNode* next = nullptr);
+
+        void destroyNode(chainNode* node) noexcept;
 
         /**
          * @brief Initializes the chain with sentinel nodes.
@@ -219,7 +228,7 @@ namespace original {
         /**
          * @brief Default constructor for chain.
          */
-        explicit chain();
+        explicit chain(const ALLOC& alloc = ALLOC{});
 
         /**
          * @brief Copy constructor for chain.
@@ -362,16 +371,16 @@ namespace original {
     };
 }
 
-    template <typename TYPE>
-    original::chain<TYPE>::chainNode::chainNode(const TYPE& data, chainNode* prev, chainNode* next)
+    template <typename TYPE, typename ALLOC>
+    original::chain<TYPE, ALLOC>::chainNode::chainNode(const TYPE& data, chainNode* prev, chainNode* next)
     : data_(data), prev(prev), next(next) {}
 
-    template<typename TYPE>
-    original::chain<TYPE>::chainNode::chainNode(const chainNode& other)
+    template <typename TYPE, typename ALLOC>
+    original::chain<TYPE, ALLOC>::chainNode::chainNode(const chainNode& other)
             : data_(other.data_), prev(other.prev), next(other.next) {}
 
-    template<typename TYPE>
-    auto original::chain<TYPE>::chainNode::operator=(const chainNode& other) -> chainNode& {
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::chainNode::operator=(const chainNode& other) -> chainNode& {
         if (this != &other) {
             data_ = other.data_;
             prev = other.prev;
@@ -380,53 +389,53 @@ namespace original {
         return *this;
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::chainNode::getVal() -> TYPE&
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::chainNode::getVal() -> TYPE&
     {
         return this->data_;
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::chainNode::getVal() const -> const TYPE&
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::chainNode::getVal() const -> const TYPE&
     {
         return this->data_;
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::chainNode::setVal(TYPE data) -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::chainNode::setVal(TYPE data) -> void
     {
         this->data_ = data;
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::chainNode::getPPrev() const -> chainNode* {
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::chainNode::getPPrev() const -> chainNode* {
         return this->prev;
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::chainNode::getPNext() const -> chainNode* {
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::chainNode::getPNext() const -> chainNode* {
         return this->next;
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::chainNode::setPPrev(chainNode* new_prev) -> void {
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::chainNode::setPPrev(chainNode* new_prev) -> void {
         this->prev = new_prev;
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::chainNode::setPNext(chainNode* new_next) -> void {
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::chainNode::setPNext(chainNode* new_next) -> void {
         this->next = new_next;
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::chainNode::connect(chainNode* prev, chainNode* next) -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::chainNode::connect(chainNode* prev, chainNode* next) -> void
     {
         if (prev != nullptr) prev->setPNext(next);
         if (next != nullptr) next->setPPrev(prev);
     }
 
-    template<typename TYPE>
-    auto original::chain<TYPE>::findNode(integer index) const -> chainNode* {
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::findNode(integer index) const -> chainNode* {
         const bool reverse_visit = index <= this->size() / 2 ? 0 : 1;
         chainNode* cur;
         if (!reverse_visit){
@@ -445,17 +454,30 @@ namespace original {
         return cur;
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::chainInit() -> void
+    template<typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::createNode(const TYPE &value, chainNode* prev, chainNode* next) -> chainNode* {
+        auto node = this->rebind_alloc.allocate(1);
+        this->rebind_alloc.construct(node, value, prev, next);
+        return node;
+    }
+
+    template<typename TYPE, typename ALLOC>
+    void original::chain<TYPE, ALLOC>::destroyNode(chainNode *node) noexcept {
+        this->rebind_alloc.destroy(node);
+        this->rebind_alloc.deallocate(node, 1);
+    }
+
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::chainInit() -> void
     {
-        auto* pivot = new chainNode();
+        auto pivot = this->createNode();
         this->size_ = 0;
         this->begin_ = pivot->getPNext();
         this->end_ = pivot;
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::firstAdd(chainNode* node) -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::firstAdd(chainNode* node) -> void
     {
         chainNode::connect(this->end_, node);
         this->begin_ = node;
@@ -463,82 +485,82 @@ namespace original {
         this->size_ += 1;
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::lastDelete() -> chainNode*
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::lastDelete() -> chainNode*
     {
-        auto* last = this->end_;
-        delete last->getPPrev();
+        auto last = this->end_;
+        this->destroyNode(last->getPPrev());
         chainNode::connect(nullptr, last);
         this->chainInit();
         return last;
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::chainDestruction() -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::chainDestruction() -> void
     {
-        auto* current = this->end_;
+        auto current = this->end_;
         while (current) {
-            auto* prev = current->getPPrev();
-            delete current;
+            auto prev = current->getPPrev();
+            this->destroyNode(current);
             current = prev;
         }
     }
 
-    template<typename TYPE>
-    original::chain<TYPE>::Iterator::Iterator(chainNode* ptr)
+    template <typename TYPE, typename ALLOC>
+    original::chain<TYPE, ALLOC>::Iterator::Iterator(chainNode* ptr)
         : doubleDirectionIterator<TYPE>::doubleDirectionIterator(ptr) {}
 
-    template<typename TYPE>
-    original::chain<TYPE>::Iterator::Iterator(const Iterator& other)
+    template <typename TYPE, typename ALLOC>
+    original::chain<TYPE, ALLOC>::Iterator::Iterator(const Iterator& other)
         : doubleDirectionIterator<TYPE>::doubleDirectionIterator(nullptr) {
         this->operator=(other);
     }
 
-    template<typename TYPE>
-    auto original::chain<TYPE>::Iterator::operator=(const Iterator& other) -> Iterator& {
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::Iterator::operator=(const Iterator& other) -> Iterator& {
         if (this == &other) return *this;
         doubleDirectionIterator<TYPE>::operator=(other);
         return *this;
     }
 
-    template<typename TYPE>
-    auto original::chain<TYPE>::Iterator::clone() const -> Iterator* {
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::Iterator::clone() const -> Iterator* {
         return new Iterator(*this);
     }
 
-    template<typename TYPE>
-    auto original::chain<TYPE>::Iterator::atPrev(const iterator<TYPE> *other) const -> bool {
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::Iterator::atPrev(const iterator<TYPE> *other) const -> bool {
         auto other_it = dynamic_cast<const Iterator*>(other);
         return other_it != nullptr && this->_ptr->getPNext() == other_it->_ptr;
     }
 
-    template<typename TYPE>
-    auto original::chain<TYPE>::Iterator::atNext(const iterator<TYPE> *other) const -> bool {
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::Iterator::atNext(const iterator<TYPE> *other) const -> bool {
         auto other_it = dynamic_cast<const Iterator*>(other);
         return other_it != nullptr && other_it->_ptr->getPNext() == this->_ptr;
     }
 
-    template<typename TYPE>
-    auto original::chain<TYPE>::Iterator::className() const -> std::string {
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::Iterator::className() const -> std::string {
         return "chain::Iterator";
     }
 
-    template <typename TYPE>
-    original::chain<TYPE>::chain() : size_(0)
+    template <typename TYPE, typename ALLOC>
+    original::chain<TYPE, ALLOC>::chain(const ALLOC& alloc) : baseList<TYPE, ALLOC>(alloc), size_(0), rebind_alloc(rebind_alloc_node{})
     {
         chainInit();
     }
 
-    template<typename TYPE>
-    original::chain<TYPE>::chain(const chain& other) : chain(){
+    template <typename TYPE, typename ALLOC>
+    original::chain<TYPE, ALLOC>::chain(const chain& other) : chain(){
         this->operator=(other);
     }
 
-    template <typename TYPE>
-    original::chain<TYPE>::chain(const std::initializer_list<TYPE>& list)
+    template <typename TYPE, typename ALLOC>
+    original::chain<TYPE, ALLOC>::chain(const std::initializer_list<TYPE>& list)
         : chain() {
         for (const auto& e : list) {
-            auto* cur_node = new chainNode(e);
+            auto cur_node = this->createNode(e);
             if (this->size() == 0)
             {
                 this->firstAdd(cur_node);
@@ -551,11 +573,11 @@ namespace original {
         }
     }
 
-    template <typename TYPE>
-    original::chain<TYPE>::chain(const array<TYPE>& arr)
+    template <typename TYPE, typename ALLOC>
+    original::chain<TYPE, ALLOC>::chain(const array<TYPE>& arr)
         : chain() {
         for (u_integer i = 0; i < arr.size(); i++) {
-            auto* cur_node = new chainNode(arr.get(i));
+            auto cur_node = this->createNode(arr.get(i));
             if (this->size() == 0)
             {
                 this->firstAdd(cur_node);
@@ -568,38 +590,41 @@ namespace original {
         }
     }
 
-    template<typename TYPE>
-    original::chain<TYPE>& original::chain<TYPE>::operator=(const chain& other){
+    template <typename TYPE, typename ALLOC>
+    original::chain<TYPE, ALLOC>& original::chain<TYPE, ALLOC>::operator=(const chain& other){
         if (this == &other) return *this;
         this->chainDestruction();
         this->size_ = other.size_;
         if (this->size() != 0){
-            auto* other_ = other.begin_->getPPrev();
-            auto* pivot = new chainNode(other_->getVal());
+            auto other_ = other.begin_->getPPrev();
+            auto pivot = this->createNode(other_->getVal());
             other_ = other_->getPNext();
-            chainNode::connect(pivot, new chainNode(other_->getVal()));
+            chainNode::connect(pivot, this->createNode(other_->getVal()));
             this->begin_ = pivot->getPNext();
-            auto* this_ = this->begin_;
+            auto this_ = this->begin_;
             while (other_ != other.end_){
                 other_ = other_->getPNext();
-                chainNode::connect(this_, new chainNode(other_->getVal()));
+                chainNode::connect(this_, this->createNode(other_->getVal()));
                 this_ = this_->getPNext();
             }
             this->end_ = this_;
         } else{
             this->chainInit();
         }
+        if constexpr (ALLOC::propagate_on_container_copy_assignment::value){
+            this->allocator = other.allocator;
+        }
         return *this;
     }
 
-    template <typename TYPE>
-    original::chain<TYPE>::chain(chain&& other) noexcept : chain()
+    template <typename TYPE, typename ALLOC>
+    original::chain<TYPE, ALLOC>::chain(chain&& other) noexcept : chain()
     {
         this->operator=(std::move(other));
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::operator=(chain&& other) noexcept -> chain&
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::operator=(chain&& other) noexcept -> chain&
     {
         if (this == &other)
             return *this;
@@ -609,35 +634,38 @@ namespace original {
         this->end_ = other.end_;
         this->size_ = other.size_;
         other.chainInit();
+        if constexpr (ALLOC::propagate_on_container_move_assignment::value){
+            this->allocator = std::move(other.allocator);
+        }
         return *this;
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::operator+=(chain& other) -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::operator+=(chain& other) -> void
     {
         if (other.empty()) return;
 
         this->size_ += other.size_;
-        delete other.begin_->getPPrev();
+        this->destroyNode(other.begin_->getPPrev());
         chainNode::connect(this->end_, other.begin_);
         this->end_ = other.end_;
         other.chainInit();
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::size() const -> u_integer
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::size() const -> u_integer
     {
         return this->size_;
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::className() const -> std::string
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::className() const -> std::string
     {
         return "chain";
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::get(integer index) const -> TYPE
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::get(integer index) const -> TYPE
     {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
@@ -646,8 +674,8 @@ namespace original {
         return cur->getVal();
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::operator[](const integer index) -> TYPE&
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::operator[](const integer index) -> TYPE&
     {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
@@ -656,18 +684,18 @@ namespace original {
         return cur->getVal();
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::set(integer index, const TYPE &e) -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::set(integer index, const TYPE &e) -> void
     {
         if (this->indexOutOfBound(index)){
             throw outOfBoundError();
         }
-        auto* cur = this->findNode(this->parseNegIndex(index));
+        auto cur = this->findNode(this->parseNegIndex(index));
         cur->setVal(e);
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::indexOf(const TYPE &e) const -> u_integer {
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::indexOf(const TYPE &e) const -> u_integer {
         u_integer i = 0;
         for (chainNode* current = this->begin_; current != nullptr; current = current->getPNext()) {
             if (current->getVal() == e) {
@@ -678,14 +706,14 @@ namespace original {
         return this->size();
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::pushBegin(const TYPE &e) -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::pushBegin(const TYPE &e) -> void
     {
-        auto* new_node = new chainNode(e);
+        auto new_node = this->createNode(e);
         if (this->size() == 0){
             this->firstAdd(new_node);
         } else{
-            auto* pivot = this->begin_->getPPrev();
+            auto pivot = this->begin_->getPPrev();
             chainNode::connect(new_node, this->begin_);
             chainNode::connect(pivot, new_node);
             this->begin_ = new_node;
@@ -693,8 +721,8 @@ namespace original {
         }
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::push(integer index, const TYPE &e) -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::push(integer index, const TYPE &e) -> void
     {
         index = this->parseNegIndex(index);
         if (index == 0){
@@ -705,19 +733,19 @@ namespace original {
             if (this->indexOutOfBound(index)){
                 throw outOfBoundError();
             }
-            auto* new_node = new chainNode(e);
-            chainNode* cur = this->findNode(index);
-            auto* prev = cur->getPPrev();
+            auto new_node = this->createNode(e);
+            auto cur = this->findNode(index);
+            auto prev = cur->getPPrev();
             chainNode::connect(prev, new_node);
             chainNode::connect(new_node, cur);
             this->size_ += 1;
         }
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::pushEnd(const TYPE &e) -> void
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::pushEnd(const TYPE &e) -> void
     {
-        auto* new_node = new chainNode(e);
+        auto new_node = this->createNode(e);
         if (this->size() == 0){
             this->firstAdd(new_node);
         } else{
@@ -727,22 +755,22 @@ namespace original {
         }
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::popBegin() -> TYPE
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::popBegin() -> TYPE
     {
         TYPE res;
         if (this->size() == 0){
             throw noElementError();
         }
         if (this->size() == 1){
-            auto* del = this->lastDelete();
+            auto del = this->lastDelete();
             res = del->getVal();
-            delete del;
+            this->destroyNode(del);
         } else{
             res = this->begin_->getVal();
-            auto* new_begin = this->begin_->getPNext();
-            auto* pivot = this->begin_->getPPrev();
-            delete this->begin_;
+            auto new_begin = this->begin_->getPNext();
+            auto pivot = this->begin_->getPPrev();
+            this->destroyNode(this->begin_);
             this->begin_ = new_begin;
             chainNode::connect(pivot, this->begin_);
             this->size_ -= 1;
@@ -750,8 +778,8 @@ namespace original {
         return res;
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::pop(integer index) -> TYPE
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::pop(integer index) -> TYPE
     {
         index = this->parseNegIndex(index);
         if (index == 0){
@@ -766,29 +794,29 @@ namespace original {
         TYPE res;
         chainNode* cur = this->findNode(index);
         res = cur->getVal();
-        auto* prev = cur->getPPrev();
-        auto* next = cur->getPNext();
+        auto prev = cur->getPPrev();
+        auto next = cur->getPNext();
         chainNode::connect(prev, next);
-        delete cur;
+        this->destroyNode(cur);
         this->size_ -= 1;
         return res;
     }
 
-    template <typename TYPE>
-    auto original::chain<TYPE>::popEnd() -> TYPE
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::popEnd() -> TYPE
     {
         TYPE res;
         if (this->size() == 0){
             throw noElementError();
         }
         if (this->size() == 1){
-            auto* del = this->lastDelete();
+            auto del = this->lastDelete();
             res = del->getVal();
-            delete del;
+            this->destroyNode(del);
         } else{
             res = this->end_->getVal();
-            auto* new_end = this->end_->getPPrev();
-            delete this->end_;
+            auto new_end = this->end_->getPPrev();
+            this->destroyNode(this->end_);
             this->end_ = new_end;
             chainNode::connect(this->end_, nullptr);
             this->size_ -= 1;
@@ -796,18 +824,18 @@ namespace original {
         return res;
     }
 
-    template<typename TYPE>
-    auto original::chain<TYPE>::begins() const -> Iterator* {
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::begins() const -> Iterator* {
         return new Iterator(this->begin_);
     }
 
-    template<typename TYPE>
-    auto original::chain<TYPE>::ends() const -> Iterator* {
+    template <typename TYPE, typename ALLOC>
+    auto original::chain<TYPE, ALLOC>::ends() const -> Iterator* {
         return new Iterator(this->end_);
     }
 
-    template <typename TYPE>
-    original::chain<TYPE>::~chain() {
+    template <typename TYPE, typename ALLOC>
+    original::chain<TYPE, ALLOC>::~chain() {
         this->chainDestruction();
     }
 
