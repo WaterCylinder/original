@@ -23,7 +23,7 @@ namespace original {
  * @details Provides a common interface for container classes to manage a collection of elements.
  *          Supports querying the size, checking for emptiness, and checking if an element is contained.
  */
-template <typename TYPE, typename ALLOC = allocator<TYPE>>
+template <typename TYPE, typename ALLOC>
 class container {
 protected:
     ALLOC allocator;

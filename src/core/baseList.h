@@ -30,7 +30,7 @@ namespace original {
      *          This class defines the basic functionality for variable-size containers but requires derived classes
      *          to implement certain actions like element insertion and removal at arbitrary positions.
      */
-    template <typename TYPE, typename ALLOC = allocator<TYPE>>
+    template <typename TYPE, typename ALLOC>
     class baseList : public serial<TYPE, ALLOC> {
     protected:
         using serial<TYPE, ALLOC>::serial;
