@@ -10,7 +10,8 @@
 
 #include "transform.h"
 #include "chain.h"
-#include <memory>
+#include "refCntPtr.h"
+
 
 namespace original {
 
@@ -26,7 +27,7 @@ namespace original {
      */
     template<typename TYPE>
     class transformStream {
-        chain<std::shared_ptr<transform<TYPE>>> stream;  ///< Ordered transformation chain
+        chain<strongPtr<transform<TYPE>>> stream;  ///< Ordered transformation chain
 
         /**
          * @brief Appends a cloned transformation to the end
@@ -111,12 +112,12 @@ namespace original {
     template<typename TYPE>
     auto original::transformStream<TYPE>::pushEnd(const transform<TYPE>& t) -> void
     {
-        this->stream.pushEnd(std::shared_ptr<transform<TYPE>>(t.clone()));
+        this->stream.pushEnd(strongPtr<transform<TYPE>>(t.clone()));
     }
 
     template<typename TYPE>
     void original::transformStream<TYPE>::operator()(TYPE& t) {
-        for (const auto& transform : this->stream) {
+        for (auto& transform : this->stream) {
             (*transform)(t);
         }
     }
@@ -131,7 +132,7 @@ namespace original {
     template <typename TYPE>
     auto original::transformStream<TYPE>::operator+(const transformStream& ts) -> transformStream&
     {
-        for (const auto& transform: ts.stream)
+        for (auto& transform: ts.stream)
         {
             this->pushEnd(*transform);
         }

@@ -3,6 +3,8 @@
 
 #include "filter.h"
 #include "chain.h"
+#include "refCntPtr.h"
+
 
 /**
 * @file filterStream.h
@@ -24,10 +26,12 @@ namespace original{
     template<typename TYPE>
     class filterStream
     {
+        static const strongPtr<filter<TYPE>> nullFilter;
+
         /// @internal Operator types for postfix conversion
         enum class opts{AND = 1, OR = 0, NOT = 2, LEFT_BRACKET = 3, RIGHT_BRACKET = 4};
 
-        mutable chain<std::shared_ptr<filter<TYPE>>> stream; ///< Filter operand chain
+        mutable chain<strongPtr<filter<TYPE>>> stream; ///< Filter operand chain
         mutable chain<opts> ops; ///< Operator sequence storage
         mutable bool flag; ///< Postfix conversion status flag
 
@@ -148,6 +152,9 @@ namespace original{
         friend filterStream<T> group(const filter<T>& f);
     };
 
+    template <typename TYPE>
+    const strongPtr<filter<TYPE>> filterStream<TYPE>::nullFilter{};
+
     /**
     * @brief Create AND filterStream from two filters
     * @tparam T Element type
@@ -255,8 +262,8 @@ namespace original{
     template <typename TYPE>
     auto original::filterStream<TYPE>::addBrackets() -> void
     {
-        this->stream.pushBegin(nullptr);
-        this->stream.pushEnd(nullptr);
+        this->stream.pushBegin(nullFilter);
+        this->stream.pushEnd(nullFilter);
         this->ops.pushBegin(opts::LEFT_BRACKET);
         this->ops.pushEnd(opts::RIGHT_BRACKET);
     }
@@ -264,38 +271,38 @@ namespace original{
     template <typename TYPE>
     auto original::filterStream<TYPE>::addAndOpt() -> void
     {
-        this->stream.pushEnd(nullptr);
+        this->stream.pushEnd(nullFilter);
         this->ops.pushEnd(opts::AND);
     }
 
     template <typename TYPE>
     auto original::filterStream<TYPE>::addOrOpt() -> void
     {
-        this->stream.pushEnd(nullptr);
+        this->stream.pushEnd(nullFilter);
         this->ops.pushEnd(opts::OR);
     }
 
     template <typename TYPE>
     auto original::filterStream<TYPE>::addNotOpt() -> void
     {
-        this->stream.pushBegin(nullptr);
+        this->stream.pushBegin(nullFilter);
         this->ops.pushBegin(opts::NOT);
     }
 
     template <typename TYPE>
     auto original::filterStream<TYPE>::pushEnd(const filter<TYPE>& f) -> void
     {
-        this->stream.pushEnd(std::shared_ptr<filter<TYPE>>(f.clone()));
+        this->stream.pushEnd(strongPtr<filter<TYPE>>(f.clone()));
     }
 
     template <typename TYPE>
     auto original::filterStream<TYPE>::pushAll(const filterStream& fs) -> void
     {
-        for (const auto& filter: fs.stream)
+        for (auto& filter: fs.stream)
         {
             this->stream.pushEnd(filter);
         }
-        for (const auto& op: fs.ops)
+        for (auto& op: fs.ops)
         {
             this->ops.pushEnd(op);
         }
@@ -305,7 +312,7 @@ namespace original{
     auto original::filterStream<TYPE>::toPostFix() const -> void{
         this->flag = true;
 
-        chain<std::shared_ptr<filter<TYPE>>> stream_post;
+        chain<strongPtr<filter<TYPE>>> stream_post;
         chain<opts> ops_post;
         chain<opts> ops_tmp;
 
@@ -313,7 +320,7 @@ namespace original{
         auto it_ops = this->ops.begins();
 
         while (it_stream->isValid()){
-            if (it_stream->get() != nullptr){
+            if (it_stream->get() != nullFilter){
                 stream_post.pushEnd(it_stream->get());
             } else if (it_ops->isValid()){
                 switch (it_ops->get()) {
@@ -322,7 +329,7 @@ namespace original{
                         break;
                     case opts::RIGHT_BRACKET:
                         while (!ops_tmp.empty() && ops_tmp[-1] != opts::LEFT_BRACKET){
-                            stream_post.pushEnd(nullptr);
+                            stream_post.pushEnd(nullFilter);
                             ops_post.pushEnd(ops_tmp.popEnd());
                         }
                         ops_tmp.popEnd();
@@ -334,7 +341,7 @@ namespace original{
                         while (!ops_tmp.empty()
                                && ops_tmp[-1] >= it_ops->get()
                                && ops_tmp[-1] != opts::LEFT_BRACKET){
-                            stream_post.pushEnd(nullptr);
+                            stream_post.pushEnd(nullFilter);
                             ops_post.pushEnd(ops_tmp.popEnd());
                         }
                         ops_tmp.pushEnd(it_ops->get());
@@ -346,7 +353,7 @@ namespace original{
         }
 
         while (!ops_tmp.empty()){
-            stream_post.pushEnd(nullptr);
+            stream_post.pushEnd(nullFilter);
             ops_post.pushEnd(ops_tmp.popEnd());
         }
         this->stream = stream_post;
@@ -481,7 +488,7 @@ namespace original{
         auto it_ops = this->ops.begins();
 
         while (it_stream->isValid()){
-            if (it_stream->get() != nullptr){
+            if (it_stream->get() != nullFilter){
                 value_stack.pushEnd(it_stream->get()->operator()(t));
             } else if (it_ops->isValid()){
                 switch (it_ops->get()) {
