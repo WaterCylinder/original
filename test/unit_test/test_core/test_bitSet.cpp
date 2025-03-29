@@ -5,7 +5,7 @@
 #include "gtest/gtest.h"
 
 
-    template <size_t N, template <typename> typename ALLOC = original::allocator>
+    template <size_t N, typename ALLOC = original::allocator<bool>>
     bool compareBitSets(const original::bitSet<ALLOC>& a, const std::bitset<N>& b)
     {
         if (a.size() != N)
@@ -211,4 +211,8 @@ TEST(BitSetTest, Iterator) {
     ASSERT_EQ(it2->getElem(), false);  // 1位
     ASSERT_EQ(it3->getElem(), true);  // 5位
     ASSERT_EQ(it4->getElem(), true);  // 10位
+
+    delete it4;
+    delete it3;
+    delete it2;
 }
