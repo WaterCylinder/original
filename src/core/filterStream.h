@@ -26,6 +26,7 @@ namespace original{
     template<typename TYPE>
     class filterStream
     {
+        ///< Null filter instance used as operator placeholder in stream processing
         static const strongPtr<filter<TYPE>> nullFilter;
 
         /// @internal Operator types for postfix conversion
