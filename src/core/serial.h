@@ -25,7 +25,7 @@ namespace original {
      *          It provides methods for element retrieval, bounds checking, and negative index handling.
      *          Derived classes must implement `get()`, `operator[]`, `set()`, and `indexOf()` methods.
      */
-    template <typename TYPE, typename ALLOC = allocator<TYPE>>
+    template <typename TYPE, typename ALLOC>
     class serial : public container<TYPE, ALLOC> {
     protected:
         using container<TYPE, ALLOC>::container;
