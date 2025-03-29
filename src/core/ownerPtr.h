@@ -34,16 +34,7 @@ namespace original {
         * @param p Pointer to take ownership of
         * @warning Transfers ownership responsibility to ownerPtr
         */
-        explicit ownerPtr(TYPE* p);
-
-        /**
-        * @brief In-place construction with arguments
-        * @tparam Args Constructor argument types
-        * @param args Arguments to forward to TYPE constructor
-        * @note Allocates and owns new dynamic instance
-        */
-        template<typename... Args>
-        explicit ownerPtr(Args&&... args);
+        explicit ownerPtr(TYPE* p = std::nullptr_t{});
 
         ownerPtr(const ownerPtr& other) = delete; ///< Copy construction prohibited
         ownerPtr& operator=(const ownerPtr& other) = delete; ///< Copy assignment prohibited
@@ -83,32 +74,18 @@ namespace original {
         ~ownerPtr() override;
 
         // Factory friend functions
-        template <typename T, typename DEL>
-        friend ownerPtr<T, DEL> makeOwnerPtr();
+        template <typename T, typename DEL, typename... Args>
+        friend ownerPtr<T, DEL> makeOwnerPtr(Args&&... args);
 
-        template <typename T, typename DEL>
-        friend ownerPtr<T, DEL> makeOwnerPtr(u_integer size);
+        template <typename T, typename DEL, typename... Args>
+        friend ownerPtr<T, DEL> makeOwnerPtrArray(u_integer size, Args&&... args);
     };
 
-    /**
-    * @brief Factory function for single object ownership
-    * @tparam T Object type to create
-    * @tparam DEL Deletion policy type (default: deleter<T>)
-    * @return ownerPtr Owning pointer to new instance
-    */
-    template <typename T, typename DEL = deleter<T>>
-    ownerPtr<T, DEL> makeOwnerPtr();
+    template <typename T, typename DEL = deleter<T>, typename... Args>
+    ownerPtr<T, DEL> makeOwnerPtr(Args&&... args);
 
-    /**
-    * @brief Create ownerPtr with array allocation
-    * @tparam T Array element type
-    * @tparam DEL Array deletion policy type (default: deleter<T[]>)
-    * @param size Number of elements to allocate
-    * @return Newly created array ownerPtr
-    * @note Uses array new for allocation
-    */
-    template <typename T, typename DEL = deleter<T[]>>
-    ownerPtr<T, DEL> makeOwnerPtr(u_integer size);
+    template <typename T, typename DEL = deleter<T[]>, typename... Args>
+    ownerPtr<T, DEL> makeOwnerPtrArray(u_integer size, Args&&... args);
 
 
     // ----------------- Definitions of ownerPtr.h -----------------
@@ -121,13 +98,7 @@ namespace original {
     }
 
     template<typename TYPE, typename DELETER>
-    template<typename ... Args>
-    ownerPtr<TYPE, DELETER>::ownerPtr(Args&& ...args) : ownerPtr(static_cast<TYPE*>(nullptr)) {
-        this->setPtr(new TYPE(std::forward<Args>(args)...));
-    }
-
-    template<typename TYPE, typename DELETER>
-    ownerPtr<TYPE, DELETER>::ownerPtr(ownerPtr &&other) noexcept : ownerPtr(static_cast<TYPE*>(nullptr)){
+    ownerPtr<TYPE, DELETER>::ownerPtr(ownerPtr &&other) noexcept : ownerPtr(){
         this->operator=(std::move(other));
     }
 
@@ -161,14 +132,14 @@ namespace original {
         this->removeStrongRef();
     }
 
-    template<typename T, typename DEL>
-    ownerPtr<T, DEL> makeOwnerPtr() {
-        return ownerPtr<T, DEL>(new T{});
+    template<typename T, typename DEL, typename ... Args>
+    ownerPtr<T, DEL> makeOwnerPtr(Args &&...args) {
+        return ownerPtr<T, DEL>(new T{std::forward<Args>(args)...});
     }
 
-    template<typename T, typename DEL>
-    ownerPtr<T, DEL> makeOwnerPtr(const u_integer size) {
-        return ownerPtr<T, DEL>(new T[size]);
+    template<typename T, typename DEL, typename ... Args>
+    ownerPtr<T, DEL> makeOwnerPtrArray(const u_integer size, Args&& ...args) {
+        return ownerPtr<T, DEL>(new T[size]{std::forward<Args>(args)...});
     }
 }
 

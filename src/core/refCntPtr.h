@@ -35,7 +35,7 @@ namespace original{
         * @param p Pointer to manage
         * @note Initializes reference counting system
         */
-        explicit refCntPtr(TYPE* p);
+        explicit refCntPtr(TYPE* p = std::nullptr_t{});
     public:
         using autoPtr<TYPE, DERIVED, DELETER>::operator==;
         using autoPtr<TYPE, DERIVED, DELETER>::operator!=;
@@ -106,15 +106,7 @@ namespace original{
         * @param p Pointer to manage
         * @warning Shares ownership of existing resource
         */
-        explicit strongPtr(TYPE* p);
-
-        /**
-        * @brief In-place construction with arguments
-        * @tparam Args Constructor argument types
-        * @param args Arguments to forward to TYPE constructor
-        */
-        template<typename... Args>
-        explicit strongPtr(Args&&... args);
+        explicit strongPtr(TYPE* p = std::nullptr_t{});
 
         /**
         * @brief Copy constructor shares ownership
@@ -165,11 +157,11 @@ namespace original{
         */
         ~strongPtr() override;
 
-        template <typename T, typename DEL>
-        friend strongPtr<T, DEL> makeStrongPtr();
+        template <typename T, typename DEL, typename... Args>
+        friend strongPtr<T, DEL> makeStrongPtr(Args&&... args);
 
-        template <typename T, typename DEL>
-        friend strongPtr<T, DEL> makeStrongPtr(u_integer size);
+        template <typename T, typename DEL, typename... Args>
+        friend strongPtr<T, DEL> makeStrongPtrArray(u_integer size, Args&&... args);
     };
 
     /**
@@ -316,24 +308,11 @@ namespace original{
         ~weakPtr() override;
     };
 
-    /**
-    * @brief Factory for default-constructed strongPtr
-    * @tparam T Object type
-    * @tparam DEL Deletion policy (default: deleter<T>)
-    * @return New shared ownership instance
-    */
-    template <typename T, typename DEL = deleter<T>>
-    strongPtr<T, DEL> makeStrongPtr();
+    template <typename T, typename DEL = deleter<T>, typename... Args>
+    strongPtr<T, DEL> makeStrongPtr(Args&&... args);
 
-    /**
-    * @brief Factory for array-allocated strongPtr
-    * @tparam T Array element type
-    * @tparam DEL Array deletion policy (default: deleter<T[]>)
-    * @param size Number of elements
-    * @return Shared array ownership
-    */
-    template <typename T, typename DEL = deleter<T[]>>
-    strongPtr<T, DEL> makeStrongPtr(u_integer size);
+    template <typename T, typename DEL = deleter<T[]>, typename... Args>
+    strongPtr<T, DEL> makeStrongPtrArray(u_integer size, Args&&... args);
 
 
     // ----------------- Definitions of refCntPtr.h -----------------
@@ -379,13 +358,7 @@ namespace original{
     }
 
     template<typename TYPE, typename DELETER>
-    template<typename ... Args>
-    strongPtr<TYPE, DELETER>::strongPtr(Args &&...args) : strongPtr(static_cast<TYPE*>(nullptr)) {
-        this->setPtr(new TYPE(std::forward<Args>(args)...));
-    }
-
-    template<typename TYPE, typename DELETER>
-    strongPtr<TYPE, DELETER>::strongPtr(const strongPtr& other) : strongPtr(static_cast<TYPE*>(nullptr)){
+    strongPtr<TYPE, DELETER>::strongPtr(const strongPtr& other) : strongPtr(){
         this->operator=(other);
     }
 
@@ -402,7 +375,7 @@ namespace original{
     }
 
     template<typename TYPE, typename DELETER>
-    strongPtr<TYPE, DELETER>::strongPtr(strongPtr&& other) noexcept : strongPtr(static_cast<TYPE*>(nullptr)) {
+    strongPtr<TYPE, DELETER>::strongPtr(strongPtr&& other) noexcept : strongPtr() {
         this->operator=(std::move(other));
     }
 
@@ -437,19 +410,19 @@ namespace original{
         this->removeStrongRef();
     }
 
-    template<typename T, typename DEL>
-    strongPtr<T, DEL> makeStrongPtr() {
-        return strongPtr<T, DEL>(new T{});
+    template<typename T, typename DEL, typename ... Args>
+    strongPtr<T, DEL> makeStrongPtr(Args &&...args) {
+        return strongPtr<T, DEL>(new T(std::forward<Args>(args)...));
     }
 
-    template<typename T, typename DEL>
-    strongPtr<T, DEL> makeStrongPtr(const u_integer size) {
-        return strongPtr<T, DEL>(new T[size]);
+    template<typename T, typename DEL, typename ... Args>
+    strongPtr<T, DEL> makeStrongPtrArray(const u_integer size, Args &&...args) {
+        return strongPtr<T, DEL>(new T[size]{std::forward<Args>(args)...});
     }
 
     template<typename TYPE, typename DELETER>
     weakPtr<TYPE, DELETER>::weakPtr()
-        : refCntPtr<TYPE, weakPtr, DELETER>(static_cast<TYPE*>(nullptr)) {
+        : refCntPtr<TYPE, weakPtr, DELETER>() {
         this->addWeakRef();
     }
 
@@ -509,7 +482,7 @@ namespace original{
 
     template<typename TYPE, typename DELETER>
     strongPtr<TYPE, DELETER> weakPtr<TYPE, DELETER>::lock() const {
-        strongPtr<TYPE, DELETER> strong_ptr{static_cast<TYPE*>(nullptr)};
+        strongPtr<TYPE, DELETER> strong_ptr;
         if (!this->expired()){
             strong_ptr.removeStrongRef();
             strong_ptr.clean();
