@@ -166,6 +166,29 @@ public:
         return "Return type of callback mismatch.";
     }
 };
+
+/**
+* @class allocateError
+* @brief Exception for memory allocation failures.
+* @details Thrown when memory allocation requests cannot be fulfilled by the system.
+*
+* This exception typically indicates:
+* - Insufficient available memory
+* - Memory fragmentation preventing large block allocation
+* - System-imposed memory limits being reached
+*
+* @note Consider checking system memory status before large allocations
+*       when this exception might be expected.
+*/
+class allocateError final : public error
+{
+    public:
+    [[nodiscard]] auto what() const noexcept -> const char* override
+    {
+        return "Can not allocate memory.";
+    }
+};
+
 } // namespace original
 
 // ----------------- Definitions of error.h -----------------
@@ -229,6 +252,12 @@ template <const bool FALSE_CONDITION>
 class original::staticError<original::callbackReturnTypeError, FALSE_CONDITION>
 {
     static_assert(!FALSE_CONDITION, "Callback signature mismatch");
+};
+
+template <const bool FALSE_CONDITION>
+class original::staticError<original::allocateError, FALSE_CONDITION>
+{
+    static_assert(!FALSE_CONDITION, "Can not allocate memory");
 };
 
 #endif // ERROR_H
