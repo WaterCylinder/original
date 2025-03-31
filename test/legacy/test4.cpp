@@ -77,7 +77,7 @@ int main(){
     std::cout << t7.size() << std::endl;
     auto t8 = t4 + t4.slice<2, 1>() + t4.slice<1, 3>() + makeTuple(t4.get<1>());
     std::cout << t8 << std::endl;
-    auto t9 = original::tuple<int>{1};
+    auto t9 = original::tuple{1};
     t9.set<0>(0.2);
     std::cout << t9 << std::endl;
     auto op = original::makeOwnerPtr<original::vector<int>>();
