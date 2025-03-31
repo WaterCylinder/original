@@ -1,6 +1,8 @@
 #ifndef ALLOCATOR_H
 #define ALLOCATOR_H
 
+
+#include "error.h"
 #include "type_traits"
 #include "utility"
 
@@ -36,7 +38,18 @@ namespace original {
         template <typename O_TYPE>
         using rebind_alloc = DERIVED<O_TYPE>;
 
-        constexpr allocatorBase() = default; ///< Default constructor
+        /**
+        * @brief Constructs a new allocatorBase instance
+        * @details Performs compile-time validation of the allocated type:
+        * - Ensures TYPE is not void
+        * - Ensures TYPE is a complete type (size > 0)
+        *
+        * @code{.cpp}
+        * allocatorBase<int, allocator> a;  // Valid
+        * allocatorBase<void, allocator> b; // Compile-time error
+        * @endcode
+        */
+        constexpr allocatorBase();
 
         /**
         * @brief Allocates raw memory
@@ -94,6 +107,8 @@ namespace original {
         * @brief Allocates memory using global operator new
         * @param size Number of elements to allocate
         * @return Pointer to allocated memory
+        * @throw allocateError When memory allocation fails
+        * @note Returns nullptr if size is 0
         */
         TYPE* allocate(u_integer size) override;
 
@@ -104,6 +119,12 @@ namespace original {
         */
         void deallocate(TYPE* ptr, u_integer size) override;
     };
+}
+
+template <typename TYPE, template <typename> class DERIVED>
+constexpr original::allocatorBase<TYPE, DERIVED>::allocatorBase()
+{
+    staticError<allocateError, sizeof(TYPE) == 0 || std::is_void_v<TYPE>>{};
 }
 
 template<typename TYPE, template <typename> typename DERIVED>
@@ -123,7 +144,15 @@ void original::allocatorBase<TYPE, DERIVED>::destroy(O_TYPE *o_ptr) {
 
 template<typename TYPE>
 TYPE* original::allocator<TYPE>::allocate(const u_integer size) {
-    return static_cast<TYPE*>(operator new(size * sizeof(TYPE)));
+    if (size == 0) {
+        return nullptr;
+    }
+
+    try {
+        return static_cast<TYPE*>(operator new(size * sizeof(TYPE)));
+    } catch (const std::bad_alloc&) {
+        throw allocateError();
+    }
 }
 
 template<typename TYPE>
