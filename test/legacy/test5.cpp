@@ -59,5 +59,10 @@ int main(){
     for (int i = 0; i < size; ++i) {
         std::cout << p11[i] << std::endl;
     }
+    auto p12 = original::makeStrongPtrArray<original::array<int>>(10, 8);
+    for (original::u_integer i = 0; i < 10; ++i)
+    {
+        std::cout << p12[i] << std::endl;
+    }
     return 0;
 }
