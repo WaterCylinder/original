@@ -448,7 +448,12 @@ namespace original{
 
     template<typename T, typename DEL, typename ... Args>
     strongPtr<T, DEL> makeStrongPtrArray(const u_integer size, Args &&...args) {
-        return strongPtr<T, DEL>(new T[size]{std::forward<Args>(args)...});
+        auto strong_ptr = strongPtr<T, DEL>(new T[size]);
+        for (u_integer i = 0; i < size; i++)
+        {
+            strong_ptr[i] = T(std::forward<Args>(args)...);
+        }
+        return strong_ptr;
     }
 
     template<typename TYPE, typename DELETER>

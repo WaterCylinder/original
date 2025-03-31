@@ -170,7 +170,12 @@ namespace original {
 
     template<typename T, typename DEL, typename ... Args>
     ownerPtr<T, DEL> makeOwnerPtrArray(const u_integer size, Args&& ...args) {
-        return ownerPtr<T, DEL>(new T[size]{std::forward<Args>(args)...});
+        auto owner_ptr = ownerPtr<T, DEL>(new T[size]);
+        for (u_integer i = 0; i < size; i++)
+        {
+            owner_ptr[i] = T(std::forward<Args>(args)...);
+        }
+        return owner_ptr;
     }
 }
 
