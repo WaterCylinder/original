@@ -3,6 +3,7 @@
 #pragma once
 
 #include <initializer_list>
+#include "allocator.h"
 #include "config.h"
 #include "baseArray.h"
 #include "iterationStream.h"
