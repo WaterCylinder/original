@@ -108,28 +108,49 @@ array("Hello, original!")
 
 ## 模块进度
 
-### 已实现&正在实现：
-
 #### Core
 
-正在实现中。包含了常用容器与结构、算法、内存管理等部分，是项目的核心功能模块。
+正在实现中。已实现部分：
 
-常用容器与结构：已经实现array（定长数组）、chain（双向链表）、forwardChain（单向链表）、vector（变长数组）、bitSet（位集合）、blocksList（双端队列的底层容器）、stack&queue&deque&prique（栈、队列、双端队列、优先队列四种容器适配器），尚未实现部分有哈希表和树表（红黑树实现）等。
+##### 容器：
 
-算法：已经实现iterator（迭代器）、filter&filterStream（谓词工具类）、transform&transformStream（单一操作类）、comparator（比较器）、部分算法（非修改类、修改类算法），排序算法（堆算法）等。
+定长容器：定长数组 array，位集合 bitSet，变长容器：变长数组 vector，单向链表 forwardChain，双向链表 chain，块状链表 blocksList
 
-内存管理：待实现内存池、分配器、智能指针等。
+##### 容器接口：
+
+格式化输出接口 printable，元素比较接口 comparable，堆对象深拷贝接口 cloneable
+
+##### 算法库：
+
+布尔算法：allOf/anyOf/noneOf...，非修改算法 find/count/equal...，修改算法 fill/swap/forEach/...，排序算法 sort/stableSort/introSort...
+
+##### 容器适配器：
+
+栈 stack，队列 queue，双端队列 deque，优先队列 prique
+
+##### 算法适配器：
+
+迭代器 iterator/iterAdaptor，变换器 transform/transformStream，过滤器 filter/filterStream，比较器 comparator
+
+##### 编译期工具：
+
+二元组 couple，多元组 tuple
+
+##### 内存管理：
+
+自动指针 ownerPtr/strongPtr/weakPtr，分配器 allocatorBase/allocator，删除器 deleterBase/deleter
 
 
+#### asyncIO
 
-### 计划实现：
+计划实现，包含多线程和网络通信功能。
 
-#### 多线程&并发模块
+#### matrix
 
-#### 网络模块
+计划实现，包含张量，线性代数工具功能。
 
-#### 文件读取和结构化数据解析模块
+#### graph
 
-##### ...
+计划实现，包含图论结构和图算法。
 
 
