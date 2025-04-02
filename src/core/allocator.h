@@ -147,8 +147,6 @@ namespace original {
 
         [[nodiscard]] static constexpr u_integer getChunkIndex(u_integer size);
 
-        void deallocate(TYPE* ptr);
-
         void chunkAllocate(u_integer num_element, u_integer index);
 
         void reset() noexcept;
@@ -287,14 +285,6 @@ original::objPoolAllocator<TYPE>::objPoolAllocator(const u_integer index_max,con
         this->free_list_head[i] = nullptr;
         this->chunks_available[i] = 0;
     }
-}
-
-template<typename TYPE>
-void original::objPoolAllocator<TYPE>::deallocate(TYPE* ptr) {
-    auto p = reinterpret_cast<freeChunk*>(ptr);
-    p->next = this->free_list_head;
-    this->free_list_head = p;
-    this->chunks_available += 1;
 }
 
 template<typename TYPE>
