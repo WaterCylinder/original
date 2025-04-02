@@ -2,8 +2,6 @@
 #define ALLOCATOR_H
 
 
-#include <iostream>
-
 #include "error.h"
 #include "maths.h"
 #include "type_traits"
@@ -17,9 +15,40 @@
 */
 
 namespace original {
+
+    /**
+    * @class allocators
+    * @brief Utility class providing static memory allocation/de-allocation functions
+    * @details Contains static methods for raw memory operations that serve as the foundation
+    *          for other allocator implementations in this namespace.
+    */
+    class allocators final {
+        public:
+        /**
+        * @brief Allocates raw memory using global operator new
+        * @tparam TYPE Type of objects to allocate
+        * @param size Number of elements to allocate
+        * @return Pointer to allocated memory
+        * @throw allocateError When memory allocation fails
+        * @note Returns nullptr if size is 0
+        * @see free
+        */
+        template <typename TYPE>
+        static TYPE* malloc(u_integer size);
+
+        /**
+        * @brief Deallocates memory using global operator delete
+        * @tparam TYPE Type of objects being freed (auto deduced)
+        * @param ptr Pointer to memory to free
+        * @see malloc
+        */
+        template <typename TYPE>
+        static void free(TYPE* ptr);
+    };
+
     /**
     * @class allocatorBase
-    * @tparam TYPE Type of objects to allocate
+    * @tparam TYPE The type of objects to allocate
     * @tparam DERIVED CRTP template parameter for derived allocators
     * @brief Interface for other memory allocator implements
     * @details Provides common interface and utilities for memory management:
@@ -46,11 +75,6 @@ namespace original {
         * @details Performs compile-time validation of the allocated type:
         * - Ensures TYPE is not void
         * - Ensures TYPE is a complete type (size > 0)
-        *
-        * @code{.cpp}
-        * allocatorBase<int, allocator> a;  // Valid
-        * allocatorBase<void, allocator> b; // Compile-time error
-        * @endcode
         */
         constexpr allocatorBase();
 
@@ -92,10 +116,10 @@ namespace original {
     /**
     * @class allocator
     * @tparam TYPE Type of objects to allocate
-    * @brief Default memory allocator using global new/delete
+    * @brief Default memory allocator using allocators utilities
     * @details Implements standard-compliant allocator using:
-    * - ::operator new for allocation
-    * - ::operator delete for de-allocation
+    * - allocators::malloc for allocation
+    * - allocators::free for de-allocation
     * - Placement new for construction
     * - Explicit destructor calls
     * @extends allocatorBase
@@ -131,7 +155,7 @@ namespace original {
     * - Organizes memory into power-of-two sized chunks (1, 2, 4, 8, 16, 32, ... bytes)
     * - Maintains separate free lists for each chunk size
     * - Allocates memory in blocks (chunks) to reduce fragmentation
-    * - Falls back to global new/delete for allocations too large for the pool
+    * - Falls back to allocators::malloc/allocators::free for allocations too large for the pool
     *
     * Memory Management Approach:
     * 1. The allocator maintains multiple free lists, one for each size class (power-of-two)
@@ -143,13 +167,9 @@ namespace original {
     *    - Returns the chunk to its appropriate free list
     *    - Large allocations (outside pool) are freed immediately
     *
-    * @note This allocator is particularly efficient for scenarios with:
-    * - Frequent allocations/de-allocations of small objects
-    * - Objects of similar sizes
-    * - Need for reduced memory fragmentation
-    *
+    * @note For large allocations, uses allocators::malloc/allocators::free
     * @extends allocatorBase
-    * @ref allocator For the default allocator using global new/delete
+    * @see allocator For the default allocator implementation
     */
     template<typename TYPE>
     class objPoolAllocator final : public allocatorBase<TYPE, objPoolAllocator>
@@ -206,7 +226,7 @@ namespace original {
         void chunkAllocate(u_integer num_element, u_integer index);
 
         /**
-        * @brief Releases all allocated memory
+        * @brief Releases all allocated memory using allocators::free
         * @note Called during destruction and move assignment
         */
         void reset() noexcept;
@@ -268,17 +288,26 @@ constexpr original::allocatorBase<TYPE, DERIVED>::allocatorBase()
     staticError<allocateError, sizeof(TYPE) == 0 || std::is_void_v<TYPE>>{};
 }
 
-template<typename TYPE>
-constexpr original::u_integer original::objPoolAllocator<TYPE>::getChunkIndex(const u_integer size) {
-    u_integer index = 0;
-    while (static_cast<u_integer>(1) << index < size) {
-        index += 1;
-    }
-    return index;
-}
-
 template<typename TYPE, template <typename> typename DERIVED>
 original::allocatorBase<TYPE, DERIVED>::~allocatorBase() = default;
+
+template<typename TYPE>
+TYPE* original::allocators::malloc(const u_integer size) {
+    if (size == 0) {
+        return nullptr;
+    }
+
+    try {
+        return static_cast<TYPE*>(operator new(size * sizeof(TYPE)));
+    } catch (const std::bad_alloc&) {
+        throw allocateError();
+    }
+}
+
+template<typename TYPE>
+void original::allocators::free(TYPE* ptr) {
+    ::operator delete(ptr);
+}
 
 template<typename TYPE, template <typename> typename DERIVED>
 template<typename O_TYPE, typename... Args>
@@ -294,20 +323,21 @@ void original::allocatorBase<TYPE, DERIVED>::destroy(O_TYPE *o_ptr) {
 
 template<typename TYPE>
 TYPE* original::allocator<TYPE>::allocate(const u_integer size) {
-    if (size == 0) {
-        return nullptr;
-    }
-
-    try {
-        return static_cast<TYPE*>(operator new(size * sizeof(TYPE)));
-    } catch (const std::bad_alloc&) {
-        throw allocateError();
-    }
+    return allocators::malloc<TYPE>(size);
 }
 
 template<typename TYPE>
-void original::allocator<TYPE>::deallocate(TYPE *ptr, u_integer) {
-    ::operator delete(ptr);
+void original::allocator<TYPE>::deallocate(TYPE* ptr, u_integer) {
+    allocators::free(ptr);
+}
+
+template<typename TYPE>
+constexpr original::u_integer original::objPoolAllocator<TYPE>::getChunkIndex(const u_integer size) {
+    u_integer index = 0;
+    while (static_cast<u_integer>(1) << index < size) {
+        index += 1;
+    }
+    return index;
 }
 
 template <typename TYPE>
@@ -345,8 +375,8 @@ template<typename TYPE>
 void original::objPoolAllocator<TYPE>::reset() noexcept {
     while (this->allocated_list_head) {
         auto next_chunk = this->allocated_list_head->next;
-        ::operator delete(this->allocated_list_head->chunks);
-        ::operator delete(this->allocated_list_head);
+        allocators::free(this->allocated_list_head->chunks);
+        allocators::free(this->allocated_list_head);
         this->allocated_list_head = next_chunk;
     }
 
@@ -410,12 +440,8 @@ TYPE* original::objPoolAllocator<TYPE>::allocate(const u_integer size)
 
     u_integer index = getChunkIndex(size);
 
-    if (index >= size_index_max) {
-        try {
-            return static_cast<TYPE*>(operator new(size * sizeof(TYPE)));
-        } catch (const std::bad_alloc&) {
-            throw allocateError();
-        }
+    if (index >= this->size_index_max) {
+        return allocators::malloc<TYPE>(size);
     }
 
     if (!this->free_list_head[index] || this->chunks_available[index] * (static_cast<u_integer>(1) << index) < size) {
@@ -437,8 +463,8 @@ void original::objPoolAllocator<TYPE>::deallocate(TYPE* ptr, const u_integer siz
 
     u_integer index = getChunkIndex(size);
 
-    if (index >= size_index_max) {
-        ::operator delete(ptr);
+    if (index >= this->size_index_max) {
+        allocators::free(ptr);
         return;
     }
 
