@@ -282,15 +282,6 @@ namespace original {
     };
 }
 
-template <typename TYPE, template <typename> class DERIVED>
-constexpr original::allocatorBase<TYPE, DERIVED>::allocatorBase()
-{
-    staticError<allocateError, sizeof(TYPE) == 0 || std::is_void_v<TYPE>>{};
-}
-
-template<typename TYPE, template <typename> typename DERIVED>
-original::allocatorBase<TYPE, DERIVED>::~allocatorBase() = default;
-
 template<typename TYPE>
 TYPE* original::allocators::malloc(const u_integer size) {
     if (size == 0) {
@@ -308,6 +299,15 @@ template<typename TYPE>
 void original::allocators::free(TYPE* ptr) {
     ::operator delete(ptr);
 }
+
+template <typename TYPE, template <typename> class DERIVED>
+constexpr original::allocatorBase<TYPE, DERIVED>::allocatorBase()
+{
+    staticError<allocateError, sizeof(TYPE) == 0 || std::is_void_v<TYPE>>{};
+}
+
+template<typename TYPE, template <typename> typename DERIVED>
+original::allocatorBase<TYPE, DERIVED>::~allocatorBase() = default;
 
 template<typename TYPE, template <typename> typename DERIVED>
 template<typename O_TYPE, typename... Args>
