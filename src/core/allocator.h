@@ -123,52 +123,141 @@ namespace original {
         void deallocate(TYPE* ptr, u_integer size) override;
     };
 
+    /**
+    * @class objPoolAllocator
+    * @tparam TYPE Type of objects to allocate
+    * @brief Object pool allocator for efficient fixed-size memory management
+    * @details Implements a memory allocator using an object pool pattern with these characteristics:
+    * - Organizes memory into power-of-two sized chunks (1, 2, 4, 8, 16, 32, ... bytes)
+    * - Maintains separate free lists for each chunk size
+    * - Allocates memory in blocks (chunks) to reduce fragmentation
+    * - Falls back to global new/delete for allocations too large for the pool
+    *
+    * Memory Management Approach:
+    * 1. The allocator maintains multiple free lists, one for each size class (power-of-two)
+    * 2. When an allocation request comes in:
+    *    - Finds the smallest size class that can satisfy the request
+    *    - If no free chunks available, allocates a new block of chunks
+    *    - For requests too large for the largest size class, uses global new
+    * 3. When memory is deallocated:
+    *    - Returns the chunk to its appropriate free list
+    *    - Large allocations (outside pool) are freed immediately
+    *
+    * @note This allocator is particularly efficient for scenarios with:
+    * - Frequent allocations/de-allocations of small objects
+    * - Objects of similar sizes
+    * - Need for reduced memory fragmentation
+    *
+    * @extends allocatorBase
+    * @ref allocator For the default allocator using global new/delete
+    */
     template<typename TYPE>
     class objPoolAllocator final : public allocatorBase<TYPE, objPoolAllocator>
     {
+        /**
+        * @class freeChunk
+        * @brief Internal structure representing a free memory chunk
+        * @details Used to maintain the free list as a linked list
+        */
         class freeChunk
         {
         public:
-            freeChunk* next = nullptr;
+            freeChunk* next = nullptr; ///< Pointer to next free chunk
         };
 
+        /**
+        * @class allocatedChunks
+        * @brief Tracks blocks of allocated memory for later de-allocation
+        */
         class allocatedChunks {
         public:
-            void* chunks = nullptr;
-            allocatedChunks* next = nullptr;
+            void* chunks = nullptr;       ///< Pointer to allocated memory block
+            allocatedChunks* next = nullptr; ///< Next block in the list
         };
 
+        /**
+        * @brief The fundamental chunk size used for memory management
+        * @details Determines the minimum allocation unit size in the pool.
+        * The actual size is calculated as the maximum between:
+        * - sizeof(TYPE): To ensure each chunk can hold at least one object of the templated type
+        * - sizeof(freeChunk*): To ensure proper free list maintenance (must be able to store a pointer)
+        */
         static constexpr u_integer CHUNK_SIZE =  sizeof(TYPE) > sizeof(freeChunk*) ? sizeof(TYPE) : sizeof(freeChunk*);
-        u_integer size_index_max;
-        u_integer* chunk_count;
-        freeChunk** free_list_head;
-        allocatedChunks* allocated_list_head;
-        u_integer* chunks_available;
 
+        u_integer size_index_max;         ///< Maximum size class index (2^index)
+        u_integer* chunk_count;          ///< Array of chunk counts per size class
+        freeChunk** free_list_head;      ///< Array of free list heads (one per size class)
+        allocatedChunks* allocated_list_head; ///< List of all allocated blocks
+        u_integer* chunks_available;     ///< Array of available chunks per size class
+
+        /**
+        * @brief Calculates the appropriate size class index for a request
+        * @param size Requested allocation size
+        * @return Index of the smallest size class that can satisfy the request
+        */
         [[nodiscard]] static constexpr u_integer getChunkIndex(u_integer size);
 
+        /**
+        * @brief Allocates a new block of chunks for a size class
+        * @param num_element Number of chunks to allocate
+        * @param index Size class index
+        * @throw allocateError If memory allocation fails
+        */
         void chunkAllocate(u_integer num_element, u_integer index);
 
+        /**
+        * @brief Releases all allocated memory
+        * @note Called during destruction and move assignment
+        */
         void reset() noexcept;
 
-        public:
-            using typename allocatorBase<TYPE, objPoolAllocator>::propagate_on_container_copy_assignment;
-            using propagate_on_container_move_assignment = std::true_type;
+    public:
+        using typename allocatorBase<TYPE, objPoolAllocator>::propagate_on_container_copy_assignment;
+        using propagate_on_container_move_assignment = std::true_type; ///< Allows propagation on move
 
+        /**
+        * @brief Constructs a new object pool allocator
+        * @param index_max Maximum size class index (default 8-1=7 → 128 bytes)
+        * @param count Initial number of chunks per size class (default 4)
+        */
         explicit objPoolAllocator(u_integer index_max = 8, u_integer count = 4);
 
-        objPoolAllocator(const objPoolAllocator&) = delete;
+        objPoolAllocator(const objPoolAllocator&) = delete; ///< Copy construction disabled
+        objPoolAllocator& operator=(const objPoolAllocator&) = delete; ///< Copy assignment disabled
 
-        objPoolAllocator& operator=(const objPoolAllocator&) = delete;
-
+        /**
+        * @brief Move constructor
+        * @param other Allocator to move from
+        */
         objPoolAllocator(objPoolAllocator&& other) noexcept;
 
+        /**
+        * @brief Move assignment operator
+        * @param other Allocator to move from
+        * @return Reference to this allocator
+        */
         objPoolAllocator& operator=(objPoolAllocator&& other) noexcept;
 
+        /**
+        * @brief Allocates memory from the pool
+        * @param size Number of elements to allocate
+        * @return Pointer to allocated memory
+        * @throw allocateError When memory allocation fails
+        * @note For large allocations, falls back to global operator new
+        */
         TYPE* allocate(u_integer size) override;
 
+        /**
+        * @brief Returns memory to the pool
+        * @param ptr Pointer to memory to free
+        * @param size Number of elements originally allocated
+        * @note For large allocations, uses global operator delete
+        */
         void deallocate(TYPE* ptr, u_integer size) override;
 
+        /**
+        * @brief Destructor - releases all allocated memory
+        */
         ~objPoolAllocator() override;
     };
 }
@@ -276,7 +365,7 @@ void original::objPoolAllocator<TYPE>::reset() noexcept {
 }
 
 template <typename TYPE>
-original::objPoolAllocator<TYPE>::objPoolAllocator(const u_integer index_max,const u_integer count)
+original::objPoolAllocator<TYPE>::objPoolAllocator(const u_integer index_max, const u_integer count)
     : size_index_max(index_max), chunk_count(new u_integer[this->size_index_max]),
       free_list_head(new freeChunk*[this->size_index_max]), allocated_list_head(nullptr),
       chunks_available(new u_integer[this->size_index_max]) {
