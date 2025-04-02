@@ -2,7 +2,10 @@
 #define ALLOCATOR_H
 
 
+#include <iostream>
+
 #include "error.h"
+#include "maths.h"
 #include "type_traits"
 #include "utility"
 
@@ -121,29 +124,43 @@ namespace original {
     };
 
     template<typename TYPE>
-    class objPoolAllocator : public allocatorBase<TYPE, objPoolAllocator>
+    class objPoolAllocator final : public allocatorBase<TYPE, objPoolAllocator>
     {
-        class chunk
+        class freeChunk
         {
         public:
-            chunk* next = nullptr;
+            freeChunk* next = nullptr;
         };
 
-        static constexpr u_integer chunk_size =  sizeof(TYPE) > sizeof(chunk*) ? sizeof(TYPE) : sizeof(chunk*);
-        chunk* free_list_head;
-        const u_integer chunk_count;
+        class allocatedChunks {
+        public:
+            void* chunks = nullptr;
+            allocatedChunks* next = nullptr;
+        };
 
-        void chunkAllocate();
+        static constexpr u_integer CHUNK_SIZE =  sizeof(TYPE) > sizeof(freeChunk*) ? sizeof(TYPE) : sizeof(freeChunk*);
+        u_integer chunk_count;
+        freeChunk* free_list_head;
+        allocatedChunks* allocated_list_head;
+        u_integer chunks_available;
+
+        TYPE* allocate();
+
+        void deallocate(TYPE* ptr);
+
+        void chunkAllocate(u_integer num_element);
 
         public:
-            using typename allocatorBase<TYPE, allocator>::propagate_on_container_copy_assignment;
-            using typename allocatorBase<TYPE, allocator>::propagate_on_container_move_assignment;
+            using typename allocatorBase<TYPE, objPoolAllocator>::propagate_on_container_copy_assignment;
+            using typename allocatorBase<TYPE, objPoolAllocator>::propagate_on_container_move_assignment;
 
-        explicit objPoolAllocator(u_integer count = 32);
+        explicit objPoolAllocator(u_integer count = 4);
 
         TYPE* allocate(u_integer size) override;
 
         void deallocate(TYPE* ptr, u_integer size) override;
+
+        ~objPoolAllocator() override;
     };
 }
 
@@ -187,47 +204,98 @@ void original::allocator<TYPE>::deallocate(TYPE *ptr, u_integer) {
 }
 
 template <typename TYPE>
-void original::objPoolAllocator<TYPE>::chunkAllocate()
+void original::objPoolAllocator<TYPE>::chunkAllocate(const u_integer num_element)
 {
-    char* new_chunk = nullptr;
+    char* new_free_chunk = nullptr;
+    allocatedChunks* new_allocated_chunk = nullptr;
+
     try
     {
-        new_chunk = static_cast<char*>(operator new(chunk_count * chunk_size));
+        new_free_chunk = static_cast<char*>(operator new(num_element * CHUNK_SIZE));
+        new_allocated_chunk = static_cast<allocatedChunks*>(operator new(sizeof(allocatedChunks)));
     }
     catch (const std::bad_alloc&)
     {
         throw allocateError();
     }
 
-    for (u_integer i = 0; i < chunk_count; i++)
+    new_allocated_chunk->chunks = new_free_chunk;
+    new_allocated_chunk->next = this->allocated_list_head;
+    this->allocated_list_head = new_allocated_chunk;
+
+    for (u_integer i = 0; i < num_element; i++)
     {
-        auto cur_ptr = reinterpret_cast<chunk*>(new_chunk + i * chunk_size);
+        auto cur_ptr = reinterpret_cast<freeChunk*>(new_free_chunk + i * CHUNK_SIZE);
         cur_ptr->next = this->free_list_head;
         this->free_list_head = cur_ptr;
     }
+    this->chunks_available += num_element;
+    this->chunk_count = this->chunk_count + (this->chunk_count >> 1);
 }
 
 template <typename TYPE>
 original::objPoolAllocator<TYPE>::objPoolAllocator(const u_integer count)
-    : free_list_head(nullptr), chunk_count(count) {}
+    : chunk_count(count), free_list_head(nullptr), allocated_list_head(nullptr), chunks_available(0) {}
 
-template <typename TYPE>
-TYPE* original::objPoolAllocator<TYPE>::allocate(u_integer size)
-{
+template<typename TYPE>
+TYPE* original::objPoolAllocator<TYPE>::allocate() {
     if (!this->free_list_head)
-        this->chunkAllocate();
-
-    auto cur_ptr = reinterpret_cast<TYPE*>(this->free_list_head);
+        this->chunkAllocate(max(static_cast<u_integer>(1), this->chunk_count));
+    auto cur_ptr = this->free_list_head;
     this->free_list_head = this->free_list_head->next;
-    return cur_ptr;
+    cur_ptr->next = nullptr;
+    this->chunks_available -= 1;
+    return reinterpret_cast<TYPE*>(cur_ptr);
+}
+
+template<typename TYPE>
+void original::objPoolAllocator<TYPE>::deallocate(TYPE* ptr) {
+    auto p = reinterpret_cast<freeChunk*>(ptr);
+    p->next = this->free_list_head;
+    this->free_list_head = p;
+    this->chunks_available += 1;
 }
 
 template <typename TYPE>
-void original::objPoolAllocator<TYPE>::deallocate(TYPE* ptr, u_integer)
+TYPE* original::objPoolAllocator<TYPE>::allocate(const u_integer size)
 {
-    auto cur_ptr = reinterpret_cast<chunk*>(ptr);
-    cur_ptr->next = this->free_list_head;
-    this->free_list_head = cur_ptr;
+    if (size == 0) {
+        return nullptr;
+    }
+
+    if (size == 1) {
+        return this->allocate();
+    }
+
+    try {
+        return static_cast<TYPE*>(operator new(size * sizeof(TYPE)));
+    } catch (const std::bad_alloc&) {
+        throw allocateError();
+    }
+}
+
+template <typename TYPE>
+void original::objPoolAllocator<TYPE>::deallocate(TYPE* ptr, const u_integer size)
+{
+    if (size == 0) {
+        return;
+    }
+    if (size == 1) {
+        this->deallocate(ptr);
+        return;
+    }
+
+    ::operator delete(ptr);
+}
+
+template<typename TYPE>
+original::objPoolAllocator<TYPE>::~objPoolAllocator() {
+    while (this->allocated_list_head) {
+        auto next_chunk = this->allocated_list_head->next;
+        ::operator delete(this->allocated_list_head->chunks);
+        ::operator delete(this->allocated_list_head);
+        this->allocated_list_head = next_chunk;
+    }
 }
 
 #endif //ALLOCATOR_H
