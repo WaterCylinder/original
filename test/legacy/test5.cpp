@@ -1,5 +1,6 @@
 #include <iostream>
 #include "chain.h"
+#include "forwardChain.h"
 #include "ownerPtr.h"
 #include "refCntPtr.h"
 #include "vector.h"
@@ -63,6 +64,14 @@ int main(){
     for (original::u_integer i = 0; i < 10; ++i)
     {
         std::cout << p12[i] << std::endl;
+    }
+    auto vectorPool = original::vector<int, original::objPoolAllocator<int>>();
+    auto chainPool = original::forwardChain<int, original::objPoolAllocator<int>>({1,2,3,4,5,6,7,8,9,10});
+    for (int i = 0; i < 20; ++i) {
+        vectorPool.pushEnd(i);
+    }
+    for (auto num: vectorPool) {
+        std::cout << num << std::endl;
     }
     return 0;
 }
