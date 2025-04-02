@@ -9,11 +9,28 @@
 
 /**
 * @file allocator.h
-* @brief Memory allocation interface and default implementation
-* @details Provides base allocator interface with CRTP support and a default
-*          memory allocator implementation using global operator new/delete.
+* @brief Memory allocation interface and implementations
+* @details Provides:
+* - Base allocator interface with CRTP support (allocatorBase)
+* - Utility functions for raw memory operations (allocators class)
+* - Default memory allocator implementation (allocator)
+* - Object pool allocator implementation (objPoolAllocator)
+*
+* Memory Management Hierarchy:
+* 1. Fundamental operations (allocators class):
+*    - malloc/free: Raw memory operations using global new/delete
+* 2. Base interface (allocatorBase):
+*    - Type-safe allocation interface
+*    - Object construction/destruction utilities
+* 3. Implementations:
+*    - allocator: Simple wrapper around allocators utilities
+*    - objPoolAllocator: Advanced pool-based allocator with fallback to allocators
+*
+* @note All allocators maintain the following guarantees:
+* - Type safety through templated interfaces
+* - Exception safety (throws allocateError on failure)
+* - Nullptr handling for zero-size allocations
 */
-
 namespace original {
 
     /**
