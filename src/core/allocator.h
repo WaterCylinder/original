@@ -361,8 +361,8 @@ template <typename TYPE>
 void original::objPoolAllocator<TYPE>::chunkAllocate(const u_integer num_element, u_integer index)
 {
     const u_integer block_size = (1 << index) * CHUNK_SIZE;
-    char* new_free_chunk = allocators::malloc<char>(num_element * block_size);
-    allocatedChunks* new_allocated_chunk = allocators::malloc<allocatedChunks>(1);
+    auto new_free_chunk = allocators::malloc<char>(num_element * block_size);
+    auto new_allocated_chunk = allocators::malloc<allocatedChunks>(1);
 
     new_allocated_chunk->chunks = new_free_chunk;
     new_allocated_chunk->next = this->allocated_list_head;
