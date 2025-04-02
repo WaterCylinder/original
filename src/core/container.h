@@ -39,7 +39,7 @@ protected:
      * @details Initializes the container with the given allocator. The allocator will be used for
      *          all memory operations performed by the container.
      */
-    explicit container(const ALLOC& alloc = ALLOC{});
+    explicit container(ALLOC alloc = ALLOC{});
 
     /**
      * @brief Allocates raw memory for elements
@@ -126,8 +126,8 @@ public:
 // ----------------- Definitions of container.h -----------------
 
 template<typename TYPE, typename ALLOC>
-original::container<TYPE, ALLOC>::container(const ALLOC& alloc)
-    : allocator(alloc) {}
+original::container<TYPE, ALLOC>::container(ALLOC alloc)
+    : allocator(std::move(alloc)) {}
 
 template<typename TYPE, typename ALLOC>
 TYPE* original::container<TYPE, ALLOC>::allocate(u_integer size) {

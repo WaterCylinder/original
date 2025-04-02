@@ -195,7 +195,7 @@ namespace original{
          * @details Initializes the vector with default capacity (16 elements).
          * The allocator will be used for all subsequent memory operations.
          */
-        explicit vector(const ALLOC& alloc = ALLOC{});
+        explicit vector(ALLOC alloc = ALLOC{});
 
         /**
          * @brief Copy constructor for the vector.
@@ -472,8 +472,8 @@ namespace original{
     }
 
     template <typename TYPE, typename ALLOC>
-    original::vector<TYPE, ALLOC>::vector(const ALLOC& alloc)
-        : baseList<TYPE, ALLOC>(alloc), size_(), max_size(), inner_begin()
+    original::vector<TYPE, ALLOC>::vector(ALLOC alloc)
+        : baseList<TYPE, ALLOC>(std::move(alloc)), size_(), max_size(), inner_begin()
     {
         this->vectorInit();
     }

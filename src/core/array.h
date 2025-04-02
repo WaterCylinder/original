@@ -133,7 +133,7 @@ namespace original {
          * @details Initializes the array with a given size, allocating memory for the array using the specified
          *          allocator and setting each element to its default value.
          */
-        explicit array(u_integer size = 0, const ALLOC& alloc = ALLOC{});
+        explicit array(u_integer size = 0, ALLOC alloc = ALLOC{});
 
         /**
          * @brief Constructs an array from an initializer list.
@@ -313,8 +313,8 @@ namespace original {
     }
 
     template<typename TYPE, typename ALLOC>
-    original::array<TYPE, ALLOC>::array(const u_integer size, const ALLOC& alloc)
-        : baseArray<TYPE, ALLOC>(alloc), size_(), body(nullptr) {
+    original::array<TYPE, ALLOC>::array(const u_integer size, ALLOC alloc)
+        : baseArray<TYPE, ALLOC>(std::move(alloc)), size_(), body(nullptr) {
         this->arrInit(size);
     }
 

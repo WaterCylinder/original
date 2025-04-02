@@ -246,7 +246,7 @@ namespace original {
          * @brief Constructs an empty chain with specified allocator
          * @param alloc Allocator instance to use (has default-constructed ALLOC)
          */
-        explicit chain(const ALLOC& alloc = ALLOC{});
+        explicit chain(ALLOC alloc = ALLOC{});
 
         /**
          * @brief Copy constructs a chain with optional allocator
@@ -568,7 +568,7 @@ namespace original {
     }
 
     template <typename TYPE, typename ALLOC>
-    original::chain<TYPE, ALLOC>::chain(const ALLOC& alloc) : baseList<TYPE, ALLOC>(alloc), size_(0), rebind_alloc(rebind_alloc_node{})
+    original::chain<TYPE, ALLOC>::chain(ALLOC alloc) : baseList<TYPE, ALLOC>(std::move(alloc)), size_(0), rebind_alloc(std::move(rebind_alloc_node{}))
     {
         chainInit();
     }

@@ -285,7 +285,7 @@ namespace original {
              * @details Initializes the bitSet with the specified size, allocating memory blocks
              *          using the provided allocator. All bits are initially set to false.
              */
-            explicit bitSet(u_integer size, const ALLOC& allocator = ALLOC{});
+            explicit bitSet(u_integer size, ALLOC allocator = ALLOC{});
 
             /**
              * @brief Constructs a bitSet from an initializer list.
@@ -666,8 +666,8 @@ namespace original {
     }
 
     template<typename ALLOC>
-    original::bitSet<ALLOC>::bitSet(const u_integer size, const ALLOC& allocator)
-        : baseArray<bool, ALLOC>(allocator), size_() {
+    original::bitSet<ALLOC>::bitSet(const u_integer size, ALLOC allocator)
+        : baseArray<bool, ALLOC>(std::move(allocator)), size_() {
             this->bitsetInit(size);
     }
 

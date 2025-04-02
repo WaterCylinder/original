@@ -339,7 +339,7 @@ namespace original {
          * @details Initializes an empty blocksList with one initial block allocated
          *          using the provided allocator.
          */
-        explicit blocksList(const ALLOC& alloc = ALLOC{});
+        explicit blocksList(ALLOC alloc = ALLOC{});
 
         /**
          * @brief Constructs a blocksList from an initializer list.
@@ -803,8 +803,8 @@ namespace original {
     }
 
     template <typename TYPE, typename ALLOC>
-    original::blocksList<TYPE, ALLOC>::blocksList(const ALLOC& alloc)
-        : baseList<TYPE, ALLOC>(alloc), map(), size_(), first_(), last_(), first_block(), last_block()
+    original::blocksList<TYPE, ALLOC>::blocksList(ALLOC alloc)
+        : baseList<TYPE, ALLOC>(std::move(alloc)), map(), size_(), first_(), last_(), first_block(), last_block()
     {
         this->blocksListInit();
     }

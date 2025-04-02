@@ -237,7 +237,7 @@ namespace original {
          * @param alloc Allocator instance to use (default: default-constructed ALLOC)
          * @details Initializes the chain with a sentinel node using the provided allocator
          */
-        explicit forwardChain(const ALLOC& alloc = ALLOC{});
+        explicit forwardChain(ALLOC alloc = ALLOC{});
 
         /**
          * @brief Copy constructs a forwardChain with allocator propagation
@@ -547,8 +547,8 @@ namespace original {
     }
 
     template <typename TYPE, typename ALLOC>
-    original::forwardChain<TYPE, ALLOC>::forwardChain(const ALLOC& alloc)
-        : baseList<TYPE, ALLOC>(alloc), size_(0) , rebind_alloc(rebind_alloc_node{})
+    original::forwardChain<TYPE, ALLOC>::forwardChain(ALLOC alloc)
+        : baseList<TYPE, ALLOC>(std::move(alloc)), size_(0) , rebind_alloc(std::move(rebind_alloc_node{}))
     {
         this->chainInit();
     }
