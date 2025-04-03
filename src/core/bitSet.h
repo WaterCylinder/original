@@ -711,10 +711,10 @@ namespace original {
 
         this->map = std::move(other.map);
         this->size_ = other.size_;
-        other.bitsetInit(0);
         if constexpr (ALLOC::propagate_on_container_move_assignment::value){
             this->allocator = other.allocator;
         }
+        other.bitsetInit(0);
         return *this;
     }
 

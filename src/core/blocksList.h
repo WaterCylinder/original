@@ -878,16 +878,16 @@ namespace original {
 
         this->blocksListDestruct();
 
-        this->map = other.map;
+        this->map = std::move(other.map);
         this->first_ = other.first_;
         this->last_ = other.last_;
         this->first_block = other.first_block;
         this->last_block = other.last_block;
         this->size_ = other.size_;
-        other.blocksListInit();
         if constexpr (ALLOC::propagate_on_container_move_assignment::value){
             this->allocator = std::move(other.allocator);
         }
+        other.blocksListInit();
         return *this;
     }
 

@@ -655,10 +655,10 @@ namespace original {
         this->begin_ = other.begin_;
         this->end_ = other.end_;
         this->size_ = other.size_;
-        other.chainInit();
         if constexpr (ALLOC::propagate_on_container_move_assignment::value){
             this->allocator = std::move(other.allocator);
         }
+        other.chainInit();
         return *this;
     }
 

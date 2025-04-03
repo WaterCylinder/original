@@ -355,6 +355,7 @@ namespace original{
                 this->destroy(&this->body[i]);
             }
             this->deallocate(this->body, this->max_size);
+            this->body = nullptr;
         }
     }
 
@@ -529,14 +530,15 @@ namespace original{
             return *this;
 
         this->vectorArrayDestruct();
-        this->body = std::move(other.body);
+        this->body = other.body;
+        other.body = nullptr;
         this->max_size = other.max_size;
         this->inner_begin = other.inner_begin;
         this->size_ = other.size_;
-        other.vectorInit();
         if constexpr (ALLOC::propagate_on_container_move_assignment::value){
             this->allocator = std::move(other.allocator);
         }
+        other.vectorInit();
         return *this;
     }
 

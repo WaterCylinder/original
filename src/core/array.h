@@ -366,10 +366,10 @@ namespace original {
 
         this->body = other.body;
         this->size_ = other.size_;
-        other.arrInit(0);
         if constexpr (ALLOC::propagate_on_container_move_assignment::value){
             this->allocator = std::move(other.allocator);
         }
+        other.arrInit(0);
         return *this;
     }
 
