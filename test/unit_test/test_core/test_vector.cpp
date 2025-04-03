@@ -351,3 +351,20 @@ TEST_F(VectorTest, MixedPushPopTest) {
 
     compareVectors(this->originalVec, this->stdVec);
 }
+
+TEST_F(VectorTest, MoveAndCopyTest) {
+    constexpr int dataSize = 100;
+    auto vec = original::vector<int>();
+    for (int i = 0; i < dataSize; ++i) {
+        vec.pushEnd(i);
+    }
+    for (original::u_integer i = 0; i < dataSize; ++i) {
+        EXPECT_EQ(vec[i], i);
+    }
+    this->originalVec = vec;
+    EXPECT_EQ(this->originalVec, vec);
+    const original::vector<int> src = std::move(this->originalVec);
+    EXPECT_EQ(this->originalVec.size(), 0);
+    EXPECT_EQ(this->originalVec, original::vector<int>{});
+    EXPECT_EQ(vec, src);
+}
