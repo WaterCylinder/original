@@ -73,6 +73,7 @@ int main(){
     for (auto num: vectorPool) {
         std::cout << num << std::endl;
     }
-    // auto another_vector_pool = vectorPool; // Expected complied fail
+    auto copy_vector_pool = vectorPool;
+    auto move_vector_pool = std::move(vectorPool);
     return 0;
 }
