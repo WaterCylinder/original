@@ -224,11 +224,24 @@ namespace original {
         */
         static constexpr u_integer CHUNK_SIZE =  sizeof(TYPE) > sizeof(freeChunk*) ? sizeof(TYPE) : sizeof(freeChunk*);
 
-        u_integer size_index_max;         ///< Maximum size class index (2^index)
+        u_integer size_class_count;      ///< Number of size classes (indices 0 to size_class_count-1)
+        u_integer chunk_count_init;      ///< Initial chunk count for each size class
         u_integer* chunk_count;          ///< Array of chunk counts per size class
         freeChunk** free_list_head;      ///< Array of free list heads (one per size class)
         allocatedChunks* allocated_list_head; ///< List of all allocated blocks
         u_integer* chunks_available;     ///< Array of available chunks per size class
+
+
+        /**
+        * @brief Initializes the memory pool structures
+        * @details Allocates and initializes:
+        * - chunk_count array
+        * - free_list_head array
+        * - chunks_available array
+        * - allocated_list_head
+        * @note Uses allocators::malloc for all allocations
+        */
+        void poolInit();
 
         /**
         * @brief Calculates the appropriate size class index for a request
@@ -247,9 +260,13 @@ namespace original {
 
         /**
         * @brief Releases all allocated memory using allocators::free
+        * @details Safely deallocates:
+        * - All allocated memory blocks
+        * - Internal management arrays
+        * - Pool data structures
         * @note Called during destruction and move assignment
         */
-        void reset() noexcept;
+        void release() noexcept;
 
     public:
         using typename allocatorBase<TYPE, objPoolAllocator>::propagate_on_container_copy_assignment;
@@ -258,10 +275,10 @@ namespace original {
 
         /**
         * @brief Constructs a new object pool allocator
-        * @param index_max Maximum size class index (default 8-1=7 → 128 bytes)
+        * @param size_class_count Number of size classes to manage (default=8 → indices 0-7)
         * @param count Initial number of chunks per size class (default 4)
         */
-        explicit objPoolAllocator(u_integer index_max = 8, u_integer count = 4);
+        explicit objPoolAllocator(u_integer size_class_count = 8, u_integer count = 4);
 
         objPoolAllocator(const objPoolAllocator&) = delete; ///< Copy construction disabled
         objPoolAllocator& operator=(const objPoolAllocator&) = delete; ///< Copy assignment disabled
@@ -269,6 +286,7 @@ namespace original {
         /**
         * @brief Move constructor
         * @param other Allocator to move from
+        * @note Transfers ownership of all resources and leaves source in initialized state
         */
         objPoolAllocator(objPoolAllocator&& other) noexcept;
 
@@ -276,6 +294,8 @@ namespace original {
         * @brief Move assignment operator
         * @param other Allocator to move from
         * @return Reference to this allocator
+        * @note Releases current resources before taking ownership of new ones
+        *       Leaves source in initialized state via poolInit()
         */
         objPoolAllocator& operator=(objPoolAllocator&& other) noexcept;
 
@@ -361,6 +381,20 @@ constexpr original::u_integer original::objPoolAllocator<TYPE>::getChunkIndex(co
     return index;
 }
 
+template<typename TYPE>
+void original::objPoolAllocator<TYPE>::poolInit() {
+    this->chunk_count = allocators::malloc<u_integer>(this->size_class_count);
+    this->free_list_head = allocators::malloc<freeChunk*>(this->size_class_count);
+    this->chunks_available = allocators::malloc<u_integer>(this->size_class_count);
+    this->allocated_list_head = nullptr;
+
+    for (u_integer i = 0; i < this->size_class_count; i++) {
+        this->chunk_count[i] = this->chunk_count_init;
+        this->free_list_head[i] = nullptr;
+        this->chunks_available[i] = 0;
+    }
+}
+
 template <typename TYPE>
 void original::objPoolAllocator<TYPE>::chunkAllocate(const u_integer num_element, u_integer index)
 {
@@ -383,7 +417,7 @@ void original::objPoolAllocator<TYPE>::chunkAllocate(const u_integer num_element
 }
 
 template<typename TYPE>
-void original::objPoolAllocator<TYPE>::reset() noexcept {
+void original::objPoolAllocator<TYPE>::release() noexcept {
     while (this->allocated_list_head) {
         auto next_chunk = this->allocated_list_head->next;
         allocators::free(this->allocated_list_head->chunks);
@@ -392,29 +426,24 @@ void original::objPoolAllocator<TYPE>::reset() noexcept {
     }
 
     if (this->chunk_count) {
-        delete[] this->chunk_count;
+        allocators::free(this->chunk_count);
         this->chunk_count = nullptr;
     }
     if (this->free_list_head) {
-        delete[] this->free_list_head;
+        allocators::free(this->free_list_head);
         this->free_list_head = nullptr;
     }
     if (this->chunks_available) {
-        delete[] this->chunks_available;
+        allocators::free(this->chunks_available);
         this->chunks_available = nullptr;
     }
 }
 
 template <typename TYPE>
-original::objPoolAllocator<TYPE>::objPoolAllocator(const u_integer index_max, const u_integer count)
-    : size_index_max(index_max), chunk_count(new u_integer[this->size_index_max]),
-      free_list_head(new freeChunk*[this->size_index_max]), allocated_list_head(nullptr),
-      chunks_available(new u_integer[this->size_index_max]) {
-    for (u_integer i = 0; i < this->size_index_max; i++) {
-        this->chunk_count[i] = count;
-        this->free_list_head[i] = nullptr;
-        this->chunks_available[i] = 0;
-    }
+original::objPoolAllocator<TYPE>::objPoolAllocator(const u_integer size_class_count, const u_integer count)
+    : size_class_count(size_class_count), chunk_count_init(count), chunk_count(nullptr),
+      free_list_head(nullptr), allocated_list_head(nullptr), chunks_available(nullptr) {
+    this->poolInit();
 }
 
 template<typename TYPE>
@@ -427,18 +456,16 @@ original::objPoolAllocator<TYPE>& original::objPoolAllocator<TYPE>::operator=(ob
     if (this == &other)
         return *this;
 
-    this->reset();
+    this->release();
 
-    this->size_index_max = other.size_index_max;
+    this->size_class_count = other.size_class_count;
+    this->chunk_count_init = other.chunk_count_init;
     this->chunk_count = other.chunk_count;
     this->free_list_head = other.free_list_head;
     this->allocated_list_head = other.allocated_list_head;
     this->chunks_available = other.chunks_available;
 
-    other.chunk_count = nullptr;
-    other.free_list_head = nullptr;
-    other.allocated_list_head = nullptr;
-    other.chunks_available = nullptr;
+    other.poolInit();
     return *this;
 }
 
@@ -451,7 +478,7 @@ TYPE* original::objPoolAllocator<TYPE>::allocate(const u_integer size)
 
     u_integer index = getChunkIndex(size);
 
-    if (index >= this->size_index_max) {
+    if (index >= this->size_class_count) {
         return allocators::malloc<TYPE>(size);
     }
 
@@ -474,7 +501,7 @@ void original::objPoolAllocator<TYPE>::deallocate(TYPE* ptr, const u_integer siz
 
     u_integer index = getChunkIndex(size);
 
-    if (index >= this->size_index_max) {
+    if (index >= this->size_class_count) {
         allocators::free(ptr);
         return;
     }
@@ -487,7 +514,7 @@ void original::objPoolAllocator<TYPE>::deallocate(TYPE* ptr, const u_integer siz
 
 template<typename TYPE>
 original::objPoolAllocator<TYPE>::~objPoolAllocator() {
-    this->reset();
+    this->release();
 }
 
 #endif //ALLOCATOR_H
