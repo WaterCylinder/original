@@ -683,13 +683,11 @@ namespace original {
 
     template<typename ALLOC>
     original::bitSet<ALLOC>::bitSet(const bitSet &other) : bitSet(other.size()) {
-        staticError<unSupportedMethodError, !std::copy_constructible<ALLOC>>{};
         this->operator=(other);
     }
 
     template<typename ALLOC>
     auto original::bitSet<ALLOC>::operator=(const bitSet &other) -> bitSet& {
-        staticError<unSupportedMethodError, !std::copy_constructible<ALLOC>>{};
         if (this == &other) return *this;
         this->map = other.map;
         this->size_ = other.size_;
@@ -702,14 +700,12 @@ namespace original {
     template<typename ALLOC>
     original::bitSet<ALLOC>::bitSet(bitSet&& other)  noexcept : bitSet(0)
     {
-        staticError<unSupportedMethodError, !std::move_constructible<ALLOC>>{};
         this->operator=(std::move(other));
     }
 
     template<typename ALLOC>
     auto original::bitSet<ALLOC>::operator=(bitSet&& other)  noexcept -> bitSet&
     {
-        staticError<unSupportedMethodError, !std::move_constructible<ALLOC>>{};
         if (this == &other)
             return *this;
 
