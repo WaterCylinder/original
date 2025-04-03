@@ -73,5 +73,6 @@ int main(){
     for (auto num: vectorPool) {
         std::cout << num << std::endl;
     }
+    // auto another_vector_pool = vectorPool; // Expected complied fail
     return 0;
 }

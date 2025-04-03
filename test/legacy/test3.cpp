@@ -114,7 +114,7 @@ int main(){
     // for (auto e: b1) {
     //     std::cout << e << std::endl;
     // } // Unsupported Method for class
-    // b3.forEach(); //deleted
+    // original::bitSet<>::forEach(); //deleted
     b3.set(99, true);
     std::cout << "b3.get(99) = " << b3.get(99) << std::endl;
     auto b4 = b3.resize(129);
@@ -148,6 +148,7 @@ int main(){
     std::cout << "p1 == p2: " << original::printable::formatString(p1 == p2) << std::endl;
     std::cout << "p1 < p2: " << original::printable::formatString(p1 < p2) << std::endl;
     auto cmp = p1 <=> p2;
+    std::cout << (cmp == nullptr) << std::endl;
     std::cout << "p1: " << p1 << std::endl;
     while (!p1.empty())
     {
