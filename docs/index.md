@@ -141,7 +141,7 @@ array("Hello, original!")
 
 ##### 内存管理：
 
-自动指针 ownerPtr/strongPtr/weakPtr，分配器 allocatorBase/allocator，删除器 deleterBase/deleter
+自动指针 ownerPtr/strongPtr/weakPtr，分配器 allocatorBase/allocator/objPoolAllocator，删除器 deleterBase/deleter
 
 
 #### asyncIO
