@@ -555,6 +555,7 @@ namespace original {
 
     template <typename TYPE, typename ALLOC>
     original::forwardChain<TYPE, ALLOC>::forwardChain(const forwardChain &other) : forwardChain() {
+        staticError<unSupportedMethodError, !std::copy_constructible<ALLOC>>{};
         this->operator=(other);
     }
 
@@ -592,6 +593,8 @@ namespace original {
 
     template <typename TYPE, typename ALLOC>
     auto original::forwardChain<TYPE, ALLOC>::operator=(const forwardChain &other) -> forwardChain& {
+        staticError<unSupportedMethodError, !std::copy_constructible<ALLOC>>{};
+
         if (this == &other) return *this;
         this->chainDestruction();
         this->size_ = other.size_;
@@ -615,11 +618,14 @@ namespace original {
 
     template <typename TYPE, typename ALLOC>
     original::forwardChain<TYPE, ALLOC>::forwardChain(forwardChain &&other) noexcept : forwardChain() {
+        staticError<unSupportedMethodError, !std::move_constructible<ALLOC>>{};
         this->operator=(std::move(other));
     }
 
     template <typename TYPE, typename ALLOC>
     original::forwardChain<TYPE, ALLOC> & original::forwardChain<TYPE, ALLOC>::operator=(forwardChain &&other) noexcept {
+        staticError<unSupportedMethodError, !std::move_constructible<ALLOC>>{};
+
         if (this == &other)
             return *this;
 

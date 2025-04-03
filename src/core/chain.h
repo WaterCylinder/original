@@ -575,6 +575,7 @@ namespace original {
 
     template <typename TYPE, typename ALLOC>
     original::chain<TYPE, ALLOC>::chain(const chain& other) : chain(){
+        staticError<unSupportedMethodError, !std::copy_constructible<ALLOC>>{};
         this->operator=(other);
     }
 
@@ -614,6 +615,8 @@ namespace original {
 
     template <typename TYPE, typename ALLOC>
     original::chain<TYPE, ALLOC>& original::chain<TYPE, ALLOC>::operator=(const chain& other){
+        staticError<unSupportedMethodError, !std::copy_constructible<ALLOC>>{};
+
         if (this == &other) return *this;
         this->chainDestruction();
         this->size_ = other.size_;
@@ -642,12 +645,14 @@ namespace original {
     template <typename TYPE, typename ALLOC>
     original::chain<TYPE, ALLOC>::chain(chain&& other) noexcept : chain()
     {
+        staticError<unSupportedMethodError, !std::move_constructible<ALLOC>>{};
         this->operator=(std::move(other));
     }
 
     template <typename TYPE, typename ALLOC>
     auto original::chain<TYPE, ALLOC>::operator=(chain&& other) noexcept -> chain&
     {
+        staticError<unSupportedMethodError, !std::move_constructible<ALLOC>>{};
         if (this == &other)
             return *this;
 
@@ -668,7 +673,7 @@ namespace original {
         if (other.empty()) return;
 
         this->size_ += other.size_;
-        this->destroyNode(other.begin_->getPPrev());
+        other.destroyNode(other.begin_->getPPrev());
         chainNode::connect(this->end_, other.begin_);
         this->end_ = other.end_;
         other.chainInit();
