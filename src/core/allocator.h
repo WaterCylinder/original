@@ -175,7 +175,7 @@ namespace original {
     * - Organizes memory into power-of-two sized chunks (1, 2, 4, 8, 16, 32, ... bytes)
     * - Maintains separate free lists for each chunk size
     * - Allocates memory in blocks (chunks) to reduce fragmentation
-    * - Falls back to allocators::malloc/allocators::free for allocations too large for the pool
+    * - Falls back to allocators::malloc/ allocators::free for allocations too large for the pool
     *
     * Memory Management Approach:
     * 1. The allocator maintains multiple free lists, one for each size class (power-of-two)
@@ -187,7 +187,7 @@ namespace original {
     *    - Returns the chunk to its appropriate free list
     *    - Large allocations (outside pool) are freed immediately
     *
-    * @note For large allocations, uses allocators::malloc/allocators::free
+    * @note For large allocations, uses allocators::malloc/ allocators::free
     * @extends allocatorBase
     * @see allocator For the default allocator implementation
     */
