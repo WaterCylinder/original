@@ -2,6 +2,7 @@
 #define ALLOCATOR_H
 
 
+#include "config.h"
 #include "error.h"
 #include "maths.h"
 #include "type_traits"
@@ -79,6 +80,7 @@ namespace original {
     public:
         using propagate_on_container_copy_assignment = std::false_type; ///< No propagation on copy
         using propagate_on_container_move_assignment = std::false_type; ///< No propagation on move
+        using propagate_on_container_swap = std::false_type; ///< No propagation on swap
 
         /**
         * @brief Rebinds allocator to different type
@@ -146,6 +148,7 @@ namespace original {
     public:
         using typename allocatorBase<TYPE, allocator>::propagate_on_container_copy_assignment;
         using typename allocatorBase<TYPE, allocator>::propagate_on_container_move_assignment;
+        using typename allocatorBase<TYPE, allocator>::propagate_on_container_swap;
 
         /**
         * @brief Allocates memory using global operator new
@@ -251,6 +254,7 @@ namespace original {
     public:
         using typename allocatorBase<TYPE, objPoolAllocator>::propagate_on_container_copy_assignment;
         using propagate_on_container_move_assignment = std::true_type; ///< Allows propagation on move
+        using propagate_on_container_swap = std::true_type; ///< Allows propagation on swap
 
         /**
         * @brief Constructs a new object pool allocator
