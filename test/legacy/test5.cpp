@@ -66,7 +66,7 @@ int main(){
         std::cout << p12[i] << std::endl;
     }
     auto vectorPool = original::vector<int, original::objPoolAllocator<int>>();
-    auto chainPool = original::forwardChain<int, original::objPoolAllocator<int>>({1,2,3,4,5,6,7,8,9,10});
+    auto chainPool = original::chain<int, original::objPoolAllocator<int>>({1,2,3,4,5,6,7,8,9,10});
     for (int i = 0; i < 20; ++i) {
         vectorPool.pushEnd(i);
     }
@@ -75,5 +75,9 @@ int main(){
     }
     auto copy_vector_pool = vectorPool;
     auto move_vector_pool = std::move(vectorPool);
+    auto chainPool2 = original::chain<int, original::objPoolAllocator<int>>({11,12,13,14});
+    chainPool += chainPool2;
+    std::cout << chainPool << std::endl;
+    std::cout << chainPool2 << std::endl;
     return 0;
 }
