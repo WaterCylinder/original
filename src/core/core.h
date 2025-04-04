@@ -3,16 +3,43 @@
 
 /**
  * @file core.h
- * @brief Core module header file.
- * @details This header file includes all the essential modules and components
- * that form the core of the library. It aggregates the most important header
- * files into a single point of access for ease of use, ensuring that all the
- * necessary components for the library’s core functionality are included.
+ * @brief Core module header file
+ * @details Contains all fundamental components that form the core of the Original project.
+ * Integrates the following main functional modules:
  *
- * The included modules cover a wide range of functionalities such as containers,
- * algorithms, iterators, and utilities, making this file the central hub for
- * accessing core components of the library.
+ * @section Main_Features Main Features
+ *
+ * @subsection Containers
+ * - Fixed-size containers: array, bitSet
+ * - Variable-size containers: vector, forwardChain, chain, blocksList
+ *
+ * @subsection Memory_Management
+ * - Smart pointers: ownerPtr, strongPtr, weakPtr
+ * - Allocators: allocatorBase, allocator, objPoolAllocator
+ * - Deleters: deleterBase, deleter
+ *
+ * @subsection Algorithms_Iterators
+ * - Algorithms: allOf/anyOf, find/count, sort/stableSort etc.
+ * - Iterators: iterator, iterAdaptor, directional iterators
+ * - Algorithm adapters: transform, filter, comparator
+ *
+ * @subsection Utilities
+ * - Interfaces: printable, comparable, cloneable
+ * - Tuples: couple, tuple
+ * - Others: error handling, maths utilities, config
+ *
+ * @section Usage
+ * Include this single header to access all core functionality:
+ * @code
+ * #include "original/core.h"
+ * @endcode
+ *
+ * @note Full documentation available at: https://documents-original.vercel.app/
+ * @see README.md for project overview and build instructions
+ * @see allocator.h For detailed memory management documentation
+ * @see chain.h For linked list implementation details
  */
+
 
 #include "algorithms.h"
 #include "allocator.h"
@@ -48,6 +75,7 @@
 #include "randomAccessIterator.h"
 #include "refCntPtr.h"
 #include "serial.h"
+#include "set.h"
 #include "singleDirectionIterator.h"
 #include "stack.h"
 #include "stepIterator.h"
