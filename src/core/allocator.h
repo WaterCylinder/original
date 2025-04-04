@@ -68,12 +68,18 @@ namespace original {
     * @class allocatorBase
     * @tparam TYPE The type of objects to allocate
     * @tparam DERIVED CRTP template parameter for derived allocators
-    * @brief Interface for other memory allocator implements
+    * @brief Interface for other memory allocator implementations
     * @details Provides common interface and utilities for memory management:
     * - Type-safe allocation/de-allocation
     * - Object construction/destruction
     * - Rebinding support for container needs
-    * @note Derived classes must implement allocate/deallocate
+    * - Propagation control for container operations
+    *
+    * Propagation traits:
+    * - propagate_on_container_copy_assignment
+    * - propagate_on_container_move_assignment
+    * - propagate_on_container_swap
+    * - propagate_on_container_merge
     */
     template<typename TYPE, template <typename> typename DERIVED>
     class allocatorBase{
@@ -81,6 +87,7 @@ namespace original {
         using propagate_on_container_copy_assignment = std::false_type; ///< No propagation on copy
         using propagate_on_container_move_assignment = std::false_type; ///< No propagation on move
         using propagate_on_container_swap = std::false_type; ///< No propagation on swap
+        using propagate_on_container_merge = std::false_type; ///< No propagation on merge
 
         /**
         * @brief Rebinds allocator to different type
@@ -149,6 +156,7 @@ namespace original {
         using typename allocatorBase<TYPE, allocator>::propagate_on_container_copy_assignment;
         using typename allocatorBase<TYPE, allocator>::propagate_on_container_move_assignment;
         using typename allocatorBase<TYPE, allocator>::propagate_on_container_swap;
+        using typename allocatorBase<TYPE, allocator>::propagate_on_container_merge;
 
         /**
         * @brief Allocates memory using global operator new
@@ -272,6 +280,7 @@ namespace original {
         using typename allocatorBase<TYPE, objPoolAllocator>::propagate_on_container_copy_assignment;
         using propagate_on_container_move_assignment = std::true_type; ///< Allows propagation on move
         using propagate_on_container_swap = std::true_type; ///< Allows propagation on swap
+        using propagate_on_container_merge = std::true_type; ///< Allows propagation on merge
 
         /**
         * @brief Constructs a new object pool allocator
@@ -282,6 +291,18 @@ namespace original {
 
         objPoolAllocator(const objPoolAllocator&) = delete; ///< Copy construction disabled
         objPoolAllocator& operator=(const objPoolAllocator&) = delete; ///< Copy assignment disabled
+
+        /**
+        * @brief Merges another pool allocator into this one
+        * @param other The allocator to merge
+        * @return Reference to this allocator
+        * @details Merges:
+        * - Size class configurations (takes maximum)
+        * - Free lists (concatenates)
+        * - Allocated blocks (combines)
+        * - Allocator resources (since propagate_on_container_merge is true)
+        */
+        objPoolAllocator& operator+=(objPoolAllocator& other);
 
         /**
         * @brief Move constructor
@@ -444,6 +465,69 @@ original::objPoolAllocator<TYPE>::objPoolAllocator(const u_integer size_class_co
     : size_class_count(size_class_count), chunk_count_init(count), chunk_count(nullptr),
       free_list_head(nullptr), allocated_list_head(nullptr), chunks_available(nullptr) {
     this->poolInit();
+}
+
+template<typename TYPE>
+original::objPoolAllocator<TYPE>& original::objPoolAllocator<TYPE>::operator+=(objPoolAllocator& other) {
+    if (this == &other)
+        return *this;
+
+    auto size_class_count_max = max(this->size_class_count, other.size_class_count);
+    auto chunk_count_init_max = max(this->chunk_count_init, other.chunk_count_init);
+    auto chunk_count_max = allocators::malloc<u_integer>(size_class_count_max);
+    auto free_list_head_max = allocators::malloc<freeChunk*>(size_class_count_max);
+    auto chunks_available_max = allocators::malloc<u_integer>(size_class_count_max);
+
+    for (u_integer i = 0; i < size_class_count_max; i++) {
+        if (i < this->size_class_count && i < other.size_class_count) {
+            chunk_count_max[i] = max(this->chunk_count[i], other.chunk_count[i]);
+            chunks_available_max[i] = this->chunks_available[i] + other.chunks_available[i];
+            auto cur_list_head_i = other.free_list_head[i];
+            if (cur_list_head_i) {
+                while (cur_list_head_i->next) {
+                    cur_list_head_i = cur_list_head_i->next;
+                }
+                cur_list_head_i->next = this->free_list_head[i];
+                free_list_head_max[i] = other.free_list_head[i];
+            }else {
+                free_list_head_max[i] = this->free_list_head[i];
+            }
+        }else if (i < this->size_class_count) {
+            chunk_count_max[i] = this->chunk_count[i];
+            chunks_available_max[i] = this->chunks_available[i];
+            free_list_head_max[i] = this->free_list_head[i];
+        }else {
+            chunk_count_max[i] = other.chunk_count[i];
+            chunks_available_max[i] = other.chunks_available[i];
+            free_list_head_max[i] = other.free_list_head[i];
+        }
+    }
+
+    auto allocated_list_head_max = other.allocated_list_head;
+    auto cur_allocated_list_head = allocated_list_head_max;
+    if (cur_allocated_list_head) {
+        while (cur_allocated_list_head->next) {
+            cur_allocated_list_head = cur_allocated_list_head->next;
+        }
+        cur_allocated_list_head->next = this->allocated_list_head;
+    }else {
+        allocated_list_head_max = this->allocated_list_head;
+    }
+    this->allocated_list_head = nullptr;
+    other.allocated_list_head = nullptr;
+
+    this->release();
+    other.release();
+    other.poolInit();
+
+    this->size_class_count = size_class_count_max;
+    this->chunk_count_init = chunk_count_init_max;
+    this->chunk_count = chunk_count_max;
+    this->free_list_head = free_list_head_max;
+    this->chunks_available = chunks_available_max;
+    this->allocated_list_head = allocated_list_head_max;
+
+    return *this;
 }
 
 template<typename TYPE>
