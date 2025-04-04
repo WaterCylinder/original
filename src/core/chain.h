@@ -291,10 +291,11 @@ namespace original {
         chain& operator=(chain&& other) noexcept;
 
         /**
-         * @brief Appends another chain to the current chain.
-         * @param other The chain to append.
-         */
-        void operator+=(chain& other);
+        * @brief Concatenates another chain to this one
+        * @param other The chain to concatenate
+        * @return Reference to this chain after merge
+        */
+        chain& operator+=(chain& other);
 
         /**
          * @brief Gets the size of the chain.
@@ -663,15 +664,20 @@ namespace original {
     }
 
     template <typename TYPE, typename ALLOC>
-    auto original::chain<TYPE, ALLOC>::operator+=(chain& other) -> void
+    auto original::chain<TYPE, ALLOC>::operator+=(chain& other) -> chain&
     {
-        if (other.empty()) return;
+        if (this == &other || other.empty()) return *this;
 
         this->size_ += other.size_;
-        this->destroyNode(other.begin_->getPPrev());
+        other.destroyNode(other.begin_->getPPrev());
         chainNode::connect(this->end_, other.begin_);
         this->end_ = other.end_;
+        if constexpr (ALLOC::propagate_on_container_merge::value) {
+            this->allocator += other.allocator;
+            this->rebind_alloc += other.rebind_alloc;
+        }
         other.chainInit();
+        return *this;
     }
 
     template <typename TYPE, typename ALLOC>
