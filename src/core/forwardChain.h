@@ -609,6 +609,7 @@ namespace original {
         }
         if constexpr (ALLOC::propagate_on_container_copy_assignment::value){
             this->allocator = other.allocator;
+            this->rebind_alloc = other.rebind_alloc;
         }
         return *this;
     }
@@ -628,6 +629,7 @@ namespace original {
         this->size_ = other.size_;
         if constexpr (ALLOC::propagate_on_container_move_assignment::value){
             this->allocator = std::move(other.allocator);
+            this->rebind_alloc = std::move(other.rebind_alloc);
         }
         other.chainInit();
         return *this;
