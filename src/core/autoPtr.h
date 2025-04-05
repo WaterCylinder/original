@@ -422,46 +422,52 @@ TYPE* original::autoPtr<TYPE, DERIVED, DELETER>::get() {
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 const TYPE& original::autoPtr<TYPE, DERIVED, DELETER>::operator*() const {
-    if (!this->get())
+    const auto ptr = this->get();
+    if (!ptr)
         throw nullPointerError();
-    return *this->get();
+    return *ptr;
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 const TYPE*
 original::autoPtr<TYPE, DERIVED, DELETER>::operator->() const {
-    if (!this->get())
+    const auto ptr = this->get();
+    if (!ptr)
         throw nullPointerError();
-    return this->get();
+    return ptr;
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 const TYPE& original::autoPtr<TYPE, DERIVED, DELETER>::operator[](u_integer index) const {
-    if (!this->get())
+    const auto ptr = this->get();
+    if (!ptr)
         throw nullPointerError();
-    return this->get()[index];
+    return ptr[index];
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 TYPE &original::autoPtr<TYPE, DERIVED, DELETER>::operator*() {
-    if (!this->get())
+    auto ptr = this->get();
+    if (!ptr)
         throw nullPointerError();
-    return *this->get();
+    return *ptr;
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 TYPE*
 original::autoPtr<TYPE, DERIVED, DELETER>::operator->() {
-    if (!this->get())
+    auto ptr = this->get();
+    if (!ptr)
         throw nullPointerError();
-    return this->get();
+    return ptr;
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 TYPE& original::autoPtr<TYPE, DERIVED, DELETER>::operator[](u_integer index) {
-    if (!this->get())
+    auto ptr = this->get();
+    if (!ptr)
         throw nullPointerError();
-    return this->get()[index];
+    return ptr[index];
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>

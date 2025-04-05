@@ -362,7 +362,7 @@ void original::allocators::free(TYPE* ptr) {
     ::operator delete(ptr);
 }
 
-template <typename TYPE, template <typename> class DERIVED>
+template <typename TYPE, template <typename> typename DERIVED>
 constexpr original::allocatorBase<TYPE, DERIVED>::allocatorBase()
 {
     staticError<allocateError, sizeof(TYPE) == 0 || std::is_void_v<TYPE>>{};
