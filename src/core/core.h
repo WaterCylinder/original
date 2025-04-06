@@ -64,6 +64,7 @@
 #include "filter.h"
 #include "filterStream.h"
 #include "forwardChain.h"
+#include "hash.h"
 #include "iterable.h"
 #include "iterationStream.h"
 #include "iterator.h"
