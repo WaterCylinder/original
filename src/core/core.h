@@ -67,6 +67,7 @@
 #include "iterable.h"
 #include "iterationStream.h"
 #include "iterator.h"
+#include "map.h"
 #include "maths.h"
 #include "ownerPtr.h"
 #include "printable.h"
