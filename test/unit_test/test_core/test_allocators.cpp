@@ -1,6 +1,5 @@
 #include "gtest/gtest.h"
 #include "allocator.h"
-#include "array.h"
 #include "blocksList.h"
 #include "chain.h"
 #include "forwardChain.h"
