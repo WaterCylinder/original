@@ -1,6 +1,5 @@
 #include <iostream>
 #include "chain.h"
-#include "forwardChain.h"
 #include "ownerPtr.h"
 #include "refCntPtr.h"
 #include "vector.h"
@@ -77,6 +76,7 @@ int main(){
     auto move_vector_pool = std::move(vectorPool);
     auto chainPool2 = original::chain<int, original::objPoolAllocator<int>>({11,12,13,14});
     chainPool += chainPool2;
+    std::cout << copy_vector_pool << std::endl;
     std::cout << chainPool << std::endl;
     std::cout << chainPool2 << std::endl;
     return 0;
