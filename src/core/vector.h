@@ -11,6 +11,8 @@
 #include "baseList.h"
 #include "iterationStream.h"
 #include "array.h"
+#include "types.h"
+
 
 namespace original{
     /**
@@ -127,6 +129,8 @@ namespace original{
          */
         void adjust(u_integer increment);
 
+        vector(u_integer size, ALLOC alloc = ALLOC{});
+
     public:
         /**
          * @class Iterator
@@ -196,6 +200,9 @@ namespace original{
          * The allocator will be used for all subsequent memory operations.
          */
         explicit vector(ALLOC alloc = ALLOC{});
+
+        template<typename... ARGS>
+        vector(u_integer size, ALLOC alloc, ARGS&&... args);
 
         /**
          * @brief Copy constructor for the vector.
@@ -335,7 +342,13 @@ namespace original{
          * @brief Destructor for the vector.
          */
         ~vector() override;
+
+        template<typename T, typename... ARGS>
+        friend vector<T, allocator<T>> makeVector(u_integer size, ARGS&&... args);
     };
+
+    template<typename T, typename... ARGS>
+    vector<T, allocator<T>> makeVector(u_integer size, ARGS&&... args);
 }
 
     template <typename TYPE, typename ALLOC>
@@ -478,6 +491,21 @@ namespace original{
     {
         this->vectorInit();
     }
+
+template<typename TYPE, typename ALLOC>
+template<typename... ARGS>
+original::vector<TYPE, ALLOC>::vector(original::u_integer size, ALLOC alloc, ARGS&&... args)
+    : vector(size, alloc) {
+    this->body = this->allocate(this->max_size);
+    for (u_integer i = 0; i < this->size_; ++i) {
+        this->construct(&this->body[this->toInnerIdx(i)], std::forward<ARGS>(args)...);
+    }
+}
+
+template<typename TYPE, typename ALLOC>
+    original::vector<TYPE, ALLOC>::vector(u_integer size, ALLOC alloc)
+        : baseList<TYPE, ALLOC>(std::move(alloc)), size_(size),
+          max_size((size * 4) / 3), inner_begin((size / 3) - 1) {}
 
     template <typename TYPE, typename ALLOC>
     original::vector<TYPE, ALLOC>::vector(const vector& other) : vector(){
@@ -733,6 +761,11 @@ namespace original{
     template <typename TYPE, typename ALLOC>
     original::vector<TYPE, ALLOC>::~vector() {
         this->vectorArrayDestruct();
+    }
+
+    template<typename T, typename... ARGS>
+    original::vector<T, original::allocator<T>> original::makeVector(original::u_integer size, ARGS &&... args) {
+        return original::vector<T, original::allocator<T>>(size, original::allocator<T>{}, std::forward<ARGS>(args)...);
     }
 
 #endif //VECTOR_H
