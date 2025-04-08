@@ -4,6 +4,7 @@
 
 #include "config.h"
 #include <cstring>
+#include <string>
 #include "types.h"
 
 
@@ -44,6 +45,10 @@ namespace original {
         static u_integer hashFunc(T* const& t) noexcept;
 
         static u_integer hashFunc(const char& t) noexcept;
+
+        static u_integer hashFunc(const char* str) noexcept;
+
+        static u_integer hashFunc(const std::string& str) noexcept;
 
         u_integer operator()(const TYPE& t) noexcept;
     };
@@ -96,12 +101,23 @@ original::u_integer original::hash<TYPE>::hashFunc(const T &t) noexcept {
 template<typename TYPE>
 template<typename T>
 original::u_integer original::hash<TYPE>::hashFunc(T* const& t) noexcept {
-    return static_cast<u_integer>(t);
+    return reinterpret_cast<u_integer>(t);
 }
 
 template<typename TYPE>
 original::u_integer original::hash<TYPE>::hashFunc(const char &t) noexcept {
     return static_cast<u_integer>(t);
+}
+
+template<typename TYPE>
+original::u_integer original::hash<TYPE>::hashFunc(const char* str) noexcept {
+    if (str == nullptr) return 0;
+    return fnv1a(reinterpret_cast<const byte*>(str), std::strlen(str));
+}
+
+template<typename TYPE>
+original::u_integer original::hash<TYPE>::hashFunc(const std::string& str) noexcept {
+    return fnv1a(reinterpret_cast<const byte*>(str.data()), str.size());
 }
 
 template<typename TYPE>
