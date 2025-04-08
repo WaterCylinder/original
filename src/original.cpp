@@ -44,9 +44,3 @@
  * @note Project is built using CMake, following modern C++ development standards and supporting cross-platform construction.
  * @note If you need assistance, please refer to the project documentation or submit an issue through GitHub.
  */
-
-/**
- * @headerfile original.h
- * @brief Headers of the project included
- */
-#include "original.h"
