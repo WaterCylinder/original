@@ -14,6 +14,9 @@
 
 namespace original {
 
+    template<typename... ARGS>
+    concept NotNull = sizeof...(ARGS) > 0;
+    
 /**
  * @concept Comparable
  * @brief Requires type to support all comparison operators.
