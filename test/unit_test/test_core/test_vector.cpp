@@ -254,6 +254,84 @@ TEST_F(VectorTest, BoundaryAccessTest) {
     ASSERT_THROW(this->originalVec[1], original::outOfBoundError);
 }
 
+// 测试带大小的构造函数
+TEST_F(VectorTest, SizeConstructorTest) {
+    constexpr size_t testSize = 100;
+    original::vector<int> sizedVec(testSize, original::allocator<int>{}, 0);
+    std::vector<int> sizedStdVec(testSize);
+
+    ASSERT_EQ(sizedVec.size(), sizedStdVec.size());
+    for (size_t i = 0; i < testSize; ++i) {
+        ASSERT_EQ(sizedVec[i], sizedStdVec[i]); // 默认构造的元素应该相同
+    }
+}
+
+// 测试带大小和参数的构造函数
+TEST_F(VectorTest, SizeAndArgsConstructorTest) {
+    constexpr size_t testSize = 100;
+    constexpr int initValue = 42;
+
+    original::vector<int> sizedVec(testSize, original::allocator<int>{}, initValue);
+    std::vector<int> sizedStdVec(testSize, initValue);
+
+    ASSERT_EQ(sizedVec.size(), sizedStdVec.size());
+    for (size_t i = 0; i < testSize; ++i) {
+        ASSERT_EQ(sizedVec[i], sizedStdVec[i]);
+    }
+}
+
+// 测试data()方法
+TEST_F(VectorTest, DataMethodTest) {
+    this->originalVec.pushEnd(1);
+    this->originalVec.pushEnd(2);
+    this->stdVec.push_back(1);
+    this->stdVec.push_back(2);
+
+    // data()应该返回第一个元素的引用
+    ASSERT_EQ(this->originalVec.data(), this->originalVec[0]);
+    ASSERT_EQ(this->originalVec.data(), this->stdVec.front());
+
+    // 修改data()返回的引用应该修改容器中的元素
+    this->originalVec.data() = 10;
+    this->stdVec.front() = 10;
+    compareVectors(this->originalVec, this->stdVec);
+}
+
+// 测试makeVector工厂函数
+TEST_F(VectorTest, MakeVectorTest) {
+    constexpr size_t testSize = 100;
+    constexpr int initValue = 42;
+
+    auto madeVec = original::makeVector<int>(testSize, initValue);
+    std::vector<int> stdVec(testSize, initValue);
+
+    ASSERT_EQ(madeVec.size(), stdVec.size());
+    for (size_t i = 0; i < testSize; ++i) {
+        ASSERT_EQ(madeVec[i], stdVec[i]);
+    }
+
+    // 测试空vector
+    auto emptyVec = original::makeVector<int>(0);
+    ASSERT_EQ(emptyVec.size(), 0);
+}
+
+// 测试带大小构造函数的边界情况
+TEST_F(VectorTest, SizeConstructorEdgeCases) {
+    // 测试大小为0
+    original::vector<int> zeroVec(0, original::allocator<int>{}, 0);
+    ASSERT_EQ(zeroVec.size(), 0);
+
+    // 测试大尺寸
+    constexpr size_t largeSize = 1000000;
+    original::vector<int> largeVec(largeSize, original::allocator<int>{}, 0);
+    ASSERT_EQ(largeVec.size(), largeSize);
+
+    // 测试访问元素
+    for (size_t i = 0; i < largeSize; i += largeSize/10) {
+        ASSERT_EQ(largeVec[i], int{}); // 默认初始化值
+    }
+}
+
 // 测试 pushBegin
 TEST_F(VectorTest, PushBeginTest) {
     constexpr size_t dataSize = 100000;  // 大数据量测试
