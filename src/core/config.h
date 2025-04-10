@@ -3,9 +3,9 @@
 
 /**
  * @file config.h
- * @brief Platform-independent integer type definitions
- * @details Provides unified integer type aliases for cross-platform consistency.
- * Ensures fixed-width integer usage throughout the codebase.
+ * @brief Platform-independent integer and floating-point type definitions
+ * @details Provides unified integer and floating-point type aliases for cross-platform consistency.
+ * Ensures fixed-width integer and standardized floating-point usage throughout the codebase.
  */
 
 #include "cstdint"
@@ -41,6 +41,22 @@ namespace original {
      * @warning Not suitable for very large containers (>4GB)
      */
     using u_integer = std::uint32_t;
+
+    /**
+     * @brief Double-precision floating-point type
+     * @details Standard floating-point type for most numerical calculations.
+     * @note Typically 64-bit IEEE 754 floating-point (15-17 decimal digits precision)
+     * @note Use this for most floating-point operations requiring precision
+     */
+    using floating = double;
+
+    /**
+     * @brief Extended precision floating-point type
+     * @details Highest precision floating-point type for critical numerical calculations.
+     * @note Typically 80-bit or 128-bit extended precision (18-21 decimal digits precision)
+     * @note Use this when maximum floating-point precision is required
+     */
+    using l_floating = long double;
 }
 
 #endif //CONFIG_H
