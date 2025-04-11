@@ -3,7 +3,6 @@
 
 #include "allocator.h"
 #include "couple.h"
-#include "comparator.h"
 #include "hash.h"
 #include "vector.h"
 #include "wrapper.h"
@@ -13,9 +12,8 @@ namespace original {
     // TODO
     template<typename K_TYPE, typename V_TYPE, typename ALLOC = allocator<K_TYPE>, typename HASH = hash<K_TYPE>>
     class hashTable : public printable{
-
+    protected:
         class hashNode final : public wrapper<couple<K_TYPE, V_TYPE>> {
-        private:
             couple<K_TYPE, V_TYPE> data_;
             hashNode* next_;
         public:
@@ -92,7 +90,7 @@ namespace original {
         void rehash(u_integer new_bucket_count);
 
         void adjust();
-    protected:
+
 
         explicit hashTable(HASH hash = HASH{});
 
@@ -120,7 +118,7 @@ original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode::hashNode(const hashN
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode&
+typename original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode&
 original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode::operator=(const hashNode& other) {
     if (this == &other)
         return *this;
@@ -163,17 +161,17 @@ void original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode::setVal(couple<K
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
 void original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode::setValue(const V_TYPE &value) {
-    this->data_.set<1>(value);
+    this->data_.template set<1>(value);
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode*
+typename original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode*
 original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode::getPPrev() const {
     throw unSupportedMethodError();
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode*
+typename original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode*
 original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode::getPNext() const {
     return this->next_;
 }
@@ -189,7 +187,7 @@ void original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode::connect(hashNod
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode*
+typename original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode*
 original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::createNode(const K_TYPE& key, const V_TYPE& value, hashNode* next) {
     auto node = this->rebind_alloc.allocate(1);
     this->rebind_alloc.construct(node, key, value, next);
@@ -215,7 +213,7 @@ original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::getBucketCount() const {
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode*
+typename original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode*
 original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::getBucket(const K_TYPE &key) const {
     u_integer code = this->getHashCode(key);
     return this->buckets[code];
@@ -284,7 +282,7 @@ original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashTable(HASH hash)
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode*
+typename original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode*
 original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::find(const K_TYPE& key) const {
     if (this->size_ == 0)
         return nullptr;
@@ -298,13 +296,11 @@ original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::find(const K_TYPE& key) const 
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
 bool original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::modify(const K_TYPE &key, const V_TYPE &value) {
-    auto cur = this->find(key);
-    if (cur){
+    if (auto cur = this->find(key)){
         cur->setValue(value);
         return true;
-    } else{
-        return false;
     }
+    return false;
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
