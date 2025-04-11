@@ -1,5 +1,6 @@
 #include <iostream>
 #include "chain.h"
+#include "maps.h"
 #include "ownerPtr.h"
 #include "refCntPtr.h"
 #include "vector.h"
@@ -79,5 +80,6 @@ int main(){
     std::cout << copy_vector_pool << std::endl;
     std::cout << chainPool << std::endl;
     std::cout << chainPool2 << std::endl;
+    auto m1 = original::hashMap<int, int>();
     return 0;
 }
