@@ -106,6 +106,18 @@ namespace original
         S_TYPE& second();
 
         /**
+         * @brief Access first element (const version)
+         * @return Mutable reference to first element
+         */
+        const F_TYPE& first() const;
+
+        /**
+         * @brief Access second element (const version)
+         * @return Mutable reference to second element
+         */
+        const S_TYPE& second() const;
+
+        /**
          * @brief Default destructor
          */
         ~couple() override;
@@ -203,7 +215,17 @@ namespace original
         return this->second_;
     }
 
-    template <typename F_TYPE, typename S_TYPE>
+    template<typename F_TYPE, typename S_TYPE>
+    const F_TYPE & original::couple<F_TYPE, S_TYPE>::first() const {
+        return this->first_;
+    }
+
+    template<typename F_TYPE, typename S_TYPE>
+    const S_TYPE & original::couple<F_TYPE, S_TYPE>::second() const {
+        return this->second_;
+    }
+
+template <typename F_TYPE, typename S_TYPE>
     original::couple<F_TYPE, S_TYPE>::~couple() = default;
 
     template <typename F_TYPE, typename S_TYPE>
