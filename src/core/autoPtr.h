@@ -4,7 +4,9 @@
 #include "config.h"
 #include "printable.h"
 #include "comparable.h"
+#include "hash.h"
 #include "error.h"
+
 
 /**
 * @file autoPtr.h
@@ -31,9 +33,12 @@ namespace original {
     * - Custom deletion policies via template parameter
     * @extends printable
     * @extends comparable
+    * @extends hashable
     */
     template<typename TYPE, typename DERIVED, typename DELETER>
-    class autoPtr : public printable, public comparable<autoPtr<TYPE, DERIVED, DELETER>>{
+    class autoPtr : public printable,
+                    public comparable<autoPtr<TYPE, DERIVED, DELETER>>,
+                    public hashable<autoPtr<TYPE, DERIVED, DELETER>> {
     protected:
         refCount<TYPE, DELETER>* ref_count; ///< Reference counter object
 
@@ -215,6 +220,10 @@ namespace original {
         * @return Formatted resource info
         */
         std::string toString(bool enter) const override;
+
+        [[nodiscard]] u_integer toHash() const noexcept override;
+
+        bool equals(const autoPtr& other) const noexcept override;
 
         /**
         * @brief Destructor triggers reference cleanup
@@ -496,6 +505,16 @@ std::string original::autoPtr<TYPE, DERIVED, DELETER>::toString(const bool enter
     if (enter)
         ss << "\n";
     return ss.str();
+}
+
+template<typename TYPE, typename DERIVED, typename DELETER>
+original::u_integer original::autoPtr<TYPE, DERIVED, DELETER>::toHash() const noexcept {
+    return hash<TYPE>::hashFunc(this->get());
+}
+
+template<typename TYPE, typename DERIVED, typename DELETER>
+bool original::autoPtr<TYPE, DERIVED, DELETER>::equals(const autoPtr& other) const noexcept {
+    return *this == other;
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
