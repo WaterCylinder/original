@@ -98,5 +98,12 @@ int main(){
         std::cout << "cnt[" << i << "] = " << cnt[i] << std::endl;
         std::cout << i << " at exist: " << original::printable::formatString(exist.contains(i)) << std::endl;
     }
+    auto map1 = original::hashMap<std::string, std::string>();
+    map1["foo"] = "bar";
+    map1["bar"] = "baz";
+    map1["baz"] = "qux";
+    std::cout << map1["foo"] << std::endl;
+    std::cout << map1["bar"] << std::endl;
+    std::cout << map1["baz"] << std::endl;
     return 0;
 }
