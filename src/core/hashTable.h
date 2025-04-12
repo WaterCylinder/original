@@ -17,8 +17,6 @@ namespace original {
             couple<K_TYPE, V_TYPE> data_;
             hashNode* next_;
         public:
-            friend class hashTable;
-
             explicit hashNode(const K_TYPE& key = K_TYPE{}, const V_TYPE& value = V_TYPE{}, hashNode* next = nullptr);
 
             hashNode(const hashNode& other);
