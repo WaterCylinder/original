@@ -64,7 +64,7 @@ namespace original {
 }
 
 template<typename TYPE>
-original::u_integer original::hash<TYPE>::fnv1a(const byte* data, u_integer size) noexcept {
+original::u_integer original::hash<TYPE>::fnv1a(const byte* data, const u_integer size) noexcept {
     u_integer hash = FNV_OFFSET_BASIS;
     for (u_integer i = 0; i < size; ++i) {
         hash ^= data[i];
@@ -100,7 +100,7 @@ original::u_integer original::hash<TYPE>::hashFunc(const T &t) noexcept {
 template<typename TYPE>
 template<typename T>
 original::u_integer original::hash<TYPE>::hashFunc(T* const& t) noexcept {
-    return reinterpret_cast<u_integer>(t);
+    return static_cast<u_integer>(reinterpret_cast<uintptr_t>(t));
 }
 
 template<typename TYPE>
