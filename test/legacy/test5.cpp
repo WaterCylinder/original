@@ -82,7 +82,7 @@ int main(){
     std::cout << chainPool << std::endl;
     std::cout << chainPool2 << std::endl;
     auto arr = original::array({1, 5, 3, 1, 1, 3, 2, 4, 2, 1, 4, 4, 5, 2});
-    auto cnt = original::hashMap<int, int>();
+    auto cnt = original::hashMap<int, int, original::hash<int>, original::objPoolAllocator<int>>();
     auto exist = original::hashSet<int>();
     for (auto num: arr) {
         if (!cnt.containsKey(num)) {
