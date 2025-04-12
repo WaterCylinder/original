@@ -3,6 +3,7 @@
 #include "maps.h"
 #include "ownerPtr.h"
 #include "refCntPtr.h"
+#include "sets.h"
 #include "vector.h"
 
 
@@ -80,6 +81,22 @@ int main(){
     std::cout << copy_vector_pool << std::endl;
     std::cout << chainPool << std::endl;
     std::cout << chainPool2 << std::endl;
-    auto m1 = original::hashMap<int, int>();
+    auto arr = original::array({1, 5, 3, 1, 1, 3, 2, 4, 2, 1, 4, 4, 5, 2});
+    auto cnt = original::hashMap<int, int>();
+    auto exist = original::hashSet<int>();
+    for (auto num: arr) {
+        if (!cnt.containsKey(num)) {
+            cnt.add(num, 1);
+        }else {
+            cnt[num] += 1;
+        }
+        if (!exist.contains(num)) {
+            exist.add(num);
+        }
+    }
+    for (int i = 1; i < 6; i++) {
+        std::cout << "cnt[" << i << "] = " << cnt[i] << std::endl;
+        std::cout << i << " at exist: " << original::printable::formatString(exist.contains(i)) << std::endl;
+    }
     return 0;
 }
