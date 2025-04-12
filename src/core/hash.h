@@ -5,7 +5,6 @@
 #include "config.h"
 #include <cstring>
 #include <string>
-#include "types.h"
 
 
 namespace original {
@@ -18,7 +17,7 @@ namespace original {
     template <typename DERIVED>
     concept isHashable =
         requires(const DERIVED& t, const DERIVED& other) {
-            { t.toHash() } -> std::same_as<original::u_integer>;
+            { t.toHash() } -> std::same_as<u_integer>;
             { t.equals(other) } -> std::same_as<bool>;
         };
 
@@ -50,7 +49,7 @@ namespace original {
 
         static u_integer hashFunc(const std::string& str) noexcept;
 
-        u_integer operator()(const TYPE& t) noexcept;
+        u_integer operator()(const TYPE& t) const noexcept;
     };
 
     template <typename DERIVED>
@@ -121,7 +120,7 @@ original::u_integer original::hash<TYPE>::hashFunc(const std::string& str) noexc
 }
 
 template<typename TYPE>
-original::u_integer original::hash<TYPE>::operator()(const TYPE &t) noexcept {
+original::u_integer original::hash<TYPE>::operator()(const TYPE &t) const noexcept {
     return hashFunc(t);
 }
 
