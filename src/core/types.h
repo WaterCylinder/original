@@ -6,16 +6,29 @@
 
 /**
  * @file types.h
- * @brief Type system foundations and concept definitions.
- * @details This header defines core type traits and concepts used for template
- *          metaprogramming and interface constraints throughout the library.
- *          These concepts enforce compile-time interface requirements.
+ * @brief Core type system foundations and concept definitions.
+ * @details This header defines fundamental type traits and concepts used for
+ *          template metaprogramming and interface constraints throughout the
+ *          library. These concepts enforce compile-time interface requirements
+ *          and enable type-safe template programming.
  */
 
 namespace original {
 
-    template<typename... ARGS>
-    concept NotNull = sizeof...(ARGS) > 0;
+/**
+ * @concept NotNull
+ * @brief Ensures the parameter pack is not empty.
+ * @tparam ARGS Variadic template parameter pack to check
+ * @details This concept checks that at least one type is provided in the
+ *          parameter pack. Useful for enforcing non-empty template parameter lists.
+ *
+ * @code{.cpp}
+ * static_assert(NotNull<int>);         // Succeeds
+ * static_assert(!NotNull<>);           // Fails
+ * @endcode
+ */
+template<typename... ARGS>
+concept NotNull = sizeof...(ARGS) > 0;
     
 /**
  * @concept Comparable
