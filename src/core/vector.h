@@ -11,7 +11,6 @@
 #include "baseList.h"
 #include "iterationStream.h"
 #include "array.h"
-#include "types.h"
 
 
 namespace original{
@@ -129,7 +128,7 @@ namespace original{
          */
         void adjust(u_integer increment);
 
-        vector(u_integer size, ALLOC alloc = ALLOC{});
+        explicit vector(u_integer size, ALLOC alloc = ALLOC{});
 
     public:
         /**
@@ -267,6 +266,9 @@ namespace original{
          * @return A reference to the element at the specified index.
          */
         TYPE& operator[](integer index) override;
+
+        // const version
+        using serial<TYPE, ALLOC>::operator[];
 
         /**
          * @brief Sets the element at the specified index.
@@ -494,7 +496,7 @@ namespace original{
 
 template<typename TYPE, typename ALLOC>
 template<typename... ARGS>
-original::vector<TYPE, ALLOC>::vector(original::u_integer size, ALLOC alloc, ARGS&&... args)
+original::vector<TYPE, ALLOC>::vector(u_integer size, ALLOC alloc, ARGS&&... args)
     : vector(size, alloc) {
     this->body = this->allocate(this->max_size);
     for (u_integer i = 0; i < this->size_; ++i) {
@@ -503,9 +505,10 @@ original::vector<TYPE, ALLOC>::vector(original::u_integer size, ALLOC alloc, ARG
 }
 
 template<typename TYPE, typename ALLOC>
-    original::vector<TYPE, ALLOC>::vector(u_integer size, ALLOC alloc)
-        : baseList<TYPE, ALLOC>(std::move(alloc)), size_(size),
-          max_size((size * 4) / 3), inner_begin((size / 3) - 1) {}
+    original::vector<TYPE, ALLOC>::vector(const u_integer size, ALLOC alloc)
+    : baseList<TYPE, ALLOC>(std::move(alloc)), size_(size),
+      max_size(size * 4 / 3), inner_begin((size / 3) - 1), body(nullptr) {
+}
 
     template <typename TYPE, typename ALLOC>
     original::vector<TYPE, ALLOC>::vector(const vector& other) : vector(){
