@@ -497,7 +497,7 @@ namespace original{
 template<typename TYPE, typename ALLOC>
 template<typename... ARGS>
 original::vector<TYPE, ALLOC>::vector(u_integer size, ALLOC alloc, ARGS&&... args)
-    : vector(size, alloc) {
+    : vector(size, std::move(alloc)) {
     this->body = this->allocate(this->max_size);
     for (u_integer i = 0; i < this->size_; ++i) {
         this->construct(&this->body[this->toInnerIdx(i)], std::forward<ARGS>(args)...);
