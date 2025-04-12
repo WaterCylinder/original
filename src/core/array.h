@@ -207,6 +207,9 @@ namespace original {
          */
         TYPE& operator[](integer index) override;
 
+        // const version
+        using serial<TYPE, ALLOC>::operator[];
+
         /**
          * @brief Sets the value of an element at the specified index.
          * @param index The index of the element to set.
