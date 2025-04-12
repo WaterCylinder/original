@@ -19,6 +19,14 @@ namespace original {
     public:
             explicit hashMap(HASH hash = HASH{}, ALLOC alloc = ALLOC{});
 
+            hashMap(const hashMap& other);
+
+            hashMap& operator=(const hashMap& other);
+
+            hashMap(hashMap&& other) noexcept;
+
+            hashMap& operator=(hashMap&& other) noexcept;
+
             [[nodiscard]] u_integer size() const override;
 
             bool contains(const couple<K_TYPE, V_TYPE> &e) const override;
@@ -39,8 +47,50 @@ namespace original {
 
 template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
 original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::hashMap(HASH hash, ALLOC alloc)
-    : hashTable<K_TYPE, V_TYPE, HASH, ALLOC>(std::move(hash)),
+    : hashTable<K_TYPE, V_TYPE, ALLOC, HASH>(std::move(hash)),
       map<K_TYPE, V_TYPE, ALLOC>(std::move(alloc)) {}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::hashMap(const hashMap &other) : hashMap() {
+    this->operator=(other);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>&
+original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::operator=(const hashMap &other) {
+    if (this == &other) {
+        return *this;
+    }
+
+    this->buckets = other.buckets;
+    this->size_ = other.size_;
+    if constexpr(ALLOC::propagate_on_container_copy_assignment::value) {
+        this->allocator = other.allocator;
+        this->rebind_alloc = other.rebind_alloc;
+    }
+    return *this;
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::hashMap(hashMap &&other) noexcept : hashMap() {
+    this->operator=(std::move(other));
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>&
+original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::operator=(hashMap &&other) noexcept {
+    if (this == &other) {
+        return *this;
+    }
+
+    this->buckets = std::move(other.buckets);
+    this->size_ = other.size_;
+    if constexpr(ALLOC::propagate_on_container_move_assignment::value) {
+        this->allocator = std::move(other.allocator);
+        this->rebind_alloc = std::move(other.rebind_alloc);
+    }
+    return *this;
+}
 
 template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
 original::u_integer
