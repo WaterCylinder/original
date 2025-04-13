@@ -68,6 +68,10 @@ namespace original
          */
         couple& operator=(const couple& other);
 
+        couple(couple&& other) noexcept;
+
+        couple& operator=(couple&& other) noexcept;
+
         /**
          * @brief element access template method
          * @tparam IDX element index (0=1st element, 1=2nd element)
@@ -158,6 +162,20 @@ namespace original
         if (this == &other) return *this;
         first_ = other.first_;
         second_ = other.second_;
+        return *this;
+    }
+
+    template<typename F_TYPE, typename S_TYPE>
+    original::couple<F_TYPE, S_TYPE>::couple(couple &&other) noexcept
+        : first_(std::move(other.first_)), second_(std::move(other.second_)) {}
+
+    template<typename F_TYPE, typename S_TYPE>
+    original::couple<F_TYPE, S_TYPE>&
+    original::couple<F_TYPE, S_TYPE>::operator=(couple &&other) noexcept {
+        if (this == &other) return *this;
+
+        first_ = std::move(other.first_);
+        second_ = std::move(other.second_);
         return *this;
     }
 
