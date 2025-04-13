@@ -11,14 +11,14 @@
 namespace original {
     template <typename TYPE,
               typename HASH = hash<TYPE>,
-              typename ALLOC = allocator<couple<const TYPE, bool>>>
-    class hashSet final : public hashTable<TYPE, bool, ALLOC, HASH>,
+              typename ALLOC = allocator<couple<const TYPE, const bool>>>
+    class hashSet final : public hashTable<TYPE, const bool, ALLOC, HASH>,
                           public set<TYPE, ALLOC>,
-                          public iterable<couple<const TYPE, bool>> {
-        using hashNode = typename hashTable<TYPE, bool, ALLOC, HASH>::hashNode;
-        using rebind_alloc_pointer = typename hashTable<TYPE, bool, ALLOC>::rebind_alloc_pointer;
+                          public iterable<couple<const TYPE, const bool>> {
+        using hashNode = typename hashTable<TYPE, const bool, ALLOC, HASH>::hashNode;
+        using rebind_alloc_pointer = typename hashTable<TYPE, const bool, ALLOC, HASH>::rebind_alloc_pointer;
     public:
-        class Iterator final : public hashTable<TYPE, bool, ALLOC, HASH>::Iterator {
+        class Iterator final : public hashTable<TYPE, const bool, ALLOC, HASH>::Iterator {
 
             explicit Iterator(vector<hashNode*, rebind_alloc_pointer>* buckets = nullptr,
                               u_integer bucket = 0, hashNode* node = nullptr);
@@ -61,7 +61,7 @@ namespace original {
 
 template<typename TYPE, typename HASH, typename ALLOC>
 original::hashSet<TYPE, HASH, ALLOC>::Iterator::Iterator(vector<hashNode*, rebind_alloc_pointer> *buckets,
-u_integer bucket, hashNode *node) : hashTable<TYPE, bool, ALLOC>::Iterator(
+u_integer bucket, hashNode *node) : hashTable<TYPE, const bool, ALLOC, HASH>::Iterator(
     const_cast<vector<hashNode*, rebind_alloc_pointer>*>(buckets), bucket, node) {}
 
 template<typename TYPE, typename HASH, typename ALLOC>
@@ -76,7 +76,7 @@ original::hashSet<TYPE, HASH, ALLOC>::Iterator::operator=(const Iterator &other)
         return *this;
     }
 
-    hashTable<TYPE, bool, ALLOC, HASH>::Iterator::operator=(other);
+    hashTable<TYPE, const bool, ALLOC, HASH>::Iterator::operator=(other);
     return *this;
 }
 
@@ -93,7 +93,7 @@ std::string original::hashSet<TYPE, HASH, ALLOC>::Iterator::className() const {
 
 template<typename TYPE, typename HASH, typename ALLOC>
 original::hashSet<TYPE, HASH, ALLOC>::hashSet(HASH hash, ALLOC alloc)
-    : hashTable<TYPE, bool, ALLOC, HASH>(std::move(hash)),
+    : hashTable<TYPE, const bool, ALLOC, HASH>(std::move(hash)),
       set<TYPE, ALLOC>(std::move(alloc)) {}
 
 template<typename TYPE, typename HASH, typename ALLOC>
