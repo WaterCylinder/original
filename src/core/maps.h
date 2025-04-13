@@ -15,8 +15,28 @@ namespace original {
               typename ALLOC = allocator<couple<K_TYPE, V_TYPE>>>
     class hashMap final
                 : public hashTable<K_TYPE, V_TYPE, ALLOC, HASH>,
-                  public map<K_TYPE, V_TYPE, ALLOC> {
+                  public map<K_TYPE, V_TYPE, ALLOC>,
+                  public iterable<couple<K_TYPE, V_TYPE>>{
+
+            using hashNode = typename hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode;
+            using rebind_alloc_pointer = typename hashTable<K_TYPE, V_TYPE, ALLOC>::rebind_alloc_pointer;
     public:
+            class Iterator final : public hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator {
+
+                explicit Iterator(vector<hashNode*, rebind_alloc_pointer>* buckets = nullptr,
+                                  u_integer bucket = 0, hashNode* node = nullptr);
+            public:
+                friend class hashMap;
+
+                Iterator(const Iterator& other);
+
+                Iterator& operator=(const Iterator& other);
+
+                Iterator* clone() const override;
+
+                [[nodiscard]] std::string className() const override;
+            };
+
             explicit hashMap(HASH hash = HASH{}, ALLOC alloc = ALLOC{});
 
             hashMap(const hashMap& other);
@@ -42,7 +62,45 @@ namespace original {
             const V_TYPE & operator[](const K_TYPE &k) const override;
 
             V_TYPE & operator[](const K_TYPE &k) override;
+
+            Iterator* begins() const override;
+
+            Iterator* ends() const override;
+
+            ~hashMap() override;
         };
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::Iterator(
+    vector<hashNode *, rebind_alloc_pointer> *buckets, u_integer bucket, hashNode *node)
+    : hashTable<K_TYPE, V_TYPE, ALLOC>::Iterator(
+        const_cast<vector<hashNode*, rebind_alloc_pointer>*>(buckets), bucket, node) {}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::Iterator(const Iterator &other) : Iterator() {
+    this->operator=(other);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+typename original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator&
+original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::operator=(const Iterator &other) {
+    if (this == &other)
+        return *this;
+
+    hashTable<K_TYPE, V_TYPE, ALLOC>::Iterator::operator=(other);
+    return *this;
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+typename original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator*
+original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::clone() const {
+    return new Iterator(*this);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+std::string original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::className() const {
+    return "hashMap::Iterator";
 }
 
 template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
@@ -144,5 +202,31 @@ V_TYPE& original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::operator[](const K_TYPE 
     }
     return node->getValue();
 }
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+typename original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator*
+original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::begins() const {
+    auto p_buckets = const_cast<vector<hashNode*, rebind_alloc_pointer>*>(&this->buckets);
+    if (this->buckets[0]) {
+        return new Iterator(p_buckets, 0, this->buckets[0]);
+    }
+    auto bucket = Iterator::findNextValidBucket(p_buckets, 0);
+    return new Iterator(p_buckets, bucket, p_buckets->get(bucket));
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+typename original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator*
+original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::ends() const {
+    auto p_buckets = const_cast<vector<hashNode*, rebind_alloc_pointer>*>(&this->buckets);
+    auto bucket = Iterator::findPrevValidBucket(p_buckets, this->buckets.size());
+    auto node = this->buckets[bucket];
+    while (node && node->getPNext()) {
+        node = node->getPNext();
+    }
+    return new Iterator(p_buckets, bucket, node);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::~hashMap() = default;
 
 #endif //MAPS_H
