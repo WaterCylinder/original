@@ -105,5 +105,11 @@ int main(){
     std::cout << map1["foo"] << std::endl;
     std::cout << map1["bar"] << std::endl;
     std::cout << map1["baz"] << std::endl;
+    for (auto it = map1.begin(); it != map1.end(); it.next()) {
+        std::cout << *it << std::endl;
+    }
+    for (const auto& cp: map1) {
+        std::cout << cp.first() << ": " << cp.second() << std::endl;
+    }
     return 0;
 }
