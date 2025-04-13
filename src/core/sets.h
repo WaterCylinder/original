@@ -13,8 +13,26 @@ namespace original {
               typename HASH = hash<TYPE>,
               typename ALLOC = allocator<couple<const TYPE, bool>>>
     class hashSet final : public hashTable<TYPE, bool, ALLOC, HASH>,
-                          public set<TYPE, ALLOC> {
+                          public set<TYPE, ALLOC>,
+                          public iterable<couple<const TYPE, bool>> {
+        using hashNode = typename hashTable<TYPE, bool, ALLOC, HASH>::hashNode;
+        using rebind_alloc_pointer = typename hashTable<TYPE, bool, ALLOC>::rebind_alloc_pointer;
     public:
+        class Iterator final : public hashTable<TYPE, bool, ALLOC, HASH>::Iterator {
+
+            explicit Iterator(vector<hashNode*, rebind_alloc_pointer>* buckets = nullptr,
+                              u_integer bucket = 0, hashNode* node = nullptr);
+        public:
+            friend class hashSet;
+
+            Iterator(const Iterator& other);
+
+            Iterator& operator=(const Iterator& other);
+
+            Iterator* clone() const override;
+
+            [[nodiscard]] std::string className() const override;
+        };
         explicit hashSet(HASH hash = HASH{}, ALLOC alloc = ALLOC{});
 
         hashSet(const hashSet& other);
@@ -32,7 +50,45 @@ namespace original {
         bool add(const TYPE &e) override;
 
         bool remove(const TYPE &e) override;
+
+        Iterator* begins() const override;
+
+        Iterator* ends() const override;
+
+        ~hashSet() override;
     };
+}
+
+template<typename TYPE, typename HASH, typename ALLOC>
+original::hashSet<TYPE, HASH, ALLOC>::Iterator::Iterator(vector<hashNode*, rebind_alloc_pointer> *buckets,
+u_integer bucket, hashNode *node) : hashTable<TYPE, bool, ALLOC>::Iterator(
+    const_cast<vector<hashNode*, rebind_alloc_pointer>*>(buckets), bucket, node) {}
+
+template<typename TYPE, typename HASH, typename ALLOC>
+original::hashSet<TYPE, HASH, ALLOC>::Iterator::Iterator(const Iterator &other) : Iterator() {
+    this->operator=(other);
+}
+
+template<typename TYPE, typename HASH, typename ALLOC>
+typename original::hashSet<TYPE, HASH, ALLOC>::Iterator&
+original::hashSet<TYPE, HASH, ALLOC>::Iterator::operator=(const Iterator &other) {
+    if (this == &other) {
+        return *this;
+    }
+
+    hashTable<TYPE, bool, ALLOC, HASH>::Iterator::operator=(other);
+    return *this;
+}
+
+template<typename TYPE, typename HASH, typename ALLOC>
+typename original::hashSet<TYPE, HASH, ALLOC>::Iterator*
+original::hashSet<TYPE, HASH, ALLOC>::Iterator::clone() const {
+    return new Iterator(*this);
+}
+
+template<typename TYPE, typename HASH, typename ALLOC>
+std::string original::hashSet<TYPE, HASH, ALLOC>::Iterator::className() const {
+    return "hashSet::Iterator";
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
@@ -101,5 +157,31 @@ template<typename TYPE, typename HASH, typename ALLOC>
 bool original::hashSet<TYPE, HASH, ALLOC>::remove(const TYPE &e) {
     return this->erase(e);
 }
+
+template<typename TYPE, typename HASH, typename ALLOC>
+typename original::hashSet<TYPE, HASH, ALLOC>::Iterator*
+original::hashSet<TYPE, HASH, ALLOC>::begins() const {
+    auto p_buckets = const_cast<vector<hashNode*, rebind_alloc_pointer>*>(&this->buckets);
+    if (this->buckets[0]) {
+        return new Iterator(p_buckets, 0, this->buckets[0]);
+    }
+    auto bucket = Iterator::findNextValidBucket(p_buckets, 0);
+    return new Iterator(p_buckets, bucket, p_buckets->get(bucket));
+}
+
+template<typename TYPE, typename HASH, typename ALLOC>
+typename original::hashSet<TYPE, HASH, ALLOC>::Iterator*
+original::hashSet<TYPE, HASH, ALLOC>::ends() const {
+    auto p_buckets = const_cast<vector<hashNode*, rebind_alloc_pointer>*>(&this->buckets);
+    auto bucket = Iterator::findPrevValidBucket(p_buckets, this->buckets.size());
+    auto node = this->buckets[bucket];
+    while (node && node->getPNext()) {
+        node = node->getPNext();
+    }
+    return new Iterator(p_buckets, bucket, node);
+}
+
+template<typename TYPE, typename HASH, typename ALLOC>
+original::hashSet<TYPE, HASH, ALLOC>::~hashSet() = default;
 
 #endif //SETS_H
