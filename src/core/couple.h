@@ -5,7 +5,8 @@
  * @file couple.h
  * @brief Generic pair container implementation
  * @details Provides a template class for storing two elements of different types
- * with printing capabilities. Supports equality comparison and formatted output.
+ * with printing capabilities. Supports equality comparison, formatted output,
+ * move semantics, and structured binding support.
  */
 
 #include "printable.h"
@@ -25,9 +26,11 @@ namespace original
      * @extends comparable
      * @details Stores a pair of elements with type safety. Provides:
      * - Element access and copy operations
+     * - Move construction and assignment
      * - Lexicographical comparison (first element precedence)
      * - Formatted string output through printable interface
      * - Comparable interface implementation
+     * - Structured binding support via std::tuple_size and std::tuple_element specializations
      */
     template<typename F_TYPE, typename S_TYPE>
     class couple final : public printable, public comparable<couple<F_TYPE, S_TYPE>>
@@ -68,8 +71,19 @@ namespace original
          */
         couple& operator=(const couple& other);
 
+        /**
+         * @brief Move constructor
+         * @param other couple to move from
+         * @note noexcept qualified for compatibility with STL containers
+         */
         couple(couple&& other) noexcept;
 
+        /**
+         * @brief Move assignment operator
+         * @param other couple to move from
+         * @return Reference to this object
+         * @note noexcept qualified for compatibility with STL containers
+         */
         couple& operator=(couple&& other) noexcept;
 
         /**
@@ -143,20 +157,58 @@ namespace original
 
 
 namespace std {
+    /**
+     * @brief Specialization of tuple_size for couple to enable structured bindings
+     * @tparam F Type of first element
+     * @tparam S Type of second element
+     */
     template<typename F, typename S>
     struct tuple_size<original::couple<F, S>> : std::integral_constant<std::size_t, 2> {}; // NOLINT
 
+    /**
+     * @brief Specialization of tuple_element for couple to enable structured bindings
+     * @tparam I Index of element (0 or 1)
+     * @tparam F Type of first element
+     * @tparam S Type of second element
+     */
     template<std::size_t I, typename F, typename S>
     struct tuple_element<I, original::couple<F, S>> { // NOLINT
         using type = std::conditional_t<I == 0, F, S>;
     };
 
+    /**
+     * @brief Structured binding support - get for non-const lvalue reference
+     * @tparam I Index of element (0 or 1)
+     * @tparam F Type of first element
+     * @tparam S Type of second element
+     * @param c couple to get element from
+     * @return Reference to the requested element
+     * @note noexcept qualified
+     */
     template<std::size_t I, typename F, typename S>
     constexpr auto& get(original::couple<F, S>& c) noexcept;  // NOLINT
 
+    /**
+     * @brief Structured binding support - get for const lvalue reference
+     * @tparam I Index of element (0 or 1)
+     * @tparam F Type of first element
+     * @tparam S Type of second element
+     * @param c couple to get element from
+     * @return Const reference to the requested element
+     * @note noexcept qualified
+     */
     template<std::size_t I, typename F, typename S>
     constexpr const auto& get(const original::couple<F, S>& c) noexcept;  // NOLINT
 
+    /**
+     * @brief Structured binding support - get for rvalue reference
+     * @tparam I Index of element (0 or 1)
+     * @tparam F Type of first element
+     * @tparam S Type of second element
+     * @param c couple to get element from
+     * @return Rvalue reference to the requested element
+     * @note noexcept qualified
+     */
     template<std::size_t I, typename F, typename S>
     constexpr auto&& get(original::couple<F, S>&& c) noexcept;  // NOLINT
 }
