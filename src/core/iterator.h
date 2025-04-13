@@ -244,6 +244,12 @@ public:
 
     template<typename T>
     friend iterator<T>* operator-(const iterator<T>& it, integer steps);
+
+    template<typename T>
+    friend bool operator==(const iterator<T>& l_it, const iterator<T>& r_it);
+
+    template<typename T>
+    friend bool operator!=(const iterator<T>& l_it, const iterator<T>& r_it);
 };
 
 /**
@@ -293,6 +299,12 @@ auto operator+(const iterator<T>& it, integer steps) -> iterator<T>*;
  */
 template <typename T>
 auto operator-(const iterator<T>& it, integer steps) -> iterator<T>*;
+
+template<typename T>
+bool operator==(const iterator<T>& l_it, const iterator<T>& r_it);
+
+template<typename T>
+bool operator!=(const iterator<T>& l_it, const iterator<T>& r_it);
 
 } // namespace original
     template<typename TYPE>
@@ -401,5 +413,15 @@ auto operator-(const iterator<T>& it, integer steps) -> iterator<T>*;
         nit->operator-=(steps);
         return nit;
     }
+
+template<typename T>
+bool original::operator==(const iterator<T> &l_it, const iterator<T> &r_it) {
+    return l_it.equal(r_it);
+}
+
+template<typename T>
+bool original::operator!=(const iterator<T> &l_it, const iterator<T> &r_it) {
+    return !l_it.equal(r_it);
+}
 
 #endif //ITERATOR_H
