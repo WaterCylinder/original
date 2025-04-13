@@ -49,7 +49,6 @@ namespace original {
 
         using rebind_alloc_node = typename ALLOC::template rebind_alloc<hashNode>;
         using rebind_alloc_pointer = typename ALLOC::template rebind_alloc<hashNode*>;
-        static constexpr u_integer BUCKETS_SIZE_INIT = 16;
         static constexpr floating LOAD_FACTOR_MIN = 0.25;
         static constexpr floating LOAD_FACTOR_MAX = 0.75;
         static constexpr u_integer BUCKETS_SIZES_COUNT = 30;
@@ -535,7 +534,7 @@ void original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::adjust() {
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
 original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashTable(HASH hash)
     : size_(0), hash_(std::move(hash)) {
-    this->buckets = vector<hashNode*, rebind_alloc_pointer>(BUCKETS_SIZE_INIT, rebind_alloc_pointer{}, nullptr);
+    this->buckets = vector<hashNode*, rebind_alloc_pointer>(BUCKETS_SIZES[0], rebind_alloc_pointer{}, nullptr);
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
