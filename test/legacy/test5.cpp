@@ -115,5 +115,8 @@ int main(){
         std::cout << cp.first() << ": " << cp.second() << std::endl;
     }
     std::cout << map1 << std::endl;
+    for (auto& [key, value]: map1) {
+        std::cout << key << ": " << value << std::endl;
+    }
     return 0;
 }
