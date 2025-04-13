@@ -14,8 +14,8 @@ namespace original {
     template<typename K_TYPE, typename V_TYPE, typename ALLOC = allocator<K_TYPE>, typename HASH = hash<K_TYPE>>
     class hashTable : public printable{
     protected:
-        class hashNode final : public wrapper<couple<K_TYPE, V_TYPE>> {
-            couple<K_TYPE, V_TYPE> data_;
+        class hashNode final : public wrapper<couple<const K_TYPE, V_TYPE>> {
+            couple<const K_TYPE, V_TYPE> data_;
             hashNode* next_;
         public:
             explicit hashNode(const K_TYPE& key = K_TYPE{}, const V_TYPE& value = V_TYPE{}, hashNode* next = nullptr);
@@ -24,9 +24,9 @@ namespace original {
 
             hashNode& operator=(const hashNode& other);
 
-            couple<K_TYPE, V_TYPE>& getVal() override;
+            couple<const K_TYPE, V_TYPE>& getVal() override;
 
-            const couple<K_TYPE, V_TYPE>& getVal() const override;
+            const couple<const K_TYPE, V_TYPE>& getVal() const override;
 
             const K_TYPE& getKey() const;
 
@@ -34,7 +34,7 @@ namespace original {
 
             V_TYPE& getValue();
 
-            void setVal(couple<K_TYPE, V_TYPE> data) override;
+            void setVal(couple<const K_TYPE, V_TYPE> data) override;
 
             void setValue(const V_TYPE& value);
 
@@ -68,7 +68,7 @@ namespace original {
         HASH hash_;
         rebind_alloc_node rebind_alloc{};
 
-        class Iterator : public baseIterator<couple<K_TYPE, V_TYPE>> {
+        class Iterator : public baseIterator<couple<const K_TYPE, V_TYPE>> {
         protected:
             mutable vector<hashNode*, rebind_alloc_pointer>* p_buckets;
             mutable u_integer cur_bucket;
@@ -83,7 +83,7 @@ namespace original {
             explicit Iterator(vector<hashNode*, rebind_alloc_pointer>* buckets = nullptr,
                               u_integer bucket = 0, hashNode* node = nullptr);
 
-            bool equalPtr(const iterator<couple<K_TYPE, V_TYPE>>* other) const override;
+            bool equalPtr(const iterator<couple<const K_TYPE, V_TYPE>>* other) const override;
 
             Iterator(const Iterator& other);
 
@@ -103,23 +103,23 @@ namespace original {
 
             void operator-=(integer steps) const override;
 
-            integer operator-(const iterator<couple<K_TYPE, V_TYPE>>& other) const override;
+            integer operator-(const iterator<couple<const K_TYPE, V_TYPE>>& other) const override;
 
             Iterator* getPrev() const override;
 
             Iterator* getNext() const override;
 
-            couple<K_TYPE, V_TYPE>& get() override;
+            couple<const K_TYPE, V_TYPE>& get() override;
 
-            couple<K_TYPE, V_TYPE> get() const override;
+            couple<const K_TYPE, V_TYPE> get() const override;
 
-            void set(const couple<K_TYPE, V_TYPE>& data) override;
+            void set(const couple<const K_TYPE, V_TYPE>& data) override;
 
             [[nodiscard]] bool isValid() const override;
 
-            bool atPrev(const iterator<couple<K_TYPE, V_TYPE>>* other) const override;
+            bool atPrev(const iterator<couple<const K_TYPE, V_TYPE>>* other) const override;
 
-            bool atNext(const iterator<couple<K_TYPE, V_TYPE>>* other) const override;
+            bool atNext(const iterator<couple<const K_TYPE, V_TYPE>>* other) const override;
 
             [[nodiscard]] std::string className() const override;
         };
@@ -180,13 +180,13 @@ original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode::operator=(const hash
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-original::couple<K_TYPE, V_TYPE>&
+original::couple<const K_TYPE, V_TYPE>&
 original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode::getVal() {
     return this->data_;
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-const original::couple<K_TYPE, V_TYPE>&
+const original::couple<const K_TYPE, V_TYPE>&
 original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode::getVal() const {
     return this->data_;
 }
@@ -207,8 +207,8 @@ V_TYPE& original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode::getValue() {
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-void original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode::setVal(couple<K_TYPE, V_TYPE> data) {
-    this->data_ = data;
+void original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode::setVal(couple<const K_TYPE, V_TYPE> data) {
+    throw unSupportedMethodError();
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
@@ -271,7 +271,7 @@ original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::Iterator(
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
 bool original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::equalPtr(
-    const iterator<couple<K_TYPE, V_TYPE>> *other) const {
+    const iterator<couple<const K_TYPE, V_TYPE>> *other) const {
     auto other_it = dynamic_cast<const Iterator*>(other);
     return other_it &&
            this->p_buckets == other_it->p_buckets &&
@@ -360,7 +360,7 @@ void original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::operator-=(inte
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
 original::integer original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::operator-(
-    const iterator<couple<K_TYPE, V_TYPE>> &other) const {
+    const iterator<couple<const K_TYPE, V_TYPE>> &other) const {
     throw unSupportedMethodError();
 }
 
@@ -382,7 +382,7 @@ original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::getNext() const {
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-original::couple<K_TYPE, V_TYPE>&
+original::couple<const K_TYPE, V_TYPE>&
 original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::get() {
     if (!this->isValid()) {
         throw outOfBoundError();
@@ -392,7 +392,7 @@ original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::get() {
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-original::couple<K_TYPE, V_TYPE>
+original::couple<const K_TYPE, V_TYPE>
 original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::get() const {
     if (!this->isValid()) {
         throw outOfBoundError();
@@ -402,12 +402,8 @@ original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::get() const {
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-void original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::set(const couple<K_TYPE, V_TYPE> &data) {
-    if (!this->isValid()) {
-        throw outOfBoundError();
-    }
-
-    this->p_node->setVal(data);
+void original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::set(const couple<const K_TYPE, V_TYPE> &data) {
+    throw unSupportedMethodError();
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
@@ -417,7 +413,7 @@ bool original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::isValid() const
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
 bool original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::atPrev(
-    const iterator<couple<K_TYPE, V_TYPE>> *other) const {
+    const iterator<couple<const K_TYPE, V_TYPE>> *other) const {
     auto other_it = dynamic_cast<const Iterator*>(other);
     if (!other_it) {
         return false;
@@ -428,7 +424,7 @@ bool original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::atPrev(
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
 bool original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::atNext(
-    const iterator<couple<K_TYPE, V_TYPE>> *other) const {
+    const iterator<couple<const K_TYPE, V_TYPE>> *other) const {
     auto other_it = dynamic_cast<const Iterator*>(other);
     if (!other_it) {
         return false;

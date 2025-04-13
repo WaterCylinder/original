@@ -10,8 +10,8 @@
 namespace original {
     template <typename K_TYPE,
               typename V_TYPE,
-              typename ALLOC = allocator<couple<K_TYPE, V_TYPE>>>
-    class map : public container<couple<K_TYPE, V_TYPE>, ALLOC>{
+              typename ALLOC = allocator<couple<const K_TYPE, V_TYPE>>>
+    class map : public container<couple<const K_TYPE, V_TYPE>, ALLOC>{
     protected:
         explicit map(ALLOC alloc = ALLOC{});
     public:
@@ -32,7 +32,7 @@ namespace original {
 
     template<typename K_TYPE, typename V_TYPE, typename ALLOC>
     map<K_TYPE, V_TYPE, ALLOC>::map(ALLOC alloc)
-            : container<couple<K_TYPE, V_TYPE>, ALLOC>(std::move(alloc)) {}
+            : container<couple<const K_TYPE, V_TYPE>, ALLOC>(std::move(alloc)) {}
 
     template<typename K_TYPE, typename V_TYPE, typename ALLOC>
     map<K_TYPE, V_TYPE, ALLOC>::~map() = default;

@@ -11,7 +11,7 @@
 namespace original {
     template <typename TYPE,
               typename HASH = hash<TYPE>,
-              typename ALLOC = allocator<couple<TYPE, bool>>>
+              typename ALLOC = allocator<couple<const TYPE, bool>>>
     class hashSet final : public hashTable<TYPE, bool, ALLOC, HASH>,
                           public set<TYPE, ALLOC> {
     public:

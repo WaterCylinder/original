@@ -12,11 +12,11 @@ namespace original {
     template <typename K_TYPE,
               typename V_TYPE,
               typename HASH = hash<K_TYPE>,
-              typename ALLOC = allocator<couple<K_TYPE, V_TYPE>>>
+              typename ALLOC = allocator<couple<const K_TYPE, V_TYPE>>>
     class hashMap final
                 : public hashTable<K_TYPE, V_TYPE, ALLOC, HASH>,
                   public map<K_TYPE, V_TYPE, ALLOC>,
-                  public iterable<couple<K_TYPE, V_TYPE>>{
+                  public iterable<couple<const K_TYPE, V_TYPE>>{
 
             using hashNode = typename hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode;
             using rebind_alloc_pointer = typename hashTable<K_TYPE, V_TYPE, ALLOC>::rebind_alloc_pointer;
@@ -49,7 +49,7 @@ namespace original {
 
             [[nodiscard]] u_integer size() const override;
 
-            bool contains(const couple<K_TYPE, V_TYPE> &e) const override;
+            bool contains(const couple<const K_TYPE, V_TYPE> &e) const override;
 
             bool add(const K_TYPE &k, const V_TYPE &v) override;
 
@@ -158,7 +158,7 @@ original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::size() const {
 
 template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
 bool
-original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::contains(const couple<K_TYPE, V_TYPE> &e) const {
+original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::contains(const couple<const K_TYPE, V_TYPE> &e) const {
     return this->containsKey(e.first()) && this->get(e.first()) == e.second();
 }
 
