@@ -141,6 +141,27 @@ namespace original
     };
 }
 
+
+namespace std {
+    template<typename F, typename S>
+    struct tuple_size<original::couple<F, S>> : std::integral_constant<std::size_t, 2> {}; // NOLINT
+
+    template<std::size_t I, typename F, typename S>
+    struct tuple_element<I, original::couple<F, S>> { // NOLINT
+        using type = std::conditional_t<I == 0, F, S>;
+    };
+
+    template<std::size_t I, typename F, typename S>
+    constexpr auto& get(original::couple<F, S>& c) noexcept;  // NOLINT
+
+    template<std::size_t I, typename F, typename S>
+    constexpr const auto& get(const original::couple<F, S>& c) noexcept;  // NOLINT
+
+    template<std::size_t I, typename F, typename S>
+    constexpr auto&& get(original::couple<F, S>&& c) noexcept;  // NOLINT
+}
+
+
     template <typename F_TYPE, typename S_TYPE>
     original::couple<F_TYPE, S_TYPE>::couple() : first_(), second_() {}
 
@@ -260,6 +281,27 @@ template <typename F_TYPE, typename S_TYPE>
            << ", " << formatString(this->second_) << ")";
         if (enter) ss << "\n";
         return ss.str();
+    }
+
+    template<std::size_t I, typename F, typename S>
+    constexpr auto & std::get(original::couple<F, S> &c) noexcept {  // NOLINT
+        if constexpr (I == 0) return c.first();
+        else original::staticError<original::outOfBoundError, I == 1>{};
+        return c.second();
+    }
+
+    template<std::size_t I, typename F, typename S>
+    constexpr const auto & std::get(const original::couple<F, S> &c) noexcept {  // NOLINT
+        if constexpr (I == 0) return c.first();
+        else original::staticError<original::outOfBoundError, I == 1>{};
+        return c.second();
+    }
+
+    template<std::size_t I, typename F, typename S>
+    constexpr auto && std::get(original::couple<F, S> &&c) noexcept {  // NOLINT
+        if constexpr (I == 0) return std::move(c.first());
+        else original::staticError<original::outOfBoundError, I == 1>{};
+        return std::move(c.second());
     }
 
 #endif //COUPLE_H
