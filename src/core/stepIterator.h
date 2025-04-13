@@ -275,7 +275,7 @@ namespace original
     auto original::stepIterator<TYPE>::operator+=(const integer steps) const -> void
     {
         if (steps < 0) {
-            this->operator-=(original::abs(steps));
+            this->operator-=(abs(steps));
             return;
         }
 
@@ -289,7 +289,7 @@ namespace original
     auto original::stepIterator<TYPE>::operator-=(const integer steps) const -> void
     {
         if (steps < 0) {
-            this->operator+=(original::abs(steps));
+            this->operator+=(abs(steps));
             return;
         }
 
