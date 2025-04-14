@@ -29,15 +29,25 @@ namespace original {
  * Derived classes are expected to provide specific implementations for methods like `next()`, `prev()`,
  * `get()`, and `set()`. These implementations define the behavior of the iterator in a particular container.
  *
- * Implements comparison based on a custom `compareTo` method which compares iterators by the distance between them.
+ * Equality comparisons (`==` and `!=`) are optimized to use the `equalPtr` method for constant-time comparison,
+ * while ordering comparisons (`<`, `>`, `<=`, `>=`) and distance calculations use the `compareTo` method which
+ * may have different time complexity depending on the container implementation.
  */
 template<typename TYPE>
 class iterator : public printable, public cloneable, public comparable<iterator<TYPE>> {
 protected:
     /**
-     * @brief Checks if two iterators point to the same object.
+     * @brief Checks if two iterators point to the same underlying element.
      * @param other The iterator to compare with.
      * @return True if the iterators point to the same object, false otherwise.
+     * @details This method provides an optimized way to check iterator equality by comparing
+     *          their underlying pointers or positions directly. It is used by the equality
+     *          operators (`==` and `!=`) to provide constant-time comparison.
+     *          Derived classes must implement this to compare their internal representation
+     *          directly for optimal performance.
+     *
+     * @note This should be a lightweight comparison that doesn't involve distance calculations
+     *       or complex logic. For ordering comparisons, use `compareTo` instead.
      */
     virtual bool equalPtr(const iterator* other) const = 0;
 
@@ -91,7 +101,17 @@ public:
     /**
      * @brief Compares two iterators to determine their relative positions.
      * @param other The iterator to compare with.
-     * @return A negative value if this iterator is before the other, zero if equal, and a positive value if after.
+     * @return A negative value if this iterator is before the other,
+     *         zero if at the same position,
+     *         and a positive value if after the other.
+     * @details This method provides ordering comparison between iterators,
+     *          typically by calculating the distance between positions.
+     *          Used by comparison operators (`<`, `>`, `<=`, `>=`) and three-way comparison (`<=>`).
+     *
+     *          Note this may be more expensive than pointer equality checks (equalPtr),
+     *          as it may need to compute relative distances in the container.
+     *
+     * @note For simple equality checks, prefer using equalPtr via operator==/!= instead.
      */
     integer compareTo(const iterator& other) const override;
 
@@ -99,6 +119,17 @@ public:
      * @brief Returns the distance between this iterator and another iterator.
      * @param other The iterator to compare against.
      * @return The number of steps between the two iterators.
+     *         Positive if this iterator is after the other,
+     *         negative if before,
+     *         zero if at same position.
+     * @details This is the fundamental operation for iterator ordering comparisons.
+     *          Used by compareTo() to implement relational operators.
+     *
+     *          Time complexity depends on container type:
+     *          - O(1) for random-access iterators
+     *          - O(n) for forward/bidirectional iterators
+     *
+     * @note For equality comparison only, operator==/!= using equalPtr is more efficient.
      */
     virtual integer operator-(const iterator& other) const = 0;
 
@@ -300,9 +331,25 @@ auto operator+(const iterator<T>& it, integer steps) -> iterator<T>*;
 template <typename T>
 auto operator-(const iterator<T>& it, integer steps) -> iterator<T>*;
 
+/**
+* @brief Equality comparison operator for iterators.
+* @tparam T The type of elements the iterator traverses.
+* @param l_it Left-hand side iterator.
+* @param r_it Right-hand side iterator.
+* @return True if the iterators point to the same element, false otherwise.
+* @note This operation uses `equalPtr` for optimal constant-time comparison.
+*/
 template<typename T>
 bool operator==(const iterator<T>& l_it, const iterator<T>& r_it);
 
+/**
+* @brief Inequality comparison operator for iterators.
+* @tparam T The type of elements the iterator traverses.
+* @param l_it Left-hand side iterator.
+* @param r_it Right-hand side iterator.
+* @return True if the iterators point to different elements, false otherwise.
+* @note This operation uses `equalPtr` for optimal constant-time comparison.
+*/
 template<typename T>
 bool operator!=(const iterator<T>& l_it, const iterator<T>& r_it);
 
