@@ -67,6 +67,8 @@ namespace original {
 
             Iterator* ends() const override;
 
+            [[nodiscard]] std::string className() const override;
+
             ~hashMap() override;
         };
 }
@@ -224,6 +226,11 @@ original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::ends() const {
         node = node->getPNext();
     }
     return new Iterator(p_buckets, bucket, node);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+std::string original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::className() const {
+    return "hashMap";
 }
 
 template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>

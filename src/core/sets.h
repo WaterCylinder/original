@@ -55,6 +55,8 @@ namespace original {
 
         Iterator* ends() const override;
 
+        [[nodiscard]] std::string className() const override;
+
         ~hashSet() override;
     };
 }
@@ -179,6 +181,11 @@ original::hashSet<TYPE, HASH, ALLOC>::ends() const {
         node = node->getPNext();
     }
     return new Iterator(p_buckets, bucket, node);
+}
+
+template<typename TYPE, typename HASH, typename ALLOC>
+std::string original::hashSet<TYPE, HASH, ALLOC>::className() const {
+    return "hashSet";
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
