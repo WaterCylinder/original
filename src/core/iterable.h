@@ -22,11 +22,38 @@ namespace original {
 
     /**
      * @class iterable
-     * @brief A base class for iterable containers that support iterators.
+     * @brief A base class for iterable containers that support multiple iteration patterns.
      * @tparam TYPE The type of elements contained in the iterable.
-     * @details This class defines the `iterable` container interface, which provides methods for obtaining iterators
-     *          and applying operations on elements using iterators. It also supports iteration using C++ range-based for loops
-     *          by providing `begin()` and `end()` methods.
+     * @details This class defines the complete iterable container interface with:
+     * - Polymorphic iterator factories (begins()/ ends())
+     * - Standard library compatible iteration (begin()/ end())
+     * - Direct element access (first()/ last())
+     * - RAII-managed iterator adapters (iterAdaptor)
+     *
+     * The class provides three levels of iteration interface:
+     * 1. Low-level: begins()/ ends() - Factory methods returning raw base iterators
+     * 2. Mid-level: first()/ last() - RAII-wrapped direct element access
+     * 3. High-level: begin()/ end() - STL-compatible range iteration
+     *
+     * @note Derived classes must implement begins()/ends() to return their specific
+     *       iterator type (covariant return types supported). All other iteration
+     *       methods build upon these primitives.
+     *
+     * Example usage patterns:
+     * @code
+     * // Range-based for loop (STL compatible)
+     * for (auto& item : container) { ... }
+     *
+     * // Direct element access
+     * auto first = container.first();
+     * auto last = container.last();
+     *
+     * // Polymorphic iteration
+     * baseIterator<T>* it = container.begins();
+     * @endcode
+     *
+     * @see iterator.h For base iterator implementation
+     * @see iterAdaptor For the RAII iterator wrapper
      */
     template <typename TYPE>
     class iterable {
@@ -34,10 +61,15 @@ namespace original {
 
         /**
          * @class iterAdaptor
-         * @brief An iterator adapter for the iterable container.
-         * @details The `iterAdaptor` class is an implementation of the iterator interface that adapts
-         *          the base iterator (`baseIterator<TYPE>`) and provides additional iterator functionalities
-         *          to the `iterable` class.
+         * @brief RAII wrapper for base iterators that provides standard iteration interface.
+         * @details This adapter:
+         *          - Manages lifetime of the underlying base iterator
+         *          - Transforms begins()/ ends() results into standard-compatible iterators
+         *          - Enables range-based for loops through begin()/ end()
+         *          - Provides exception-safe resource handling
+         *
+         * The adapter forwards all iterator operations to the wrapped base iterator while
+         * ensuring proper cleanup when destroyed.
          */
         class iterAdaptor final : public iterator<TYPE> {
             baseIterator<TYPE>* it_;  ///< Pointer to the base iterator
@@ -198,54 +230,89 @@ namespace original {
         virtual ~iterable() = default;
 
         /**
-         * @brief Returns an iterator pointing to the beginning of the iterable container.
-         * @return An iterator to the first element.
-         * @details This function allows using the range-based `for` loop syntax.
+         * @brief Returns an iterator adapter pointing to the beginning of the container.
+         * @return An iterAdaptor wrapping the container's begin iterator.
+         * @details Provides standard library-compatible iteration support by:
+         *          - Calling begins() to get the base iterator
+         *          - Wrapping it in an iterAdaptor for RAII management
+         *          - Supporting range-based for loops
+         *
+         * @note The iterAdaptor automatically manages the base iterator's lifetime.
+         *       This is the preferred interface for standard iteration patterns.
+         *
+         * Example:
+         * @code
+         * for (auto& item : container) { ... }  // Uses begin()/end()
+         * @endcode
          */
         iterAdaptor begin();
 
         /**
-         * @brief Returns an iterator pointing to the end of the iterable container.
-         * @return An iterator to one past the last element.
-         * @details This function allows using the range-based `for` loop syntax.
+         * @brief Returns an iterator adapter pointing to the end sentinel of the container.
+         * @return An iterAdaptor wrapping one past the last element.
+         * @details Provides standard library-compatible iteration support by:
+         *          - Calling ends() and advancing once to create the sentinel
+         *          - Wrapping it in an iterAdaptor for RAII management
+         *          - Supporting range-based for loops
+        *
+         * @note The iterAdaptor automatically manages the base iterator's lifetime.
+         *       This is the preferred interface for standard iteration patterns.
+         *
+         * Example:
+         * @code
+         * for (auto& item : container) { ... }  // Uses begin()/end()
+         * @endcode
          */
         iterAdaptor end();
 
         /**
-         * @brief Returns a constant iterator pointing to the beginning of the iterable container.
-         * @return A constant iterator to the first element.
-         * @details This function allows using the range-based `for` loop syntax.
+         * @brief Returns a const iterator adapter pointing to the beginning of the container.
+         * @return A const iterAdaptor wrapping the container's begin iterator.
+         * @details Const version of begin() with same RAII and iteration support.
          */
         iterAdaptor begin() const;
 
         /**
-         * @brief Returns a constant iterator pointing to the end of the iterable container.
-         * @return A constant iterator to one past the last element.
-         * @details This function allows using the range-based `for` loop syntax.
+         * @brief Returns a const iterator adapter pointing to the end sentinel of the container.
+         * @return A const iterAdaptor wrapping one past the last element.
+         * @details Const version of end() with same RAII and iteration support.
          */
         iterAdaptor end() const;
 
         /**
-         * @brief Returns an iterator pointing to the first element.
-         * @return An iterator to the first element.
+         * @brief Returns an iterator adapter pointing to the first element.
+         * @return An iterAdaptor wrapping begins() without position adjustment.
+         * @details Provides direct access to the first element without the standard library's
+         *          past-the-end semantics. Uses RAII through iterAdaptor for automatic memory
+         *          management.
+         *
+         * @note Unlike begin()/ end(), first()/ last() provide direct element access without
+         *       position adjustments. Useful when you need explicit first/last element access.
          */
         iterAdaptor first();
 
         /**
-         * @brief Returns an iterator pointing to the last element.
-         * @return An iterator to the last element.
+         * @brief Returns an iterator adapter pointing to the last element.
+         * @return An iterAdaptor wrapping ends() without position adjustment.
+         * @details Provides direct access to the last element. Uses RAII through iterAdaptor
+         *          for automatic memory management.
+         *
+         * @note Unlike begin()/ end(), first()/ last() provide direct element access without
+         *       position adjustments. Useful when you need explicit first/last element access.
          */
         iterAdaptor last();
 
         /**
-         * @brief Returns a constant iterator pointing to the first element.
-         * @return A constant iterator to the first element.
+         * @brief Returns a const iterator adapter pointing to the first element.
+         * @return A const iterAdaptor wrapping begins() without position adjustment.
+         * @details Const version of first() with same RAII semantics.
          */
         iterAdaptor first() const;
 
         /**
-         * @brief Returns a constant iterator pointing to the last element.
-         * @return A constant iterator to the last element.
+         * @brief Returns a const iterator adapter pointing to the last element.
+         * @return A const iterAdaptor wrapping ends() without position adjustment.
+         * @details Const version of last() with same RAII semantics.
          */
         iterAdaptor last() const;
 
@@ -253,6 +320,17 @@ namespace original {
          * @brief Returns the iterator to the beginning of the container.
          * @return A pointer to the base iterator that marks the start of the container.
          * @details This method is used internally by `begin()`, but can be accessed directly for other purposes.
+         *          Derived classes should implement this with covariant return types, returning their specific
+         *          iterator type (which must inherit from `baseIterator<TYPE>`).
+         *
+         * @note This is a polymorphic factory method - each derived container should return its own
+         *       specialized iterator type. The caller is responsible for managing the returned pointer.
+         *
+         * Example:
+         * @code
+         * // In derived container class:
+         * myIterator* begins() const override { return new myIterator(...); }
+         * @endcode
          */
         virtual baseIterator<TYPE>* begins() const = 0;
 
@@ -260,6 +338,17 @@ namespace original {
          * @brief Returns the iterator to the end of the container.
          * @return A pointer to the base iterator that marks the end of the container.
          * @details This method is used internally by `end()`, but can be accessed directly for other purposes.
+         *          Derived classes should implement this with covariant return types, returning their specific
+         *          iterator type (which must inherit from `baseIterator<TYPE>`).
+         *
+         * @note This is a polymorphic factory method - each derived container should return its own
+         *       specialized iterator type. The caller is responsible for managing the returned pointer.
+         *
+         * Example:
+         * @code
+         * // In derived container class:
+         * myIterator* ends() const override { return new myIterator(...); }
+         * @endcode
          */
         virtual baseIterator<TYPE>* ends() const = 0;
 
