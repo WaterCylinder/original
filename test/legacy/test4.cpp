@@ -103,5 +103,7 @@ int main(){
     original::weakPtr<int> w2 = std::move(w1);
     std::cout << w1 << ", " << w2 << std::endl;
     std::cout << *w2 << std::endl;
+    auto [int1, int2] = original::couple(3, 4);
+    std::cout << int1 << ", " << int2 << std::endl;
     return 0;
 }
