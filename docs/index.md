@@ -117,7 +117,7 @@ array("Hello, original!")
 
 ##### 容器：
 
-定长容器：定长数组 array，位集合 bitSet，变长容器：变长数组 vector，单向链表 forwardChain，双向链表 chain，块状链表 blocksList
+定长容器：定长数组 array，位集合 bitSet，变长容器：变长数组 vector，单向链表 forwardChain，双向链表 chain，块状链表 blocksList，关联容器：映射表 hashMap，集合 hashSet
 
 ##### 容器接口：
 
@@ -134,6 +134,10 @@ array("Hello, original!")
 ##### 算法适配器：
 
 迭代器 iterator/iterAdaptor，变换器 transform/transformStream，过滤器 filter/filterStream，比较器 comparator
+
+##### 异常安全：
+
+运行时异常 error/outOfBoundError/unSupportedMethodError/allocateError...，编译期错误 staticError
 
 ##### 编译期工具：
 
