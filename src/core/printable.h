@@ -3,6 +3,7 @@
 #pragma once
 
 #include <memory>
+#include "format"
 #include "sstream"
 
 /**
@@ -157,6 +158,17 @@ std::ostream& operator<<(std::ostream& os, const printable& p);
 
 } // namespace original
 
+
+namespace std {
+    template<typename T>
+    requires original::ExtendsOf<original::printable, T>
+    struct formatter<T> { // NOLINT
+        static constexpr auto parse(format_parse_context& ctx);
+
+        static auto format(const T& p, format_context& ctx) ;
+    };
+}
+
 // ----------------- Definitions of printable.h -----------------
 
 inline original::printable::~printable() = default;
@@ -259,6 +271,18 @@ inline auto original::printable::formatString<const char>(const char* const &ptr
 inline std::ostream& original::operator<<(std::ostream& os, const printable& p){
     os << p.toString(false);
     return os;
+}
+
+template<typename T>
+requires original::ExtendsOf<original::printable, T>
+constexpr auto std::formatter<T>::parse(std::format_parse_context &ctx) {
+    return ctx.begin();
+}
+
+template<typename T>
+requires original::ExtendsOf<original::printable, T>
+auto std::formatter<T>::format(const T &p, std::format_context &ctx) {
+    return formatter<std::string>().format(static_cast<std::string>(p), ctx);
 }
 
 #endif // PRINTABLE_H
