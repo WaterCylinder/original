@@ -11,7 +11,8 @@
  * @brief Interface for polymorphic string formatting and output.
  * @details Defines the printable base class with comprehensive string conversion
  *          utilities, supporting automatic formatting of primitive types, enums,
- *          pointers, and custom class hierarchies.
+ *          pointers, and custom class hierarchies. Includes integration with
+ *          C++20 std::format.
  */
 
 namespace original {
@@ -20,8 +21,8 @@ namespace original {
  * @class printable
  * @brief Base class providing polymorphic string conversion capabilities.
  * @details Inherit from this class to enable automatic string representation
- *          for output streams and C-style string access. Provides extensible
- *          formatting through template specializations.
+ *          for output streams, C-style string access, and std::format support.
+ *          Provides extensible formatting through template specializations.
  */
 class printable {
     mutable std::string cache_string_; ///< Buffer for C-string conversions
@@ -160,12 +161,36 @@ std::ostream& operator<<(std::ostream& os, const printable& p);
 
 
 namespace std {
+
+    /**
+     * @brief std::formatter specialization for printable types
+     * @tparam T Type derived from printable
+     * @details Enables use of printable-derived types with std::format.
+     *          Uses the toString() method for formatting.
+     *
+     * @code{.cpp}
+     * MyClass obj;
+     * auto s = std::format("{}", obj); // "printable(@0x7ffd)"
+     * @endcode
+     */
     template<typename T>
     requires original::ExtendsOf<original::printable, T>
     struct formatter<T> { // NOLINT
+
+        /**
+         * @brief Parses the format specification
+         * @param ctx Format parse context
+         * @return Iterator past the parsed format specification
+         */
         static constexpr auto parse(format_parse_context& ctx);
 
-        static auto format(const T& p, format_context& ctx) ;
+        /**
+         * @brief Formats the printable object
+         * @param p Printable object to format
+         * @param ctx Format context
+         * @return Iterator past the formatted output
+         */
+        static auto format(const T& p, format_context& ctx);
     };
 }
 
