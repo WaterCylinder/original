@@ -118,5 +118,8 @@ int main(){
     for (auto& [key, value]: map1) {
         std::cout << key << ": " << value << std::endl;
     }
+    auto printed_array = original::array<int>{1, 2, 3};
+    auto printed_vector = original::vector<int>{4, 5, 6};
+    std::cout << std::format("{}, {}", printed_array, printed_vector) << std::endl;
     return 0;
 }
