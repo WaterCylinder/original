@@ -1,5 +1,6 @@
 #include <iostream>
 #include "chain.h"
+#include "tuple.h"
 #include "maps.h"
 #include "ownerPtr.h"
 #include "refCntPtr.h"
@@ -121,5 +122,7 @@ int main(){
     auto printed_array = original::array<int>{1, 2, 3};
     auto printed_vector = original::vector<int>{4, 5, 6};
     std::cout << std::format("{}, {}", printed_array, printed_vector) << std::endl;
+    auto [elem1, elem2, elem3] = original::tuple{1, std::string("hh"), original::array{3.14, 1.592}};
+    std::cout << elem1 << " " << original::printable::formatString(elem2) << " " << elem3 << std::endl;
     return 0;
 }
