@@ -11,11 +11,12 @@
  * @brief Heterogeneous tuple container implementation
  *
  * This file implements a type-safe, compile-time fixed-size tuple container with:
- * - Value semantics
- * - Deep copy/move operations
- * - Index-based element access
- * - Lexicographical comparison
- * - String serialization
+ * - Element access by index
+ * - Equality comparison
+ * - Formatted output
+ * - Move semantics
+ * - Structured binding support
+ * - Tuple concatenation and slicing
  *
  * @note The implementation uses recursive template instantiation for element storage
  */
@@ -24,16 +25,19 @@ namespace original{
 
     /**
      * @class tuple
-     * @brief A fixed-size heterogeneous container that stores elements of different types
      * @tparam TYPES Variadic template parameter list of element types
-     * @inherits printable : Provides string representation capabilities
-     * @inherits comparable : Provides comparison operations between tuples
-     * @details This tuple implementation:
-     * - Supports element access via compile-time index
-     * - Provides element modification via set() method
-     * - Implements lexicographical comparison
-     * - Supports deep copying and move semantics
-     * - Provides type-safe element storage
+     * @brief Container for multiple heterogeneous elements
+     * @extends printable
+     * @extends comparable
+     * @details Stores a sequence of elements with type safety. Provides:
+     * - Compile-time fixed size container
+     * - Element access via index (compile-time checked)
+     * - Deep copy/move operations
+     * - Lexicographical comparison
+     * - String serialization through printable interface
+     * - Comparable interface implementation
+     * - Structured binding support via std::tuple_size and std::tuple_element specializations
+     * - Tuple concatenation and slicing operations
      */
     template<typename... TYPES>
     class tuple final : public printable, public comparable<tuple<TYPES...>>{
@@ -284,21 +288,54 @@ namespace original{
 
 namespace std {
 
+    /**
+     * @brief Specialization of tuple_size for tuple to enable structured bindings
+     * @tparam TYPES Variadic template parameter list of element types
+     */
     template<typename... TYPES>
     struct tuple_size<original::tuple<TYPES...>> //NOLINT
             : std::integral_constant<std::size_t, sizeof...(TYPES)> {};
 
+    /**
+     * @brief Specialization of tuple_element for tuple to enable structured bindings
+     * @tparam I Index of element
+     * @tparam TYPES Variadic template parameter list of element types
+     */
     template<std::size_t I, typename... TYPES>
     struct tuple_element<I, original::tuple<TYPES...>> { //NOLINT
         using type = decltype(std::declval<original::tuple<TYPES...>>().template get<I>());
     };
 
+    /**
+     * @brief Structured binding support - get for non-const lvalue reference
+     * @tparam I Index of element
+     * @tparam TYPES Variadic template parameter list of element types
+     * @param t tuple to get element from
+     * @return Reference to the requested element
+     * @note noexcept qualified
+     */
     template<std::size_t I, typename... TYPES>
     constexpr auto& get(original::tuple<TYPES...>& t) noexcept; //NOLINT
 
+    /**
+     * @brief Structured binding support - get for const lvalue reference
+     * @tparam I Index of element
+     * @tparam TYPES Variadic template parameter list of element types
+     * @param t tuple to get element from
+     * @return Const reference to the requested element
+     * @note noexcept qualified
+     */
     template<std::size_t I, typename... TYPES>
     constexpr const auto& get(const original::tuple<TYPES...>& t) noexcept; //NOLINT
 
+    /**
+     * @brief Structured binding support - get for rvalue reference
+     * @tparam I Index of element
+     * @tparam TYPES Variadic template parameter list of element types
+     * @param t tuple to get element from
+     * @return Rvalue reference to the requested element
+     * @note noexcept qualified
+     */
     template<std::size_t I, typename... TYPES>
     constexpr auto&& get(original::tuple<TYPES...>&& t) noexcept; //NOLINT
 }
