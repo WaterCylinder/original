@@ -8,6 +8,12 @@ Original是一个C++基础工具库,也是本人的第一个正式项目，用�
 
 [Github地址](https://github.com/FrozenLemonTee/original)
 
+对于相关类和方法文档的查看，
+
+1. 网页端：直接点击上方菜单选项；
+
+2. 移动端：点击左上方菜单折叠栏，展开菜单后点击菜单选项。
+
 如有问题可以在[Issues](https://github.com/FrozenLemonTee/original/issues)中提出，也欢迎一起参与到本项目的实现中来，如Fork等。
 
 
