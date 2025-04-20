@@ -282,6 +282,28 @@ namespace original{
     tuple<L_TYPES..., R_TYPES...> operator+(const tuple<L_TYPES...>& lt, const tuple<R_TYPES...>& rt);
 }
 
+namespace std {
+
+    template<typename... TYPES>
+    struct tuple_size<original::tuple<TYPES...>> //NOLINT
+            : std::integral_constant<std::size_t, sizeof...(TYPES)> {};
+
+    template<std::size_t I, typename... TYPES>
+    struct tuple_element<I, original::tuple<TYPES...>> { //NOLINT
+        using type = decltype(std::declval<original::tuple<TYPES...>>().template get<I>());
+    };
+
+    template<std::size_t I, typename... TYPES>
+    constexpr auto& get(original::tuple<TYPES...>& t) noexcept; //NOLINT
+
+    template<std::size_t I, typename... TYPES>
+    constexpr const auto& get(const original::tuple<TYPES...>& t) noexcept; //NOLINT
+
+    template<std::size_t I, typename... TYPES>
+    constexpr auto&& get(original::tuple<TYPES...>&& t) noexcept; //NOLINT
+}
+
+
 template<typename... TYPES>
 template<original::u_integer I, typename T>
 original::tuple<TYPES...>::tupleImpl<I, T>::tupleImpl(const T& cur)
@@ -601,6 +623,21 @@ original::operator+(const tuple<L_TYPES...> &lt, const tuple<R_TYPES...> &rt) {
     return lt._concat(rt,
         std::make_integer_sequence<u_integer, sizeof...(L_TYPES)>{},
         std::make_integer_sequence<u_integer, sizeof...(R_TYPES)>{});
+}
+
+template<std::size_t I, typename... TYPES>
+constexpr auto& std::get(original::tuple<TYPES...> &t) noexcept { //NOLINT
+    return t.template get<I>();
+}
+
+template<std::size_t I, typename... TYPES>
+constexpr const auto& std::get(const original::tuple<TYPES...> &t) noexcept { //NOLINT
+    return t.template get<I>();
+}
+
+template<std::size_t I, typename... TYPES>
+constexpr auto&& std::get(original::tuple<TYPES...> &&t) noexcept { //NOLINT
+    return std::move(t.template get<I>());
 }
 
 #endif //TUPLE_H
