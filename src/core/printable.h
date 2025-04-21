@@ -4,7 +4,9 @@
 
 #include <memory>
 #include "format"
+#include "types.h"
 #include "sstream"
+
 
 /**
  * @file printable.h
