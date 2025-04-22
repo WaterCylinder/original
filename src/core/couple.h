@@ -92,7 +92,10 @@ namespace original
          * @return Constant reference to the corresponding element
          */
         template<u_integer IDX>
-        auto get() const;
+        auto& get();
+
+        template<u_integer IDX>
+        const auto& get() const;
 
         /**
          * @brief element modifies the template method
@@ -254,7 +257,18 @@ namespace std {
 
     template<typename F_TYPE, typename S_TYPE>
     template<original::u_integer IDX>
-    auto original::couple<F_TYPE, S_TYPE>::get() const {
+    auto& original::couple<F_TYPE, S_TYPE>::get() {
+        staticError<outOfBoundError, (IDX > 1)>{};
+        if constexpr (IDX == 0){
+            return this->first_;
+        }else {
+            return this->second_;
+        }
+    }
+
+    template<typename F_TYPE, typename S_TYPE>
+    template<original::u_integer IDX>
+    const auto& original::couple<F_TYPE, S_TYPE>::get() const {
         staticError<outOfBoundError, (IDX > 1)>{};
         if constexpr (IDX == 0){
             return this->first_;
@@ -336,24 +350,18 @@ template <typename F_TYPE, typename S_TYPE>
     }
 
     template<std::size_t I, typename F, typename S>
-    constexpr auto & std::get(original::couple<F, S> &c) noexcept {  // NOLINT
-        if constexpr (I == 0) return c.first();
-        else original::staticError<original::outOfBoundError, I == 1>{};
-        return c.second();
+    constexpr auto& std::get(original::couple<F, S> &c) noexcept {  // NOLINT
+        return c.template get<I>();
     }
 
     template<std::size_t I, typename F, typename S>
-    constexpr const auto & std::get(const original::couple<F, S> &c) noexcept {  // NOLINT
-        if constexpr (I == 0) return c.first();
-        else original::staticError<original::outOfBoundError, I == 1>{};
-        return c.second();
+    constexpr const auto& std::get(const original::couple<F, S> &c) noexcept {  // NOLINT
+        return c.template get<I>();
     }
 
     template<std::size_t I, typename F, typename S>
-    constexpr auto && std::get(original::couple<F, S> &&c) noexcept {  // NOLINT
-        if constexpr (I == 0) return std::move(c.first());
-        else original::staticError<original::outOfBoundError, I == 1>{};
-        return std::move(c.second());
+    constexpr auto&& std::get(original::couple<F, S> &&c) noexcept {  // NOLINT
+        return std::move(c.template get<I>());
     }
 
 #endif //COUPLE_H
