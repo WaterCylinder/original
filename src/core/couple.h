@@ -87,13 +87,22 @@ namespace original
         couple& operator=(couple&& other) noexcept;
 
         /**
-         * @brief element access template method
+         * @brief Element access template method (non-const version)
          * @tparam IDX element index (0=1st element, 1=2nd element)
-         * @return Constant reference to the corresponding element
+         * @return Reference to the corresponding element
+         * @throws outOfBoundError if IDX > 1
+         * @note For non-const objects, returns a mutable reference
          */
         template<u_integer IDX>
         auto& get();
 
+        /**
+         * @brief Element access template method (const version)
+         * @tparam IDX element index (0=1st element, 1=2nd element)
+         * @return Const reference to the corresponding element
+         * @throws outOfBoundError if IDX > 1
+         * @note For const objects, returns a read-only reference
+         */
         template<u_integer IDX>
         const auto& get() const;
 
