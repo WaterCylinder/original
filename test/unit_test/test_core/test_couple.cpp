@@ -53,3 +53,37 @@ TEST(CoupleTest, EqualityOperator) {
     EXPECT_TRUE(c1 == c2); // 相等
     EXPECT_FALSE(c1 == c3); // 不相等
 }
+
+TEST(CoupleTest, GetMethodVariants) {
+    couple<std::string, int> c("abc", 42);
+
+    // 非常量对象调用 -> 匹配 auto&
+    std::string& s1 = c.template get<0>();
+    int& i1 = c.template get<1>();
+    s1 = "def";
+    i1 = 99;
+    EXPECT_EQ(c.first(), "def");
+    EXPECT_EQ(c.second(), 99);
+
+    // 常量对象调用 -> 匹配 const auto&
+    const couple<std::string, int>& cc = c;
+    const std::string& s2 = cc.template get<0>();
+    const int& i2 = cc.template get<1>();
+    EXPECT_EQ(s2, "def");
+    EXPECT_EQ(i2, 99);
+
+    // 右值对象调用 -> 匹配 auto&&
+    couple<std::string, int> temp("move", 123);
+    std::string&& moved_str = std::move(temp.template get<0>());
+    EXPECT_EQ(moved_str, "move");
+}
+
+TEST(CoupleTest, StructuredBinding) {
+    couple<std::string, int> c("hello", 2025);
+    auto&& [text, year] = c;  // 此处 auto&& 可确保兼容 get<>() 的重载
+    EXPECT_EQ(text, "hello");
+    EXPECT_EQ(year, 2025);
+
+    text = "modified";
+    EXPECT_EQ(c.first(), "modified");  // 结构化绑定绑定的是引用
+}
