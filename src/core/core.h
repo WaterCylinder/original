@@ -76,6 +76,7 @@
 #include "prique.h"
 #include "queue.h"
 #include "randomAccessIterator.h"
+#include "RBTree.h"
 #include "refCntPtr.h"
 #include "serial.h"
 #include "set.h"
