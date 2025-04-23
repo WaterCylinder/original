@@ -111,6 +111,7 @@ namespace original
          * @tparam IDX element index (0=1st element, 1=2nd element)
          * @tparam T Element type (auto-derivation)
          * @param e new element value
+         * @return Reference to this object for method chaining
          */
         template<u_integer IDX, typename T>
         couple& set(const T& e);
