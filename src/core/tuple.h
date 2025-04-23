@@ -209,23 +209,38 @@ namespace original{
         constexpr u_integer size();
 
         /**
-         * @brief Get element by index
-         * @tparam IDX Zero-based index of the element to retrieve
-         * @return Copy of the element at specified index
+         * @brief Access element by index (const lvalue-reference version)
+         * @tparam IDX Zero-based index of the element
+         * @return Const lvalue-reference to the element at the specified index
+         *
+         * @warning The return type is a reference, which affects structured bindings
+         *          if used directly in `tuple_element`. Use value type in `tuple_element` to avoid type deduction issues.
          */
         template<u_integer IDX>
         const auto& get() const;
 
+        /**
+         * @brief Access element by index (non const lvalue-reference version)
+         * @tparam IDX Zero-based index of the element
+         * @return Lvalue-reference to the element at the specified index
+         *
+         * @warning The return type is a reference, which affects structured bindings
+         *          if used directly in `tuple_element`. Use value type in `tuple_element` to avoid type deduction issues.
+         */
         template<u_integer IDX>
         auto& get();
 
         /**
-         * @brief Set element by index
-         * @tparam IDX Zero-based index of the element to modify
+         * @brief Set (modify) the value of the element at the specified index
+         * @tparam IDX Index of the element to modify (zero-based)
          * @tparam E Type of the new value (auto-deduced)
-         * @param e New value to assign
-         * @note The assignment will only succeed if:
-         * `E` is convertible to the type of the element at the given index (`T`).
+         * @param e Value to assign to the element at position `IDX`
+         * @return Reference to the current tuple instance (for chaining)
+         *
+         * @note This method uses a static check to ensure type safety:
+         *       the value `e` must be convertible to the element type `T` at index `IDX`.
+         * @note Invoking this method on a `const` tuple is not allowed.
+         *
          */
         template<u_integer IDX, typename E>
         tuple& set(const E& e);
@@ -312,6 +327,12 @@ namespace std {
      * @brief Specialization of tuple_element for tuple to enable structured bindings
      * @tparam I Index of element
      * @tparam TYPES Variadic template parameter list of element types
+     *
+     * @details This specialization defines the type of the I-th element
+     *          in the custom tuple. It relies on std::tuple_element to deduce
+     *          the correct base type (not reference type), which is crucial
+     *          for structured binding compatibility with const-qualified tuples.
+     *
      */
     template<std::size_t I, typename... TYPES>
     struct tuple_element<I, original::tuple<TYPES...>> { //NOLINT
