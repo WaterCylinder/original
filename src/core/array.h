@@ -269,6 +269,7 @@ namespace original {
                 this->destroy(&this->body[i]);
             }
             this->deallocate(this->body, this->size_);
+            this->body = nullptr;
         }
     }
 
