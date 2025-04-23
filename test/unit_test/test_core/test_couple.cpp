@@ -87,3 +87,45 @@ TEST(CoupleTest, StructuredBinding) {
     text = "modified";
     EXPECT_EQ(c.first(), "modified");  // 结构化绑定绑定的是引用
 }
+
+TEST(CoupleTest, SetMethod) {
+    couple<std::string, int> c("initial", 0);
+
+    // Test setting first element
+    c.set<0>("new value");
+    EXPECT_EQ(c.first(), "new value");
+    EXPECT_EQ(c.second(), 0);
+
+    // Test setting second element
+    c.set<1>(42);
+    EXPECT_EQ(c.first(), "new value");
+    EXPECT_EQ(c.second(), 42);
+
+    // Test setting with implicit conversion
+    c.set<1>(3.14);  // double to int conversion
+    EXPECT_EQ(c.second(), 3);  // should truncate to int
+}
+
+TEST(CoupleTest, SetMethodEdgeCases) {
+    couple<int, double> c(0, 0.0);
+
+    // Test setting with different but convertible types
+    float f = 1.5f;
+    c.set<0>(f);  // float to int
+    EXPECT_EQ(c.first(), 1);
+
+    short s = 2;
+    c.set<1>(s);  // short to double
+    EXPECT_DOUBLE_EQ(c.second(), 2.0);
+
+    // Test chain setting
+    c.set<0>(10).set<1>(20.5);
+    EXPECT_EQ(c.first(), 10);
+    EXPECT_DOUBLE_EQ(c.second(), 20.5);
+}
+
+TEST(CoupleTest, ToStringWithSet) {
+    couple<std::string, int> c("hello", 0);
+    c.set<1>(42);
+    EXPECT_EQ(c.toString(false), "couple(\"hello\", 42)");
+}
