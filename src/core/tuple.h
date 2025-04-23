@@ -12,13 +12,22 @@
  *
  * This file implements a type-safe, compile-time fixed-size tuple container with:
  * - Element access by index
+ * - Element modification
  * - Equality comparison
  * - Formatted output
  * - Move semantics
  * - Structured binding support
  * - Tuple concatenation and slicing
  *
- * @note The implementation uses recursive template instantiation for element storage
+ * @note Structured binding is enabled via `std::tuple_size` and `std::tuple_element` specializations.
+ *       Value type deduction is used to ensure compatibility with `const auto& [a, b, c] = myTuple` syntax.
+ *
+ * @example
+ * original::tuple<int, std::string> t(10, "hi");
+ * int x = t.get<0>(); // access
+ * t.set<1>(std::string("hello")); // modify
+ *
+ * const auto& [a, b] = t; // structured binding
  */
 
 namespace original{
@@ -32,6 +41,7 @@ namespace original{
      * @details Stores a sequence of elements with type safety. Provides:
      * - Compile-time fixed size container
      * - Element access via index (compile-time checked)
+     * - Element modification via index
      * - Deep copy/move operations
      * - Lexicographical comparison
      * - String serialization through printable interface
@@ -158,9 +168,26 @@ namespace original{
 
         tupleImpl<0, TYPES...> elems;  ///< Recursive element storage
 
+        /**
+         * @brief Internal helper to slice a tuple from a specific index with given indices
+         * @tparam IDX_S Compile-time index sequence (used to construct elements)
+         * @tparam BEGIN_IDX The beginning index of the slice
+         * @return A new tuple containing elements from index BEGIN_IDX to BEGIN_IDX + N_ELEMS - 1
+         */
         template<u_integer... IDX_S, u_integer BEGIN_IDX>
-        auto _slice(std::integer_sequence<u_integer, IDX_S...> indexes, std::integral_constant<u_integer, BEGIN_IDX> begin) const;
+        auto _slice(std::integer_sequence<u_integer, IDX_S...> indexes,
+                    std::integral_constant<u_integer, BEGIN_IDX> begin) const;
 
+        /**
+         * @brief Internal helper to concatenate two tuples
+         * @tparam O_TYPES Element types of the other tuple
+         * @tparam T_SIZE Index sequence for this tuple
+         * @tparam O_SIZE Index sequence for the other tuple
+         * @param other The other tuple to concatenate
+         * @param ts Compile-time index sequence for current tuple
+         * @param os Compile-time index sequence for other tuple
+         * @return A new tuple containing elements of both tuples
+         */
         template<typename... O_TYPES, u_integer... T_SIZE, u_integer... O_SIZE>
         tuple<TYPES..., O_TYPES...> _concat(const tuple<O_TYPES...>& other,
                                             std::integer_sequence<u_integer, T_SIZE...> ts,
