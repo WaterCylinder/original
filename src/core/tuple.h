@@ -74,7 +74,10 @@ namespace original{
             tupleImpl<I, T>& operator=(tupleImpl<I, T>&& other) noexcept;
 
             template<u_integer I_DIFF>
-            auto get() const;
+            const auto& get() const;
+
+            template<u_integer I_DIFF>
+            auto& get();
 
             template<u_integer I_DIFF, typename E>
             void set(const E& e);
@@ -104,7 +107,10 @@ namespace original{
             tupleImpl<I, T, TS>& operator=(tupleImpl<I, T, TS>&& other) noexcept;
 
             template<u_integer I_DIFF>
-            auto get() const;
+            const auto& get() const;
+
+            template<u_integer I_DIFF>
+            auto& get();
 
             template<u_integer I_DIFF, typename E>
             void set(const E& e);
@@ -136,7 +142,10 @@ namespace original{
             tupleImpl<I, T, TS...>& operator=(tupleImpl<I, T, TS...>&& other) noexcept;
 
             template<u_integer I_DIFF>
-            auto get() const;
+            const auto& get() const;
+
+            template<u_integer I_DIFF>
+            auto& get();
 
             template<u_integer I_DIFF, typename E>
             void set(const E& e);
@@ -205,7 +214,10 @@ namespace original{
          * @return Copy of the element at specified index
          */
         template<u_integer IDX>
-        auto get() const;
+        const auto& get() const;
+
+        template<u_integer IDX>
+        auto& get();
 
         /**
          * @brief Set element by index
@@ -216,7 +228,7 @@ namespace original{
          * `E` is convertible to the type of the element at the given index (`T`).
          */
         template<u_integer IDX, typename E>
-        void set(const E& e);
+        tuple& set(const E& e);
 
         /**
          * @brief Slice the tuple from a specific index
@@ -303,7 +315,7 @@ namespace std {
      */
     template<std::size_t I, typename... TYPES>
     struct tuple_element<I, original::tuple<TYPES...>> { //NOLINT
-        using type = decltype(std::declval<original::tuple<TYPES...>>().template get<I>());
+        using type = typename std::tuple_element<I, std::tuple<TYPES...>>::type;
     };
 
     /**
@@ -369,7 +381,16 @@ auto original::tuple<TYPES...>::tupleImpl<I, T>::operator=(tupleImpl<I, T>&& oth
 template<typename... TYPES>
 template<original::u_integer I, typename T>
 template<original::u_integer I_DIFF>
-auto original::tuple<TYPES...>::tupleImpl<I, T>::get() const {
+const auto& original::tuple<TYPES...>::tupleImpl<I, T>::get() const {
+    staticError<outOfBoundError, (I_DIFF > 0)>{};
+
+    return cur_elem;
+}
+
+template<typename... TYPES>
+template<original::u_integer I, typename T>
+template<original::u_integer I_DIFF>
+auto& original::tuple<TYPES...>::tupleImpl<I, T>::get() {
     staticError<outOfBoundError, (I_DIFF > 0)>{};
 
     return cur_elem;
@@ -436,7 +457,18 @@ auto original::tuple<TYPES...>::tupleImpl<I, T, TS>::operator=(
 template<typename... TYPES>
 template<original::u_integer I, typename T, typename TS>
 template<original::u_integer I_DIFF>
-auto original::tuple<TYPES...>::tupleImpl<I, T, TS>::get() const {
+const auto& original::tuple<TYPES...>::tupleImpl<I, T, TS>::get() const {
+    if constexpr (I_DIFF == 0){
+        return cur_elem;
+    } else{
+        return next.template get<I_DIFF - 1>();
+    }
+}
+
+template<typename... TYPES>
+template<original::u_integer I, typename T, typename TS>
+template<original::u_integer I_DIFF>
+auto& original::tuple<TYPES...>::tupleImpl<I, T, TS>::get() {
     if constexpr (I_DIFF == 0){
         return cur_elem;
     } else{
@@ -515,7 +547,18 @@ auto original::tuple<TYPES...>::tupleImpl<I, T, TS...>::operator=(
 template<typename... TYPES>
 template<original::u_integer I, typename T, typename... TS>
 template<original::u_integer I_DIFF>
-auto original::tuple<TYPES...>::tupleImpl<I, T, TS...>::get() const {
+const auto& original::tuple<TYPES...>::tupleImpl<I, T, TS...>::get() const {
+    if constexpr (I_DIFF == 0){
+        return cur_elem;
+    } else{
+        return next.template get<I_DIFF - 1>();
+    }
+}
+
+template<typename... TYPES>
+template<original::u_integer I, typename T, typename... TS>
+template<original::u_integer I_DIFF>
+auto& original::tuple<TYPES...>::tupleImpl<I, T, TS...>::get() {
     if constexpr (I_DIFF == 0){
         return cur_elem;
     } else{
@@ -609,14 +652,21 @@ constexpr original::u_integer original::tuple<TYPES...>::size()
 
 template<typename... TYPES>
 template<original::u_integer IDX>
-auto original::tuple<TYPES...>::get() const {
+const auto& original::tuple<TYPES...>::get() const {
+    return elems.template get<IDX>();
+}
+
+template<typename... TYPES>
+template<original::u_integer IDX>
+auto& original::tuple<TYPES...>::get() {
     return elems.template get<IDX>();
 }
 
 template<typename... TYPES>
 template<original::u_integer IDX, typename E>
-void original::tuple<TYPES...>::set(const E &e) {
+original::tuple<TYPES...>& original::tuple<TYPES...>::set(const E &e) {
     elems.template set<IDX, E>(e);
+    return *this;
 }
 
 template<typename... TYPES>
