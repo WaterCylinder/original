@@ -113,7 +113,7 @@ namespace original
          * @param e new element value
          */
         template<u_integer IDX, typename T>
-        void set(const T& e);
+        couple& set(const T& e);
 
         /**
          * @brief Lexicographical comparison operation
@@ -288,7 +288,7 @@ namespace std {
 
     template<typename F_TYPE, typename S_TYPE>
     template<original::u_integer IDX, typename T>
-    void original::couple<F_TYPE, S_TYPE>::set(const T &e) {
+    original::couple<F_TYPE, S_TYPE>& original::couple<F_TYPE, S_TYPE>::set(const T &e) {
         staticError<outOfBoundError, (IDX > 1)>{};
         if constexpr (IDX == 0){
             staticError<valueError, !std::is_convertible_v<T, F_TYPE>>{};
@@ -297,6 +297,7 @@ namespace std {
             staticError<valueError, !std::is_convertible_v<T, S_TYPE>>{};
             this->second_ = static_cast<S_TYPE>(e);
         }
+        return *this;
     }
 
     template<typename F_TYPE, typename S_TYPE>
