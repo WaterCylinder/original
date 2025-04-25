@@ -127,5 +127,6 @@ int main(){
     auto bind_tp = original::tuple{1, std::string("hh"), original::array{3.14, 1.592}};
     auto&& [elem1, elem2, elem3] = bind_tp;
     std::cout << elem1 << " " << original::printable::formatString(elem2) << " " << elem3 << std::endl;
+    std::cout << original::printable::formatString(map1.update("", "123")) << std::endl;
     return 0;
 }
