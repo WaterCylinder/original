@@ -162,8 +162,6 @@ std::ostream& operator<<(std::ostream& os, const printable& p);
 } // namespace original
 
 
-namespace std {
-
     /**
      * @brief std::formatter specialization for printable types
      * @tparam T Type derived from printable
@@ -177,7 +175,7 @@ namespace std {
      */
     template<typename T>
     requires original::ExtendsOf<original::printable, T>
-    struct formatter<T> { // NOLINT
+    struct std::formatter<T> { // NOLINT
 
         /**
          * @brief Parses the format specification
@@ -194,7 +192,6 @@ namespace std {
          */
         static auto format(const T& p, format_context& ctx);
     };
-}
 
 // ----------------- Definitions of printable.h -----------------
 
