@@ -23,6 +23,8 @@ namespace original {
 
         virtual V_TYPE get(const K_TYPE& k) const = 0;
 
+        virtual bool update(const K_TYPE &key, const V_TYPE &value) = 0;
+
         virtual const V_TYPE& operator[](const K_TYPE& k) const = 0;
 
         virtual V_TYPE& operator[](const K_TYPE& k) = 0;

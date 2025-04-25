@@ -92,6 +92,8 @@ namespace original {
 
             V_TYPE get(const K_TYPE &k) const override;
 
+            bool update(const K_TYPE &key, const V_TYPE &value) override;
+
             const V_TYPE & operator[](const K_TYPE &k) const override;
 
             V_TYPE & operator[](const K_TYPE &k) override;
@@ -316,6 +318,11 @@ V_TYPE original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::get(const K_TYPE &k) cons
     if (!node)
         throw noElementError();
     return node->getValue();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+bool original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::update(const K_TYPE &key, const V_TYPE &value) {
+    return this->modify(key, value);
 }
 
 template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
