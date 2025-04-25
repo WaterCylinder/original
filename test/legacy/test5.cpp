@@ -121,8 +121,8 @@ int main(){
         value += value;
     }
     std::cout << map1 << std::endl;
-    auto printed_array = original::array<int>{1, 2, 3};
-    auto printed_vector = original::vector<int>{4, 5, 6};
+    auto printed_array = original::array{1, 2, 3};
+    auto printed_vector = original::vector{4, 5, 6};
     std::cout << std::format("{}, {}", printed_array, printed_vector) << std::endl;
     auto bind_tp = original::tuple{1, std::string("hh"), original::array{3.14, 1.592}};
     auto&& [elem1, elem2, elem3] = bind_tp;

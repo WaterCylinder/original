@@ -74,7 +74,7 @@ int main(){
     std::cout << t6 << std::endl;
     auto t7 = t4.slice<0, 2>();
     std::cout << t7 << std::endl;
-    std::cout << t7.size() << std::endl;
+    std::cout << original::tuple<const original::array<int> &, const original::couple<int, double> &>::size() << std::endl;
     auto t8 = t4 + t4.slice<2, 1>() + t4.slice<1, 3>() + makeTuple(t4.get<1>());
     std::cout << t8 << std::endl;
     auto t9 = original::tuple{1};

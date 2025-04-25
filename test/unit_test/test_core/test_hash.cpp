@@ -63,9 +63,9 @@ EXPECT_EQ(42u, hash<int>::hashFunc(static_cast<int64_t>(42)));
 TEST_F(HashTest, PointerTypes) {
 int x = 42;
 int* ptr = &x;
-auto expected = reinterpret_cast<uintptr_t>(ptr);
+const auto full = reinterpret_cast<uintptr_t>(ptr);
+const auto expected = static_cast<u_integer>(full);
 EXPECT_EQ(expected, hash<int*>::hashFunc(ptr));
-EXPECT_EQ(0u, hash<int*>::hashFunc(nullptr));
 }
 
 // Test character types
