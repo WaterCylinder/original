@@ -8,87 +8,304 @@
 #include "set.h"
 
 
+/**
+ * @file sets.h
+ * @brief Implementation of hashSet container
+ * @details Provides a hash-based set implementation with:
+ * - Average O(1) time complexity for basic operations
+ * - Separate chaining collision resolution
+ * - Customizable hash function and allocator
+ * - Full iterator support
+ *
+ * Key Features:
+ * - Inherits from set interface for polymorphic use
+ * - Uses hashTable as underlying storage (with bool values)
+ * - Provides efficient membership testing
+ * - Supports all standard set operations
+ * - Exception-safe implementation
+ */
+
 namespace original {
+    /**
+     * @class hashSet
+     * @tparam TYPE Element type (must be hashable)
+     * @tparam HASH Hash function type (default: hash<TYPE>)
+     * @tparam ALLOC Allocator type (default: allocator<couple<const TYPE, const bool>>)
+     * @brief Hash table based implementation of the set interface
+     * @details This class provides a concrete implementation of the set interface
+     * using a hash table with separate chaining. It combines the functionality of:
+     * - set (interface)
+     * - hashTable (storage with bool values)
+     * - iterable (iteration support)
+     *
+     * Performance Characteristics:
+     * - Insertion: Average O(1), Worst O(n)
+     * - Lookup: Average O(1), Worst O(n)
+     * - Deletion: Average O(1), Worst O(n)
+     *
+     * The implementation guarantees:
+     * - Unique elements (no duplicates)
+     * - Type safety
+     * - Exception safety (basic guarantee)
+     * - Iterator validity unless modified
+     */
     template <typename TYPE,
               typename HASH = hash<TYPE>,
               typename ALLOC = allocator<couple<const TYPE, const bool>>>
     class hashSet final : public hashTable<TYPE, const bool, ALLOC, HASH>,
                           public set<TYPE, ALLOC>,
                           public iterable<const TYPE> {
-        using hashNode = typename hashTable<TYPE, const bool, ALLOC, HASH>::hashNode;
-        using rebind_alloc_pointer = typename hashTable<TYPE, const bool, ALLOC, HASH>::rebind_alloc_pointer;
-    public:
-        class Iterator final : public hashTable<TYPE, const bool, ALLOC, HASH>::Iterator, public baseIterator<const TYPE> {
 
+        /**
+         * @typedef hashNode
+         * @brief Internal node type used for hash table storage
+         */
+        using hashNode = typename hashTable<TYPE, const bool, ALLOC, HASH>::hashNode;
+
+        /**
+         * @typedef rebind_alloc_pointer
+         * @brief Rebound allocator type for pointer storage
+         */
+        using rebind_alloc_pointer = typename hashTable<TYPE, const bool, ALLOC, HASH>::rebind_alloc_pointer;
+
+    public:
+        /**
+         * @class Iterator
+         * @brief Forward iterator for hashSet
+         * @details Provides iteration over hashSet elements while maintaining:
+         * - Consistent traversal order
+         * - Safe invalidation detection
+         * - Const-correct access
+         *
+         * Iterator Characteristics:
+         * - Forward iteration only (throws on reverse operations)
+         * - Invalidates on rehash
+         * - Lightweight copy semantics
+         */
+        class Iterator final : public hashTable<TYPE, const bool, ALLOC, HASH>::Iterator,
+                             public baseIterator<const TYPE> {
+
+            /**
+             * @brief Constructs iterator pointing to specific bucket/node
+             * @param buckets Pointer to buckets vector
+             * @param bucket Current bucket index
+             * @param node Current node pointer
+             * @note Internal constructor, not meant for direct use
+             */
             explicit Iterator(vector<hashNode*, rebind_alloc_pointer>* buckets = nullptr,
                               u_integer bucket = 0, hashNode* node = nullptr);
 
+            /**
+             * @brief Compares iterator pointers for equality
+             * @param other Iterator to compare with
+             * @return true if iterators point to same element
+             * @internal
+             */
             bool equalPtr(const iterator<const TYPE>* other) const override;
+
         public:
             friend class hashSet;
 
+            /**
+             * @brief Copy constructor
+             * @param other Iterator to copy
+             */
             Iterator(const Iterator& other);
 
+            /**
+             * @brief Copy assignment operator
+             * @param other Iterator to copy
+             * @return Reference to this iterator
+             */
             Iterator& operator=(const Iterator& other);
 
+            /**
+             * @brief Creates a copy of this iterator
+             * @return New iterator instance
+             */
             Iterator* clone() const override;
 
+            /**
+             * @brief Gets iterator class name
+             * @return "hashSet::Iterator"
+             */
             [[nodiscard]] std::string className() const override;
 
+            /**
+             * @brief Advances iterator by steps
+             * @param steps Number of positions to advance
+             * @throw unSupportedMethodError if steps is negative
+             */
             void operator+=(integer steps) const override;
 
+            /**
+             * @brief Not supported (throws unSupportedMethodError)
+             */
             void operator-=(integer steps) const override;
 
+            /**
+             * @brief Not supported (throws unSupportedMethodError)
+             */
             integer operator-(const iterator<const TYPE>& other) const override;
 
+            /**
+             * @brief Checks if more elements exist
+             * @return true if more elements available
+             */
             [[nodiscard]] bool hasNext() const override;
 
+            /**
+             * @brief Not supported (throws unSupportedMethodError)
+             */
             [[nodiscard]] bool hasPrev() const override;
 
+            /**
+             * @brief Checks if other is previous to this
+             * @param other Iterator to check
+             * @return true if other is previous
+             */
             bool atPrev(const iterator<const TYPE>* other) const override;
 
+            /**
+             * @brief Checks if other is next to this
+             * @param other Iterator to check
+             * @return true if other is next
+             */
             bool atNext(const iterator<const TYPE>* other) const override;
 
+            /**
+             * @brief Moves to next element
+             */
             void next() const override;
 
+            /**
+             * @brief Not supported (throws unSupportedMethodError)
+             */
             void prev() const override;
 
+            /**
+             * @brief Not supported (throws unSupportedMethodError)
+             */
             Iterator* getPrev() const override;
 
+            /**
+             * @brief Gets current element (non-const)
+             * @return Reference to current element
+             */
             const TYPE& get() override;
 
+            /**
+             * @brief Gets current element (const)
+             * @return Copy of current element
+             */
             const TYPE get() const override;
 
+            /**
+             * @brief Not supported (throws unSupportedMethodError)
+             */
             void set(const TYPE& data) override;
 
+            /**
+             * @brief Checks if iterator is valid
+             * @return true if iterator points to valid element
+             */
             [[nodiscard]] bool isValid() const override;
 
             ~Iterator() override = default;
         };
+
+        /**
+         * @brief Constructs empty hashSet
+         * @param hash Hash function to use
+         * @param alloc Allocator to use
+         */
         explicit hashSet(HASH hash = HASH{}, ALLOC alloc = ALLOC{});
 
+        /**
+         * @brief Copy constructor
+         * @param other hashSet to copy
+         * @details Performs deep copy of all elements and buckets
+         * @note Allocator is copied if propagate_on_container_copy_assignment is true
+         */
         hashSet(const hashSet& other);
 
+        /**
+         * @brief Copy assignment operator
+         * @param other hashSet to copy
+         * @return Reference to this hashSet
+         * @details Performs deep copy of all elements and buckets
+         * @note Allocator is copied if propagate_on_container_copy_assignment is true
+         */
         hashSet& operator=(const hashSet& other);
 
+        /**
+         * @brief Move constructor
+         * @param other hashSet to move from
+         * @details Transfers ownership of resources from other
+         * @note Leaves other in valid but unspecified state
+         */
         hashSet(hashSet&& other) noexcept;
 
+        /**
+         * @brief Move assignment operator
+         * @param other hashSet to move from
+         * @return Reference to this hashSet
+         * @details Transfers ownership of resources from other
+         * @note Leaves other in valid but unspecified state
+         * @note Allocator is moved if propagate_on_container_move_assignment is true
+         */
         hashSet& operator=(hashSet&& other) noexcept;
 
+        /**
+         * @brief Gets number of elements
+         * @return Current size
+         */
         [[nodiscard]] u_integer size() const override;
 
+        /**
+         * @brief Checks if element exists
+         * @param e Element to check
+         * @return true if element exists
+         */
         bool contains(const TYPE &e) const override;
 
+        /**
+         * @brief Adds new element
+         * @param e Element to add
+         * @return true if added, false if element existed
+         */
         bool add(const TYPE &e) override;
 
+        /**
+         * @brief Removes element
+         * @param e Element to remove
+         * @return true if removed, false if element didn't exist
+         */
         bool remove(const TYPE &e) override;
 
+        /**
+         * @brief Gets begin iterator
+         * @return New iterator at first element
+         */
         Iterator* begins() const override;
 
+        /**
+         * @brief Gets end iterator
+         * @return New iterator at position past last element
+         */
         Iterator* ends() const override;
 
+        /**
+         * @brief Gets class name
+         * @return "hashSet"
+         */
         [[nodiscard]] std::string className() const override;
 
+        /**
+         * @brief Converts to string representation
+         * @param enter Add newline if true
+         * @return String representation
+         */
         [[nodiscard]] std::string toString(bool enter) const override;
 
         ~hashSet() override;
@@ -101,7 +318,7 @@ u_integer bucket, hashNode *node) : hashTable<TYPE, const bool, ALLOC, HASH>::It
     const_cast<vector<hashNode*, rebind_alloc_pointer>*>(buckets), bucket, node) {}
 
 template<typename TYPE, typename HASH, typename ALLOC>
-bool original::hashSet<TYPE, HASH, ALLOC>::Iterator::equalPtr(const original::iterator<const TYPE> *other) const {
+bool original::hashSet<TYPE, HASH, ALLOC>::Iterator::equalPtr(const iterator<const TYPE> *other) const {
     auto other_it = dynamic_cast<const Iterator*>(other);
     return other_it &&
            this->p_buckets == other_it->p_buckets &&
@@ -137,18 +354,18 @@ std::string original::hashSet<TYPE, HASH, ALLOC>::Iterator::className() const {
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
-void original::hashSet<TYPE, HASH, ALLOC>::Iterator::operator+=(original::integer steps) const {
+void original::hashSet<TYPE, HASH, ALLOC>::Iterator::operator+=(integer steps) const {
     hashTable<TYPE, const bool, ALLOC, HASH>::Iterator::operator+=(steps);
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
-void original::hashSet<TYPE, HASH, ALLOC>::Iterator::operator-=(original::integer) const {
+void original::hashSet<TYPE, HASH, ALLOC>::Iterator::operator-=(integer) const {
     throw unSupportedMethodError();
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
 original::integer
-original::hashSet<TYPE, HASH, ALLOC>::Iterator::operator-(const original::iterator<const TYPE>&) const {
+original::hashSet<TYPE, HASH, ALLOC>::Iterator::operator-(const iterator<const TYPE>&) const {
     throw unSupportedMethodError();
 }
 
@@ -163,7 +380,7 @@ bool original::hashSet<TYPE, HASH, ALLOC>::Iterator::hasPrev() const {
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
-bool original::hashSet<TYPE, HASH, ALLOC>::Iterator::atPrev(const original::iterator<const TYPE> *other) const {
+bool original::hashSet<TYPE, HASH, ALLOC>::Iterator::atPrev(const iterator<const TYPE> *other) const {
     auto other_it = dynamic_cast<const Iterator*>(other);
     if (!other_it) {
         return false;
@@ -178,7 +395,7 @@ bool original::hashSet<TYPE, HASH, ALLOC>::Iterator::atPrev(const original::iter
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
-bool original::hashSet<TYPE, HASH, ALLOC>::Iterator::atNext(const original::iterator<const TYPE> *other) const {
+bool original::hashSet<TYPE, HASH, ALLOC>::Iterator::atNext(const iterator<const TYPE> *other) const {
     return other->atPrev(*this);
 }
 
@@ -193,7 +410,7 @@ void original::hashSet<TYPE, HASH, ALLOC>::Iterator::prev() const {
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
-original::hashSet<TYPE, HASH, ALLOC>::Iterator*
+typename original::hashSet<TYPE, HASH, ALLOC>::Iterator*
 original::hashSet<TYPE, HASH, ALLOC>::Iterator::getPrev() const {
     throw unSupportedMethodError();
 }

@@ -9,49 +9,216 @@
 #include "wrapper.h"
 
 
+/**
+ * @file hashTable.h
+ * @brief Implementation of hashTable container
+ * @details Provides a hash table implementation with:
+ * - Average O(1) time complexity for basic operations
+ * - Separate chaining collision resolution
+ * - Customizable hash function and allocator
+ * - Iterator support
+ *
+ * Key Features:
+ * - Base class for hash-based containers
+ * - Printable interface support
+ * - Dynamic resizing based on load factor
+ * - Predefined bucket sizes for optimal performance
+ * - Exception-safe implementation
+ */
+
 namespace original {
-    // TODO
+
+    /**
+     * @class hashTable
+     * @tparam K_TYPE Key type (must be hashable)
+     * @tparam V_TYPE Value type
+     * @tparam ALLOC Allocator type (default: allocator<K_TYPE>)
+     * @tparam HASH Hash function type (default: hash<K_TYPE>)
+     * @brief Hash table implementation with separate chaining
+     * @details This class provides a generic hash table implementation that serves as the
+     * base for hash-based containers. It implements:
+     * - Key-value pair storage
+     * - Dynamic resizing
+     * - Basic hash table operations
+     *
+     * Performance Characteristics:
+     * - Insertion: Average O(1), Worst O(n)
+     * - Lookup: Average O(1), Worst O(n)
+     * - Deletion: Average O(1), Worst O(n)
+     *
+     * The implementation guarantees:
+     * - Unique keys (no duplicates)
+     * - Automatic resizing when load factor thresholds are crossed
+     * - Exception safety (basic guarantee)
+     */
     template<typename K_TYPE, typename V_TYPE, typename ALLOC = allocator<K_TYPE>, typename HASH = hash<K_TYPE>>
     class hashTable : public printable{
     protected:
+
+        /**
+         * @class hashNode
+         * @brief Internal node type for hash table storage
+         * @details Wraps key-value pairs and maintains chain links for separate chaining.
+         * Each node contains:
+         * - A key-value pair (couple<const K_TYPE, V_TYPE>)
+         * - A pointer to the next node in the chain
+         *
+         * The class provides:
+         * - Key/value access methods
+         * - Chain manipulation methods
+         * - Proper memory management through wrapper interface
+         */
         class hashNode final : public wrapper<couple<const K_TYPE, V_TYPE>> {
             couple<const K_TYPE, V_TYPE> data_;
             hashNode* next_;
+
         public:
+            /**
+             * @brief Constructs a new hash node
+             * @param key Key to store (const reference)
+             * @param value Value to associate
+             * @param next Next node in chain (nullptr if end of chain)
+             */
             explicit hashNode(const K_TYPE& key = K_TYPE{}, const V_TYPE& value = V_TYPE{}, hashNode* next = nullptr);
 
+            /**
+             * @brief Copy constructor
+             * @param other Node to copy from
+             */
             hashNode(const hashNode& other);
 
+            /**
+             * @brief Copy assignment operator
+             * @param other Node to copy from
+             * @return Reference to this node
+             */
             hashNode& operator=(const hashNode& other);
 
+            /**
+             * @brief Gets key-value pair (non-const)
+             * @return Reference to the contained pair
+             */
             couple<const K_TYPE, V_TYPE>& getVal() override;
 
+            /**
+             * @brief Gets key-value pair (const)
+             * @return Const reference to the contained pair
+             */
             const couple<const K_TYPE, V_TYPE>& getVal() const override;
 
+            /**
+             * @brief Gets the key (const)
+             * @return Const reference to the key
+             */
             const K_TYPE& getKey() const;
 
+            /**
+             * @brief Gets the value (const)
+             * @return Const reference to the value
+             */
             const V_TYPE& getValue() const;
 
+            /**
+             * @brief Gets the value (non-const)
+             * @return Reference to the value
+             */
             V_TYPE& getValue();
 
+            /**
+             * @brief Not supported (throws unSupportedMethodError)
+             */
             void setVal(couple<const K_TYPE, V_TYPE> data) override;
 
+            /**
+             * @brief Sets a new value
+             * @param value New value to set
+             */
             void setValue(const V_TYPE& value);
 
+            /**
+             * @brief Not supported (throws unSupportedMethodError)
+             */
             hashNode* getPPrev() const override;
 
+            /**
+             * @brief Gets next node in chain
+             * @return Pointer to next node (nullptr if end of chain)
+             */
             hashNode* getPNext() const override;
 
+            /**
+             * @brief Sets next node in chain
+             * @param new_next New next node to set
+             */
             void setPNext(hashNode* new_next);
 
+            /**
+             * @brief Connects two nodes in chain
+             * @param prev Previous node in chain
+             * @param next Next node in chain
+             * @note If prev is nullptr, does nothing
+             */
             static void connect(hashNode* prev, hashNode* next);
         };
 
+        /**
+         * @typedef rebind_alloc_node
+         * @brief Rebound allocator type for node storage
+         */
         using rebind_alloc_node = typename ALLOC::template rebind_alloc<hashNode>;
+
+        /**
+         * @typedef rebind_alloc_pointer
+         * @brief Rebound allocator type for pointer storage
+         */
         using rebind_alloc_pointer = typename ALLOC::template rebind_alloc<hashNode*>;
+
+        /**
+         * @brief Minimum load factor before shrinking
+         */
         static constexpr floating LOAD_FACTOR_MIN = 0.25;
+
+        /**
+         * @brief Maximum load factor before expanding
+         */
         static constexpr floating LOAD_FACTOR_MAX = 0.75;
+
+        /**
+         * @brief Number of predefined bucket sizes
+         */
         static constexpr u_integer BUCKETS_SIZES_COUNT = 30;
+
+        /**
+         * @brief Predefined bucket sizes for hash table resizing
+         * @details An array of prime numbers carefully selected for hash table bucket sizes.
+         * These primes are used during table resizing to maintain optimal performance characteristics.
+         *
+         * Key Properties:
+         * - All values are prime numbers to reduce hash collisions
+         * - Each size is approximately double the previous (with some variance)
+         * - Covers a wide range from small to very large tables
+         * - Specifically chosen to avoid common modulo patterns
+         *
+         * Selection Criteria:
+         * 1. Primes spaced roughly exponentially (growth factor ~1.8-2.2)
+         * 2. Avoid primes close to powers of 2 to prevent clustering
+         * 3. Sufficient gaps between sizes to justify resize operations
+         * 4. Includes sizes suitable for both small and large datasets
+         *
+         * Performance Impact:
+         * - Larger sizes reduce collisions but increase memory usage
+         * - Smaller sizes conserve memory but may increase collisions
+         * - The growth factor balances between resize frequency and memory overhead
+         *
+         * The sequence continues until reaching sizes suitable for maximum practical
+         * in-memory hash tables (over 100 million buckets).
+         *
+         * @note The actual resize operation only occurs when the load factor
+         * exceeds thresholds, not necessarily at every size transition.
+         *
+         * @see LOAD_FACTOR_MIN
+         * @see LOAD_FACTOR_MAX
+         */
         static constexpr u_integer BUCKETS_SIZES[] = {
                 17,          29,          53,          97,          193,
                 389,         769,         1543,        3079,        6151,
@@ -68,70 +235,234 @@ namespace original {
         HASH hash_;
         rebind_alloc_node rebind_alloc{};
 
+        /**
+         * @class Iterator
+         * @brief Forward iterator for hashTable
+         * @details Provides forward iteration over hashTable elements with:
+         * - Consistent traversal order (bucket by bucket, then chain order)
+         * - Safe invalidation detection
+         * - Const-correct access to elements
+         *
+         * Iterator Characteristics:
+         * - Forward iteration only (throws on reverse operations)
+         * - Invalidates on rehash operations
+         * - Lightweight copy semantics
+         * - STL-style iteration interface
+         *
+         * @note Iterators remain valid unless the table is rehashed
+         */
         class Iterator {
         protected:
             mutable vector<hashNode*, rebind_alloc_pointer>* p_buckets;
             mutable u_integer cur_bucket;
             mutable hashNode* p_node;
 
+            /**
+             * @brief Finds the next non-empty bucket
+             * @param buckets Reference to buckets vector
+             * @param bucket Starting bucket index
+             * @return Index of next non-empty bucket or buckets.size() if none
+             * @internal
+             */
             static u_integer findNextValidBucket(vector<hashNode *, rebind_alloc_pointer> *buckets,
-                                                                      u_integer bucket);
+                                              u_integer bucket);
 
+            /**
+             * @brief Finds the previous non-empty bucket
+             * @param buckets Reference to buckets vector
+             * @param bucket Starting bucket index
+             * @return Index of previous non-empty bucket or buckets.size() if none
+             * @internal
+             */
             static u_integer findPrevValidBucket(vector<hashNode *, rebind_alloc_pointer> *buckets,
-                                                                     u_integer bucket);
+                                             u_integer bucket);
 
+            /**
+             * @brief Constructs an iterator pointing to specific position
+             * @param buckets Pointer to buckets vector
+             * @param bucket Current bucket index
+             * @param node Current node pointer
+             * @note Protected constructor for use by hashTable only
+             */
             explicit Iterator(vector<hashNode*, rebind_alloc_pointer>* buckets = nullptr,
                               u_integer bucket = 0, hashNode* node = nullptr);
 
+            /**
+             * @brief Copy constructor
+             * @param other Iterator to copy
+             */
             Iterator(const Iterator& other);
 
+            /**
+             * @brief Copy assignment operator
+             * @param other Iterator to copy from
+             * @return Reference to this iterator
+             */
             Iterator& operator=(const Iterator& other);
         public:
+            /**
+              * @brief Checks if more elements are available
+              * @return true if more elements can be traversed
+              */
             [[nodiscard]] bool hasNext() const;
 
+            /**
+             * @brief Advances to the next element
+             * @throw outOfBoundError if already at end
+             */
             void next() const;
 
+            /**
+             * @brief Advances iterator by steps positions
+             * @param steps Number of positions to advance (must be >= 0)
+             * @throw unSupportedMethodError if steps is negative
+             */
             void operator+=(integer steps) const;
 
+            /**
+             * @brief Gets current key-value pair (non-const)
+             * @return Reference to current pair
+             * @throw outOfBoundError if iterator is invalid
+             */
             couple<const K_TYPE, V_TYPE>& get();
 
+            /**
+             * @brief Gets current key-value pair (const)
+             * @return Copy of current pair
+             * @throw outOfBoundError if iterator is invalid
+             */
             couple<const K_TYPE, V_TYPE> get() const;
 
+            /**
+             * @brief Checks if iterator points to valid element
+             * @return true if iterator is valid
+             */
             [[nodiscard]] bool isValid() const;
         };
 
+        /**
+         * @brief Creates a new hash node
+         * @param key Key for new node
+         * @param value Value for new node
+         * @param next Next node in chain
+         * @return Pointer to newly created node
+         * @note Uses the rebound allocator for memory management
+         */
         hashNode* createNode(const K_TYPE& key = K_TYPE{}, const V_TYPE& value = V_TYPE{}, hashNode* next = nullptr);
 
+        /**
+         * @brief Destroys a hash node
+         * @param node Node to destroy
+         * @note Safely handles nullptr and uses rebound allocator
+         */
         void destroyNode(hashNode* node) noexcept;
 
+        /**
+         * @brief Computes hash code for a key
+         * @param key Key to hash
+         * @return Computed bucket index
+         */
         u_integer getHashCode(const K_TYPE& key) const;
 
+        /**
+         * @brief Gets current number of buckets
+         * @return Current bucket count
+         */
         u_integer getBucketCount() const;
 
+        /**
+         * @brief Gets bucket head for a key
+         * @param key Key to lookup
+         * @return Pointer to first node in bucket's chain
+         */
         hashNode* getBucket(const K_TYPE& key) const;
 
+        /**
+         * @brief Calculates current load factor
+         * @return Current elements/buckets ratio
+         */
         floating loadFactor() const;
 
+        /**
+         * @brief Gets next appropriate bucket size for expansion
+         * @return Next larger bucket size from predefined primes
+         * @throw outOfBoundError if already at maximum size
+         */
         u_integer getNextSize() const;
 
+        /**
+         * @brief Gets previous appropriate bucket size for shrinking
+         * @return Next smaller bucket size from predefined primes
+         */
         u_integer getPrevSize() const;
 
+        /**
+         * @brief Rehashes table to new bucket count
+         * @param new_bucket_count New number of buckets
+         * @details Rebuilds the hash table with new bucket count:
+         * 1. Allocates new buckets vector
+         * 2. Rehashes all elements
+         * 3. Maintains element order within buckets
+         * @note Invalidates all iterators
+         */
         void rehash(u_integer new_bucket_count);
 
+        /**
+         * @brief Adjusts table size based on load factor
+         * @details Checks current load factor and resizes if:
+         * - loadFactor() >= LOAD_FACTOR_MAX: expands table
+         * - loadFactor() <= LOAD_FACTOR_MIN: shrinks table
+         */
         void adjust();
 
+        /**
+         * @brief Constructs empty hashTable
+         * @param hash Hash function to use
+         */
         explicit hashTable(HASH hash = HASH{});
 
+        /**
+         * @brief Finds node for given key
+         * @param key Key to search for
+         * @return Pointer to node if found, nullptr otherwise
+         */
         hashNode* find(const K_TYPE& key) const;
 
+        /**
+         * @brief Modifies value for existing key
+         * @param key Key to modify
+         * @param value New value
+         * @return true if key existed and was modified
+         */
         bool modify(const K_TYPE& key, const V_TYPE& value);
 
+        /**
+         * @brief Inserts new key-value pair
+         * @param key Key to insert
+         * @param value Value to associate
+         * @return true if inserted, false if key already existed
+         * @note Automatically adjusts table size if needed
+         */
         bool insert(const K_TYPE& key, const V_TYPE& value);
 
+        /**
+         * @brief Removes key-value pair
+         * @param key Key to remove
+         * @return true if key existed and was removed
+         * @note Automatically adjusts table size if needed
+         */
         bool erase(const K_TYPE& key);
 
+        /**
+         * @brief Gets class name
+         * @return "hashTable"
+         */
         [[nodiscard]] std::string className() const override;
 
+        /**
+         * @brief Destroys hashTable
+         * @details Cleans up all nodes and buckets
+         */
         ~hashTable() override;
     };
 }
