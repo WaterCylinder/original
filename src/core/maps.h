@@ -6,6 +6,7 @@
 #include "hash.h"
 #include "hashTable.h"
 #include "map.h"
+#include "ownerPtr.h"
 
 
 namespace original {
@@ -21,10 +22,12 @@ namespace original {
             using hashNode = typename hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode;
             using rebind_alloc_pointer = typename hashTable<K_TYPE, V_TYPE, ALLOC>::rebind_alloc_pointer;
     public:
-            class Iterator final : public hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator {
+            class Iterator final : public hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator, public baseIterator<couple<const K_TYPE, V_TYPE>> {
 
                 explicit Iterator(vector<hashNode*, rebind_alloc_pointer>* buckets = nullptr,
                                   u_integer bucket = 0, hashNode* node = nullptr);
+
+                bool equalPtr(const iterator<couple<const K_TYPE, V_TYPE>>* other) const override;
             public:
                 friend class hashMap;
 
@@ -35,6 +38,36 @@ namespace original {
                 Iterator* clone() const override;
 
                 [[nodiscard]] std::string className() const override;
+
+                void operator+=(integer steps) const override;
+
+                void operator-=(integer steps) const override;
+
+                integer operator-(const iterator<couple<const K_TYPE, V_TYPE>> &other) const override;
+
+                [[nodiscard]] bool hasNext() const override;
+
+                [[nodiscard]] bool hasPrev() const override;
+
+                bool atPrev(const iterator<couple<const K_TYPE, V_TYPE>>* other) const override;
+
+                bool atNext(const iterator<couple<const K_TYPE, V_TYPE>>* other) const override;
+
+                void next() const override;
+
+                void prev() const override;
+
+                Iterator* getPrev() const override;
+
+                couple<const K_TYPE, V_TYPE> &get() override;
+
+                couple<const K_TYPE, V_TYPE> get() const override;
+
+                void set(const couple<const K_TYPE, V_TYPE> &data) override;
+
+                [[nodiscard]] bool isValid() const override;
+
+                ~Iterator() override = default;
             };
 
             explicit hashMap(HASH hash = HASH{}, ALLOC alloc = ALLOC{});
@@ -80,6 +113,16 @@ original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::Iterator(
         const_cast<vector<hashNode*, rebind_alloc_pointer>*>(buckets), bucket, node) {}
 
 template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+bool original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::equalPtr(
+        const iterator<couple<const K_TYPE, V_TYPE>>* other) const {
+    auto other_it = dynamic_cast<const Iterator*>(other);
+    return other_it &&
+           this->p_buckets == other_it->p_buckets &&
+           this->cur_bucket == other_it->cur_bucket &&
+           this->p_node == other_it->p_node;
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
 original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::Iterator(const Iterator &other) : Iterator() {
     this->operator=(other);
 }
@@ -103,6 +146,92 @@ original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::clone() const {
 template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
 std::string original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::className() const {
     return "hashMap::Iterator";
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+void original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::operator+=(original::integer steps) const {
+    hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::operator+=(steps);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+void original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::operator-=(original::integer) const {
+    throw unSupportedMethodError();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+original::integer original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::operator-(
+        const original::iterator<original::couple<const K_TYPE, V_TYPE>>&) const {
+    throw unSupportedMethodError();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+bool original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::hasNext() const {
+    return hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::hasNext();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+bool original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::hasPrev() const {
+    throw unSupportedMethodError();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+bool original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::atPrev(
+        const original::iterator<original::couple<const K_TYPE, V_TYPE>> *other) const {
+    auto other_it = dynamic_cast<const Iterator*>(other);
+    if (!other_it) {
+        return false;
+    }
+    auto next = ownerPtr(this->clone());
+    if (!next->isValid()){
+        return false;
+    }
+
+    next->next();
+    return next->equalPtr(other_it);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+bool original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::atNext(
+        const original::iterator<original::couple<const K_TYPE, V_TYPE>> *other) const {
+    return other->atPrev(*this);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+void original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::next() const {
+    hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::next();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+void original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::prev() const {
+    throw unSupportedMethodError();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator*
+original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::getPrev() const {
+    throw unSupportedMethodError();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+original::couple<const K_TYPE, V_TYPE>&
+original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::get() {
+    return hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::get();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+original::couple<const K_TYPE, V_TYPE>
+original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::get() const {
+    return hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::get();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+void original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::set(const original::couple<const K_TYPE, V_TYPE>&) {
+    throw unSupportedMethodError();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+bool original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::isValid() const {
+    return hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::isValid();
 }
 
 template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>

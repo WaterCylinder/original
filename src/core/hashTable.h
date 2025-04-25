@@ -68,7 +68,7 @@ namespace original {
         HASH hash_;
         rebind_alloc_node rebind_alloc{};
 
-        class Iterator : public baseIterator<couple<const K_TYPE, V_TYPE>> {
+        class Iterator {
         protected:
             mutable vector<hashNode*, rebind_alloc_pointer>* p_buckets;
             mutable u_integer cur_bucket;
@@ -83,45 +83,21 @@ namespace original {
             explicit Iterator(vector<hashNode*, rebind_alloc_pointer>* buckets = nullptr,
                               u_integer bucket = 0, hashNode* node = nullptr);
 
-            bool equalPtr(const iterator<couple<const K_TYPE, V_TYPE>>* other) const override;
-
             Iterator(const Iterator& other);
 
             Iterator& operator=(const Iterator& other);
-
-            Iterator* clone() const override;
         public:
-            [[nodiscard]] bool hasNext() const override;
+            [[nodiscard]] bool hasNext() const;
 
-            [[nodiscard]] bool hasPrev() const override;
+            void next() const;
 
-            void next() const override;
+            void operator+=(integer steps) const;
 
-            void prev() const override;
+            couple<const K_TYPE, V_TYPE>& get();
 
-            void operator+=(integer steps) const override;
+            couple<const K_TYPE, V_TYPE> get() const;
 
-            void operator-=(integer steps) const override;
-
-            integer operator-(const iterator<couple<const K_TYPE, V_TYPE>>& other) const override;
-
-            Iterator* getPrev() const override;
-
-            Iterator* getNext() const override;
-
-            couple<const K_TYPE, V_TYPE>& get() override;
-
-            couple<const K_TYPE, V_TYPE> get() const override;
-
-            void set(const couple<const K_TYPE, V_TYPE>& data) override;
-
-            [[nodiscard]] bool isValid() const override;
-
-            bool atPrev(const iterator<couple<const K_TYPE, V_TYPE>>* other) const override;
-
-            bool atNext(const iterator<couple<const K_TYPE, V_TYPE>>* other) const override;
-
-            [[nodiscard]] std::string className() const override;
+            [[nodiscard]] bool isValid() const;
         };
 
         hashNode* createNode(const K_TYPE& key = K_TYPE{}, const V_TYPE& value = V_TYPE{}, hashNode* next = nullptr);
@@ -207,7 +183,7 @@ V_TYPE& original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode::getValue() {
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-void original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode::setVal(couple<const K_TYPE, V_TYPE> data) {
+void original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode::setVal(couple<const K_TYPE, V_TYPE>) {
     throw unSupportedMethodError();
 }
 
@@ -270,16 +246,6 @@ original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::Iterator(
     : p_buckets(buckets), cur_bucket(bucket), p_node(node) {}
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-bool original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::equalPtr(
-    const iterator<couple<const K_TYPE, V_TYPE>> *other) const {
-    auto other_it = dynamic_cast<const Iterator*>(other);
-    return other_it &&
-           this->p_buckets == other_it->p_buckets &&
-           this->cur_bucket == other_it->cur_bucket &&
-           this->p_node == other_it->p_node;
-}
-
-template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
 original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::Iterator(const Iterator &other) : Iterator() {
     this->operator=(other);
 }
@@ -296,23 +262,12 @@ original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::operator=(const Iter
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-typename original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator*
-original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::clone() const {
-    return new Iterator(*this);
-}
-
-template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
 bool original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::hasNext() const {
     if (this->p_node && this->p_node->getPNext()) {
         return true;
     }
 
     return Iterator::findNextValidBucket(this->p_buckets, this->cur_bucket) != this->p_buckets->size();
-}
-
-template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-bool original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::hasPrev() const {
-    throw unSupportedMethodError();
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
@@ -338,11 +293,6 @@ void original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::next() const {
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-void original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::prev() const {
-    throw unSupportedMethodError();
-}
-
-template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
 void original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::operator+=(const integer steps) const {
     if (steps < 0) {
         throw unSupportedMethodError();
@@ -351,34 +301,6 @@ void original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::operator+=(cons
     for (integer i = 0; i < steps; ++i) {
         this->next();
     }
-}
-
-template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-void original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::operator-=(integer steps) const {
-    throw unSupportedMethodError();
-}
-
-template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-original::integer original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::operator-(
-    const iterator<couple<const K_TYPE, V_TYPE>> &other) const {
-    throw unSupportedMethodError();
-}
-
-template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-typename original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator*
-original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::getPrev() const {
-    throw unSupportedMethodError();
-}
-
-template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-typename original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator*
-original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::getNext() const {
-    if (!this->isValid()) {
-        throw outOfBoundError();
-    }
-    auto* new_it = this->clone();
-    new_it->next();
-    return new_it;
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
@@ -402,40 +324,8 @@ original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::get() const {
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-void original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::set(const couple<const K_TYPE, V_TYPE> &data) {
-    throw unSupportedMethodError();
-}
-
-template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
 bool original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::isValid() const {
     return this->p_node;
-}
-
-template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-bool original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::atPrev(
-    const iterator<couple<const K_TYPE, V_TYPE>> *other) const {
-    auto other_it = dynamic_cast<const Iterator*>(other);
-    if (!other_it) {
-        return false;
-    }
-
-    return this->clone()->equalPtr(other_it);
-}
-
-template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-bool original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::atNext(
-    const iterator<couple<const K_TYPE, V_TYPE>> *other) const {
-    auto other_it = dynamic_cast<const Iterator*>(other);
-    if (!other_it) {
-        return false;
-    }
-
-    return other_it->clone()->equalPtr(this);
-}
-
-template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-std::string original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::className() const {
-    return "hashTable::Iterator";
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
