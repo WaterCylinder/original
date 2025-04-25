@@ -233,7 +233,7 @@ namespace original{
          * @brief Get the number of elements in the tuple
          * @return The size of the tuple (number of elements)
          */
-        constexpr u_integer size();
+        static constexpr u_integer size();
 
         /**
          * @brief Access element by index (const lvalue-reference version)
@@ -363,7 +363,7 @@ namespace std {
      */
     template<std::size_t I, typename... TYPES>
     struct tuple_element<I, original::tuple<TYPES...>> { //NOLINT
-        using type = typename std::tuple_element<I, std::tuple<TYPES...>>::type;
+        using type = std::tuple_element_t<I, std::tuple<TYPES...>>;
     };
 
     /**
