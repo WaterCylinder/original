@@ -99,8 +99,8 @@ int main(){
         std::cout << "cnt[" << i << "] = " << cnt[i] << std::endl;
         std::cout << i << " at exist: " << original::printable::formatString(exist.contains(i)) << std::endl;
     }
-    for (auto& cp: exist) {
-        std::cout << cp.first() << std::endl;
+    for (auto& elem: exist) {
+        std::cout << elem << std::endl;
     }
     auto map1 = original::hashMap<std::string, std::string>();
     map1["foo"] = "bar";
@@ -122,7 +122,8 @@ int main(){
     auto printed_array = original::array<int>{1, 2, 3};
     auto printed_vector = original::vector<int>{4, 5, 6};
     std::cout << std::format("{}, {}", printed_array, printed_vector) << std::endl;
-    auto [elem1, elem2, elem3] = original::tuple{1, std::string("hh"), original::array{3.14, 1.592}};
+    auto bind_tp = original::tuple{1, std::string("hh"), original::array{3.14, 1.592}};
+    auto&& [elem1, elem2, elem3] = bind_tp;
     std::cout << elem1 << " " << original::printable::formatString(elem2) << " " << elem3 << std::endl;
     return 0;
 }
