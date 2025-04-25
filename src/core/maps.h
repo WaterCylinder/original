@@ -381,7 +381,8 @@ std::string original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::toString(bool enter)
         if (!first){
             ss << ", ";
         }
-        ss << "{" << it.get().template get<0>() << ": " << it.get().template get<1>() << "}";
+        ss << "{" << printable::formatString(it.get().template get<0>()) << ": "
+           << printable::formatString(it.get().template get<1>()) << "}";
         first = false;
     }
     ss << ")";

@@ -323,7 +323,7 @@ std::string original::hashSet<TYPE, HASH, ALLOC>::toString(bool enter) const {
         if (!first){
             ss << ", ";
         }
-        ss << it.get();
+        ss << printable::formatString(it.get());
         first = false;
     }
     ss << ")";
