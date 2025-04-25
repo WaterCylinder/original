@@ -102,6 +102,8 @@ namespace original {
 
             [[nodiscard]] std::string className() const override;
 
+            [[nodiscard]] std::string toString(bool enter) const override;
+
             ~hashMap() override;
         };
 }
@@ -360,6 +362,25 @@ original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::ends() const {
 template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
 std::string original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::className() const {
     return "hashMap";
+}
+
+template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+std::string original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::toString(bool enter) const {
+    std::stringstream ss;
+    ss << this->className();
+    ss << "(";
+    bool first = true;
+    for (auto it = this->begin(); it != this->end(); it.next()){
+        if (!first){
+            ss << ", ";
+        }
+        ss << "{" << it.get().template get<0>() << ": " << it.get().template get<1>() << "}";
+        first = false;
+    }
+    ss << ")";
+    if (enter)
+        ss << "\n";
+    return ss.str();
 }
 
 template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>

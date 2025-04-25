@@ -89,6 +89,8 @@ namespace original {
 
         [[nodiscard]] std::string className() const override;
 
+        [[nodiscard]] std::string toString(bool enter) const override;
+
         ~hashSet() override;
     };
 }
@@ -309,6 +311,25 @@ original::hashSet<TYPE, HASH, ALLOC>::ends() const {
 template<typename TYPE, typename HASH, typename ALLOC>
 std::string original::hashSet<TYPE, HASH, ALLOC>::className() const {
     return "hashSet";
+}
+
+template<typename TYPE, typename HASH, typename ALLOC>
+std::string original::hashSet<TYPE, HASH, ALLOC>::toString(bool enter) const {
+    std::stringstream ss;
+    ss << this->className();
+    ss << "(";
+    bool first = true;
+    for (auto it = this->begin(); it != this->end(); it.next()){
+        if (!first){
+            ss << ", ";
+        }
+        ss << it.get();
+        first = false;
+    }
+    ss << ")";
+    if (enter)
+        ss << "\n";
+    return ss.str();
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
