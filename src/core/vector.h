@@ -128,6 +128,25 @@ namespace original{
          */
         void adjust(u_integer increment);
 
+        /**
+         * @internal
+         * @brief Internal base constructor for delegation purposes.
+         * @param size The nominal element count for capacity calculation
+         * @param alloc Allocator instance for memory management
+         * @details This constructor:
+         * - Only sets basic size/capacity parameters (size_, max_size, inner_begin)
+         * - Does NOT allocate memory or initialize elements
+         * - Serves as delegation target for other constructors
+         *
+         * @warning Not for direct use - the vector remains partially initialized after construction.
+         *          Other constructors must complete initialization by:
+         *          1. Allocating storage (body pointer)
+         *          2. Constructing elements
+         *          3. Setting proper inner_begin offset
+         *
+         * @note Capacity is pre-calculated as size * 4/3 to optimize for future growth,
+         *       but actual memory allocation happens in delegated constructors.
+         */
         explicit vector(u_integer size, ALLOC alloc = ALLOC{});
 
     public:
@@ -200,6 +219,20 @@ namespace original{
          */
         explicit vector(ALLOC alloc = ALLOC{});
 
+        /**
+         * @brief Constructs a vector with specified size and allocator, initializing elements with provided arguments.
+         * @tparam ARGS Variadic template parameter pack for element construction arguments
+         * @param size The initial number of elements in the vector
+         * @param alloc Allocator instance to use (default: default-constructed ALLOC)
+         * @param args Arguments to forward to element constructors
+         * @details This constructor:
+         * - Allocates storage for the specified number of elements
+         * - Constructs each element using the provided arguments
+         * - Maintains centered memory layout for efficient operations
+         *
+         * @note The vector's capacity will be automatically calculated to maintain optimal memory layout.
+         * All elements will be initialized with the same provided arguments.
+         */
         template<typename... ARGS>
         vector(u_integer size, ALLOC alloc, ARGS&&... args);
 
@@ -346,11 +379,30 @@ namespace original{
         ~vector() override;
 
         template<typename T, typename... ARGS>
-        friend vector<T, allocator<T>> makeVector(u_integer size, ARGS&&... args);
+        friend vector<T> makeVector(u_integer size, ARGS&&... args);
     };
 
+    /**
+     * @brief Factory function to create a vector with specified size and construction arguments.
+     * @tparam T Element type of the vector
+     * @tparam ARGS Variadic template parameter pack for construction arguments
+     * @param size Number of elements to create
+     * @param args Arguments to forward to element constructors
+     * @return A new vector instance
+     * @details Creates a vector with:
+     * - Default allocator
+     * - Elements constructed with provided arguments
+     * - Automatic capacity management
+     *
+     * @example
+     * // Creates a vector of 10 default-constructed integers
+     * auto vec = makeVector<int>(10);
+     *
+     * // Creates a vector of 5 strings initialized with "hello"
+     * auto strVec = makeVector<std::string>(5, "hello");
+     */
     template<typename T, typename... ARGS>
-    vector<T, allocator<T>> makeVector(u_integer size, ARGS&&... args);
+    vector<T> makeVector(u_integer size, ARGS&&... args);
 }
 
     template <typename TYPE, typename ALLOC>
@@ -507,7 +559,7 @@ original::vector<TYPE, ALLOC>::vector(u_integer size, ALLOC alloc, ARGS&&... arg
 template<typename TYPE, typename ALLOC>
     original::vector<TYPE, ALLOC>::vector(const u_integer size, ALLOC alloc)
     : baseList<TYPE, ALLOC>(std::move(alloc)), size_(size),
-      max_size(size * 4 / 3), inner_begin((size / 3) - 1), body(nullptr) {
+      max_size(size * 4 / 3), inner_begin(size / 3 - 1), body(nullptr) {
 }
 
     template <typename TYPE, typename ALLOC>
@@ -767,8 +819,8 @@ template<typename TYPE, typename ALLOC>
     }
 
     template<typename T, typename... ARGS>
-    original::vector<T, original::allocator<T>> original::makeVector(original::u_integer size, ARGS &&... args) {
-        return original::vector<T, original::allocator<T>>(size, original::allocator<T>{}, std::forward<ARGS>(args)...);
+    original::vector<T> original::makeVector(u_integer size, ARGS &&... args) {
+        return original::vector<T>(size, original::allocator<T>{}, std::forward<ARGS>(args)...);
     }
 
 #endif //VECTOR_H
