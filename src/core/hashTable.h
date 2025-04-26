@@ -173,6 +173,8 @@ namespace original {
          */
         using rebind_alloc_pointer = typename ALLOC::template rebind_alloc<hashNode*>;
 
+        using buckets_type = vector<hashNode*, rebind_alloc_pointer>;
+
         /**
          * @brief Minimum load factor before shrinking
          */
@@ -231,9 +233,9 @@ namespace original {
         };
 
         u_integer size_;
-        vector<hashNode*, rebind_alloc_pointer> buckets;
+        buckets_type buckets;
         HASH hash_;
-        rebind_alloc_node rebind_alloc{};
+        mutable rebind_alloc_node rebind_alloc{};
 
         /**
          * @class Iterator
@@ -340,6 +342,8 @@ namespace original {
             [[nodiscard]] bool isValid() const;
         };
 
+        buckets_type bucketsCopy(const buckets_type& buckets) const;
+
         /**
          * @brief Creates a new hash node
          * @param key Key for new node
@@ -348,7 +352,7 @@ namespace original {
          * @return Pointer to newly created node
          * @note Uses the rebound allocator for memory management
          */
-        hashNode* createNode(const K_TYPE& key = K_TYPE{}, const V_TYPE& value = V_TYPE{}, hashNode* next = nullptr);
+        hashNode* createNode(const K_TYPE& key = K_TYPE{}, const V_TYPE& value = V_TYPE{}, hashNode* next = nullptr) const;
 
         /**
          * @brief Destroys a hash node
@@ -659,9 +663,34 @@ bool original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::isValid() const
     return this->p_node;
 }
 
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
+typename original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::buckets_type
+original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::bucketsCopy(const buckets_type& buckets) const
+{
+    buckets_type new_buckets = buckets_type(buckets.size(), rebind_alloc_pointer{}, nullptr);
+    for (u_integer i = 0; i < buckets.size(); ++i) {
+        hashNode* old_node = buckets[i];
+        hashNode* prev_new_node = nullptr;
+
+        while (old_node) {
+            hashNode* new_node = this->createNode(old_node->getKey(), old_node->getValue());
+
+            if (!prev_new_node) {
+                new_buckets[i] = new_node;
+            } else {
+                prev_new_node->setPNext(new_node);
+            }
+
+            prev_new_node = new_node;
+            old_node = old_node->getPNext();
+        }
+    }
+    return new_buckets;
+}
+
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
 typename original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode*
-original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::createNode(const K_TYPE& key, const V_TYPE& value, hashNode* next) {
+original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::createNode(const K_TYPE& key, const V_TYPE& value, hashNode* next) const {
     auto node = this->rebind_alloc.allocate(1);
     this->rebind_alloc.construct(node, key, value, next);
     return node;
@@ -724,18 +753,21 @@ void original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::rehash(u_integer new_buck
     if (new_bucket_count == this->getBucketCount())
         return;
 
-    auto new_buckets = vector<hashNode*, rebind_alloc_pointer>(new_bucket_count, rebind_alloc_pointer{}, nullptr);
-    for (hashNode*& bucket: this->buckets){
-        while (bucket){
-            auto next = bucket->getPNext();
-            auto cur = bucket;
-            hashNode::connect(bucket, next);
-            hashNode::connect(cur, nullptr);
+    auto new_buckets = buckets_type(new_bucket_count, rebind_alloc_pointer{}, nullptr);
+
+    for (hashNode*& old_head : this->buckets) {
+        while (old_head) {
+            hashNode* cur = old_head;
+            old_head = old_head->getPNext();
+
+            cur->setPNext(nullptr);
             auto code = this->hash_(cur->getKey()) % new_bucket_count;
-            hashNode::connect(cur, new_buckets[code]);
+
+            cur->setPNext(new_buckets[code]);
             new_buckets[code] = cur;
         }
     }
+
     this->buckets = std::move(new_buckets);
 }
 
@@ -784,6 +816,9 @@ bool original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::insert(const K_TYPE &key,
     if (!cur){
         this->buckets[this->getHashCode(key)] = this->createNode(key, value);
     } else{
+        if (cur->getKey() == key)
+            return false;
+
         for (; cur->getPNext(); cur = cur->getPNext()){
             if (cur->getKey() == key)
                 return false;
