@@ -6,6 +6,7 @@
 #include "hash.h"
 #include "hashTable.h"
 #include "set.h"
+#include "ownerPtr.h"
 
 
 /**
@@ -452,7 +453,7 @@ original::hashSet<TYPE, HASH, ALLOC>::operator=(const hashSet &other) {
         return *this;
     }
 
-    this->buckets = other.buckets;
+    this->buckets = this->bucketsCopy(other.buckets);
     this->size_ = other.size_;
     if constexpr(ALLOC::propagate_on_container_copy_assignment::value) {
         this->allocator = other.allocator;
@@ -475,6 +476,7 @@ original::hashSet<TYPE, HASH, ALLOC>::operator=(hashSet &&other) noexcept {
 
     this->buckets = std::move(other.buckets);
     this->size_ = other.size_;
+    other.size_ = 0;
     if constexpr(ALLOC::propagate_on_container_move_assignment::value) {
         this->allocator = std::move(other.allocator);
         this->rebind_alloc = std::move(other.rebind_alloc);
