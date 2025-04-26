@@ -346,6 +346,32 @@ namespace original {
             [[nodiscard]] bool isValid() const;
         };
 
+        /**
+         * @brief Creates a deep copy of the hash table's bucket array
+         * @param buckets The original buckets array to copy
+         * @return A new buckets array with cloned nodes
+         *
+         * @details
+         * This function performs a deep copy of the entire buckets array used by the hash table,
+         * including the internal linked list in each bucket (used for separate chaining).
+         *
+         * Copying strategy:
+         * - For each bucket index, traverse the linked list of hash nodes
+         * - Use `createNode()` to allocate a new node for each entry
+         * - Preserve the order of elements within each bucket's chain
+         *
+         * This method is typically used in:
+         * - Copy constructors
+         * - Copy assignment operators
+         *
+         * The function ensures that:
+         * - The original and copied hash tables do not share memory
+         * - All keys and values are copied correctly
+         * - Iterator validity is preserved for the new structure
+         *
+         * @note This function assumes the original buckets are well-formed (no cycles).
+         * @note Uses allocator rebound to allocate memory for the new nodes.
+         */
         buckets_type bucketsCopy(const buckets_type& buckets) const;
 
         /**
