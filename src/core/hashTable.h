@@ -173,6 +173,10 @@ namespace original {
          */
         using rebind_alloc_pointer = typename ALLOC::template rebind_alloc<hashNode*>;
 
+        /**
+         * @typedef buckets_type
+         * @brief Type representing the hash table buckets container
+         */
         using buckets_type = vector<hashNode*, rebind_alloc_pointer>;
 
         /**
