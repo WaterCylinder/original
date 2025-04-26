@@ -71,7 +71,7 @@ namespace original {
          * @typedef rebind_alloc_pointer
          * @brief Rebound allocator type for pointer storage
          */
-        using rebind_alloc_pointer = typename hashTable<K_TYPE, V_TYPE, ALLOC>::rebind_alloc_pointer;
+        using rebind_alloc_pointer = typename hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::rebind_alloc_pointer;
     public:
 
             /**
@@ -359,7 +359,7 @@ namespace original {
 template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
 original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::Iterator(
     vector<hashNode *, rebind_alloc_pointer> *buckets, u_integer bucket, hashNode *node)
-    : hashTable<K_TYPE, V_TYPE, ALLOC>::Iterator(
+    : hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator(
         const_cast<vector<hashNode*, rebind_alloc_pointer>*>(buckets), bucket, node) {}
 
 template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
@@ -383,7 +383,7 @@ original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::operator=(const Iterat
     if (this == &other)
         return *this;
 
-    hashTable<K_TYPE, V_TYPE, ALLOC>::Iterator::operator=(other);
+    hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::operator=(other);
     return *this;
 }
 
@@ -501,7 +501,7 @@ original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::operator=(const hashMap &other) 
         return *this;
     }
 
-    this->buckets = other.buckets;
+    this->buckets = this->bucketsCopy(other.buckets);
     this->size_ = other.size_;
     if constexpr(ALLOC::propagate_on_container_copy_assignment::value) {
         this->allocator = other.allocator;
@@ -524,6 +524,7 @@ original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::operator=(hashMap &&other) noexc
 
     this->buckets = std::move(other.buckets);
     this->size_ = other.size_;
+    other.size_ = 0;
     if constexpr(ALLOC::propagate_on_container_move_assignment::value) {
         this->allocator = std::move(other.allocator);
         this->rebind_alloc = std::move(other.rebind_alloc);
