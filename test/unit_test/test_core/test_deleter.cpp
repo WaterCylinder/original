@@ -30,14 +30,3 @@ TEST(DeleterTest, DeleteNullPointer) {
     // 删除空指针应安全
     EXPECT_NO_THROW(d(ptr));
 }
-
-// 测试多次删除同一指针（未定义行为，需谨慎）
-// 注意：此测试可能导致崩溃，建议手动验证或结合sanitizers
-TEST(DeleterTest, DoubleDelete) {
-    const auto ptr = new int(42);
-    const original::deleter<int> d;
-    
-    d(ptr); // 第一次删除
-
-    EXPECT_DEATH(d(ptr), ".*");
-}
