@@ -67,11 +67,11 @@ namespace original {
         RBNode* root_;
         u_integer size_;
         Compare compare_;
-        rebind_alloc_node rebind_alloc{};
+        mutable rebind_alloc_node rebind_alloc{};
 
 
         RBNode* createNode(const K_TYPE& key = K_TYPE{}, const V_TYPE& value = V_TYPE{},
-                             color color = RED, RBNode* parent = nullptr, RBNode* left = nullptr, RBNode* right = nullptr);
+                           color color = RED, RBNode* parent = nullptr, RBNode* left = nullptr, RBNode* right = nullptr) const;
 
         void destroyNode(RBNode* node) noexcept;
 
@@ -79,7 +79,11 @@ namespace original {
 
         bool highPriority(const K_TYPE& key, RBNode* other) const;
 
-        RBNode*& findParent(const K_TYPE& key);
+        RBNode* rotateLeft(RBNode* cur);
+
+        RBNode* rotateRight(RBNode* cur);
+
+        void adjust(RBNode* cur);
 
         explicit RBTree(Compare compare = Compare{});
 
@@ -195,7 +199,7 @@ template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 typename original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode*
 original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::createNode(const K_TYPE &key, const V_TYPE &value,
                                                              color color, RBNode* parent,
-                                                             RBNode* left, RBNode* right) {
+                                                             RBNode* left, RBNode* right) const {
     auto node = this->rebind_alloc.allocate(1);
     this->rebind_alloc.construct(node, key, value, color, parent, left, right);
     return node;
@@ -224,29 +228,46 @@ bool original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::highPriority(const K_TYPE
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
-typename original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode*&
-original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::findParent(const K_TYPE &key) {
-    auto cur = &this->root_;
-    if (!*cur) {
-        return *cur;
+typename original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode*
+original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::rotateLeft(RBNode *cur) {
+    RBNode* child_left = cur;
+    RBNode* child_root = child_left->getPRight();
+    RBNode* child_left_child = child_root->getPLeft();
+    RBNode* child_right = child_root->getPRight();
+    RBNode::connect(nullptr, child_root, true);
+    RBNode::connect(child_root, child_left, true);
+    RBNode::connect(child_left, child_left_child, false);
+    RBNode::connect(child_root, child_right, false);
+    return child_root;
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+typename original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode*
+original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::rotateRight(RBNode *cur) {
+    RBNode* child_right = cur;
+    RBNode* child_root = cur->getPLeft();
+    RBNode* child_right_child = child_root->getPRight();
+    RBNode* child_left = child_root->getPLeft();
+    RBNode::connect(nullptr, child_root, true);
+    RBNode::connect(child_root, child_left, true);
+    RBNode::connect(child_right, child_right_child, true);
+    RBNode::connect(child_root, child_right, false);
+    return child_root;
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::adjust(RBNode *cur) {
+    if (cur == this->root_) {
+        cur->setColor(BLACK);
+        return;
+    }
+    RBNode* parent = cur->getParent();
+    if (parent->getColor() == BLACK) {
+        return;
     }
 
-    auto parent = cur;
-
-    while (*cur) {
-        if (key == (*cur)->getKey()) {
-            return *parent;
-        }
-
-        parent = cur;
-        if (this->highPriority(key, *cur)) {
-            cur = &(*cur)->getPLeft();
-        } else {
-            cur = &(*cur)->getPRight();
-        }
-    }
-
-    return *parent;
+    RBNode* grand_parent = parent->getParent();
+    // todo
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
@@ -268,7 +289,27 @@ original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::find(const K_TYPE &key) const 
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 bool original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::insert(const K_TYPE &key, const V_TYPE &value) {
-    return false;
+    auto& cur = this->root_;
+    RBNode* parent = nullptr;
+    while (cur) {
+        if (cur->getKey() == key) {
+            return false;
+        }
+        parent = cur;
+        cur = this->highPriority(key, cur) ? cur->getPLeft() : cur->getPRight();
+    }
+    RBNode* child;
+    if (!cur) {
+        cur = this->createNode(key, value, BLACK);
+        child = cur;
+    } else {
+        child = this->createNode(key, value, RED);
+        RBNode::connect(parent, child, this->highPriority(key, parent));
+    }
+
+    this->size_ += 1;
+    this->adjust(child);
+    return true;
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
