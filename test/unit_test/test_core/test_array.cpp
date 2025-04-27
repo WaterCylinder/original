@@ -104,11 +104,13 @@ TEST(ArrayTest, CloneIterator) {
 
     const auto it = arr.begins();
     const auto clonedIt = it->clone();
+    const auto endIt = arr.ends();
     EXPECT_EQ(clonedIt->className(), "array::Iterator");
-    EXPECT_EQ(it->atNext(arr.ends()), clonedIt->atNext(arr.ends()));
+    EXPECT_EQ(it->atNext(endIt), clonedIt->atNext(endIt));
 
-    delete it;
+    delete endIt;
     delete clonedIt;
+    delete it;
 }
 
 TEST(ArrayTest, ClassName) {
