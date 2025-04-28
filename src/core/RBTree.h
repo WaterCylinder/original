@@ -4,6 +4,7 @@
 #include "allocator.h"
 #include "comparator.h"
 #include "couple.h"
+#include "queue.h"
 
 
 namespace original {
@@ -85,6 +86,8 @@ namespace original {
 
         void adjust(RBNode* cur);
 
+        void destroyTree() noexcept;
+
         explicit RBTree(Compare compare = Compare{});
 
         RBNode* find(const K_TYPE& key) const;
@@ -92,6 +95,8 @@ namespace original {
         bool insert(const K_TYPE& key, const V_TYPE& value);
 
         bool erase(const K_TYPE& key);
+
+        ~RBTree();
     };
 
 }
@@ -271,6 +276,24 @@ void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::adjust(RBNode *cur) {
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::destroyTree() noexcept {
+    if (this->root_) {
+        queue<RBNode*> queue = {this->root_};
+        while (!queue.empty()) {
+            RBNode* node = queue.head();
+            if (node->getPLeft()) {
+                queue.push(node->getPLeft());
+            }
+            if (node->getPRight()) {
+                queue.push(node->getPRight());
+            }
+            this->destroyNode(queue.pop());
+        }
+        this->root_ = nullptr;
+    }
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBTree(Compare compare)
     : root_(nullptr), size_(0), compare_(std::move(compare)) {}
 
@@ -315,6 +338,11 @@ bool original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::insert(const K_TYPE &key,
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 bool original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::erase(const K_TYPE &key) {
     return false;
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::~RBTree() {
+    this->destroyTree();
 }
 
 #endif //RBTREE_H
