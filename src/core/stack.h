@@ -159,7 +159,7 @@ namespace original {
         this->operator=(std::move(other));
     }
 
-template<typename TYPE,
+    template<typename TYPE,
          template <typename, typename> typename SERIAL,
          template <typename> typename ALLOC>
     auto original::stack<TYPE, SERIAL, ALLOC>::operator=(stack&& other) noexcept -> stack&
