@@ -7,6 +7,8 @@
 #include "hashTable.h"
 #include "set.h"
 #include "ownerPtr.h"
+#include "comparator.h"
+#include "RBTree.h"
 
 
 /**
@@ -312,6 +314,44 @@ namespace original {
 
         ~hashSet() override;
     };
+
+    // todo
+    template <typename TYPE,
+              typename Compare = increaseComparator<TYPE>,
+              typename ALLOC = allocator<couple<const TYPE, const bool>>>
+    class treeSet final : public RBTree<TYPE, const bool, ALLOC, Compare>,
+                          public set<TYPE, ALLOC>,
+                          public iterable<const TYPE>,
+                          public printable {
+    public:
+        explicit treeSet(Compare comp = Compare{}, ALLOC alloc = ALLOC{});
+
+        treeSet(const treeSet& other);
+
+        treeSet& operator=(const treeSet& other);
+
+        treeSet(treeSet&& other) noexcept;
+
+        treeSet& operator=(treeSet&& other) noexcept;
+
+        [[nodiscard]] u_integer size() const override;
+
+        bool contains(const TYPE &e) const override;
+
+        bool add(const TYPE &e) override;
+
+        bool remove(const TYPE &e) override;
+
+//        Iterator* begins() const override;
+
+//        Iterator* ends() const override;
+
+        [[nodiscard]] std::string className() const override;
+
+        [[nodiscard]] std::string toString(bool enter) const override;
+
+        ~treeSet() override;
+    };
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
@@ -554,5 +594,87 @@ std::string original::hashSet<TYPE, HASH, ALLOC>::toString(bool enter) const {
 
 template<typename TYPE, typename HASH, typename ALLOC>
 original::hashSet<TYPE, HASH, ALLOC>::~hashSet() = default;
+
+template<typename TYPE, typename Compare, typename ALLOC>
+original::treeSet<TYPE, Compare, ALLOC>::treeSet(Compare comp, ALLOC alloc)
+    : RBTree<TYPE, const bool, ALLOC, Compare>(std::move(comp)),
+      set<TYPE, ALLOC>(std::move(alloc)) {}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+original::treeSet<TYPE, Compare, ALLOC>::treeSet(const treeSet& other) : treeSet() {
+    this->operator=(other);
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+original::treeSet<TYPE, Compare, ALLOC>&
+original::treeSet<TYPE, Compare, ALLOC>::operator=(const treeSet& other) {
+    if (this == &other){
+        return *this;
+    }
+
+    this->root_ = other.treeCopy();
+    this->size_ = other.size_;
+    if constexpr(ALLOC::propagate_on_container_copy_assignment::value) {
+        this->allocator = other.allocator;
+        this->rebind_alloc = other.rebind_alloc;
+    }
+    return *this;
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+original::treeSet<TYPE, Compare, ALLOC>::treeSet(treeSet&& other) noexcept : treeSet() {
+    this->operator=(std::move(other));
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+original::treeSet<TYPE, Compare, ALLOC>&
+original::treeSet<TYPE, Compare, ALLOC>::operator=(treeSet&& other) noexcept {
+    if (this == &other){
+        return *this;
+    }
+
+    this->root_ = other.root_;
+    other.root_ = nullptr;
+    this->size_ = other.size_;
+    other.size_ = 0;
+    if constexpr(ALLOC::propagate_on_container_move_assignment::value) {
+        this->allocator = std::move(other.allocator);
+        this->rebind_alloc = std::move(other.rebind_alloc);
+    }
+    return *this;
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+original::u_integer original::treeSet<TYPE, Compare, ALLOC>::size() const {
+    return this->size_;
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+bool original::treeSet<TYPE, Compare, ALLOC>::contains(const TYPE &e) const {
+    return this->find(e);
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+bool original::treeSet<TYPE, Compare, ALLOC>::add(const TYPE &e) {
+    return this->insert(e, true);
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+bool original::treeSet<TYPE, Compare, ALLOC>::remove(const TYPE &e) {
+    return this->erase(e);
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+std::string original::treeSet<TYPE, Compare, ALLOC>::className() const {
+    return "treeSet";
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+std::string original::treeSet<TYPE, Compare, ALLOC>::toString(bool enter) const {
+    return std::string();
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+original::treeSet<TYPE, Compare, ALLOC>::~treeSet() = default;
 
 #endif //SETS_H
