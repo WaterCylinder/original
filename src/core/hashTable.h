@@ -348,11 +348,11 @@ namespace original {
 
         /**
          * @brief Creates a deep copy of the hash table's bucket array
-         * @param buckets The original buckets array to copy
-         * @return A new buckets array with cloned nodes
+         * @param old_buckets The original old_buckets array to copy
+         * @return A new old_buckets array with cloned nodes
          *
          * @details
-         * This function performs a deep copy of the entire buckets array used by the hash table,
+         * This function performs a deep copy of the entire old_buckets array used by the hash table,
          * including the internal linked list in each bucket (used for separate chaining).
          *
          * Copying strategy:
@@ -369,10 +369,10 @@ namespace original {
          * - All keys and values are copied correctly
          * - Iterator validity is preserved for the new structure
          *
-         * @note This function assumes the original buckets are well-formed (no cycles).
+         * @note This function assumes the original old_buckets are well-formed (no cycles).
          * @note Uses allocator rebound to allocate memory for the new nodes.
          */
-        buckets_type bucketsCopy(const buckets_type& buckets) const;
+        buckets_type bucketsCopy(const buckets_type& old_buckets) const;
 
         /**
          * @brief Creates a new hash node
@@ -695,11 +695,11 @@ bool original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator::isValid() const
 
 template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
 typename original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::buckets_type
-original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::bucketsCopy(const buckets_type& buckets) const
+original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::bucketsCopy(const buckets_type& old_buckets) const
 {
-    buckets_type new_buckets = buckets_type(buckets.size(), rebind_alloc_pointer{}, nullptr);
-    for (u_integer i = 0; i < buckets.size(); ++i) {
-        hashNode* old_node = buckets[i];
+    buckets_type new_buckets = buckets_type(old_buckets.size(), rebind_alloc_pointer{}, nullptr);
+    for (u_integer i = 0; i < old_buckets.size(); ++i) {
+        hashNode* old_node = old_buckets[i];
         hashNode* prev_new_node = nullptr;
 
         while (old_node) {
