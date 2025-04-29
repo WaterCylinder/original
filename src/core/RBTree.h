@@ -85,7 +85,7 @@ namespace original {
 
         RBNode* rotateRight(RBNode* cur);
 
-        void adjust(RBNode* cur);
+        void adjustInsert(RBNode* cur);
 
         void destroyTree() noexcept;
 
@@ -299,7 +299,7 @@ original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::rotateRight(RBNode *cur) {
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
-void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::adjust(RBNode *cur) {
+void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::adjustInsert(RBNode *cur) {
     if (cur == this->root_) {
         cur->setColor(BLACK);
         return;
@@ -316,7 +316,7 @@ void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::adjust(RBNode *cur) {
         grand_parent->setColor(RED);
         grand_parent->getPLeft()->setColor(BLACK);
         grand_parent->getPRight()->setColor(BLACK);
-        this->adjust(grand_parent);
+        this->adjustInsert(grand_parent);
         return;
     }
 
@@ -339,7 +339,7 @@ void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::adjust(RBNode *cur) {
         } else{
             RBNode* old_parent = cur->getPParent();
             RBNode::connect(grand_parent, this->rotateLeft(old_parent), true);
-            this->adjust(old_parent);
+            this->adjustInsert(old_parent);
         }
         return;
     }
@@ -363,7 +363,7 @@ void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::adjust(RBNode *cur) {
         } else{
             RBNode* old_parent = cur->getPParent();
             RBNode::connect(grand_parent, this->rotateRight(old_parent), false);
-            this->adjust(old_parent);
+            this->adjustInsert(old_parent);
         }
         return;
     }
@@ -434,7 +434,7 @@ bool original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::insert(const K_TYPE &key,
     }
 
     this->size_ += 1;
-    this->adjust(child);
+    this->adjustInsert(child);
     return true;
 }
 
