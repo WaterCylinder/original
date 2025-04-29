@@ -7,6 +7,8 @@
 #include "hashTable.h"
 #include "map.h"
 #include "ownerPtr.h"
+#include "comparator.h"
+#include "RBTree.h"
 
 
 /**
@@ -354,7 +356,56 @@ namespace original {
             [[nodiscard]] std::string toString(bool enter) const override;
 
             ~hashMap() override;
-        };
+    };
+
+    // todo
+    template <typename K_TYPE,
+              typename V_TYPE,
+              typename Compare = increaseComparator<K_TYPE>,
+              typename ALLOC = allocator<couple<const K_TYPE, V_TYPE>>>
+    class treeMap final : public RBTree<K_TYPE, V_TYPE, ALLOC, Compare>,
+                          public map<K_TYPE, V_TYPE, ALLOC>,
+                          public iterable<couple<const K_TYPE, V_TYPE>>,
+                          public printable {
+    public:
+        explicit treeMap(Compare comp = Compare{}, ALLOC alloc = ALLOC{});
+
+        treeMap(const treeMap& other);
+
+        treeMap& operator=(const treeMap& other);
+
+        treeMap(treeMap&& other) noexcept;
+
+        treeMap& operator=(treeMap&& other) noexcept;
+
+        [[nodiscard]] u_integer size() const override;
+
+        bool contains(const couple<const K_TYPE, V_TYPE> &e) const override;
+
+        bool add(const K_TYPE &k, const V_TYPE &v) override;
+
+        bool remove(const K_TYPE &k) override;
+
+        [[nodiscard]] bool containsKey(const K_TYPE &k) const override;
+
+        V_TYPE get(const K_TYPE &k) const override;
+
+        bool update(const K_TYPE &key, const V_TYPE &value) override;
+
+        const V_TYPE & operator[](const K_TYPE &k) const override;
+
+        V_TYPE & operator[](const K_TYPE &k) override;
+
+//        Iterator* begins() const override;
+
+//        Iterator* ends() const override;
+
+        [[nodiscard]] std::string className() const override;
+
+        [[nodiscard]] std::string toString(bool enter) const override;
+
+        ~treeMap() override;
+    };
 }
 
 template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
@@ -641,5 +692,124 @@ std::string original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::toString(const bool 
 
 template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
 original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::~hashMap() = default;
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::treeMap(Compare comp, ALLOC alloc)
+    : RBTree<K_TYPE, V_TYPE, ALLOC, Compare>(std::move(comp)),
+      map<K_TYPE, V_TYPE, ALLOC>(std::move(alloc)) {}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::treeMap(const treeMap& other) : treeMap() {
+    this->operator=(other);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>&
+original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::operator=(const treeMap& other) {
+    if (this == &other){
+        return *this;
+    }
+
+    this->root_ = other.treeCopy();
+    this->size_ = other.size_;
+    if constexpr(ALLOC::propagate_on_container_copy_assignment::value) {
+        this->allocator = other.allocator;
+        this->rebind_alloc = other.rebind_alloc;
+    }
+    return *this;
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::treeMap(treeMap&& other) noexcept : treeMap() {
+    this->operator=(std::move(other));
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>&
+original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::operator=(treeMap&& other) noexcept {
+    if (this == &other){
+        return *this;
+    }
+
+    this->root_ = other.root_;
+    other.root_ = nullptr;
+    this->size_ = other.size_;
+    other.size_ = 0;
+    if constexpr(ALLOC::propagate_on_container_move_assignment::value) {
+        this->allocator = std::move(other.allocator);
+        this->rebind_alloc = std::move(other.rebind_alloc);
+    }
+    return *this;
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::u_integer original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::size() const {
+    return this->size_;
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+bool
+original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::contains(const original::couple<const K_TYPE, V_TYPE> &e) const {
+    return this->containsKey(e.first()) && this->get(e.first()) == e.second();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+bool original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::add(const K_TYPE &k, const V_TYPE &v) {
+    return this->insert(k, v);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+bool original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::remove(const K_TYPE &k) {
+    return this->erase(k);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+bool original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::containsKey(const K_TYPE &k) const {
+    return this->find(k);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+V_TYPE original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::get(const K_TYPE &k) const {
+    auto node = this->find(k);
+    if (!node)
+        throw noElementError();
+    return node->getValue();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+bool original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::update(const K_TYPE &key, const V_TYPE &value) {
+    return this->modify(key, value);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+const V_TYPE &original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::operator[](const K_TYPE &k) const {
+    auto node = this->find(k);
+    if (!node)
+        throw noElementError();
+    return node->getValue();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+V_TYPE &original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::operator[](const K_TYPE &k) {
+    auto node = this->find(k);
+    if (!node) {
+        this->insert(k, V_TYPE{});
+        node = this->find(k);
+    }
+    return node->getValue();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+std::string original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::className() const {
+    return "treeMap";
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+std::string original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::toString(bool enter) const {
+    return printable::toString(enter);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::~treeMap() = default;
 
 #endif //MAPS_H
