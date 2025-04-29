@@ -59,7 +59,8 @@ namespace original {
     class hashMap final
                 : public hashTable<K_TYPE, V_TYPE, ALLOC, HASH>,
                   public map<K_TYPE, V_TYPE, ALLOC>,
-                  public iterable<couple<const K_TYPE, V_TYPE>>{
+                  public iterable<couple<const K_TYPE, V_TYPE>>,
+                  public printable{
 
         /**
          * @typedef hashNode

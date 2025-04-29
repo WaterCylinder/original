@@ -55,7 +55,8 @@ namespace original {
               typename ALLOC = allocator<couple<const TYPE, const bool>>>
     class hashSet final : public hashTable<TYPE, const bool, ALLOC, HASH>,
                           public set<TYPE, ALLOC>,
-                          public iterable<const TYPE> {
+                          public iterable<const TYPE>,
+                          public printable{
 
         /**
          * @typedef hashNode

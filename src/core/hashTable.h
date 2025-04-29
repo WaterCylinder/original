@@ -52,7 +52,7 @@ namespace original {
      * - Exception safety (basic guarantee)
      */
     template<typename K_TYPE, typename V_TYPE, typename ALLOC = allocator<K_TYPE>, typename HASH = hash<K_TYPE>>
-    class hashTable : public printable{
+    class hashTable{
     protected:
 
         /**
@@ -488,16 +488,10 @@ namespace original {
         bool erase(const K_TYPE& key);
 
         /**
-         * @brief Gets class name
-         * @return "hashTable"
-         */
-        [[nodiscard]] std::string className() const override;
-
-        /**
          * @brief Destroys hashTable
          * @details Cleans up all nodes and buckets
          */
-        ~hashTable() override;
+        ~hashTable();
     };
 }
 
@@ -887,11 +881,6 @@ bool original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::erase(const K_TYPE &key) 
     }
 
     return false;
-}
-
-template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
-std::string original::hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::className() const {
-    return "hashTable";
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename HASH>
