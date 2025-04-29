@@ -70,6 +70,7 @@ namespace original {
         Compare compare_;
         mutable rebind_alloc_node rebind_alloc{};
 
+        RBNode* treeCopy() const;
 
         RBNode* createNode(const K_TYPE& key = K_TYPE{}, const V_TYPE& value = V_TYPE{},
                            color color = RED, RBNode* parent = nullptr, RBNode* left = nullptr, RBNode* right = nullptr) const;
@@ -91,6 +92,8 @@ namespace original {
         explicit RBTree(Compare compare = Compare{});
 
         RBNode* find(const K_TYPE& key) const;
+
+        bool modify(const K_TYPE& key, const V_TYPE& value);
 
         bool insert(const K_TYPE& key, const V_TYPE& value);
 
@@ -201,6 +204,41 @@ void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode::connect(RBNode* p
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode*
+original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::treeCopy() const {
+    if (this->root_){
+        RBNode* copied_root =
+        this->createNode(this->root_->getKey(), this->root_->getValue(), this->root_->getColor());
+        queue<RBNode*> src = {this->root_};
+        queue<RBNode*> tar = {copied_root};
+        while (!src.empty()){
+            RBNode* src_cur = src.head();
+            RBNode* tar_cur = tar.head();
+            RBNode* src_child;
+            RBNode* tar_child;
+            if (src_cur->getPLeft()){
+                src_child = src_cur->getPLeft();
+                tar_child = this->createNode(src_child->getKey(), src_child->getValue(), src_child->getColor());
+                RBNode::connect(tar_cur, tar_child, true);
+                src.push(src_child);
+                tar.push(tar_child);
+            }
+            if (src_cur->getPRight()){
+                src_child = src_cur->getPRight();
+                tar_child = this->createNode(src_child->getKey(), src_child->getValue(), src_child->getColor());
+                RBNode::connect(tar_cur, tar_child, false);
+                src.push(src_child);
+                tar.push(tar_child);
+            }
+            src.pop();
+            tar.pop();
+        }
+        return copied_root;
+    }
+    return nullptr;
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 typename original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode*
 original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::createNode(const K_TYPE &key, const V_TYPE &value,
                                                              color color, RBNode* parent,
@@ -266,13 +304,69 @@ void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::adjust(RBNode *cur) {
         cur->setColor(BLACK);
         return;
     }
-    RBNode* parent = cur->getParent();
+    RBNode* parent = cur->getPParent();
     if (parent->getColor() == BLACK) {
         return;
     }
 
-    RBNode* grand_parent = parent->getParent();
-    // todo
+    RBNode* grand_parent = parent->getPParent();
+    if (grand_parent->getColor() == BLACK &&
+        grand_parent->getPLeft() && grand_parent->getPLeft()->getColor() == RED &&
+        grand_parent->getPRight() && grand_parent->getPRight()->getColor() == RED){
+        grand_parent->setColor(RED);
+        grand_parent->getPLeft()->setColor(BLACK);
+        grand_parent->getPRight()->setColor(BLACK);
+        this->adjust(grand_parent);
+        return;
+    }
+
+    if (grand_parent->getColor() == BLACK &&
+        grand_parent->getPLeft() && grand_parent->getPLeft()->getColor() == RED){
+        if (grand_parent->getPLeft()->getPLeft() == cur){
+            RBNode* new_child_root;
+            if (grand_parent != this->root_){
+                RBNode* grand_grand = grand_parent->getPParent();
+                bool is_left = grand_grand->getPLeft() == grand_parent;
+                new_child_root = this->rotateRight(grand_parent);
+                RBNode::connect(grand_grand, new_child_root, is_left);
+            } else{
+                new_child_root = this->rotateRight(grand_parent);
+                this->root_ = new_child_root;
+            }
+            new_child_root->setColor(BLACK);
+            new_child_root->getPLeft()->setColor(RED);
+            new_child_root->getPRight()->setColor(RED);
+        } else{
+            RBNode* old_parent = cur->getPParent();
+            RBNode::connect(grand_parent, this->rotateLeft(old_parent), true);
+            this->adjust(old_parent);
+        }
+        return;
+    }
+
+    if (grand_parent->getColor() == BLACK &&
+        grand_parent->getPRight() && grand_parent->getPRight()->getColor() == RED){
+        if (grand_parent->getPRight()->getPRight() == cur){
+            RBNode* new_child_root;
+            if (grand_parent != this->root_){
+                RBNode* grand_grand = grand_parent->getPParent();
+                bool is_left = grand_grand->getPLeft() == grand_parent;
+                new_child_root = this->rotateLeft(grand_parent);
+                RBNode::connect(grand_grand, new_child_root, is_left);
+            } else{
+                new_child_root = this->rotateLeft(grand_parent);
+                this->root_ = new_child_root;
+            }
+            new_child_root->setColor(BLACK);
+            new_child_root->getPLeft()->setColor(RED);
+            new_child_root->getPRight()->setColor(RED);
+        } else{
+            RBNode* old_parent = cur->getPParent();
+            RBNode::connect(grand_parent, this->rotateRight(old_parent), false);
+            this->adjust(old_parent);
+        }
+        return;
+    }
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
@@ -308,6 +402,15 @@ original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::find(const K_TYPE &key) const 
         cur = this->highPriority(key, cur) ? cur->getPLeft() : cur->getPRight();
     }
     return cur;
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+bool original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::modify(const K_TYPE &key, const V_TYPE &value) {
+    if (auto cur = this->find(key)){
+        cur->setValue(value);
+        return true;
+    }
+    return false;
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
