@@ -72,6 +72,10 @@ namespace original {
 
         RBNode* treeCopy() const;
 
+        RBNode* getPrecursorNode(RBNode* cur) const;
+
+        RBNode* getSuccessorNode(RBNode* cur) const;
+
         RBNode* createNode(const K_TYPE& key = K_TYPE{}, const V_TYPE& value = V_TYPE{},
                            color color = RED, RBNode* parent = nullptr, RBNode* left = nullptr, RBNode* right = nullptr) const;
 
@@ -236,6 +240,48 @@ original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::treeCopy() const {
         return copied_root;
     }
     return nullptr;
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode*
+original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::getPrecursorNode(RBNode *cur) const {
+    if (!cur)
+        return nullptr;
+
+    RBNode* pre;
+    if (cur->getPLeft()){
+        pre = cur->getPLeft();
+        while (pre->getPRight()){
+            pre = pre->getPRight();
+        }
+    } else{
+        pre = cur;
+        while (pre->getPParent() && pre->getPParent()->getPLeft() == pre){
+            pre = pre->getPParent();
+        }
+    }
+    return pre;
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode*
+original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::getSuccessorNode(RBNode *cur) const {
+    if (!cur)
+        return nullptr;
+
+    RBNode* nxt;
+    if (cur->getPRight()){
+        nxt = cur->getPRight();
+        while (nxt->getPLeft()){
+            nxt = nxt->getPLeft();
+        }
+    } else{
+        nxt = cur;
+        while (nxt->getPParent() && nxt->getPParent()->getPRight() == nxt){
+            nxt = nxt->getPParent();
+        }
+    }
+    return nxt;
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
