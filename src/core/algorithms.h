@@ -389,9 +389,9 @@ namespace original
         * @param begin Start iterator of the range
         * @param end End iterator of the range
         * @param compares Comparison callback to define the order
-        * @param isStable Flag indicating whether to use stable sorting (default: false)
+        * @param is_stable Flag indicating whether to use stable sorting (default: false)
         * @details This function sorts the elements in the range [begin, end] based on the specified comparison callback.
-        * When isStable is set to true, it delegates to stable sort (hybrid of mergesort/insertionSort, see @ref stableSort())
+        * When is_stable is set to true, it delegates to stable sort (hybrid of mergesort/insertionSort, see @ref stableSort())
         * which preserves the relative order of equivalent elements,
         * suitable for scenarios requiring stability. When false (default), it uses introspective sort
         * (hybrid of quicksort/heapSort/insertionSort, see @ref introSort())
@@ -403,7 +403,7 @@ namespace original
         template<typename TYPE, typename Callback>
         requires Compare<Callback, TYPE>
         static void sort(const iterator<TYPE> &begin, const iterator<TYPE> &end,
-                              const Callback& compares, bool isStable = false);
+                              const Callback& compares, bool is_stable = false);
 
         /**
          * @brief Sorts a range of elements using introspective sort
@@ -1197,8 +1197,8 @@ namespace original
     template<typename TYPE, typename Callback>
     requires original::Compare<Callback, TYPE>
     void original::algorithms::sort(const iterator<TYPE> &begin, const iterator<TYPE> &end,
-                                    const Callback &compares, const bool isStable) {
-        isStable ? stableSort(begin, end, compares) : introSort(begin, end, compares);
+                                    const Callback &compares, const bool is_stable) {
+        is_stable ? stableSort(begin, end, compares) : introSort(begin, end, compares);
     }
 
     template<typename TYPE, typename Callback>
