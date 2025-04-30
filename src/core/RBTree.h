@@ -208,42 +208,43 @@ void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode::connect(RBNode* p
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
-original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode*
+typename original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode*
 original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::treeCopy() const {
-    if (this->root_){
-        RBNode* copied_root =
-        this->createNode(this->root_->getKey(), this->root_->getValue(), this->root_->getColor());
-        queue<RBNode*> src = {this->root_};
-        queue<RBNode*> tar = {copied_root};
-        while (!src.empty()){
-            RBNode* src_cur = src.head();
-            RBNode* tar_cur = tar.head();
-            RBNode* src_child;
-            RBNode* tar_child;
-            if (src_cur->getPLeft()){
-                src_child = src_cur->getPLeft();
-                tar_child = this->createNode(src_child->getKey(), src_child->getValue(), src_child->getColor());
-                RBNode::connect(tar_cur, tar_child, true);
-                src.push(src_child);
-                tar.push(tar_child);
-            }
-            if (src_cur->getPRight()){
-                src_child = src_cur->getPRight();
-                tar_child = this->createNode(src_child->getKey(), src_child->getValue(), src_child->getColor());
-                RBNode::connect(tar_cur, tar_child, false);
-                src.push(src_child);
-                tar.push(tar_child);
-            }
-            src.pop();
-            tar.pop();
-        }
-        return copied_root;
+    if (!this->root_) {
+        return nullptr;
     }
-    return nullptr;
+
+    RBNode* copied_root =
+    this->createNode(this->root_->getKey(), this->root_->getValue(), this->root_->getColor());
+    queue<RBNode*> src = {this->root_};
+    queue<RBNode*> tar = {copied_root};
+    while (!src.empty()){
+        RBNode* src_cur = src.head();
+        RBNode* tar_cur = tar.head();
+        RBNode* src_child;
+        RBNode* tar_child;
+        if (src_cur->getPLeft()){
+            src_child = src_cur->getPLeft();
+            tar_child = this->createNode(src_child->getKey(), src_child->getValue(), src_child->getColor());
+            RBNode::connect(tar_cur, tar_child, true);
+            src.push(src_child);
+            tar.push(tar_child);
+        }
+        if (src_cur->getPRight()){
+            src_child = src_cur->getPRight();
+            tar_child = this->createNode(src_child->getKey(), src_child->getValue(), src_child->getColor());
+            RBNode::connect(tar_cur, tar_child, false);
+            src.push(src_child);
+            tar.push(tar_child);
+        }
+        src.pop();
+        tar.pop();
+    }
+    return copied_root;
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
-original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode*
+typename original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode*
 original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::getPrecursorNode(RBNode *cur) const {
     if (!cur)
         return nullptr;
@@ -264,7 +265,7 @@ original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::getPrecursorNode(RBNode *cur) 
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
-original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode*
+typename original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode*
 original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::getSuccessorNode(RBNode *cur) const {
     if (!cur)
         return nullptr;
@@ -411,26 +412,27 @@ void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::adjustInsert(RBNode *cur)
             RBNode::connect(grand_parent, this->rotateRight(old_parent), false);
             this->adjustInsert(old_parent);
         }
-        return;
     }
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::destroyTree() noexcept {
-    if (this->root_) {
-        queue<RBNode*> queue = {this->root_};
-        while (!queue.empty()) {
-            RBNode* node = queue.head();
-            if (node->getPLeft()) {
-                queue.push(node->getPLeft());
-            }
-            if (node->getPRight()) {
-                queue.push(node->getPRight());
-            }
-            this->destroyNode(queue.pop());
-        }
-        this->root_ = nullptr;
+    if (!this->root_) {
+        return;
     }
+
+    queue<RBNode*> queue = {this->root_};
+    while (!queue.empty()) {
+        RBNode* node = queue.head();
+        if (node->getPLeft()) {
+            queue.push(node->getPLeft());
+        }
+        if (node->getPRight()) {
+            queue.push(node->getPRight());
+        }
+        this->destroyNode(queue.pop());
+    }
+    this->root_ = nullptr;
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
