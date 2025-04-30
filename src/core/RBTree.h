@@ -347,72 +347,60 @@ original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::rotateRight(RBNode *cur) {
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::adjustInsert(RBNode *cur) {
-    if (cur == this->root_) {
-        cur->setColor(BLACK);
-        return;
-    }
-    RBNode* parent = cur->getPParent();
-    if (parent->getColor() == BLACK) {
-        return;
-    }
+    while (cur != this->root_ && cur->getPParent()->getColor() == RED) {
+        RBNode* parent = cur->getPParent();
+        RBNode* grand_parent = parent->getPParent();
+        RBNode* uncle = grand_parent->getPLeft() == parent ? grand_parent->getPRight() : grand_parent->getPLeft();
+        if (!uncle || uncle->getColor() == BLACK) {
 
-    RBNode* grand_parent = parent->getPParent();
-    if (grand_parent->getColor() == BLACK &&
-        grand_parent->getPLeft() && grand_parent->getPLeft()->getColor() == RED &&
-        grand_parent->getPRight() && grand_parent->getPRight()->getColor() == RED){
-        grand_parent->setColor(RED);
-        grand_parent->getPLeft()->setColor(BLACK);
-        grand_parent->getPRight()->setColor(BLACK);
-        this->adjustInsert(grand_parent);
-        return;
-    }
+            RBNode* rotated_root;
+            if (grand_parent->getPLeft() == uncle) {
 
-    if (grand_parent->getColor() == BLACK &&
-        grand_parent->getPLeft() && grand_parent->getPLeft()->getColor() == RED){
-        if (grand_parent->getPLeft()->getPLeft() == cur){
-            RBNode* new_child_root;
-            if (grand_parent != this->root_){
-                RBNode* grand_grand = grand_parent->getPParent();
-                bool is_left = grand_grand->getPLeft() == grand_parent;
-                new_child_root = this->rotateRight(grand_parent);
-                RBNode::connect(grand_grand, new_child_root, is_left);
-            } else{
-                new_child_root = this->rotateRight(grand_parent);
-                this->root_ = new_child_root;
+                if (parent->getPLeft() == cur) {
+                    RBNode::connect(grand_parent, this->rotateRight(parent), false);
+                }
+
+                if (grand_parent == this->root_) {
+                    rotated_root = this->rotateLeft(grand_parent);
+                    this->root_ = rotated_root;
+                }else {
+                    RBNode* grand_grand = grand_parent->getPParent();
+                    bool is_left = grand_grand->getPLeft() == grand_parent;
+                    rotated_root = this->rotateLeft(grand_parent);
+                    RBNode::connect(grand_grand, rotated_root, is_left);
+                }
+                rotated_root->setColor(BLACK);
+                rotated_root->getPLeft()->setColor(RED);
+            } else {
+
+                if (parent->getPRight() == cur) {
+                    RBNode::connect(grand_parent, this->rotateLeft(parent), true);
+                }
+
+                if (grand_parent == this->root_) {
+                    rotated_root = this->rotateRight(grand_parent);
+                    this->root_ = rotated_root;
+                }else {
+                    RBNode* grand_grand = grand_parent->getPParent();
+                    bool is_left = grand_grand->getPLeft() == grand_parent;
+                    rotated_root = this->rotateRight(grand_parent);
+                    RBNode::connect(grand_grand, rotated_root, is_left);
+                }
+                rotated_root->setColor(BLACK);
+                rotated_root->getPRight()->setColor(RED);
             }
-            new_child_root->setColor(BLACK);
-            new_child_root->getPLeft()->setColor(RED);
-            new_child_root->getPRight()->setColor(RED);
-        } else{
-            RBNode* old_parent = cur->getPParent();
-            RBNode::connect(grand_parent, this->rotateLeft(old_parent), true);
-            this->adjustInsert(old_parent);
-        }
-        return;
-    }
 
-    if (grand_parent->getColor() == BLACK &&
-        grand_parent->getPRight() && grand_parent->getPRight()->getColor() == RED){
-        if (grand_parent->getPRight()->getPRight() == cur){
-            RBNode* new_child_root;
-            if (grand_parent != this->root_){
-                RBNode* grand_grand = grand_parent->getPParent();
-                bool is_left = grand_grand->getPLeft() == grand_parent;
-                new_child_root = this->rotateLeft(grand_parent);
-                RBNode::connect(grand_grand, new_child_root, is_left);
-            } else{
-                new_child_root = this->rotateLeft(grand_parent);
-                this->root_ = new_child_root;
-            }
-            new_child_root->setColor(BLACK);
-            new_child_root->getPLeft()->setColor(RED);
-            new_child_root->getPRight()->setColor(RED);
-        } else{
-            RBNode* old_parent = cur->getPParent();
-            RBNode::connect(grand_parent, this->rotateRight(old_parent), false);
-            this->adjustInsert(old_parent);
+            cur = rotated_root;
+        } else {
+            parent->setColor(BLACK);
+            uncle->setColor(BLACK);
+            grand_parent->setColor(RED);
+
+            cur = grand_parent;
         }
     }
+
+    this->root_->setColor(BLACK);
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
