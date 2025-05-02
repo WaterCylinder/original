@@ -710,6 +710,7 @@ original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::operator=(const treeMap& othe
         return *this;
     }
 
+    this->destroyTree();
     this->root_ = other.treeCopy();
     this->size_ = other.size_;
     if constexpr(ALLOC::propagate_on_container_copy_assignment::value) {
@@ -749,7 +750,7 @@ original::u_integer original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::size() co
 
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
 bool
-original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::contains(const original::couple<const K_TYPE, V_TYPE> &e) const {
+original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::contains(const couple<const K_TYPE, V_TYPE> &e) const {
     return this->containsKey(e.first()) && this->get(e.first()) == e.second();
 }
 

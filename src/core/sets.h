@@ -612,6 +612,7 @@ original::treeSet<TYPE, Compare, ALLOC>::operator=(const treeSet& other) {
         return *this;
     }
 
+    this->destroyTree();
     this->root_ = other.treeCopy();
     this->size_ = other.size_;
     if constexpr(ALLOC::propagate_on_container_copy_assignment::value) {
