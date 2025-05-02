@@ -531,7 +531,7 @@ original::objPoolAllocator<TYPE>& original::objPoolAllocator<TYPE>::operator+=(o
 }
 
 template<typename TYPE>
-original::objPoolAllocator<TYPE>::objPoolAllocator(objPoolAllocator&& other)  noexcept : objPoolAllocator() {
+original::objPoolAllocator<TYPE>::objPoolAllocator(objPoolAllocator&& other) noexcept : objPoolAllocator() {
     this->operator=(std::move(other));
 }
 
