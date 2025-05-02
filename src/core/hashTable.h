@@ -190,7 +190,8 @@ namespace original {
         static constexpr floating LOAD_FACTOR_MAX = 0.75;
 
         /**
-         * @brief Number of predefined bucket sizes
+         * @brief Size of BUCKETS_SIZES
+         * @ref BUCKETS_SIZES
          */
         static constexpr u_integer BUCKETS_SIZES_COUNT = 30;
 
