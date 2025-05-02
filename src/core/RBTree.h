@@ -33,6 +33,10 @@ namespace original {
 
             RBNode& operator=(const RBNode& other);
 
+            void swapData(RBNode& other) noexcept;
+
+            void swapColor(RBNode& other) noexcept;
+
             const K_TYPE& getKey() const;
 
             const V_TYPE& getValue() const;
@@ -91,6 +95,8 @@ namespace original {
 
         void adjustInsert(RBNode* cur);
 
+        void adjustErase(RBNode* cur);
+
         void destroyTree() noexcept;
 
         explicit RBTree(Compare compare = Compare{});
@@ -110,7 +116,7 @@ namespace original {
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode::RBNode(const K_TYPE &key, const V_TYPE &value,
-                                                                 color color, RBNode *parent, RBNode *left, RBNode *right)
+                                                                 const color color, RBNode *parent, RBNode *left, RBNode *right)
                                                                  : data_({key, value}), color_(color), parent_(parent), left_(left), right_(right) {}
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
@@ -130,6 +136,16 @@ original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode::operator=(const RBNode
     this->left_ = other.left_;
     this->right_ = other.right_;
     return *this;
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode::swapData(RBNode &other) noexcept {
+    std::swap(this->data_, other.data_);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode::swapColor(RBNode &other) noexcept {
+    std::swap(this->color_, other.color_);
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
@@ -404,6 +420,115 @@ void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::adjustInsert(RBNode *cur)
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::adjustErase(RBNode *cur) {
+    while (cur != this->root_ && cur->getColor() == BLACK) {
+        RBNode* parent = cur->getPParent();
+        RBNode* brother;
+        RBNode* grand_parent;
+
+        if (parent->getPLeft() == cur) {
+            brother = parent->getPRight(); // R
+
+            if (brother->getColor() == RED) {
+                brother->swapColor(*parent);
+                grand_parent = parent->getPParent();
+                if (grand_parent) {
+                    bool is_left = grand_parent->getPLeft() == parent;
+                    RBNode::connect(grand_parent, this->rotateRight(parent), is_left);
+                } else {
+                    this->root_ = this->rotateRight(parent);
+                    RBNode::connect(nullptr, parent, true);
+                }
+            } else {
+                RBNode* nephew;
+                if (brother->getPLeft() && brother->getPLeft()->getColor() == RED) { // RL
+                    nephew = brother->getPLeft();
+                    nephew->setColor(parent->getColor());
+                    parent->setColor(BLACK);
+                    RBNode::connect(parent, this->rotateRight(brother), true);
+                    grand_parent = parent->getPParent();
+                    if (grand_parent) {
+                        bool is_left = grand_parent->getPLeft() == parent;
+                        RBNode::connect(grand_parent, this->rotateLeft(parent), is_left);
+                    } else {
+                        this->root_ = this->rotateLeft(parent);
+                        RBNode::connect(nullptr, this->root_, true);
+                    }
+                    break;
+                }
+
+                if (brother->getPRight() && brother->getPRight()->getColor() == RED) { // RR
+                    nephew = brother->getPRight();
+                    nephew->setColor(brother->getColor());
+                    brother->setColor(parent->getColor());
+                    parent->setColor(BLACK);
+                    grand_parent = parent->getPParent();
+                    if (grand_parent) {
+                        bool is_left = grand_parent->getPLeft() == parent;
+                        RBNode::connect(grand_parent, this->rotateLeft(parent), is_left);
+                    } else {
+                        this->root_ = this->rotateLeft(parent);
+                        RBNode::connect(nullptr, this->root_, true);
+                    }
+                    break;
+                }
+
+
+            }
+        }else {
+            brother = parent->getPLeft(); // L
+
+            if (brother->getColor() == RED) {
+                brother->swapColor(*parent);
+                grand_parent = parent->getPParent();
+                if (grand_parent) {
+                    bool is_left = grand_parent->getPLeft() == parent;
+                    RBNode::connect(grand_parent, this->rotateLeft(parent), is_left);
+                } else {
+                    this->root_ = this->rotateLeft(parent);
+                    RBNode::connect(nullptr, parent, true);
+                }
+            } else {
+                RBNode* nephew;
+                if (brother->getPRight() && brother->getPRight()->getColor() == RED) { // LR
+                    nephew = brother->getPRight();
+                    nephew->setColor(parent->getColor());
+                    parent->setColor(BLACK);
+                    RBNode::connect(parent, this->rotateLeft(brother), true);
+                    grand_parent = parent->getPParent();
+                    if (grand_parent) {
+                        bool is_left = grand_parent->getPLeft() == parent;
+                        RBNode::connect(grand_parent, this->rotateRight(parent), is_left);
+                    } else {
+                        this->root_ = this->rotateRight(parent);
+                        RBNode::connect(nullptr, this->root_, true);
+                    }
+                    break;
+                }
+
+                if (brother->getPLeft() && brother->getPLeft()->getColor() == RED) { // LL
+                    nephew = brother->getPLeft();
+                    nephew->setColor(brother->getColor());
+                    brother->setColor(parent->getColor());
+                    parent->setColor(BLACK);
+                    grand_parent = parent->getPParent();
+                    if (grand_parent) {
+                        bool is_left = grand_parent->getPLeft() == parent;
+                        RBNode::connect(grand_parent, this->rotateRight(parent), is_left);
+                    } else {
+                        this->root_ = this->rotateRight(parent);
+                        RBNode::connect(nullptr, this->root_, true);
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+    cur->setColor(BLACK);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::destroyTree() noexcept {
     if (!this->root_) {
         return;
@@ -476,7 +601,59 @@ bool original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::insert(const K_TYPE &key,
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 bool original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::erase(const K_TYPE &key) {
-    return false;
+    if (!this->root_) {
+        return false;
+    }
+
+    auto cur = this->find(key);
+    if (!cur) {
+        return false;
+    }
+
+    if (cur->getPLeft() && cur->getPRight()) {
+        RBNode* replace = this->getPrecursorNode(cur) ?
+                          this->getPrecursorNode(cur) : this->getSuccessorNode(cur);
+        cur->swapData(*replace);
+        cur = replace;
+    }
+
+    RBNode* parent = cur->getPParent();
+    if (cur->getPLeft() && !cur->getPRight()) {
+        if (!parent) {
+            this->root_ = cur->getPLeft();
+            RBNode::connect(nullptr, this->root_, true);
+            this->root_->setColor(BLACK);
+        } else {
+            bool is_left = parent->getPLeft() == cur;
+            RBNode::connect(parent, cur->getPLeft(), is_left);
+            parent->setColor(BLACK);
+        }
+    } else if (!cur->getPLeft() && cur->getPRight()) {
+        if (!parent) {
+            this->root_ = cur->getPRight();
+            RBNode::connect(nullptr, this->root_, true);
+            this->root_->setColor(BLACK);
+        } else {
+            bool is_left = parent->getPLeft() == cur;
+            RBNode::connect(parent, cur->getPRight(), is_left);
+            parent->setColor(BLACK);
+        }
+    } else {
+        if (!parent) {
+            this->root_ = nullptr;
+        } else if (cur->getColor() == BLACK) {
+            this->adjustErase(cur);
+        } else {
+            RBNode::connect(nullptr, cur, true);
+        }
+    }
+
+    if (cur->getPParent()) {
+        RBNode::connect(cur->getPParent(), nullptr, cur->getPParent()->getPLeft() == cur);
+    }
+    this->destroyNode(cur);
+    this->size_ -= 1;
+    return true;
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
