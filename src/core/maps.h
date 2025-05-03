@@ -91,7 +91,7 @@ namespace original {
              * - Lightweight copy semantics
              */
             class Iterator final : public hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::Iterator,
-                                 public baseIterator<couple<const K_TYPE, V_TYPE>> {
+                                   public baseIterator<couple<const K_TYPE, V_TYPE>> {
 
                 /**
                  * @brief Constructs iterator pointing to specific bucket/node
@@ -358,7 +358,6 @@ namespace original {
             ~hashMap() override;
     };
 
-    // todo
     template <typename K_TYPE,
               typename V_TYPE,
               typename Compare = increaseComparator<K_TYPE>,
@@ -367,7 +366,60 @@ namespace original {
                           public map<K_TYPE, V_TYPE, ALLOC>,
                           public iterable<couple<const K_TYPE, V_TYPE>>,
                           public printable {
+        using RBTree = RBTree<K_TYPE, V_TYPE, ALLOC, Compare>;
+
+        using RBNode = typename RBTree::RBNode;
     public:
+        class Iterator final : public RBTree::Iterator,
+                               public baseIterator<couple<const K_TYPE, V_TYPE>>
+        {
+            explicit Iterator(RBTree* tree, RBNode* cur);
+
+            bool equalPtr(const iterator<couple<const K_TYPE, V_TYPE>>* other) const override;
+        public:
+                friend class treeMap;
+
+                Iterator(const Iterator& other);
+
+                Iterator& operator=(const Iterator& other);
+
+                Iterator* clone() const override;
+
+                [[nodiscard]] std::string className() const override;
+
+                void operator+=(integer steps) const override;
+
+                void operator-=(integer steps) const override;
+
+                integer operator-(const iterator<couple<const K_TYPE, V_TYPE>> &other) const override;
+
+                [[nodiscard]] bool hasNext() const override;
+
+                [[nodiscard]] bool hasPrev() const override;
+
+                bool atPrev(const iterator<couple<const K_TYPE, V_TYPE>>* other) const override;
+
+                bool atNext(const iterator<couple<const K_TYPE, V_TYPE>>* other) const override;
+
+                void next() const override;
+
+                void prev() const override;
+
+                Iterator* getPrev() const override;
+
+                couple<const K_TYPE, V_TYPE>& get() override;
+
+                couple<const K_TYPE, V_TYPE> get() const override;
+
+                void set(const couple<const K_TYPE, V_TYPE> &data) override;
+
+                [[nodiscard]] bool isValid() const override;
+
+                ~Iterator() override = default;
+        };
+
+        friend class Iterator;
+
         explicit treeMap(Compare comp = Compare{}, ALLOC alloc = ALLOC{});
 
         treeMap(const treeMap& other);
@@ -396,9 +448,9 @@ namespace original {
 
         V_TYPE & operator[](const K_TYPE &k) override;
 
-//        Iterator* begins() const override;
+        Iterator* begins() const override;
 
-//        Iterator* ends() const override;
+        Iterator* ends() const override;
 
         [[nodiscard]] std::string className() const override;
 
@@ -693,9 +745,158 @@ std::string original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::toString(const bool 
 template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
 original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::~hashMap() = default;
 
+template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::Iterator(RBTree* tree, RBNode* cur)
+    : RBTree::Iterator(tree, cur)  {}
+
+template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+bool
+original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::equalPtr(
+    const iterator<couple<const K_TYPE, V_TYPE>>* other) const
+{
+    auto other_it = dynamic_cast<const Iterator*>(other);
+    return other_it &&
+           this->tree_ == other_it->tree_ &&
+           this->cur_ == other_it->cur_;
+}
+
+template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::Iterator(const Iterator& other) : Iterator(nullptr, nullptr)
+{
+    this->operator=(other);
+}
+
+template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+typename original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator&
+original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::operator=(const Iterator& other)
+{
+    if (this == &other) {
+        return *this;
+    }
+
+    this->tree_ = other.tree_;
+    this->cur_ = other.cur_;
+    return *this;
+}
+
+template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+typename original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
+original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::clone() const
+{
+    return new Iterator(*this);
+}
+
+template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+std::string original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::className() const
+{
+    return "treeMap::Iterator";
+}
+
+template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+void original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::operator+=(integer steps) const
+{
+    RBTree::Iterator::operator+=(steps);
+}
+
+template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+void original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::operator-=(integer steps) const
+{
+    RBTree::Iterator::operator-=(steps);
+}
+
+template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::integer
+original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::operator-(
+    const iterator<couple<const K_TYPE, V_TYPE>>& other) const
+{
+    throw unSupportedMethodError();
+}
+
+template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+bool original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::hasNext() const
+{
+    return RBTree::Iterator::hasNext();
+}
+
+template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+bool original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::hasPrev() const
+{
+    return RBTree::Iterator::hasPrev();
+}
+
+template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+bool original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::atPrev(
+    const iterator<couple<const K_TYPE, V_TYPE>>* other) const
+{
+    auto other_it = dynamic_cast<const Iterator*>(other);
+    if (!other_it) {
+        return false;
+    }
+    auto next = ownerPtr(this->clone());
+    if (!next->isValid()){
+        return false;
+    }
+
+    next->next();
+    return next->equalPtr(other_it);
+}
+
+template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+bool original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::atNext(
+    const iterator<couple<const K_TYPE, V_TYPE>>* other) const
+{
+    return other->atNext(*this);
+}
+
+template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+void original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::next() const
+{
+    RBTree::Iterator::next();
+}
+
+template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+void original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::prev() const
+{
+    RBTree::Iterator::prev();
+}
+
+template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+typename original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
+original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::getPrev() const
+{
+    auto it = this->clone();
+    it->prev();
+    return it;
+}
+
+template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::couple<const K_TYPE, V_TYPE>& original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::get()
+{
+    return RBTree::Iterator::get();
+}
+
+template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::couple<const K_TYPE, V_TYPE> original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::get() const
+{
+    return RBTree::Iterator::get();
+}
+
+template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+void original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::set(const couple<const K_TYPE, V_TYPE>& data)
+{
+    throw unSupportedMethodError();
+}
+
+template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+bool original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::isValid() const
+{
+    return RBTree::Iterator::isValid();
+}
+
+
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
 original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::treeMap(Compare comp, ALLOC alloc)
-    : RBTree<K_TYPE, V_TYPE, ALLOC, Compare>(std::move(comp)),
+    : RBTree(std::move(comp)),
       map<K_TYPE, V_TYPE, ALLOC>(std::move(alloc)) {}
 
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
@@ -800,6 +1001,20 @@ V_TYPE &original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::operator[](const K_TY
     return node->getValue();
 }
 
+template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+typename original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
+original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::begins() const
+{
+    return new Iterator(const_cast<treeMap*>(this), this->getMinNode());
+}
+
+template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+typename original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
+original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::ends() const
+{
+    return new Iterator(const_cast<treeMap*>(this), this->getMaxNode());
+}
+
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
 std::string original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::className() const {
     return "treeMap";
@@ -807,7 +1022,22 @@ std::string original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::className() const
 
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
 std::string original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::toString(bool enter) const {
-    return printable::toString(enter);
+    std::stringstream ss;
+    ss << this->className();
+    ss << "(";
+    bool first = true;
+    for (auto it = this->begin(); it != this->end(); it.next()){
+        if (!first){
+            ss << ", ";
+        }
+        ss << "{" << printable::formatString(it.get().template get<0>()) << ": "
+           << printable::formatString(it.get().template get<1>()) << "}";
+        first = false;
+    }
+    ss << ")";
+    if (enter)
+        ss << "\n";
+    return ss.str();
 }
 
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
