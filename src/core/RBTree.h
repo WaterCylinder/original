@@ -32,9 +32,15 @@ namespace original {
 
             RBNode& operator=(const RBNode& other);
 
+            RBNode(RBNode&& other) noexcept;
+
             void swapData(RBNode& other) noexcept;
 
             void swapColor(RBNode& other) noexcept;
+
+            couple<const K_TYPE, V_TYPE>& getVal();
+
+            const couple<const K_TYPE, V_TYPE>& getVal() const;
 
             const K_TYPE& getKey() const;
 
@@ -51,6 +57,10 @@ namespace original {
             RBNode* getPLeft() const;
 
             RBNode* getPRight() const;
+
+            RBNode*& getPLeftRef();
+
+            RBNode*& getPRightRef();
 
             void setColor(color new_color);
 
@@ -113,6 +123,12 @@ namespace original {
 
         RBNode* getSuccessorNode(RBNode* cur) const;
 
+        RBNode* getMinNode() const;
+
+        RBNode* getMaxNode() const;
+
+        RBNode* replaceNode(RBNode* src, RBNode* tar);
+
         RBNode* createNode(const K_TYPE& key = K_TYPE{}, const V_TYPE& value = V_TYPE{},
                            color color = RED, RBNode* parent = nullptr, RBNode* left = nullptr, RBNode* right = nullptr) const;
 
@@ -171,6 +187,11 @@ original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode::operator=(const RBNode
     return *this;
 }
 
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode::RBNode(RBNode&& other) noexcept
+    : data_(std::move(other.data_)), color_(other.color_), parent_(nullptr), left_(nullptr), right_(nullptr) {}
+
+
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode::swapData(RBNode &other) noexcept {
     std::swap(this->data_, other.data_);
@@ -179,6 +200,20 @@ void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode::swapData(RBNode &
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode::swapColor(RBNode &other) noexcept {
     std::swap(this->color_, other.color_);
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+original::couple<const K_TYPE, V_TYPE>&
+original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode::getVal()
+{
+    return this->data_;
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+const original::couple<const K_TYPE, V_TYPE>&
+original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode::getVal() const
+{
+    return this->data_;
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
@@ -222,6 +257,20 @@ original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode::getPLeft() const {
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 typename original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode*
 original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode::getPRight() const {
+    return this->right_;
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+typename original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode*&
+original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode::getPLeftRef()
+{
+    return this->left_;
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+typename original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode*&
+original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode::getPRightRef()
+{
     return this->right_;
 }
 
@@ -407,19 +456,65 @@ original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::getSuccessorNode(RBNode *cur) 
     if (!cur)
         return nullptr;
 
-    RBNode* nxt;
-    if (cur->getPRight()){
-        nxt = cur->getPRight();
-        while (nxt->getPLeft()){
-            nxt = nxt->getPLeft();
+    if (cur->getPRight()) {
+        cur = cur->getPRight();
+        while (cur->getPLeft()) {
+            cur = cur->getPLeft();
         }
-    } else{
-        nxt = cur;
-        while (nxt->getPParent() && nxt->getPParent()->getPRight() == nxt){
-            nxt = nxt->getPParent();
-        }
+        return cur;
     }
-    return nxt;
+
+    RBNode* parent = cur->getPParent();
+    while (parent && cur == parent->getPRight()) {
+        cur = parent;
+        parent = parent->getPParent();
+    }
+    return parent;
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+typename original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode*
+original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::getMinNode() const
+{
+    if (!root_) return nullptr;
+
+    RBNode* node = root_;
+    while (node->getPLeft()) {
+        node = node->getPLeft();
+    }
+    return node;
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+typename original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode*
+original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::getMaxNode() const
+{
+    if (!this->root_) {
+        return nullptr;
+    }
+
+    RBNode* cur = this->root_;
+    while (cur->getPRight()) {
+        cur = cur->getPRight();
+    }
+    return cur;
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+typename original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode*
+original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::replaceNode(RBNode* src, RBNode* tar)
+{
+    auto moved_src = new RBNode(std::move(*src));
+    moved_src->setColor(tar->getColor());
+    if (RBNode* tar_parent = tar->getPParent()) {
+        RBNode::connect(tar_parent, moved_src, tar_parent->getPLeft() == tar);
+    } else {
+        this->root_ = moved_src;
+    }
+    RBNode::connect(moved_src, tar->getPLeft(), true);
+    RBNode::connect(moved_src, tar->getPRight(), false);
+    this->destroyNode(tar);
+    return src;
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
@@ -500,6 +595,7 @@ void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::adjustInsert(RBNode *cur)
                 if (grand_parent == this->root_) {
                     rotated_root = this->rotateLeft(grand_parent);
                     this->root_ = rotated_root;
+                    RBNode::connect(nullptr, this->root_, true);
                 }else {
                     RBNode* grand_grand = grand_parent->getPParent();
                     bool is_left = grand_grand->getPLeft() == grand_parent;
@@ -517,6 +613,7 @@ void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::adjustInsert(RBNode *cur)
                 if (grand_parent == this->root_) {
                     rotated_root = this->rotateRight(grand_parent);
                     this->root_ = rotated_root;
+                    RBNode::connect(nullptr, this->root_, true);
                 }else {
                     RBNode* grand_grand = grand_parent->getPParent();
                     bool is_left = grand_grand->getPLeft() == grand_parent;
@@ -594,7 +691,19 @@ void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::adjustErase(RBNode *cur) 
                     break;
                 }
 
-
+                if ((!brother->getPLeft() && !brother->getPRight()) ||
+                     (brother->getPLeft()->getColor() == BLACK && brother->getPRight()->getColor() == BLACK))
+                {
+                    if (cur->getColor() == BLACK)
+                    {
+                        brother->setColor(BLACK);
+                        cur = cur->getPParent();
+                    } else
+                    {
+                        cur->setColor(BLACK);
+                        break;
+                    }
+                }
             }
         }else {
             brother = parent->getPLeft(); // L
@@ -642,6 +751,21 @@ void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::adjustErase(RBNode *cur) 
                     }
                     break;
                 }
+
+                if ((!brother->getPLeft() && !brother->getPRight()) ||
+                     (brother->getPLeft()->getColor() == BLACK && brother->getPRight()->getColor() == BLACK))
+                {
+                    if (cur->getColor() == BLACK)
+                    {
+                        brother->setColor(BLACK);
+                        cur = cur->getPParent();
+                    } else
+                    {
+                        cur->setColor(BLACK);
+                        break;
+                    }
+                }
+
             }
         }
     }
@@ -697,22 +821,24 @@ bool original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::modify(const K_TYPE &key,
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 bool original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::insert(const K_TYPE &key, const V_TYPE &value) {
-    auto& cur = this->root_;
+    auto** cur = &this->root_;
     RBNode* parent = nullptr;
-    while (cur) {
-        if (cur->getKey() == key) {
+    bool is_left = false;
+
+    while (*cur) {
+        if ((*cur)->getKey() == key) {
             return false;
         }
-        parent = cur;
-        cur = this->highPriority(key, cur) ? cur->getPLeft() : cur->getPRight();
+        parent = *cur;
+        is_left = this->highPriority(key, *cur);
+        cur = is_left ? &(*cur)->getPLeftRef() : &(*cur)->getPRightRef();
     }
-    RBNode* child;
-    if (!cur) {
-        cur = this->createNode(key, value, BLACK);
-        child = cur;
+
+    RBNode* child = this->createNode(key, value, parent ? RED : BLACK);
+    if (!parent) {
+        this->root_ = child;
     } else {
-        child = this->createNode(key, value, RED);
-        RBNode::connect(parent, child, this->highPriority(key, parent));
+        RBNode::connect(parent, child, is_left);
     }
 
     this->size_ += 1;
@@ -734,8 +860,7 @@ bool original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::erase(const K_TYPE &key) 
     if (cur->getPLeft() && cur->getPRight()) {
         RBNode* replace = this->getPrecursorNode(cur) ?
                           this->getPrecursorNode(cur) : this->getSuccessorNode(cur);
-        cur->swapData(*replace);
-        cur = replace;
+        cur = this->replaceNode(replace, cur);
     }
 
     RBNode* parent = cur->getPParent();
@@ -747,7 +872,8 @@ bool original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::erase(const K_TYPE &key) 
         } else {
             bool is_left = parent->getPLeft() == cur;
             RBNode::connect(parent, cur->getPLeft(), is_left);
-            parent->setColor(BLACK);
+            RBNode::connect(nullptr, cur, true);
+            cur->getPLeft()->setColor(BLACK);
         }
     } else if (!cur->getPLeft() && cur->getPRight()) {
         if (!parent) {
@@ -757,7 +883,8 @@ bool original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::erase(const K_TYPE &key) 
         } else {
             bool is_left = parent->getPLeft() == cur;
             RBNode::connect(parent, cur->getPRight(), is_left);
-            parent->setColor(BLACK);
+            RBNode::connect(nullptr, cur, true);
+            cur->getPRight()->setColor(BLACK);
         }
     } else {
         if (!parent) {
