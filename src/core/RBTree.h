@@ -8,7 +8,6 @@
 
 
 namespace original {
-    // todo
     template<typename K_TYPE,
              typename V_TYPE,
              typename ALLOC = allocator<K_TYPE>,
