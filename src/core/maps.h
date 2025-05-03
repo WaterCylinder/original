@@ -1021,7 +1021,7 @@ std::string original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::className() const
 }
 
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
-std::string original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::toString(bool enter) const {
+std::string original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::toString(const bool enter) const {
     std::stringstream ss;
     ss << this->className();
     ss << "(";
