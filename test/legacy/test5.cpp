@@ -142,5 +142,16 @@ int main(){
     std::cout << tm1 << std::endl;
     tm1.remove(2);
     std::cout << tm1 << std::endl;
+    auto ts1 = original::treeSet<int>();
+    for (int i = 0; i < 20; ++i)
+    {
+        ts1.add(i);
+    }
+    std::cout << ts1 << std::endl;
+    for (int i = 0; i < 20; ++i)
+    {
+        std::cout << ts1 << std::endl;
+        ts1.remove(i); // bug needs to fix
+    }
     return 0;
 }
