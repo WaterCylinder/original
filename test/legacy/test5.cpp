@@ -128,5 +128,19 @@ int main(){
     auto&& [elem1, elem2, elem3] = bind_tp;
     std::cout << elem1 << " " << original::printable::formatString(elem2) << " " << elem3 << std::endl;
     std::cout << original::printable::formatString(map1.update("", "123")) << std::endl;
+
+    auto tm1 = original::treeMap<int, int>();
+    std::cout << tm1 << std::endl;
+    tm1.add(1, 1);
+    tm1.add(2, 1);
+    tm1.add(3, 1);
+    tm1.add(4, 2);
+    std::cout << tm1 << std::endl;
+    std::cout << original::printable::formatString(tm1.containsKey(3)) << std::endl; // expected true
+    std::cout << original::printable::formatString(tm1.containsKey(5)) << std::endl; // expected false
+    tm1.remove(3);
+    std::cout << tm1 << std::endl;
+    tm1.remove(2);
+    std::cout << tm1 << std::endl;
     return 0;
 }
