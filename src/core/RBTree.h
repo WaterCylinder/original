@@ -132,6 +132,8 @@ namespace original {
         RBNode* createNode(const K_TYPE& key = K_TYPE{}, const V_TYPE& value = V_TYPE{},
                            color color = RED, RBNode* parent = nullptr, RBNode* left = nullptr, RBNode* right = nullptr) const;
 
+        RBNode* createNode(RBNode&& other_node) const;
+
         void destroyNode(RBNode* node) noexcept;
 
         bool highPriority(RBNode* cur, RBNode* other) const;
@@ -504,7 +506,7 @@ template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 typename original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode*
 original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::replaceNode(RBNode* src, RBNode* tar)
 {
-    auto moved_src = new RBNode(std::move(*src));
+    auto moved_src = this->createNode(std::move(*src));
     moved_src->setColor(tar->getColor());
     if (RBNode* tar_parent = tar->getPParent()) {
         RBNode::connect(tar_parent, moved_src, tar_parent->getPLeft() == tar);
@@ -524,6 +526,15 @@ original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::createNode(const K_TYPE &key, 
                                                              RBNode* left, RBNode* right) const {
     auto node = this->rebind_alloc.allocate(1);
     this->rebind_alloc.construct(node, key, value, color, parent, left, right);
+    return node;
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+typename original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode*
+original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::createNode(RBNode&& other_node) const
+{
+    auto node = this->rebind_alloc.allocate(1);
+    this->rebind_alloc.construct(node, std::move(other_node));
     return node;
 }
 
