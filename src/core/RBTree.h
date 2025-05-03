@@ -74,6 +74,40 @@ namespace original {
         Compare compare_;
         mutable rebind_alloc_node rebind_alloc{};
 
+        class Iterator
+        {
+        protected:
+            mutable RBTree* tree_;
+            mutable RBNode* cur_;
+
+            explicit Iterator(RBTree* tree = nullptr, RBNode* cur = nullptr);
+
+            Iterator(const Iterator& other);
+
+            Iterator& operator=(const Iterator& other);
+
+        public:
+            [[nodiscard]] bool hasNext() const;
+
+            [[nodiscard]] bool hasPrev() const;
+
+            void next() const;
+
+            void prev() const;
+
+            void operator+=(integer steps) const;
+
+            void operator-=(integer steps) const;
+
+            couple<const K_TYPE, V_TYPE>& get();
+
+            couple<const K_TYPE, V_TYPE> get() const;
+
+            [[nodiscard]] bool isValid() const;
+        };
+
+        friend Iterator;
+
         RBNode* treeCopy() const;
 
         RBNode* getPrecursorNode(RBNode* cur) const;
@@ -222,6 +256,94 @@ void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode::connect(RBNode* p
         child->parent_ = parent;
     }
 }
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::Iterator(RBTree* tree, RBNode* cur)
+    : tree_(tree), cur_(cur) {}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::Iterator(const Iterator& other) : Iterator() {
+    this->operator=(other);
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+typename original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator&
+original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::operator=(const Iterator& other)
+{
+    if (this == &other)
+        return *this;
+
+    this->tree_ = other.tree_;
+    this->cur_ = other.cur_;
+    return *this;
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+bool original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::hasNext() const
+{
+    return this->cur_ && this->tree_->getSuccessorNode(this->cur_);
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+bool original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::hasPrev() const
+{
+    return this->cur_ && this->tree_->getPrecursorNode(this->cur_);
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::next() const
+{
+    this->cur_ = this->tree_->getSuccessorNode(this->cur_);
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::prev() const
+{
+    this->cur_ = this->tree_->getPrecursorNode(this->cur_);
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::operator+=(const integer steps) const
+{
+    for (integer i = 0; i < steps; ++i) {
+        this->next();
+    }
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::operator-=(integer steps) const
+{
+    for (integer i = 0; i < steps; ++i) {
+        this->prev();
+    }
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+original::couple<const K_TYPE, V_TYPE>& original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::get()
+{
+    if (!this->isValid()) {
+        throw outOfBoundError();
+    }
+
+    return this->cur_->getVal();
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+original::couple<const K_TYPE, V_TYPE> original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::get() const
+{
+    if (!this->isValid()) {
+        throw outOfBoundError();
+    }
+
+    return this->cur_->getVal();
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+bool original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::isValid() const
+{
+    return this->cur_;
+}
+
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 typename original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::RBNode*
