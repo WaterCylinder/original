@@ -315,7 +315,6 @@ namespace original {
         ~hashSet() override;
     };
 
-    // todo
     template <typename TYPE,
               typename Compare = increaseComparator<TYPE>,
               typename ALLOC = allocator<couple<const TYPE, const bool>>>
@@ -323,7 +322,60 @@ namespace original {
                           public set<TYPE, ALLOC>,
                           public iterable<const TYPE>,
                           public printable {
+        using RBTree = RBTree<TYPE, const bool, ALLOC, Compare>;
+
+        using RBNode = typename RBTree::RBNode;
     public:
+        class Iterator final : public RBTree::Iterator,
+                               public baseIterator<const TYPE>
+        {
+            explicit Iterator(RBTree* tree, RBNode* cur);
+
+            bool equalPtr(const iterator<const TYPE>* other) const override;
+        public:
+            friend class treeSet;
+
+            Iterator(const Iterator& other);
+
+            Iterator& operator=(const Iterator& other);
+
+            Iterator* clone() const override;
+
+            [[nodiscard]] std::string className() const override;
+
+            void operator+=(integer steps) const override;
+
+            void operator-=(integer steps) const override;
+
+            integer operator-(const iterator<const TYPE> &other) const override;
+
+            [[nodiscard]] bool hasNext() const override;
+
+            [[nodiscard]] bool hasPrev() const override;
+
+            bool atPrev(const iterator<const TYPE>* other) const override;
+
+            bool atNext(const iterator<const TYPE>* other) const override;
+
+            void next() const override;
+
+            void prev() const override;
+
+            Iterator* getPrev() const override;
+
+            const TYPE& get() override;
+
+            const TYPE get() const override;
+
+            void set(const TYPE& data) override;
+
+            [[nodiscard]] bool isValid() const override;
+
+            ~Iterator() override = default;
+        };
+
+        friend class Iterator;
+
         explicit treeSet(Compare comp = Compare{}, ALLOC alloc = ALLOC{});
 
         treeSet(const treeSet& other);
@@ -342,9 +394,9 @@ namespace original {
 
         bool remove(const TYPE &e) override;
 
-//        Iterator* begins() const override;
+        Iterator* begins() const override;
 
-//        Iterator* ends() const override;
+        Iterator* ends() const override;
 
         [[nodiscard]] std::string className() const override;
 
@@ -574,7 +626,7 @@ std::string original::hashSet<TYPE, HASH, ALLOC>::className() const {
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
-std::string original::hashSet<TYPE, HASH, ALLOC>::toString(bool enter) const {
+std::string original::hashSet<TYPE, HASH, ALLOC>::toString(const bool enter) const {
     std::stringstream ss;
     ss << this->className();
     ss << "(";
@@ -595,9 +647,153 @@ std::string original::hashSet<TYPE, HASH, ALLOC>::toString(bool enter) const {
 template<typename TYPE, typename HASH, typename ALLOC>
 original::hashSet<TYPE, HASH, ALLOC>::~hashSet() = default;
 
+template <typename TYPE, typename Compare, typename ALLOC>
+original::treeSet<TYPE, Compare, ALLOC>::Iterator::Iterator(RBTree* tree, RBNode* cur)
+    : RBTree::Iterator(tree, cur)  {}
+
+template <typename TYPE, typename Compare, typename ALLOC>
+bool original::treeSet<TYPE, Compare, ALLOC>::Iterator::equalPtr(const iterator<const TYPE>* other) const
+{
+    auto other_it = dynamic_cast<const Iterator*>(other);
+    return other_it &&
+           this->tree_ == other_it->tree_ &&
+           this->cur_ == other_it->cur_;
+}
+
+template <typename TYPE, typename Compare, typename ALLOC>
+original::treeSet<TYPE, Compare, ALLOC>::Iterator::Iterator(const Iterator& other)
+    : Iterator(nullptr, nullptr)
+{
+    this->operator=(other);
+}
+
+template <typename TYPE, typename Compare, typename ALLOC>
+typename original::treeSet<TYPE, Compare, ALLOC>::Iterator&
+original::treeSet<TYPE, Compare, ALLOC>::Iterator::operator=(const Iterator& other)
+{
+    if (this == &other) {
+        return *this;
+    }
+
+    this->tree_ = other.tree_;
+    this->cur_ = other.cur_;
+    return *this;
+}
+
+template <typename TYPE, typename Compare, typename ALLOC>
+typename original::treeSet<TYPE, Compare, ALLOC>::Iterator*
+original::treeSet<TYPE, Compare, ALLOC>::Iterator::clone() const
+{
+    return new Iterator(*this);
+}
+
+template <typename TYPE, typename Compare, typename ALLOC>
+std::string original::treeSet<TYPE, Compare, ALLOC>::Iterator::className() const
+{
+    return "treeSet::Iterator";
+}
+
+template <typename TYPE, typename Compare, typename ALLOC>
+void original::treeSet<TYPE, Compare, ALLOC>::Iterator::operator+=(integer steps) const
+{
+    RBTree::Iterator::operator+=(steps);
+}
+
+template <typename TYPE, typename Compare, typename ALLOC>
+void original::treeSet<TYPE, Compare, ALLOC>::Iterator::operator-=(integer steps) const
+{
+    RBTree::Iterator::operator-=(steps);
+}
+
+template <typename TYPE, typename Compare, typename ALLOC>
+original::integer
+original::treeSet<TYPE, Compare, ALLOC>::Iterator::operator-(const iterator<const TYPE>& other) const
+{
+    throw unSupportedMethodError();
+}
+
+template <typename TYPE, typename Compare, typename ALLOC>
+bool original::treeSet<TYPE, Compare, ALLOC>::Iterator::hasNext() const
+{
+    return RBTree::Iterator::hasNext();
+}
+
+template <typename TYPE, typename Compare, typename ALLOC>
+bool original::treeSet<TYPE, Compare, ALLOC>::Iterator::hasPrev() const
+{
+    return RBTree::Iterator::hasPrev();
+}
+
+template <typename TYPE, typename Compare, typename ALLOC>
+bool original::treeSet<TYPE, Compare, ALLOC>::Iterator::atPrev(const iterator<const TYPE>* other) const
+{
+    auto other_it = dynamic_cast<const Iterator*>(other);
+    if (!other_it) {
+        return false;
+    }
+    auto next = ownerPtr(this->clone());
+    if (!next->isValid()){
+        return false;
+    }
+
+    next->next();
+    return next->equalPtr(other_it);
+}
+
+template <typename TYPE, typename Compare, typename ALLOC>
+bool original::treeSet<TYPE, Compare, ALLOC>::Iterator::atNext(const iterator<const TYPE>* other) const
+{
+    return other->atNext(*this);
+}
+
+template <typename TYPE, typename Compare, typename ALLOC>
+void original::treeSet<TYPE, Compare, ALLOC>::Iterator::next() const
+{
+    RBTree::Iterator::next();
+}
+
+template <typename TYPE, typename Compare, typename ALLOC>
+void original::treeSet<TYPE, Compare, ALLOC>::Iterator::prev() const
+{
+    RBTree::Iterator::prev();
+}
+
+template <typename TYPE, typename Compare, typename ALLOC>
+typename original::treeSet<TYPE, Compare, ALLOC>::Iterator*
+original::treeSet<TYPE, Compare, ALLOC>::Iterator::getPrev() const
+{
+    auto it = this->clone();
+    it->prev();
+    return it;
+}
+
+template <typename TYPE, typename Compare, typename ALLOC>
+const TYPE& original::treeSet<TYPE, Compare, ALLOC>::Iterator::get()
+{
+    return RBTree::Iterator::get().template get<0>();
+}
+
+template <typename TYPE, typename Compare, typename ALLOC>
+const TYPE original::treeSet<TYPE, Compare, ALLOC>::Iterator::get() const
+{
+    return RBTree::Iterator::get().template get<0>();
+}
+
+template <typename TYPE, typename Compare, typename ALLOC>
+void original::treeSet<TYPE, Compare, ALLOC>::Iterator::set(const TYPE& data)
+{
+    throw unSupportedMethodError();
+}
+
+template <typename TYPE, typename Compare, typename ALLOC>
+bool original::treeSet<TYPE, Compare, ALLOC>::Iterator::isValid() const
+{
+    return RBTree::Iterator::isValid();
+}
+
 template<typename TYPE, typename Compare, typename ALLOC>
 original::treeSet<TYPE, Compare, ALLOC>::treeSet(Compare comp, ALLOC alloc)
-    : RBTree<TYPE, const bool, ALLOC, Compare>(std::move(comp)),
+    : RBTree(std::move(comp)),
       set<TYPE, ALLOC>(std::move(alloc)) {}
 
 template<typename TYPE, typename Compare, typename ALLOC>
@@ -665,14 +861,42 @@ bool original::treeSet<TYPE, Compare, ALLOC>::remove(const TYPE &e) {
     return this->erase(e);
 }
 
+template <typename TYPE, typename Compare, typename ALLOC>
+typename original::treeSet<TYPE, Compare, ALLOC>::Iterator*
+original::treeSet<TYPE, Compare, ALLOC>::begins() const
+{
+    return new Iterator(const_cast<treeSet*>(this), this->getMinNode());
+}
+
+template <typename TYPE, typename Compare, typename ALLOC>
+typename original::treeSet<TYPE, Compare, ALLOC>::Iterator*
+original::treeSet<TYPE, Compare, ALLOC>::ends() const
+{
+    return new Iterator(const_cast<treeSet*>(this), this->getMaxNode());
+}
+
 template<typename TYPE, typename Compare, typename ALLOC>
 std::string original::treeSet<TYPE, Compare, ALLOC>::className() const {
     return "treeSet";
 }
 
 template<typename TYPE, typename Compare, typename ALLOC>
-std::string original::treeSet<TYPE, Compare, ALLOC>::toString(bool enter) const {
-    return std::string();
+std::string original::treeSet<TYPE, Compare, ALLOC>::toString(const bool enter) const {
+    std::stringstream ss;
+    ss << this->className();
+    ss << "(";
+    bool first = true;
+    for (auto it = this->begin(); it != this->end(); it.next()){
+        if (!first){
+            ss << ", ";
+        }
+        ss << printable::formatString(it.get());
+        first = false;
+    }
+    ss << ")";
+    if (enter)
+        ss << "\n";
+    return ss.str();
 }
 
 template<typename TYPE, typename Compare, typename ALLOC>
