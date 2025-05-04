@@ -132,7 +132,7 @@ struct Node {
     original::weakPtr<Node> prev;    // 弱引用，用于打破循环
     int value;
 
-    explicit Node(const int val = 0) : next(static_cast<Node *>(nullptr)), value(val) {
+    explicit Node(const int val = 0) : value(val) {
     }
 };
 
