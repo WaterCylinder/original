@@ -123,7 +123,7 @@ array("Hello, original!")
 
 ##### 容器：
 
-定长容器：定长数组 array，位集合 bitSet，变长容器：变长数组 vector，单向链表 forwardChain，双向链表 chain，块状链表 blocksList，关联容器：映射表 hashMap，集合 hashSet
+定长容器：定长数组 array，位集合 bitSet，变长容器：变长数组 vector，单向链表 forwardChain，双向链表 chain，块状链表 blocksList，关联容器：映射表 hashMap/treeMap，集合 hashSet/treeSet
 
 ##### 容器接口：
 
