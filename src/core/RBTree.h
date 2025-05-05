@@ -6,160 +6,460 @@
 #include "couple.h"
 #include "queue.h"
 
+/**
+ * @file RBTree.h
+ * @brief Red-Black Tree implementation header
+ * @details Provides a template-based Red-Black Tree implementation with:
+ * - Balanced tree operations
+ * - Iterator support
+ * - Memory management via allocators
+ * - Custom comparison support
+ */
+
 
 namespace original {
+
+    /**
+     * @class RBTree
+     * @tparam K_TYPE Key type (must be comparable)
+     * @tparam V_TYPE Value type
+     * @tparam ALLOC Allocator type (default: allocator<K_TYPE>)
+     * @tparam Compare Comparison function type (default: increaseComparator<K_TYPE>)
+     * @brief Red-Black Tree container implementation
+     * @details This class provides a balanced binary search tree implementation
+     * with the following properties:
+     * - O(log n) search/insert/delete operations
+     * - Self-balancing through color properties
+     * - Custom comparator support
+     * - STL-style allocator support
+     */
     template<typename K_TYPE,
              typename V_TYPE,
              typename ALLOC = allocator<K_TYPE>,
              typename Compare = increaseComparator<K_TYPE>>
     class RBTree {
     protected:
+
+        /**
+         * @class RBNode
+         * @brief Internal node class for Red-Black Tree
+         * @details Represents a single node in the tree with:
+         * - Key-value pair storage
+         * - Color property (RED/BLACK)
+         * - Parent/child pointers
+         */
         class RBNode {
         public:
+
+            /// Node color enumeration
             enum class color { BLACK, RED };
 
         private:
-            couple<const K_TYPE, V_TYPE> data_;
-            color color_;
-            RBNode* parent_;
-            RBNode* left_;
-            RBNode* right_;
+            couple<const K_TYPE, V_TYPE> data_;  ///< Key-value pair storage
+            color color_;                        ///< Node color
+            RBNode* parent_;                     ///< Parent node pointer
+            RBNode* left_;                       ///< Left child pointer
+            RBNode* right_;                      ///< Right child pointer
         public:
+
+            /**
+             * @brief Constructs a new RBNode
+             * @param key Key to store
+             * @param value Value to store
+             * @param color Initial color (default: RED)
+             * @param parent Parent node (default: nullptr)
+             * @param left Left child (default: nullptr)
+             * @param right Right child (default: nullptr)
+             */
             explicit RBNode(const K_TYPE& key = K_TYPE{}, const V_TYPE& value = V_TYPE{},
                             color color = color::RED, RBNode* parent = nullptr, RBNode* left = nullptr, RBNode* right = nullptr);
 
+            /// Copy constructor
             RBNode(const RBNode& other);
 
+            /// Copy assignment operator
             RBNode& operator=(const RBNode& other);
 
+            /// Move constructor
             RBNode(RBNode&& other) noexcept;
 
+            /**
+             * @brief Swaps data with another node
+             * @param other Node to swap with
+             */
             void swapData(RBNode& other) noexcept;
 
+            /**
+             * @brief Swaps color with another node
+             * @param other Node to swap with
+             */
             void swapColor(RBNode& other) noexcept;
 
+            /**
+             * @brief Gets key-value pair (non-const)
+             * @return Reference to key-value pair
+             */
             couple<const K_TYPE, V_TYPE>& getVal();
 
+            /**
+             * @brief Gets key-value pair (const)
+             * @return Const reference to key-value pair
+             */
             const couple<const K_TYPE, V_TYPE>& getVal() const;
 
+            /**
+             * @brief Gets key
+             * @return Const reference to key
+             */
             const K_TYPE& getKey() const;
 
+            /**
+             * @brief Gets value (const)
+             * @return Const reference to value
+             */
             const V_TYPE& getValue() const;
 
+            /**
+             * @brief Gets value (non-const)
+             * @return Reference to value
+             */
             V_TYPE& getValue();
 
+            /**
+             * @brief Sets new value
+             * @param value New value to set
+             */
             void setValue(const V_TYPE& value);
 
+            /**
+             * @brief Gets node color
+             * @return Current color
+             */
             color getColor() const;
 
+            /**
+             * @brief Gets parent node
+             * @return Pointer to parent node
+             */
             RBNode* getPParent() const;
 
+            /**
+             * @brief Gets left child
+             * @return Pointer to left child
+             */
             RBNode* getPLeft() const;
 
+            /**
+             * @brief Gets right child
+             * @return Pointer to right child
+             */
             RBNode* getPRight() const;
 
+            /**
+             * @brief Gets left child reference
+             * @return Reference to left child pointer
+             */
             RBNode*& getPLeftRef();
 
+            /**
+             * @brief Gets right child reference
+             * @return Reference to right child pointer
+             */
             RBNode*& getPRightRef();
 
+            /**
+             * @brief Sets node color
+             * @param new_color New color to set
+             */
             void setColor(color new_color);
 
+            /**
+             * @brief Sets parent node
+             * @param new_parent New parent to set
+             */
             void setPParent(RBNode* new_parent);
 
+            /**
+             * @brief Sets left child
+             * @param new_left New left child to set
+             */
             void setPLeft(RBNode* new_left);
 
+            /**
+             * @brief Sets right child
+             * @param new_right New right child to set
+             */
             void setPRight(RBNode* new_right);
 
+            /**
+             * @brief Connects parent and child nodes
+             * @param parent Parent node
+             * @param child Child node
+             * @param is_left Whether child is left child
+             */
             static void connect(RBNode* parent, RBNode* child, bool is_left);
         };
 
-        using color = typename RBNode::color;
-        static constexpr color BLACK = color::BLACK;
-        static constexpr color RED = color::RED;
-        using rebind_alloc_node = typename ALLOC::template rebind_alloc<RBNode>;
+        using color = typename RBNode::color;                                       ///< Color type alias
+        static constexpr color BLACK = color::BLACK;                                ///< Black color constant
+        static constexpr color RED = color::RED;                                    ///< Red color constant
+        using rebind_alloc_node = typename ALLOC::template rebind_alloc<RBNode>;    ///< Rebound allocator type
 
-        RBNode* root_;
-        u_integer size_;
-        Compare compare_;
-        mutable rebind_alloc_node rebind_alloc{};
+        RBNode* root_;                              ///< Root node pointer
+        u_integer size_;                            ///< Number of elements
+        Compare compare_;                           ///< Comparison function
+        mutable rebind_alloc_node rebind_alloc{};   ///< Node allocator
 
+        /**
+         * @class Iterator
+         * @brief Bidirectional iterator for RBTree
+         * @details Provides iteration over tree elements in sorted order
+         */
         class Iterator
         {
         protected:
-            mutable RBTree* tree_;
-            mutable RBNode* cur_;
+            mutable RBTree* tree_;  ///< Owning tree
+            mutable RBNode* cur_;   ///< Current node
 
+            /**
+             * @brief Constructs iterator
+             * @param tree Owning tree
+             * @param cur Current node
+             */
             explicit Iterator(RBTree* tree = nullptr, RBNode* cur = nullptr);
 
+            /// Copy constructor
             Iterator(const Iterator& other);
 
+            /// Copy assignment operator
             Iterator& operator=(const Iterator& other);
 
         public:
+            /**
+             * @brief Checks if more elements exist forward
+             * @return true if more elements available
+             */
             [[nodiscard]] bool hasNext() const;
 
+            /**
+             * @brief Checks if more elements exist backward
+             * @return true if more elements available
+             */
             [[nodiscard]] bool hasPrev() const;
 
+            /**
+             * @brief Moves to next element
+             */
             void next() const;
 
+            /**
+             * @brief Moves to previous element
+             */
             void prev() const;
 
+            /**
+             * @brief Advances iterator by steps
+             * @param steps Number of positions to advance
+             */
             void operator+=(integer steps) const;
 
+            /**
+             * @brief Moves iterator backward by steps
+             * @param steps Number of positions to move back
+             */
             void operator-=(integer steps) const;
 
+            /**
+             * @brief Gets current element (non-const)
+             * @return Reference to current key-value pair
+             */
             couple<const K_TYPE, V_TYPE>& get();
 
+            /**
+             * @brief Gets current element (const)
+             * @return Copy of current key-value pair
+             */
             couple<const K_TYPE, V_TYPE> get() const;
 
+            /**
+             * @brief Checks if iterator is valid
+             * @return true if iterator points to valid element
+             */
             [[nodiscard]] bool isValid() const;
         };
 
         friend Iterator;
 
+        /**
+          * @brief Creates a deep copy of the tree
+          * @return Pointer to root of copied tree
+          */
         RBNode* treeCopy() const;
 
+        /**
+         * @brief Gets precursor node (in-order predecessor)
+         * @param cur Current node
+         * @return Pointer to precursor node
+         */
         RBNode* getPrecursorNode(RBNode* cur) const;
 
+        /**
+         * @brief Gets successor node (in-order successor)
+         * @param cur Current node
+         * @return Pointer to successor node
+         */
         RBNode* getSuccessorNode(RBNode* cur) const;
 
+        /**
+         * @brief Gets the minimum node in the tree
+         * @return Pointer to the node with minimum key
+         * @details Traverses left children until reaching the leftmost node
+         */
         RBNode* getMinNode() const;
 
+        /**
+         * @brief Gets the maximum node in the tree
+         * @return Pointer to the node with maximum key
+         * @details Traverses right children until reaching the rightmost node
+         */
         RBNode* getMaxNode() const;
 
+        /**
+         * @brief Replaces one node with another while maintaining tree structure
+         * @param src Source node to replace with
+         * @param tar Target node to be replaced
+         * @return Pointer to the original source node
+         * @details Preserves all connections and colors during replacement
+         */
         RBNode* replaceNode(RBNode* src, RBNode* tar);
 
+        /**
+         * @brief Creates a new node with given parameters
+         * @param key Key for new node
+         * @param value Value for new node
+         * @param color Initial color (default: RED)
+         * @param parent Parent node pointer (default: nullptr)
+         * @param left Left child pointer (default: nullptr)
+         * @param right Right child pointer (default: nullptr)
+         * @return Pointer to newly created node
+         * @details Uses allocator to construct node in place
+         */
         RBNode* createNode(const K_TYPE& key = K_TYPE{}, const V_TYPE& value = V_TYPE{},
-                           color color = RED, RBNode* parent = nullptr, RBNode* left = nullptr, RBNode* right = nullptr) const;
+                           color color = RED, RBNode* parent = nullptr,
+                           RBNode* left = nullptr, RBNode* right = nullptr) const;
 
+        /**
+         * @brief Creates a new node by moving from another node
+         * @param other_node Node to move from
+         * @return Pointer to newly created node
+         * @details Performs move construction of node
+         */
         RBNode* createNode(RBNode&& other_node) const;
 
+        /**
+         * @brief Destroys a node and deallocates memory
+         * @param node Node to destroy
+         * @details Uses allocator to destroy and deallocate node
+         */
         void destroyNode(RBNode* node) noexcept;
 
+        /**
+         * @brief Compares priority between two nodes
+         * @param cur First node to compare
+         * @param other Second node to compare
+         * @return true if cur has higher priority than other
+         * @details Uses the tree's comparison function
+         */
         bool highPriority(RBNode* cur, RBNode* other) const;
 
+        /**
+         * @brief Compares priority between a key and a node
+         * @param key Key to compare
+         * @param other Node to compare
+         * @return true if key has higher priority than node's key
+         * @details Uses the tree's comparison function
+         */
         bool highPriority(const K_TYPE& key, RBNode* other) const;
 
+        /**
+         * @brief Performs left rotation around a node
+         * @param cur Node to rotate around
+         * @return New root node after rotation
+         * @details Maintains tree properties during rotation
+         */
         RBNode* rotateLeft(RBNode* cur);
 
+        /**
+         * @brief Performs right rotation around a node
+         * @param cur Node to rotate around
+         * @return New root node after rotation
+         * @details Maintains tree properties during rotation
+         */
         RBNode* rotateRight(RBNode* cur);
 
+        /**
+         * @brief Adjusts tree after insertion to maintain RB properties
+         * @param cur Newly inserted node
+         * @details Handles color flips and rotations as needed
+         */
         void adjustInsert(RBNode* cur);
 
+        /**
+         * @brief Adjusts tree after deletion to maintain RB properties
+         * @param cur Node where deletion occurred
+         * @details Handles color flips and rotations as needed
+         */
         void adjustErase(RBNode* cur);
 
+        /**
+         * @brief Destroys entire tree and deallocates all nodes
+         * @details Uses breadth-first traversal to destroy all nodes
+         */
         void destroyTree() noexcept;
 
+        /**
+         * @brief Constructs RBTree with given comparison function
+         * @param compare Comparison function to use
+         */
         explicit RBTree(Compare compare = Compare{});
 
+        /**
+         * @brief Finds node with given key
+         * @param key Key to search for
+         * @return Pointer to found node, or nullptr if not found
+         * @details Uses binary search tree traversal
+         */
         RBNode* find(const K_TYPE& key) const;
 
+        /**
+         * @brief Modifies value for existing key
+         * @param key Key to modify
+         * @param value New value to set
+         * @return true if key was found and modified
+         */
         bool modify(const K_TYPE& key, const V_TYPE& value);
 
+        /**
+         * @brief Inserts new key-value pair
+         * @param key Key to insert
+         * @param value Value to insert
+         * @return true if inserted, false if key already existed
+         * @details Automatically balances tree after insertion
+         */
         bool insert(const K_TYPE& key, const V_TYPE& value);
 
+        /**
+         * @brief Erases node with given key
+         * @param key Key to erase
+         * @return true if key was found and erased
+         * @details Automatically balances tree after deletion
+         */
         bool erase(const K_TYPE& key);
 
+        /**
+         * @brief Destructor
+         * @details Cleans up all tree nodes and allocated memory
+         */
         ~RBTree();
     };
 

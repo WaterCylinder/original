@@ -146,12 +146,14 @@ namespace original {
                 void operator+=(integer steps) const override;
 
                 /**
-                 * @brief Not supported (throws unSupportedMethodError)
+                 * @brief Not supported
+                 * @throw unSupportedMethodError
                  */
                 void operator-=(integer steps) const override;
 
                 /**
-                 * @brief Not supported (throws unSupportedMethodError)
+                 * @brief Not supported
+                 * @throw unSupportedMethodError
                  */
                 integer operator-(const iterator<couple<const K_TYPE, V_TYPE>> &other) const override;
 
@@ -162,7 +164,8 @@ namespace original {
                 [[nodiscard]] bool hasNext() const override;
 
                 /**
-                 * @brief Not supported (throws unSupportedMethodError)
+                 * @brief Not supported
+                 * @throw unSupportedMethodError
                  */
                 [[nodiscard]] bool hasPrev() const override;
 
@@ -186,12 +189,14 @@ namespace original {
                 void next() const override;
 
                 /**
-                 * @brief Not supported (throws unSupportedMethodError)
+                 * @brief Not supported
+                 * @throw unSupportedMethodError
                  */
                 void prev() const override;
 
                 /**
-                 * @brief Not supported (throws unSupportedMethodError)
+                 * @brief Not supported
+                 * @throw unSupportedMethodError
                  */
                 Iterator* getPrev() const override;
 
@@ -208,7 +213,8 @@ namespace original {
                 couple<const K_TYPE, V_TYPE> get() const override;
 
                 /**
-                 * @brief Not supported (throws unSupportedMethodError)
+                 * @brief Not supported
+                 * @throw unSupportedMethodError
                  */
                 void set(const couple<const K_TYPE, V_TYPE> &data) override;
 
@@ -358,6 +364,32 @@ namespace original {
             ~hashMap() override;
     };
 
+    /**
+     * @class treeMap
+     * @tparam K_TYPE Key type (must be comparable)
+     * @tparam V_TYPE Value type
+     * @tparam Compare Comparison function type (default: increaseComparator<K_TYPE>)
+     * @tparam ALLOC Allocator type (default: allocator)
+     * @brief Red-Black Tree based implementation of the map interface
+     * @details This class provides a concrete implementation of the map interface
+     * using a Red-Black Tree. It combines the functionality of:
+     * - map (interface)
+     * - RBTree (storage)
+     * - iterable (iteration support)
+     *
+     * Performance Characteristics:
+     * - Insertion: O(log n)
+     * - Lookup: O(log n)
+     * - Deletion: O(log n)
+     * - Traversal: O(n)
+     *
+     * The implementation guarantees:
+     * - Elements sorted by key according to comparator
+     * - Unique keys (no duplicates)
+     * - Type safety
+     * - Exception safety (basic guarantee)
+     * - Iterator validity unless modified
+     */
     template <typename K_TYPE,
               typename V_TYPE,
               typename Compare = increaseComparator<K_TYPE>,
@@ -366,96 +398,304 @@ namespace original {
                           public map<K_TYPE, V_TYPE, ALLOC>,
                           public iterable<couple<const K_TYPE, V_TYPE>>,
                           public printable {
+
+        /**
+         * @typedef RBTree
+         * @brief Alias for the underlying red-black tree implementation.
+         */
         using RBTree = RBTree<K_TYPE, V_TYPE, ALLOC, Compare>;
 
+        /**
+         * @typedef RBNode
+         * @brief Internal node type used for Red-Black Tree storage
+         */
         using RBNode = typename RBTree::RBNode;
     public:
+
+        /**
+         * @class Iterator
+         * @brief Bidirectional iterator for treeMap
+         * @details Provides iteration over treeMap elements while maintaining:
+         * - Sorted traversal order (according to comparator)
+         * - Safe invalidation detection
+         * - Const-correct access
+         *
+         * Iterator Characteristics:
+         * - Both forward and backward iteration
+         * - Invalidates on tree modification
+         * - Lightweight copy semantics
+         */
         class Iterator final : public RBTree::Iterator,
-                               public baseIterator<couple<const K_TYPE, V_TYPE>>
-        {
-            explicit Iterator(RBTree* tree, RBNode* cur);
+                               public baseIterator<couple<const K_TYPE, V_TYPE>> {
+       /**
+         * @brief Constructs iterator pointing to specific tree node
+         * @param tree Pointer to owning tree
+         * @param cur Current node pointer
+         * @note Internal constructor, not meant for direct use
+         */
+        explicit Iterator(RBTree* tree, RBNode* cur);
 
-            bool equalPtr(const iterator<couple<const K_TYPE, V_TYPE>>* other) const override;
-        public:
-                friend class treeMap;
+        /**
+         * @brief Compares iterator pointers for equality
+         * @param other Iterator to compare with
+         * @return true if iterators point to same element
+         * @internal
+         */
+        bool equalPtr(const iterator<couple<const K_TYPE, V_TYPE>>* other) const override;
+    public:
+        friend class treeMap;
 
-                Iterator(const Iterator& other);
+        /**
+         * @brief Copy constructor
+         * @param other Iterator to copy
+         */
+        Iterator(const Iterator& other);
 
-                Iterator& operator=(const Iterator& other);
+        /**
+         * @brief Copy assignment operator
+         * @param other Iterator to copy
+         * @return Reference to this iterator
+         */
+        Iterator& operator=(const Iterator& other);
 
-                Iterator* clone() const override;
+        /**
+         * @brief Creates a copy of this iterator
+         * @return New iterator instance
+         */
+        Iterator* clone() const override;
 
-                [[nodiscard]] std::string className() const override;
+        /**
+         * @brief Gets iterator class name
+         * @return "treeMap::Iterator"
+         */
+        [[nodiscard]] std::string className() const override;
 
-                void operator+=(integer steps) const override;
+        /**
+         * @brief Advances iterator by steps
+         * @param steps Number of positions to advance
+         */
+        void operator+=(integer steps) const override;
 
-                void operator-=(integer steps) const override;
+        /**
+         * @brief Rewinds iterator by steps
+         * @param steps Number of positions to rewind
+         */
+        void operator-=(integer steps) const override;
 
-                integer operator-(const iterator<couple<const K_TYPE, V_TYPE>> &other) const override;
+        /**
+         * @brief Not supported (throws unSupportedMethodError)
+         */
+        integer operator-(const iterator<couple<const K_TYPE, V_TYPE>> &other) const override;
 
-                [[nodiscard]] bool hasNext() const override;
+        /**
+         * @brief Checks if more elements exist in forward direction
+         * @return true if more elements available
+         */
+        [[nodiscard]] bool hasNext() const override;
 
-                [[nodiscard]] bool hasPrev() const override;
+        /**
+         * @brief Checks if more elements exist in backward direction
+         * @return true if more elements available
+         */
+        [[nodiscard]] bool hasPrev() const override;
 
-                bool atPrev(const iterator<couple<const K_TYPE, V_TYPE>>* other) const override;
+        /**
+         * @brief Checks if other is previous to this
+         * @param other Iterator to check
+         * @return true if other is previous
+         */
+        bool atPrev(const iterator<couple<const K_TYPE, V_TYPE>>* other) const override;
 
-                bool atNext(const iterator<couple<const K_TYPE, V_TYPE>>* other) const override;
+        /**
+         * @brief Checks if other is next to this
+         * @param other Iterator to check
+         * @return true if other is next
+         */
+        bool atNext(const iterator<couple<const K_TYPE, V_TYPE>>* other) const override;
 
-                void next() const override;
+        /**
+         * @brief Moves to next element
+         */
+        void next() const override;
 
-                void prev() const override;
+        /**
+         * @brief Moves to previous element
+         */
+        void prev() const override;
 
-                Iterator* getPrev() const override;
+        /**
+         * @brief Gets previous iterator
+         * @return New iterator at previous position
+         */
+        Iterator* getPrev() const override;
 
-                couple<const K_TYPE, V_TYPE>& get() override;
+        /**
+         * @brief Gets current element (non-const)
+         * @return Reference to current key-value pair
+         */
+        couple<const K_TYPE, V_TYPE> &get() override;
 
-                couple<const K_TYPE, V_TYPE> get() const override;
+        /**
+         * @brief Gets current element (const)
+         * @return Copy of current key-value pair
+         */
+        couple<const K_TYPE, V_TYPE> get() const override;
 
-                void set(const couple<const K_TYPE, V_TYPE> &data) override;
+        /**
+         * @brief Not supported
+         * @throw unSupportedMethodError
+         */
+        void set(const couple<const K_TYPE, V_TYPE> &data) override;
 
-                [[nodiscard]] bool isValid() const override;
+        /**
+         * @brief Checks if iterator is valid
+         * @return true if iterator points to valid element
+         */
+        [[nodiscard]] bool isValid() const override;
 
-                ~Iterator() override = default;
-        };
+        ~Iterator() override = default;
+    };
 
         friend class Iterator;
 
+       /**
+         * @brief Constructs empty treeMap
+         * @param comp Comparison function to use
+         * @param alloc Allocator to use
+         */
         explicit treeMap(Compare comp = Compare{}, ALLOC alloc = ALLOC{});
 
+        /**
+         * @brief Copy constructor
+         * @param other treeMap to copy
+         * @details Performs deep copy of all elements and tree structure
+         * @note Allocator is copied if propagate_on_container_copy_assignment is true
+         */
         treeMap(const treeMap& other);
 
+        /**
+         * @brief Copy assignment operator
+         * @param other treeMap to copy
+         * @return Reference to this treeMap
+         * @details Performs deep copy of all elements and tree structure
+         * @note Allocator is copied if propagate_on_container_copy_assignment is true
+         */
         treeMap& operator=(const treeMap& other);
 
+        /**
+         * @brief Move constructor
+         * @param other treeMap to move from
+         * @details Transfers ownership of resources from other
+         * @note Leaves other in valid but unspecified state
+         */
         treeMap(treeMap&& other) noexcept;
 
+        /**
+         * @brief Move assignment operator
+         * @param other treeMap to move from
+         * @return Reference to this treeMap
+         * @details Transfers ownership of resources from other
+         * @note Leaves other in valid but unspecified state
+         * @note Allocator is moved if propagate_on_container_move_assignment is true
+         */
         treeMap& operator=(treeMap&& other) noexcept;
 
+        /**
+         * @brief Gets number of elements
+         * @return Current size
+         */
         [[nodiscard]] u_integer size() const override;
 
+        /**
+         * @brief Checks if key-value pair exists
+         * @param e Pair to check
+         * @return true if both key exists and value matches
+         */
         bool contains(const couple<const K_TYPE, V_TYPE> &e) const override;
 
+        /**
+         * @brief Adds new key-value pair
+         * @param k Key to add
+         * @param v Value to associate
+         * @return true if added, false if key existed
+         */
         bool add(const K_TYPE &k, const V_TYPE &v) override;
 
+        /**
+         * @brief Removes key-value pair
+         * @param k Key to remove
+         * @return true if removed, false if key didn't exist
+         */
         bool remove(const K_TYPE &k) override;
 
+        /**
+         * @brief Checks if key exists
+         * @param k Key to check
+         * @return true if key exists
+         */
         [[nodiscard]] bool containsKey(const K_TYPE &k) const override;
 
+        /**
+         * @brief Gets value for key
+         * @param k Key to lookup
+         * @return Associated value
+         * @throw noElementError if key doesn't exist
+         */
         V_TYPE get(const K_TYPE &k) const override;
 
+        /**
+         * @brief Updates value for existing key
+         * @param key Key to update
+         * @param value New value
+         * @return true if updated, false if key didn't exist
+         */
         bool update(const K_TYPE &key, const V_TYPE &value) override;
 
+        /**
+         * @brief Const element access
+         * @param k Key to access
+         * @return const reference to value
+         * @throw noElementError if key doesn't exist
+         */
         const V_TYPE & operator[](const K_TYPE &k) const override;
 
+        /**
+         * @brief Non-const element access
+         * @param k Key to access
+         * @return reference to value
+         * @note Inserts default-constructed value if key doesn't exist
+         */
         V_TYPE & operator[](const K_TYPE &k) override;
 
+        /**
+         * @brief Gets begin iterator
+         * @return New iterator at first element (minimum key)
+         */
         Iterator* begins() const override;
 
+        /**
+         * @brief Gets end iterator
+         * @return New iterator at last element (maximum key)
+         */
         Iterator* ends() const override;
 
+        /**
+         * @brief Gets class name
+         * @return "treeMap"
+         */
         [[nodiscard]] std::string className() const override;
 
+        /**
+         * @brief Converts to string representation
+         * @param enter Add newline if true
+         * @return String representation of key-value pairs
+         */
         [[nodiscard]] std::string toString(bool enter) const override;
 
+        /**
+         * @brief Destructor
+         * @details Cleans up all tree nodes and allocated memory
+         */
         ~treeMap() override;
     };
 }

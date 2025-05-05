@@ -315,6 +315,31 @@ namespace original {
         ~hashSet() override;
     };
 
+    /**
+     * @class treeSet
+     * @tparam TYPE Element type (must be comparable)
+     * @tparam Compare Comparison function type (default: increaseComparator<TYPE>)
+     * @tparam ALLOC Allocator type (default: allocator<couple<const TYPE, const bool>>)
+     * @brief Red-Black Tree based implementation of the set interface
+     * @details This class provides a concrete implementation of the set interface
+     * using a Red-Black Tree. It combines the functionality of:
+     * - set (interface)
+     * - RBTree (storage with bool values)
+     * - iterable (iteration support)
+     *
+     * Performance Characteristics:
+     * - Insertion: O(log n)
+     * - Lookup: O(log n)
+     * - Deletion: O(log n)
+     * - Traversal: O(n)
+     *
+     * The implementation guarantees:
+     * - Elements sorted according to comparator
+     * - Unique elements (no duplicates)
+     * - Type safety
+     * - Exception safety (basic guarantee)
+     * - Iterator validity unless modified
+     */
     template <typename TYPE,
               typename Compare = increaseComparator<TYPE>,
               typename ALLOC = allocator<couple<const TYPE, const bool>>>
@@ -324,51 +349,152 @@ namespace original {
                           public printable {
         using RBTree = RBTree<TYPE, const bool, ALLOC, Compare>;
 
+        /**
+         * @typedef RBNode
+         * @brief Internal node type used for Red-Black Tree storage
+         */
         using RBNode = typename RBTree::RBNode;
     public:
+        /**
+         * @class Iterator
+         * @brief Bidirectional iterator for treeSet
+         * @details Provides iteration over treeSet elements while maintaining:
+         * - Sorted traversal order (according to comparator)
+         * - Safe invalidation detection
+         * - Const-correct access
+         *
+         * Iterator Characteristics:
+         * - Both forward and backward iteration
+         * - Invalidates on tree modification
+         * - Lightweight copy semantics
+         */
         class Iterator final : public RBTree::Iterator,
                                public baseIterator<const TYPE>
         {
+            /**
+             * @brief Constructs iterator pointing to specific tree node
+             * @param tree Pointer to owning tree
+             * @param cur Current node pointer
+             * @note Internal constructor, not meant for direct use
+             */
             explicit Iterator(RBTree* tree, RBNode* cur);
 
+            /**
+             * @brief Compares iterator pointers for equality
+             * @param other Iterator to compare with
+             * @return true if iterators point to same element
+             * @internal
+             */
             bool equalPtr(const iterator<const TYPE>* other) const override;
         public:
             friend class treeSet;
 
+            /**
+             * @brief Copy constructor
+             * @param other Iterator to copy
+             */
             Iterator(const Iterator& other);
 
+            /**
+             * @brief Copy assignment operator
+             * @param other Iterator to copy
+             * @return Reference to this iterator
+             */
             Iterator& operator=(const Iterator& other);
 
+            /**
+             * @brief Creates a copy of this iterator
+             * @return New iterator instance
+             */
             Iterator* clone() const override;
 
+            /**
+             * @brief Gets iterator class name
+             * @return "treeSet::Iterator"
+             */
             [[nodiscard]] std::string className() const override;
 
+            /**
+             * @brief Advances iterator by steps
+             * @param steps Number of positions to advance
+             */
             void operator+=(integer steps) const override;
 
+            /**
+             * @brief Rewinds iterator by steps
+             * @param steps Number of positions to rewind
+             */
             void operator-=(integer steps) const override;
 
+            /**
+             * @brief Not supported (throws unSupportedMethodError)
+             */
             integer operator-(const iterator<const TYPE> &other) const override;
 
+            /**
+             * @brief Checks if more elements exist in forward direction
+             * @return true if more elements available
+             */
             [[nodiscard]] bool hasNext() const override;
 
+            /**
+             * @brief Checks if more elements exist in backward direction
+             * @return true if more elements available
+             */
             [[nodiscard]] bool hasPrev() const override;
 
+            /**
+             * @brief Checks if other is previous to this
+             * @param other Iterator to check
+             * @return true if other is previous
+             */
             bool atPrev(const iterator<const TYPE>* other) const override;
 
+            /**
+             * @brief Checks if other is next to this
+             * @param other Iterator to check
+             * @return true if other is next
+             */
             bool atNext(const iterator<const TYPE>* other) const override;
 
+            /**
+             * @brief Moves to next element
+             */
             void next() const override;
 
+            /**
+             * @brief Moves to previous element
+             */
             void prev() const override;
 
+            /**
+             * @brief Gets previous iterator
+             * @return New iterator at previous position
+             */
             Iterator* getPrev() const override;
 
+            /**
+             * @brief Gets current element (non-const)
+             * @return Reference to current element
+             */
             const TYPE& get() override;
 
+            /**
+             * @brief Gets current element (const)
+             * @return Copy of current element
+             */
             const TYPE get() const override;
 
+            /**
+             * @brief Not supported
+             * @throw unSupportedMethodError
+             */
             void set(const TYPE& data) override;
 
+            /**
+             * @brief Checks if iterator is valid
+             * @return true if iterator points to valid element
+             */
             [[nodiscard]] bool isValid() const override;
 
             ~Iterator() override = default;
@@ -376,32 +502,104 @@ namespace original {
 
         friend class Iterator;
 
+        /**
+         * @brief Constructs empty treeSet
+         * @param comp Comparison function to use
+         * @param alloc Allocator to use
+         */
         explicit treeSet(Compare comp = Compare{}, ALLOC alloc = ALLOC{});
 
+        /**
+         * @brief Copy constructor
+         * @param other treeSet to copy
+         * @details Performs deep copy of all elements and tree structure
+         * @note Allocator is copied if propagate_on_container_copy_assignment is true
+         */
         treeSet(const treeSet& other);
 
+        /**
+         * @brief Copy assignment operator
+         * @param other treeSet to copy
+         * @return Reference to this treeSet
+         * @details Performs deep copy of all elements and tree structure
+         * @note Allocator is copied if propagate_on_container_copy_assignment is true
+         */
         treeSet& operator=(const treeSet& other);
 
+        /**
+         * @brief Move constructor
+         * @param other treeSet to move from
+         * @details Transfers ownership of resources from other
+         * @note Leaves other in valid but unspecified state
+         */
         treeSet(treeSet&& other) noexcept;
 
+        /**
+         * @brief Move assignment operator
+         * @param other treeSet to move from
+         * @return Reference to this treeSet
+         * @details Transfers ownership of resources from other
+         * @note Leaves other in valid but unspecified state
+         * @note Allocator is moved if propagate_on_container_move_assignment is true
+         */
         treeSet& operator=(treeSet&& other) noexcept;
 
+        /**
+         * @brief Gets number of elements
+         * @return Current size
+         */
         [[nodiscard]] u_integer size() const override;
 
+        /**
+         * @brief Checks if element exists
+         * @param e Element to check
+         * @return true if element exists
+         */
         bool contains(const TYPE &e) const override;
 
+        /**
+         * @brief Adds new element
+         * @param e Element to add
+         * @return true if added, false if element existed
+         */
         bool add(const TYPE &e) override;
 
+        /**
+         * @brief Removes element
+         * @param e Element to remove
+         * @return true if removed, false if element didn't exist
+         */
         bool remove(const TYPE &e) override;
 
+        /**
+         * @brief Gets begin iterator
+         * @return New iterator at first element (minimum element)
+         */
         Iterator* begins() const override;
 
+        /**
+         * @brief Gets end iterator
+         * @return New iterator at last element (maximum element)
+         */
         Iterator* ends() const override;
 
+        /**
+         * @brief Gets class name
+         * @return "treeSet"
+         */
         [[nodiscard]] std::string className() const override;
 
+        /**
+         * @brief Converts to string representation
+         * @param enter Add newline if true
+         * @return String representation of elements
+         */
         [[nodiscard]] std::string toString(bool enter) const override;
 
+        /**
+         * @brief Destructor
+         * @details Cleans up all tree nodes and allocated memory
+         */
         ~treeSet() override;
     };
 }
