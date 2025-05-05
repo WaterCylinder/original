@@ -130,6 +130,11 @@ TEST_F(HashMapTest, LargeNumberOfElements) {
         EXPECT_TRUE(intMap->containsKey(i));
         EXPECT_EQ(intMap->get(i), i * 10);
     }
+
+    for (int i = 0; i < count; ++i) {
+        EXPECT_TRUE(intMap->remove(i));
+        EXPECT_FALSE(intMap->containsKey(i));
+    }
 }
 
 TEST_F(HashMapTest, StringKeyElements) {

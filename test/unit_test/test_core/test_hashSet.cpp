@@ -97,6 +97,11 @@ TEST_F(HashSetTest, LargeNumberOfElements) {
     for (int i = 0; i < count; ++i) {
         EXPECT_TRUE(intSet->contains(i));
     }
+
+    for (int i = 0; i < count; ++i) {
+        EXPECT_TRUE(intSet->remove(i));
+        EXPECT_FALSE(intSet->contains(i));
+    }
 }
 
 TEST_F(HashSetTest, StringElements) {
