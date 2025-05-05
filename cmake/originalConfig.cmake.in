@@ -2,18 +2,4 @@
 
 @PACKAGE_INIT@
 
-set(ORIGINAL_INSTALL_DIRS "${PACKAGE_PREFIX_DIR}")
-set(ORIGINAL_INCLUDE_DIRS "${ORIGINAL_INSTALL_DIRS}/include")
-if(WIN32)
-    set(ORIGINAL_LIBRARIES "${ORIGINAL_INSTALL_DIRS}/lib/original.lib")
-else()
-    set(ORIGINAL_LIBRARIES "${ORIGINAL_INSTALL_DIRS}/lib/liboriginal.a")
-endif()
-
-if (ORIGINAL_INCLUDE_DIRS)
-    include_directories(${ORIGINAL_INCLUDE_DIRS})
-endif()
-
-if (ORIGINAL_LIBRARIES)
-    link_libraries(${ORIGINAL_LIBRARIES})
-endif()
+include("${CMAKE_CURRENT_LIST_DIR}/originalTargets.cmake")

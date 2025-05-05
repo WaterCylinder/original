@@ -2,10 +2,13 @@
 
 cmake_minimum_required(VERSION 3.30)
 project(original LANGUAGES CXX)
-
+set(ORIGINAL_VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
+
+include(CMakePackageConfigHelpers)
+include(GNUInstallDirs)
 
 include_directories(${CMAKE_SOURCE_DIR})
 set(ORIGINAL_SRC_DIR ${CMAKE_SOURCE_DIR}/src)
@@ -15,28 +18,46 @@ file(GLOB ORIGINAL_HEADERS
 )
 add_library(original STATIC ${ORIGINAL_HEADERS} src/original.cpp)
 
-target_include_directories(original
-    PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/core
+target_include_directories(original PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/core>
+        $<INSTALL_INTERFACE:include>
 )
 
-install(TARGETS original DESTINATION lib)
-install(FILES src/original.h DESTINATION include)
-install(DIRECTORY src/core/
-        DESTINATION include/core
-        FILES_MATCHING PATTERN "*.h")
+install(TARGETS original
+        EXPORT originalTargets
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
-set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/install)
-include(CMakePackageConfigHelpers)
+install(FILES src/original.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY src/core/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/core
+        FILES_MATCHING PATTERN "*.h"
+)
+
+install(EXPORT originalTargets
+        FILE originalTargets.cmake
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/original
+)
+
 configure_package_config_file(
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/originalConfig.cmake.in"
-        "${CMAKE_BINARY_DIR}/cmake/originalConfig.cmake"
-        INSTALL_DESTINATION cmake/original
+        "${CMAKE_BINARY_DIR}/originalConfig.cmake"
+        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/original
 )
 
-install(FILES "${CMAKE_BINARY_DIR}/cmake/originalConfig.cmake"
-        DESTINATION cmake/original)
+write_basic_package_version_file(
+        "${CMAKE_BINARY_DIR}/originalConfigVersion.cmake"
+        VERSION ${ORIGINAL_VERSION}
+        COMPATIBILITY SameMajorVersion
+)
+
+install(FILES
+        "${CMAKE_BINARY_DIR}/originalConfig.cmake"
+        "${CMAKE_BINARY_DIR}/originalConfigVersion.cmake"
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/original
+)
 
 option(BUILD_TESTING "Build the testing directories" ON)
 
