@@ -347,13 +347,13 @@ namespace original {
                           public set<TYPE, ALLOC>,
                           public iterable<const TYPE>,
                           public printable {
-        using RBTree = RBTree<TYPE, const bool, ALLOC, Compare>;
+        using RBTreeType = RBTree<TYPE, const bool, ALLOC, Compare>;
 
         /**
          * @typedef RBNode
          * @brief Internal node type used for Red-Black Tree storage
          */
-        using RBNode = typename RBTree::RBNode;
+        using RBNode = typename RBTreeType::RBNode;
     public:
         /**
          * @class Iterator
@@ -368,7 +368,7 @@ namespace original {
          * - Invalidates on tree modification
          * - Lightweight copy semantics
          */
-        class Iterator final : public RBTree::Iterator,
+        class Iterator final : public RBTreeType::Iterator,
                                public baseIterator<const TYPE>
         {
             /**
@@ -377,7 +377,7 @@ namespace original {
              * @param cur Current node pointer
              * @note Internal constructor, not meant for direct use
              */
-            explicit Iterator(RBTree* tree, RBNode* cur);
+            explicit Iterator(RBTreeType* tree, RBNode* cur);
 
             /**
              * @brief Compares iterator pointers for equality
@@ -846,8 +846,8 @@ template<typename TYPE, typename HASH, typename ALLOC>
 original::hashSet<TYPE, HASH, ALLOC>::~hashSet() = default;
 
 template <typename TYPE, typename Compare, typename ALLOC>
-original::treeSet<TYPE, Compare, ALLOC>::Iterator::Iterator(RBTree* tree, RBNode* cur)
-    : RBTree::Iterator(tree, cur)  {}
+original::treeSet<TYPE, Compare, ALLOC>::Iterator::Iterator(RBTreeType* tree, RBNode* cur)
+    : RBTreeType::Iterator(tree, cur)  {}
 
 template <typename TYPE, typename Compare, typename ALLOC>
 bool original::treeSet<TYPE, Compare, ALLOC>::Iterator::equalPtr(const iterator<const TYPE>* other) const
@@ -894,13 +894,13 @@ std::string original::treeSet<TYPE, Compare, ALLOC>::Iterator::className() const
 template <typename TYPE, typename Compare, typename ALLOC>
 void original::treeSet<TYPE, Compare, ALLOC>::Iterator::operator+=(integer steps) const
 {
-    RBTree::Iterator::operator+=(steps);
+    RBTreeType::Iterator::operator+=(steps);
 }
 
 template <typename TYPE, typename Compare, typename ALLOC>
 void original::treeSet<TYPE, Compare, ALLOC>::Iterator::operator-=(integer steps) const
 {
-    RBTree::Iterator::operator-=(steps);
+    RBTreeType::Iterator::operator-=(steps);
 }
 
 template <typename TYPE, typename Compare, typename ALLOC>
@@ -913,13 +913,13 @@ original::treeSet<TYPE, Compare, ALLOC>::Iterator::operator-(const iterator<cons
 template <typename TYPE, typename Compare, typename ALLOC>
 bool original::treeSet<TYPE, Compare, ALLOC>::Iterator::hasNext() const
 {
-    return RBTree::Iterator::hasNext();
+    return RBTreeType::Iterator::hasNext();
 }
 
 template <typename TYPE, typename Compare, typename ALLOC>
 bool original::treeSet<TYPE, Compare, ALLOC>::Iterator::hasPrev() const
 {
-    return RBTree::Iterator::hasPrev();
+    return RBTreeType::Iterator::hasPrev();
 }
 
 template <typename TYPE, typename Compare, typename ALLOC>
@@ -947,13 +947,13 @@ bool original::treeSet<TYPE, Compare, ALLOC>::Iterator::atNext(const iterator<co
 template <typename TYPE, typename Compare, typename ALLOC>
 void original::treeSet<TYPE, Compare, ALLOC>::Iterator::next() const
 {
-    RBTree::Iterator::next();
+    RBTreeType::Iterator::next();
 }
 
 template <typename TYPE, typename Compare, typename ALLOC>
 void original::treeSet<TYPE, Compare, ALLOC>::Iterator::prev() const
 {
-    RBTree::Iterator::prev();
+    RBTreeType::Iterator::prev();
 }
 
 template <typename TYPE, typename Compare, typename ALLOC>
@@ -968,13 +968,13 @@ original::treeSet<TYPE, Compare, ALLOC>::Iterator::getPrev() const
 template <typename TYPE, typename Compare, typename ALLOC>
 const TYPE& original::treeSet<TYPE, Compare, ALLOC>::Iterator::get()
 {
-    return RBTree::Iterator::get().template get<0>();
+    return RBTreeType::Iterator::get().template get<0>();
 }
 
 template <typename TYPE, typename Compare, typename ALLOC>
 const TYPE original::treeSet<TYPE, Compare, ALLOC>::Iterator::get() const
 {
-    return RBTree::Iterator::get().template get<0>();
+    return RBTreeType::Iterator::get().template get<0>();
 }
 
 template <typename TYPE, typename Compare, typename ALLOC>
@@ -986,12 +986,12 @@ void original::treeSet<TYPE, Compare, ALLOC>::Iterator::set(const TYPE& data)
 template <typename TYPE, typename Compare, typename ALLOC>
 bool original::treeSet<TYPE, Compare, ALLOC>::Iterator::isValid() const
 {
-    return RBTree::Iterator::isValid();
+    return RBTreeType::Iterator::isValid();
 }
 
 template<typename TYPE, typename Compare, typename ALLOC>
 original::treeSet<TYPE, Compare, ALLOC>::treeSet(Compare comp, ALLOC alloc)
-    : RBTree(std::move(comp)),
+    : RBTreeType(std::move(comp)),
       set<TYPE, ALLOC>(std::move(alloc)) {}
 
 template<typename TYPE, typename Compare, typename ALLOC>
