@@ -147,11 +147,11 @@ int main(){
     {
         ts1.add(i);
     }
-    std::cout << ts1 << std::endl;
     for (int i = 0; i < 20; ++i)
     {
         std::cout << ts1 << std::endl;
-        ts1.remove(i); // bug needs to fix
+        ts1.remove(i);
     }
+    std::cout << ts1 << std::endl;
     return 0;
 }
