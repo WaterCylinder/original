@@ -54,23 +54,15 @@ target_link_libraries(hello_original PRIVATE original)
 ```
 方法二 使用Cmake本地构建、安装：
 
-在该项目文件夹下新建文件夹`build`并进入：
+在本项目文件夹下运行下列命令：
 ```shell
-mkdir build
-cd build
+cmake -P install.cmake
 ```
-利用cmake构建库：
-```shell
-cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=OFF
-cmake --build . --config Debug
-cmake --install . --config Debug
-```
-将生成的`build`和`install`文件夹复制到项目`hello_original`中。
+将生成的`original`文件夹复制到项目`hello_original`中。
 
 复制后项目的结构如下：
 ```text
-├─build
-├─install
+├─original
 ├─CMakeLists.txt
 └─main.cpp
 ```
@@ -81,15 +73,13 @@ cmake_minimum_required(VERSION 3.30)
 project(hello_original)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-set(CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/install/cmake")
-list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/install/cmake/original")
-
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/original")
 find_package(original REQUIRED)
 
 add_executable(hello_original main.cpp)
-
-target_link_libraries(hello_original PRIVATE "${ORIGINAL_LIBRARIES}")
+target_link_libraries(hello_original PRIVATE original)
 ```
 
 接下来展示测试Demo：
@@ -99,27 +89,22 @@ target_link_libraries(hello_original PRIVATE "${ORIGINAL_LIBRARIES}")
 #include <iostream>
 #include "original.h"
 
-
 int main() {
-    std::cout << "Hello, Original!" << std::endl;
-    auto a1 = original::array({"Hello, Original!"});
-    std::cout << a1 << std::endl;
-    printf("%s\n", static_cast<const char*>(a1));
+    const original::array a = {"hello world!"};
+    std::cout << a << std::endl;
     return 0;
 }
 ```
 输出：
 ```text
-Hello, original!
-array("Hello, original!")
-array("Hello, original!")
+array("hello world!")
 ```
 
 ## 模块进度
 
 #### Core
 
-正在实现中。已实现部分：
+包含基本算法、容器等工具。
 
 ##### 容器：
 
