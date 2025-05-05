@@ -437,19 +437,20 @@ original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::getPrecursorNode(RBNode *cur) 
     if (!cur)
         return nullptr;
 
-    RBNode* pre;
-    if (cur->getPLeft()){
-        pre = cur->getPLeft();
-        while (pre->getPRight()){
-            pre = pre->getPRight();
+    if (cur->getPLeft()) {
+        cur = cur->getPLeft();
+        while (cur->getPRight()) {
+            cur = cur->getPRight();
         }
-    } else{
-        pre = cur;
-        while (pre->getPParent() && pre->getPParent()->getPLeft() == pre){
-            pre = pre->getPParent();
-        }
+        return cur;
     }
-    return pre;
+
+    RBNode* parent = cur->getPParent();
+    while (parent && cur == parent->getPLeft()) {
+        cur = parent;
+        parent = parent->getPParent();
+    }
+    return parent;
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
@@ -635,14 +636,13 @@ void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::adjustInsert(RBNode *cur)
                 rotated_root->getPRight()->setColor(RED);
             }
 
-            cur = rotated_root;
-        } else {
-            parent->setColor(BLACK);
-            uncle->setColor(BLACK);
-            grand_parent->setColor(RED);
-
-            cur = grand_parent;
+            break;
         }
+        parent->setColor(BLACK);
+        uncle->setColor(BLACK);
+        grand_parent->setColor(RED);
+
+        cur = grand_parent;
     }
 
     this->root_->setColor(BLACK);
@@ -663,29 +663,13 @@ void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::adjustErase(RBNode *cur) 
                 grand_parent = parent->getPParent();
                 if (grand_parent) {
                     bool is_left = grand_parent->getPLeft() == parent;
-                    RBNode::connect(grand_parent, this->rotateRight(parent), is_left);
+                    RBNode::connect(grand_parent, this->rotateLeft(parent), is_left);
                 } else {
-                    this->root_ = this->rotateRight(parent);
-                    RBNode::connect(nullptr, parent, true);
+                    this->root_ = this->rotateLeft(parent);
+                    RBNode::connect(nullptr, this->root_, true);
                 }
             } else {
                 RBNode* nephew;
-                if (brother->getPLeft() && brother->getPLeft()->getColor() == RED) { // RL
-                    nephew = brother->getPLeft();
-                    nephew->setColor(parent->getColor());
-                    parent->setColor(BLACK);
-                    RBNode::connect(parent, this->rotateRight(brother), true);
-                    grand_parent = parent->getPParent();
-                    if (grand_parent) {
-                        bool is_left = grand_parent->getPLeft() == parent;
-                        RBNode::connect(grand_parent, this->rotateLeft(parent), is_left);
-                    } else {
-                        this->root_ = this->rotateLeft(parent);
-                        RBNode::connect(nullptr, this->root_, true);
-                    }
-                    break;
-                }
-
                 if (brother->getPRight() && brother->getPRight()->getColor() == RED) { // RR
                     nephew = brother->getPRight();
                     nephew->setColor(brother->getColor());
@@ -702,12 +686,28 @@ void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::adjustErase(RBNode *cur) 
                     break;
                 }
 
+                if (brother->getPLeft() && brother->getPLeft()->getColor() == RED) { // RL
+                    nephew = brother->getPLeft();
+                    nephew->setColor(parent->getColor());
+                    parent->setColor(BLACK);
+                    RBNode::connect(parent, this->rotateRight(brother), true);
+                    grand_parent = parent->getPParent();
+                    if (grand_parent) {
+                        bool is_left = grand_parent->getPLeft() == parent;
+                        RBNode::connect(grand_parent, this->rotateLeft(parent), is_left);
+                    } else {
+                        this->root_ = this->rotateLeft(parent);
+                        RBNode::connect(nullptr, this->root_, true);
+                    }
+                    break;
+                }
+
                 if ((!brother->getPLeft() && !brother->getPRight()) ||
                      (brother->getPLeft()->getColor() == BLACK && brother->getPRight()->getColor() == BLACK))
                 {
                     if (cur->getColor() == BLACK)
                     {
-                        brother->setColor(BLACK);
+                        brother->setColor(RED);
                         cur = cur->getPParent();
                     } else
                     {
@@ -724,29 +724,13 @@ void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::adjustErase(RBNode *cur) 
                 grand_parent = parent->getPParent();
                 if (grand_parent) {
                     bool is_left = grand_parent->getPLeft() == parent;
-                    RBNode::connect(grand_parent, this->rotateLeft(parent), is_left);
+                    RBNode::connect(grand_parent, this->rotateRight(parent), is_left);
                 } else {
-                    this->root_ = this->rotateLeft(parent);
-                    RBNode::connect(nullptr, parent, true);
+                    this->root_ = this->rotateRight(parent);
+                    RBNode::connect(nullptr, this->root_, true);
                 }
             } else {
                 RBNode* nephew;
-                if (brother->getPRight() && brother->getPRight()->getColor() == RED) { // LR
-                    nephew = brother->getPRight();
-                    nephew->setColor(parent->getColor());
-                    parent->setColor(BLACK);
-                    RBNode::connect(parent, this->rotateLeft(brother), true);
-                    grand_parent = parent->getPParent();
-                    if (grand_parent) {
-                        bool is_left = grand_parent->getPLeft() == parent;
-                        RBNode::connect(grand_parent, this->rotateRight(parent), is_left);
-                    } else {
-                        this->root_ = this->rotateRight(parent);
-                        RBNode::connect(nullptr, this->root_, true);
-                    }
-                    break;
-                }
-
                 if (brother->getPLeft() && brother->getPLeft()->getColor() == RED) { // LL
                     nephew = brother->getPLeft();
                     nephew->setColor(brother->getColor());
@@ -763,12 +747,28 @@ void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::adjustErase(RBNode *cur) 
                     break;
                 }
 
+                if (brother->getPRight() && brother->getPRight()->getColor() == RED) { // LR
+                    nephew = brother->getPRight();
+                    nephew->setColor(parent->getColor());
+                    parent->setColor(BLACK);
+                    RBNode::connect(parent, this->rotateLeft(brother), true);
+                    grand_parent = parent->getPParent();
+                    if (grand_parent) {
+                        bool is_left = grand_parent->getPLeft() == parent;
+                        RBNode::connect(grand_parent, this->rotateRight(parent), is_left);
+                    } else {
+                        this->root_ = this->rotateRight(parent);
+                        RBNode::connect(nullptr, this->root_, true);
+                    }
+                    break;
+                }
+
                 if ((!brother->getPLeft() && !brother->getPRight()) ||
                      (brother->getPLeft()->getColor() == BLACK && brother->getPRight()->getColor() == BLACK))
                 {
                     if (cur->getColor() == BLACK)
                     {
-                        brother->setColor(BLACK);
+                        brother->setColor(RED);
                         cur = cur->getPParent();
                     } else
                     {
