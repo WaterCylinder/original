@@ -15,6 +15,7 @@ set(ORIGINAL_SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 file(GLOB ORIGINAL_HEADERS
         "${ORIGINAL_SRC_DIR}/original.h"
         "${ORIGINAL_SRC_DIR}/core/*.h"
+        "${ORIGINAL_SRC_DIR}/vibrant/*.h"
 )
 add_library(original STATIC ${ORIGINAL_HEADERS} src/original.cpp)
 
