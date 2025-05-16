@@ -21,10 +21,14 @@ namespace original {
             void run(ARGS&&... args);
         };
 
+        bool is_joinable;
         ownerPtr<threadData> thread_data;
 
         explicit threadBase(Callback c);
 
+        virtual void join() = 0;
+
+        virtual void detach() = 0;
     public:
         threadBase(const threadBase&) = delete;
 
@@ -39,7 +43,14 @@ namespace original {
 
         void handleInit();
 
+    public:
         explicit pThread(Callback c);
+
+        void join() override;
+
+        void detach() override;
+
+        ~pThread();
     };
 }
 
@@ -55,13 +66,13 @@ void original::threadBase<Callback>::threadData::run(ARGS &&... args) {
 
 template<typename Callback>
 original::threadBase<Callback>::threadBase(Callback c)
-    : thread_data(makeOwnerPtr(std::move(c))) {}
+    : thread_data(makeOwnerPtr(std::move(c))), is_joinable(true) {}
 
 template<typename Callback>
 void* original::pThread<Callback>::pThreadProxy(void* arg) {
     auto self = static_cast<pThread*>(arg);
     try {
-        self->thread_data.run(arg);
+        self->thread_data->run(arg);
     } catch (const error& e) {
         throw sysError();
     }
@@ -70,12 +81,39 @@ void* original::pThread<Callback>::pThreadProxy(void* arg) {
 
 template<typename Callback>
 void original::pThread<Callback>::handleInit() {
-    pthread_create(&this->handle, nullptr, &pThreadProxy, nullptr);
+    pthread_create(&this->handle, nullptr, &pThreadProxy, this);
 }
 
 template<typename Callback>
 original::pThread<Callback>::pThread(Callback c) : threadBase<Callback>(c), handle() {
     this->handleInit();
+}
+
+template<typename Callback>
+void original::pThread<Callback>::join() {
+    if (this->is_joinable){
+        int code = pthread_join(this->handle, nullptr);
+        if (code != 0){
+            throw sysError();
+        }
+        this->is_joinable = false;
+    }
+}
+
+template<typename Callback>
+void original::pThread<Callback>::detach() {
+    if (this->is_joinable){
+        int code = pthread_detach(this->handle);
+        if (code != 0){
+            throw sysError();
+        }
+        this->is_joinable = false;
+    }
+}
+
+template<typename Callback>
+original::pThread<Callback>::~pThread() {
+    this->detach();
 }
 
 #endif //THREAD_H
