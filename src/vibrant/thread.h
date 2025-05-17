@@ -37,6 +37,8 @@ namespace original {
         threadBase& operator=(threadBase&& other) noexcept = default;
 
         explicit operator bool() const;
+
+        bool operator!() const;
     };
 
     class pThread final : public threadBase {
@@ -77,6 +79,11 @@ void* original::threadBase::threadData<Callback>::run(void* arg)
 inline original::threadBase::operator bool() const
 {
     return this->valid();
+}
+
+inline bool original::threadBase::operator!() const
+{
+    return !this->valid();
 }
 
 inline original::threadBase::threadBase()
