@@ -3,117 +3,151 @@
 
 #include "error.h"
 #include "functional"
-#include "thread"
+#include "pthread.h"
 #include "ownerPtr.h"
 
 
 namespace original {
-    template<typename Callback>
     class threadBase {
     protected:
-        class threadData {
+        template<typename Callback>
+        class threadData
+        {
+            Callback c;
         public:
-            std::function<Callback> func;
-
             explicit threadData(Callback c);
 
-            template<typename... ARGS>
-            void run(ARGS&&... args);
+            static void* run(void* arg);
         };
 
         bool is_joinable;
-        ownerPtr<threadData> thread_data;
 
-        explicit threadBase(Callback c);
+        [[nodiscard]] virtual bool valid() const = 0;
 
-        virtual void join() = 0;
-
-        virtual void detach() = 0;
     public:
-        threadBase(const threadBase&) = delete;
+        explicit threadBase();
 
+        virtual ~threadBase();
+
+        threadBase(const threadBase&) = delete;
         threadBase& operator=(const threadBase&) = delete;
+
+        threadBase(threadBase&& other) noexcept = default;
+
+        threadBase& operator=(threadBase&& other) noexcept = default;
+
+        explicit operator bool() const;
     };
 
-    template<typename Callback>
-    class pThread : public threadBase<Callback> {
+    class pThread final : public threadBase {
         pthread_t handle;
 
-        static void* pThreadProxy(void* arg);
-
-        void handleInit();
-
+        [[nodiscard]] bool valid() const override;
     public:
-        explicit pThread(Callback c);
+        template<typename Callback, typename... ARGS>
+        explicit pThread(Callback c, ARGS&&... args);
 
-        void join() override;
+        pThread(pThread&& other) noexcept;
 
-        void detach() override;
+        pThread& operator=(pThread&& other) noexcept;
 
-        ~pThread();
+        void join();
+
+        void detach();
     };
 }
 
-template<typename Callback>
-original::threadBase<Callback>::threadData::threadData(Callback c)
-    : func(std::move(c)) {}
 
-template<typename Callback>
-template<typename... ARGS>
-void original::threadBase<Callback>::threadData::run(ARGS &&... args) {
-    this->func(std::forward<ARGS>(args)...);
-}
+template <typename Callback>
+original::threadBase::threadData<Callback>::threadData(Callback c)
+    : c(std::move(c)) {}
 
-template<typename Callback>
-original::threadBase<Callback>::threadBase(Callback c)
-    : thread_data(makeOwnerPtr(std::move(c))), is_joinable(true) {}
-
-template<typename Callback>
-void* original::pThread<Callback>::pThreadProxy(void* arg) {
-    auto self = static_cast<pThread*>(arg);
+template <typename Callback>
+void* original::threadBase::threadData<Callback>::run(void* arg)
+{
+    auto self = ownerPtr<threadData>(static_cast<threadData*>(arg));
     try {
-        self->thread_data->run(arg);
-    } catch (const error& e) {
+        self->c();
+    }catch (const error&) {
         throw sysError();
     }
     return nullptr;
 }
 
-template<typename Callback>
-void original::pThread<Callback>::handleInit() {
-    pthread_create(&this->handle, nullptr, &pThreadProxy, this);
+inline original::threadBase::operator bool() const
+{
+    return this->valid();
 }
 
-template<typename Callback>
-original::pThread<Callback>::pThread(Callback c) : threadBase<Callback>(c), handle() {
-    this->handleInit();
+inline original::threadBase::threadBase()
+    : is_joinable(true) {}
+
+inline original::threadBase::~threadBase() {
+    if (this->is_joinable) {
+        throw sysError();
+    }
 }
 
-template<typename Callback>
-void original::pThread<Callback>::join() {
+template<typename Callback, typename... ARGS>
+original::pThread::pThread(Callback c, ARGS&&... args) : handle()
+{
+    using bound_callback = decltype(std::bind(std::forward<Callback>(c), std::forward<ARGS>(args)...));
+    using bound_thread_data = threadData<bound_callback>;
+
+    auto task = new threadData<bound_callback>(std::bind(std::forward<Callback>(c), std::forward<ARGS>(args)...));
+
+    if (const int code = pthread_create(&this->handle, nullptr, &bound_thread_data::run, task);
+        code != 0)
+    {
+        throw sysError();
+    }
+}
+
+inline bool original::pThread::valid() const
+{
+    return this->handle != pthread_t{};
+}
+
+inline original::pThread::pThread(pThread&& other) noexcept
+    : threadBase(std::move(other)), handle() {
+    this->operator=(std::move(other));
+}
+
+inline original::pThread& original::pThread::operator=(pThread&& other) noexcept
+{
+    if (this == &other) {
+        return *this;
+    }
+
+    if (this->is_joinable && this->valid()) {
+        pthread_detach(this->handle);
+    }
+
+    this->handle = other.handle;
+    other.handle = {};
+    this->is_joinable = other.is_joinable;
+    other.is_joinable = false;
+    return *this;
+}
+
+inline void original::pThread::join() {
     if (this->is_joinable){
-        int code = pthread_join(this->handle, nullptr);
-        if (code != 0){
+        if (const int code = pthread_join(this->handle, nullptr);
+            code != 0){
             throw sysError();
         }
         this->is_joinable = false;
     }
 }
 
-template<typename Callback>
-void original::pThread<Callback>::detach() {
+inline void original::pThread::detach() {
     if (this->is_joinable){
-        int code = pthread_detach(this->handle);
-        if (code != 0){
+        if (const int code = pthread_detach(this->handle);
+            code != 0){
             throw sysError();
         }
         this->is_joinable = false;
     }
-}
-
-template<typename Callback>
-original::pThread<Callback>::~pThread() {
-    this->detach();
 }
 
 #endif //THREAD_H
