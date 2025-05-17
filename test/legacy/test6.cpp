@@ -17,7 +17,13 @@ int main()
 
     original::pThread t5{task1, 4, "show: "};
     original::pThread t6{task1, 5, "show: "};
+    if (t5) {
+        std::cout << "t5 is valid" << std::endl;
+    }
     t6 = std::move(t5);
+    if (!t5) {
+        std::cout << "t5 is not valid" << std::endl;
+    }
     t6.join();
     return 0;
 }
