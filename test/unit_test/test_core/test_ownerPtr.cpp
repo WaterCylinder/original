@@ -38,6 +38,7 @@ TEST(OwnerPtrTest, BasicFunctionality) {
 
     const original::ownerPtr ptr2(new int(42));
     EXPECT_TRUE(ptr2 != ptr);
+    EXPECT_TRUE(!ptr2 == !ptr);
 
     // 测试移动构造函数
     original::ownerPtr moved_ptr(std::move(ptr));
