@@ -14,6 +14,17 @@
 * @details Implements core functionality for automatic memory management
 * using reference counting. Supports strong/weak references and custom deleters.
 * Inherits printable and comparable interfaces for debugging and comparison.
+*
+* Key Features:
+* - Automatic memory management via reference counting
+* - Support for both strong and weak references
+* - Customizable deletion policies via template parameter
+* - Thread-safe reference counting operations
+* - Integration with printable, comparable and hashable interfaces
+*
+* @note This is a base class meant to be inherited by concrete smart pointer implementations
+* @see sharedPtr For a complete implementation using this base
+* @see weakPtr For the weak reference counterpart
 */
 
 namespace original {
@@ -31,9 +42,11 @@ namespace original {
     * - Strong/weak reference tracking
     * - Automatic cleanup when references reach zero
     * - Custom deletion policies via template parameter
-    * @extends printable
-    * @extends comparable
-    * @extends hashable
+    * - Exception-safe operations
+    *
+    * @extends printable For string representation capabilities
+    * @extends comparable For comparison operations
+    * @extends hashable For hashing support
     */
     template<typename TYPE, typename DERIVED, typename DELETER>
     class autoPtr : public printable,
@@ -131,6 +144,10 @@ namespace original {
         */
         explicit operator bool() const;
 
+        /**
+        * @brief Logical NOT operator
+        * @return Opposite of operator bool()
+        */
         bool operator!() const;
 
         /**
@@ -223,8 +240,19 @@ namespace original {
         */
         std::string toString(bool enter) const override;
 
+        /**
+        * @brief Compute hash value for the pointer
+        * @return Hash of managed pointer address
+        * @note Uses hash<TYPE> specialization
+        */
         [[nodiscard]] u_integer toHash() const noexcept override;
 
+        /**
+        * @brief Equality comparison
+        * @param other autoPtr to compare with
+        * @return True if both manage same pointer
+        * @note Compares pointer addresses, not values
+        */
         bool equals(const autoPtr& other) const noexcept override;
 
         /**
