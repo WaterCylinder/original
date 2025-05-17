@@ -131,6 +131,8 @@ namespace original {
         */
         explicit operator bool() const;
 
+        bool operator!() const;
+
         /**
         * @brief Get managed pointer const version
         * @return Raw pointer to managed object
@@ -411,6 +413,11 @@ bool original::autoPtr<TYPE, DERIVED, DELETER>::expired() const {
 template<typename TYPE, typename DERIVED, typename DELETER>
 original::autoPtr<TYPE, DERIVED, DELETER>::operator bool() const {
     return this->exist() && this->get();
+}
+
+template <typename TYPE, typename DERIVED, typename DELETER>
+bool original::autoPtr<TYPE, DERIVED, DELETER>::operator!() const {
+    return !this->operator bool();
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
