@@ -130,9 +130,13 @@ array("hello world!")
 自动指针 ownerPtr/strongPtr/weakPtr，分配器 allocatorBase/allocator/objPoolAllocator，删除器 deleterBase/deleter
 
 
-#### asyncIO
+#### Vibrant
 
-计划实现，包含多线程和网络通信功能。
+并发模块，正在实现。
+
+##### 线程：
+
+基类 threadBase，POSIX类线程 pThread
 
 #### matrix
 
