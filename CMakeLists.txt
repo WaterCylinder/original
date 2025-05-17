@@ -22,6 +22,7 @@ add_library(original STATIC ${ORIGINAL_HEADERS} src/original.cpp)
 target_include_directories(original PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/core>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/vibrant>
         $<INSTALL_INTERFACE:include>
 )
 
