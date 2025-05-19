@@ -25,5 +25,16 @@ int main()
         std::cout << "t5 is not valid" << std::endl;
     }
     t6.join();
+
+    original::thread t7{task1, 6, "show: "};
+    original::thread t8{task1, 7, "show: "};
+
+    original::pThread t9{task1, 8, "show: "};
+    original::thread t10{std::move(t9), true};
+
+    original::pThread t11{task1, 9, "show: "};
+    original::thread t12{std::move(t11)};
+
+    original::thread t13;
     return 0;
 }
