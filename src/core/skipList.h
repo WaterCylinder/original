@@ -1,5 +1,6 @@
 #ifndef SKIPLIST_H
 #define SKIPLIST_H
+#include <random>
 #include "comparator.h"
 #include "vector.h"
 #include "couple.h"
@@ -41,7 +42,7 @@ namespace original {
 
           skipListNode* getPNext(u_integer levels) const;
 
-          skipListNode*& getPNextRef(u_integer levels);
+          skipListNode*& getPRef(u_integer levels);
 
           void setPNext(u_integer levels, skipListNode* next);
 
@@ -54,6 +55,7 @@ namespace original {
        u_integer cur_levels_;
        u_integer size_;
        skipListNode* head_;
+       Compare compare_;
        mutable rebind_alloc_node rebind_alloc{};
 
        // todo
@@ -68,7 +70,32 @@ namespace original {
 
        void destroyNode(skipListNode* node) const;
 
+       bool highPriority(skipListNode* cur, skipListNode* next) const;
+
+       bool highPriority(const K_TYPE& key, skipListNode* next) const;
+
+       static bool equal(const K_TYPE& key, skipListNode* next);
+
+       static u_integer getRandomLevels();
+
        skipListNode* listCopy() const;
+
+       explicit skipList(Compare compare = Compare{});
+
+       skipListNode* find(const K_TYPE& key) const;
+
+       // todo
+       bool modify(const K_TYPE& key, const V_TYPE& value);
+
+       // todo
+       bool insert(const K_TYPE& key, const V_TYPE& value);
+
+       // todo
+       bool erase(const K_TYPE& key);
+
+       void listDestroy() noexcept;
+
+       ~skipList();
    };
 }
 
@@ -134,7 +161,7 @@ original::skipList<K_TYPE, V_TYPE, ALLOC,Compare>::skipListNode::getPNext(const 
 
 template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 typename original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode*&
-original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode::getPNextRef(const u_integer levels) {
+original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode::getPRef(const u_integer levels) {
     return this->next_[levels - 1];
 }
 
@@ -168,6 +195,49 @@ void original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::destroyNode(skipListNod
 }
 
 template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+bool original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::highPriority(skipListNode* cur, skipListNode* next) const
+{
+    if (!cur){
+        return false;
+    }
+    return this->highPriority(cur->getKey(), next);
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+bool original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::highPriority(const K_TYPE& key, skipListNode* next) const
+{
+    if (!next){
+        return true;
+    }
+    return this->compare_(key, next->getKey());
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+bool original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::equal(const K_TYPE& key, skipListNode* next)
+{
+    if (!next) {
+        return false;
+    }
+
+    return key == next->getKey();
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+original::u_integer original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::getRandomLevels()
+{
+    constexpr floating p = 0.5;
+    u_integer levels = 1;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution dis(0, 1);
+
+    while (dis(gen) < p) {
+        levels += 1;
+    }
+    return levels;
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 typename original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode*
 original::skipList<K_TYPE, V_TYPE, ALLOC,Compare>::listCopy() const {
     auto copied_head =
@@ -175,7 +245,7 @@ original::skipList<K_TYPE, V_TYPE, ALLOC,Compare>::listCopy() const {
 
     vector<skipListNode**> copied_curs{this->head_->getLevels(), rebind_alloc_pointer{}, nullptr};
     for (u_integer i = 0; i < copied_head->getLevels(); ++i) {
-        copied_curs[i] = &copied_head->getPNextRef(i + 1);
+        copied_curs[i] = &copied_head->getPRef(i + 1);
     }
 
     auto src_cur = this->head_;
@@ -184,11 +254,70 @@ original::skipList<K_TYPE, V_TYPE, ALLOC,Compare>::listCopy() const {
         auto copied_next = this->createNode(src_next->getKey(), src_next->getValue(), src_next->getLevels());
         for (u_integer i = 0; i < src_next->getLevels(); ++i) {
             *copied_curs[i] = copied_next;
-            copied_curs[i] = &copied_next->getPNextRef(i + 1);
+            copied_curs[i] = &copied_next->getPRef(i + 1);
         }
     }
 
     return copied_head;
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipList(Compare compare)
+    : cur_levels_(1), size_(0), head_(this->createNode()), compare_(std::move(compare)) {}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+typename original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode*
+original::skipList<K_TYPE, V_TYPE, ALLOC,Compare>::find(const K_TYPE& key) const
+{
+    u_integer levels = this->cur_levels_;
+    auto cur_p = this->head_;
+    while (levels > 0) {
+        while (cur_p->getPNext(levels)) {
+            auto next_p = cur_p->getPNext(levels);
+            if (this->highPriority(key, next_p)) {
+                break;
+            }
+            if (equal(key, next_p)) {
+                return next_p;
+            }
+            cur_p = next_p;
+        }
+
+        levels -= 1;
+    }
+    return nullptr;
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+bool original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::modify(const K_TYPE& key, const V_TYPE& value)
+{
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+bool original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::insert(const K_TYPE& key, const V_TYPE& value)
+{
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+bool original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::erase(const K_TYPE& key)
+{
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+void original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::listDestroy() noexcept
+{
+    auto cur = this->head_;
+    while (cur) {
+        auto next = cur->getPNext(1);
+        this->destroyNode(cur);
+        cur = next;
+    }
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::~skipList()
+{
+    this->listDestroy();
 }
 
 #endif //SKIPLIST_H
