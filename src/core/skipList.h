@@ -362,9 +362,9 @@ bool original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::insert(const K_TYPE& ke
     vector<skipListNode*> prev_nodes{min_levels, rebind_alloc_pointer{}, this->head_};
     vector<skipListNode*> next_nodes{min_levels, rebind_alloc_pointer{}, nullptr};
     for (u_integer i = 0; i < min_levels; ++i) {
-        skipListNode* cur_node = prev_nodes[i];
-        skipListNode* next_node = cur_node->getPNext(i + 1);
         while (true){
+            skipListNode* cur_node = prev_nodes[i];
+            skipListNode* next_node = cur_node->getPNext(i + 1);
             if (!next_node || this->highPriority(key, next_node)){
                 next_nodes[i] = next_node;
                 break;
@@ -393,9 +393,9 @@ bool original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::erase(const K_TYPE& key
     vector<skipListNode*> next_nodes{cur_p->getLevels(), rebind_alloc_pointer{}, nullptr};
     for (u_integer i = 0; i < cur_p->getLevels(); ++i) {
         next_nodes[i] = cur_p->getPNext(i + 1);
-        skipListNode* cur_node = prev_nodes[i];
-        skipListNode* next_node = cur_node->getPNext(i + 1);
         while (true){
+            skipListNode* cur_node = prev_nodes[i];
+            skipListNode* next_node = cur_node->getPNext(i + 1);
             if (!next_node || !this->highPriority(next_node, cur_p)){
                 break;
             }
