@@ -38,6 +38,10 @@ namespace original {
 
           [[nodiscard]] u_integer getLevels() const;
 
+          void expandLevels(u_integer new_levels);
+
+          void shrinkLevels(u_integer new_levels);
+
           void setValue(const V_TYPE& value);
 
           skipListNode* getPNext(u_integer levels) const;
@@ -52,7 +56,6 @@ namespace original {
        using rebind_alloc_node = typename ALLOC::template rebind_alloc<skipListNode>;
        using rebind_alloc_pointer = typename ALLOC::template rebind_alloc<skipListNode*>;
 
-       u_integer cur_levels_;
        u_integer size_;
        skipListNode* head_;
        Compare compare_;
@@ -78,19 +81,22 @@ namespace original {
 
        static u_integer getRandomLevels();
 
+       u_integer getCurLevels() const;
+
+       void setCurLevels(u_integer new_levels);
+
        skipListNode* listCopy() const;
+
+       skipListNode* findNode(const K_TYPE& key) const;
 
        explicit skipList(Compare compare = Compare{});
 
        skipListNode* find(const K_TYPE& key) const;
 
-       // todo
        bool modify(const K_TYPE& key, const V_TYPE& value);
 
-       // todo
        bool insert(const K_TYPE& key, const V_TYPE& value);
 
-       // todo
        bool erase(const K_TYPE& key);
 
        void listDestroy() noexcept;
@@ -146,6 +152,28 @@ original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode::getValue() {
 template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 original::u_integer original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode::getLevels() const {
     return this->next_.size();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+void original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode::expandLevels(original::u_integer new_levels) {
+    if (this->getLevels() >= new_levels){
+        return;
+    }
+    auto increment = new_levels - this->getLevels();
+    for (u_integer i = 0; i < increment; ++i) {
+        this->next_.pushEnd(nullptr);
+    }
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+void original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode::shrinkLevels(original::u_integer new_levels) {
+    if (new_levels >= this->getLevels() || new_levels == 0){
+        return;
+    }
+    auto decrement = this->getLevels() - new_levels;
+    for (u_integer i = 0; i < decrement; ++i) {
+        this->next_.popEnd();
+    }
 }
 
 template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
@@ -229,12 +257,28 @@ original::u_integer original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::getRando
     u_integer levels = 1;
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_real_distribution dis(0, 1);
+    std::uniform_real_distribution<floating> dis(0, 1);
 
     while (dis(gen) < p) {
         levels += 1;
     }
     return levels;
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+original::u_integer
+original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::getCurLevels() const {
+    return this->head_->getLevels();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+void
+original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::setCurLevels(original::u_integer new_levels) {
+    if (this->getCurLevels() > new_levels){
+        this->head_->shrinkLevels(new_levels);
+    } else if (this->getCurLevels() < new_levels){
+        this->head_->expandLevels(new_levels);
+    }
 }
 
 template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
@@ -257,15 +301,10 @@ original::skipList<K_TYPE, V_TYPE, ALLOC,Compare>::listCopy() const {
     return copied_head;
 }
 
-template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
-original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipList(Compare compare)
-    : cur_levels_(1), size_(0), head_(this->createNode()), compare_(std::move(compare)) {}
-
-template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 typename original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode*
-original::skipList<K_TYPE, V_TYPE, ALLOC,Compare>::find(const K_TYPE& key) const
-{
-    u_integer levels = this->cur_levels_;
+original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::findNode(const K_TYPE &key) const {
+    u_integer levels = this->getCurLevels();
     auto cur_p = this->head_;
     while (levels > 0) {
         while (cur_p->getPNext(levels)) {
@@ -281,22 +320,103 @@ original::skipList<K_TYPE, V_TYPE, ALLOC,Compare>::find(const K_TYPE& key) const
 
         levels -= 1;
     }
-    return nullptr;
+    return cur_p;
+}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipList(Compare compare)
+    : size_(0), head_(this->createNode()), compare_(std::move(compare)) {}
+
+template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+typename original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode*
+original::skipList<K_TYPE, V_TYPE, ALLOC,Compare>::find(const K_TYPE& key) const
+{
+    auto cur_p = this->findNode(key);
+    return cur_p && equal(key, cur_p) ? cur_p : nullptr;
 }
 
 template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 bool original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::modify(const K_TYPE& key, const V_TYPE& value)
 {
+    auto cur_p = this->findNode(key);
+    if (!cur_p || !equal(key, cur_p)){
+        return false;
+    }
+
+    cur_p->setValue(value);
+    return true;
 }
 
 template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 bool original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::insert(const K_TYPE& key, const V_TYPE& value)
 {
+    auto cur_p = this->findNode(key);
+    if (cur_p && equal(key, cur_p)){
+        return false;
+    }
+
+    auto new_levels = getRandomLevels();
+    auto new_node = this->createNode(key, value, new_levels);
+    this->setCurLevels(new_levels);
+    auto min_levels = min(this->getCurLevels(), new_levels);
+    vector<skipListNode*> prev_nodes{min_levels, rebind_alloc_pointer{}, this->head_};
+    vector<skipListNode*> next_nodes{min_levels, rebind_alloc_pointer{}, nullptr};
+    for (u_integer i = 0; i < min_levels; ++i) {
+        skipListNode* cur_node = prev_nodes[i];
+        skipListNode* next_node = cur_node->getPNext(i + 1);
+        while (true){
+            if (!next_node || this->highPriority(key, next_node)){
+                next_nodes[i] = next_node;
+                break;
+            }
+            prev_nodes[i] = next_node;
+        }
+    }
+    for (u_integer i = 0; i < min_levels; ++i) {
+        skipListNode::connect(i + 1, prev_nodes[i], new_node);
+        skipListNode::connect(i + 1, new_node, next_nodes[i]);
+    }
+
+    this->size_ += 1;
+    return true;
 }
 
 template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 bool original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::erase(const K_TYPE& key)
 {
+    auto cur_p = this->findNode(key);
+    if (!cur_p || !equal(key, cur_p)){
+        return false;
+    }
+
+    vector<skipListNode*> prev_nodes{cur_p->getLevels(), rebind_alloc_pointer{}, this->head_};
+    vector<skipListNode*> next_nodes{cur_p->getLevels(), rebind_alloc_pointer{}, nullptr};
+    for (u_integer i = 0; i < cur_p->getLevels(); ++i) {
+        next_nodes[i] = cur_p->getPNext(i + 1);
+        skipListNode* cur_node = prev_nodes[i];
+        skipListNode* next_node = cur_node->getPNext(i + 1);
+        while (true){
+            if (!next_node || !this->highPriority(next_node, cur_p)){
+                break;
+            }
+            prev_nodes[i] = next_node;
+        }
+    }
+    for (u_integer i = 0; i < cur_p->getLevels(); ++i) {
+        skipListNode::connect(i + 1, prev_nodes[i], next_nodes[i]);
+    }
+    this->destroyNode(cur_p);
+
+    u_integer decrement = 0;
+    for (u_integer i = this->getCurLevels() - 1; i > 0; --i) {
+        if (!this->head_->getPNext(i)){
+            break;
+        }
+        decrement += 1;
+    }
+    this->setCurLevels(this->getCurLevels() - decrement);
+    this->size_ -= 1;
+    return true;
 }
 
 template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
