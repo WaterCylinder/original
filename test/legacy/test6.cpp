@@ -36,5 +36,8 @@ int main()
     original::thread t12{std::move(t11)};
 
     original::thread t13;
+
+    original::thread t14{task1, 10, "show: "};
+    t14.detach();
     return 0;
 }
