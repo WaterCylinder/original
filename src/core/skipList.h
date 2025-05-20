@@ -8,7 +8,6 @@
 
 namespace original {
 
-    // todo
    template<typename K_TYPE,
             typename V_TYPE,
             typename ALLOC = allocator<K_TYPE>,
@@ -61,9 +60,33 @@ namespace original {
        Compare compare_;
        mutable rebind_alloc_node rebind_alloc{};
 
-       // todo
        class Iterator {
+       protected:
+           mutable skipListNode* cur_;
 
+           explicit Iterator(skipListNode* cur = nullptr);
+
+           Iterator(const Iterator& other);
+
+           Iterator& operator=(const Iterator& other);
+
+           Iterator* clone() const override;
+
+           [[nodiscard]] bool hasNext() const;
+
+           void next() const;
+
+           void operator+=(integer steps) const;
+
+           integer operator-(const Iterator& other) const;
+
+           couple<const K_TYPE, V_TYPE>& get();
+
+           couple<const K_TYPE, V_TYPE> get() const;
+
+           [[nodiscard]] bool isValid() const;
+
+           static integer ptrDistance(const Iterator* start, const Iterator* end);
        };
 
        friend Iterator;
@@ -205,6 +228,109 @@ void original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode::connect(c
     if (prev) {
         prev->setPNext(levels, next);
     }
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::Iterator(skipListNode* cur)
+    : cur_(cur) {}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::Iterator(const Iterator& other) {
+    this->operator=(other);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator&
+original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::operator=(const Iterator& other) {
+    if (this == &other){
+        return *this;
+    }
+
+    this->cur_ = other.cur_;
+    return *this;
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator*
+original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::clone() const {
+    return new Iterator(*this);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+bool original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::hasNext() const {
+    return this->cur_->getPNext(1);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+void original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::next() const {
+    this->cur_ = this->cur_->getPNext(1);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+void original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::operator+=(original::integer steps) const {
+    if (steps < 0){
+        throw unSupportedMethodError();
+    }
+
+    for (integer i = 0; i < steps; ++i) {
+        this->next();
+    }
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+original::integer
+original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::operator-(const Iterator& other) const {
+    if (const integer pos_dis = ptrDistance(&other, this);
+            pos_dis != std::numeric_limits<integer>::max()) return pos_dis;
+    if (const integer neg_dis = ptrDistance(this, &other);
+            neg_dis != std::numeric_limits<integer>::max()) return -neg_dis;
+    return this->cur_ > other.cur_ ?
+           std::numeric_limits<integer>::max() :
+           std::numeric_limits<integer>::min();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+original::couple<const K_TYPE, V_TYPE>&
+original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::get() {
+    if (!this->isValid()){
+        throw outOfBoundError();
+    }
+
+    return this->cur_->getVal();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+original::couple<const K_TYPE, V_TYPE>
+original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::get() const {
+    if (!this->isValid()){
+        throw outOfBoundError();
+    }
+
+    return this->cur_->getVal();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+bool original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::isValid() const {
+    return this->cur_;
+}
+
+template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
+original::integer
+original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::ptrDistance(const Iterator* start, const Iterator* end) {
+    auto s = ownerPtr(start->clone());
+    auto e = ownerPtr(end->clone());
+    integer dis = 0;
+    while (s->isValid()){
+        if (s->_ptr == e->_ptr){
+            return dis;
+        }
+        dis += 1;
+        s->next();
+    }
+    if (e->isValid()){
+        dis = std::numeric_limits<integer>::max();
+    }
+    return dis;
 }
 
 template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
