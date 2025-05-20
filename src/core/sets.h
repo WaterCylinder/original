@@ -905,7 +905,7 @@ void original::treeSet<TYPE, Compare, ALLOC>::Iterator::operator-=(integer steps
 
 template <typename TYPE, typename Compare, typename ALLOC>
 original::integer
-original::treeSet<TYPE, Compare, ALLOC>::Iterator::operator-(const iterator<const TYPE>& other) const
+original::treeSet<TYPE, Compare, ALLOC>::Iterator::operator-(const iterator<const TYPE>&) const
 {
     throw unSupportedMethodError();
 }
@@ -978,7 +978,7 @@ const TYPE original::treeSet<TYPE, Compare, ALLOC>::Iterator::get() const
 }
 
 template <typename TYPE, typename Compare, typename ALLOC>
-void original::treeSet<TYPE, Compare, ALLOC>::Iterator::set(const TYPE& data)
+void original::treeSet<TYPE, Compare, ALLOC>::Iterator::set(const TYPE&)
 {
     throw unSupportedMethodError();
 }
