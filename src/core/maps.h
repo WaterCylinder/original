@@ -9,6 +9,7 @@
 #include "ownerPtr.h"
 #include "comparator.h"
 #include "RBTree.h"
+#include "skipList.h"
 
 
 /**
@@ -533,7 +534,7 @@ namespace original {
          * @brief Gets current element (non-const)
          * @return Reference to current key-value pair
          */
-        couple<const K_TYPE, V_TYPE> &get() override;
+        couple<const K_TYPE, V_TYPE>& get() override;
 
         /**
          * @brief Gets current element (const)
@@ -697,6 +698,69 @@ namespace original {
          * @details Cleans up all tree nodes and allocated memory
          */
         ~treeMap() override;
+    };
+
+    // todo
+    template <typename K_TYPE,
+              typename V_TYPE,
+              typename Compare = increaseComparator<K_TYPE>,
+              typename ALLOC = allocator<couple<const K_TYPE, V_TYPE>>>
+    class JMap final : public skipList<const K_TYPE, V_TYPE, ALLOC, Compare>,
+                       public map<K_TYPE, V_TYPE, ALLOC>,
+                       public iterable<couple<const K_TYPE, V_TYPE>>,
+                       public printable {
+
+        using skipListType = skipList<const K_TYPE, V_TYPE, ALLOC, Compare>;
+
+        using skipListNode = skipListType::skipListNode;
+
+    public:
+
+        class Iterator : public skipListType::Iterator,
+                         public baseIterator<couple<const K_TYPE, V_TYPE>> {
+
+            bool equalPtr(const iterator<couple<const K_TYPE, V_TYPE>>* other) const override;
+        public:
+            friend class JMap;
+
+            explicit Iterator(skipListNode* cur);
+
+            Iterator(const Iterator& other);
+
+            Iterator& operator=(const Iterator& other);
+
+            Iterator* clone() const override;
+
+            [[nodiscard]] std::string className() const override;
+
+            void operator+=(integer steps) const override;
+
+            void operator-=(integer steps) const override;
+
+            integer operator-(const iterator<couple<const K_TYPE, V_TYPE>> &other) const override;
+
+            [[nodiscard]] bool hasNext() const override;
+
+            bool atPrev(const iterator<couple<const K_TYPE, V_TYPE>>* other) const override;
+
+            bool atNext(const iterator<couple<const K_TYPE, V_TYPE>>* other) const override;
+
+            void next() const override;
+
+            void prev() const override;
+
+            Iterator* getPrev() const override;
+
+            couple<const K_TYPE, V_TYPE>& get() override;
+
+            couple<const K_TYPE, V_TYPE> get() const override;
+
+            void set(const couple<const K_TYPE, V_TYPE> &data) override;
+
+            [[nodiscard]] bool isValid() const override;
+
+            ~Iterator() override = default;
+        };
     };
 }
 
@@ -1047,7 +1111,7 @@ void original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::operator-=(int
 template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
 original::integer
 original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::operator-(
-    const iterator<couple<const K_TYPE, V_TYPE>>& other) const
+    const iterator<couple<const K_TYPE, V_TYPE>>&) const
 {
     throw unSupportedMethodError();
 }
@@ -1122,7 +1186,7 @@ original::couple<const K_TYPE, V_TYPE> original::treeMap<K_TYPE, V_TYPE, Compare
 }
 
 template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
-void original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::set(const couple<const K_TYPE, V_TYPE>& data)
+void original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::set(const couple<const K_TYPE, V_TYPE>&)
 {
     throw unSupportedMethodError();
 }
@@ -1282,5 +1346,118 @@ std::string original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::toString(const bo
 
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
 original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::~treeMap() = default;
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+bool original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::equalPtr(
+        const iterator<couple<const K_TYPE, V_TYPE>> *other) const {
+    auto other_it = dynamic_cast<const Iterator*>(other);
+    return other_it && this->cur_ == other_it->cur_;
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::Iterator(skipListNode* cur)
+    : skipListType::Iterator(cur) {}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::Iterator(const Iterator& other)
+    : skipListType::Iterator(other) {}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator&
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::operator=(const Iterator& other) {
+    skipListType::Iterator::operator=(other);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::clone() const {
+    return new Iterator(*this);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+std::string
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::className() const {
+    return "JMap::Iterator";
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+void original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::operator+=(integer steps) const {
+    skipListType::Iterator::operator+=(steps);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+void original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::operator-=(integer) const {
+    throw unSupportedMethodError();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::integer
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::operator-(
+        const iterator<couple<const K_TYPE, V_TYPE>> &other) const {
+    auto other_it = dynamic_cast<const Iterator*>(&other);
+    if (other_it == nullptr)
+        return this > &other ?
+               std::numeric_limits<integer>::max() :
+               std::numeric_limits<integer>::min();
+    return skipListType::Iterator::operator-(*other_it);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+bool original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::hasNext() const {
+    return skipListType::Iterator::hasNext();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+bool original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::atPrev(
+        const iterator<couple<const K_TYPE, V_TYPE>>* other) const {
+    const auto other_it = dynamic_cast<const Iterator*>(other);
+    if (!other_it){
+        return false;
+    }
+    auto cloned_it = ownerPtr(other_it->clone());
+    return this->equalPtr(*cloned_it);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+bool original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::atNext(
+        const original::iterator<original::couple<const K_TYPE, V_TYPE>>* other) const {
+    return other->atPrev(*this);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+void original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::next() const {
+    skipListType::Iterator::next();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+void original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::prev() const {
+    throw unSupportedMethodError();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::getPrev() const {
+    throw unSupportedMethodError();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::couple<const K_TYPE, V_TYPE> &original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::get() {
+    return skipListType::Iterator::get();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::couple<const K_TYPE, V_TYPE> original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::get() const {
+    return skipListType::Iterator::get();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+void original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::set(const original::couple<const K_TYPE, V_TYPE>&) {
+    throw unSupportedMethodError();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+bool original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::isValid() const {
+    return skipListType::Iterator::isValid();
+}
 
 #endif //MAPS_H
