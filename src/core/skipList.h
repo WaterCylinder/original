@@ -241,20 +241,16 @@ template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 typename original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode*
 original::skipList<K_TYPE, V_TYPE, ALLOC,Compare>::listCopy() const {
     auto copied_head =
-    this->createNode(this->head_->getKey(), this->head_->getValue(), this->head_->getLevels());
+    this->createNode(this->head_->getKey(), this->head_->getValue(), this->getCurLevels());
 
-    vector<skipListNode**> copied_curs{this->head_->getLevels(), rebind_alloc_pointer{}, nullptr};
-    for (u_integer i = 0; i < copied_head->getLevels(); ++i) {
-        copied_curs[i] = &copied_head->getPRef(i + 1);
-    }
-
+    vector<skipListNode*> copied_curs{this->getCurLevels(), rebind_alloc_pointer{}, copied_head};
     auto src_cur = this->head_;
-    while (src_cur->getPNext(1)) {
+    while (src_cur->getPNext(1)){
         auto src_next = src_cur->getPNext(1);
         auto copied_next = this->createNode(src_next->getKey(), src_next->getValue(), src_next->getLevels());
         for (u_integer i = 0; i < src_next->getLevels(); ++i) {
-            *copied_curs[i] = copied_next;
-            copied_curs[i] = &copied_next->getPRef(i + 1);
+            skipListNode::connect(i + 1, copied_curs[i], copied_next);
+            copied_curs[i] = copied_next;
         }
     }
 
