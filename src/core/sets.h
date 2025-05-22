@@ -9,6 +9,7 @@
 #include "ownerPtr.h"
 #include "comparator.h"
 #include "RBTree.h"
+#include "skipList.h"
 
 
 /**
@@ -602,6 +603,108 @@ namespace original {
          */
         ~treeSet() override;
     };
+
+
+    template <typename TYPE,
+              typename Compare = increaseComparator<TYPE>,
+              typename ALLOC = allocator<couple<const TYPE, const bool>>>
+    class JSet final : public skipList<const TYPE, const bool, ALLOC, Compare>,
+                       public set<TYPE, ALLOC>,
+                       public iterable<const TYPE>,
+                       public printable {
+        using skipListType = skipList<const TYPE, const bool, ALLOC, Compare>;
+
+        /**
+         * @typedef skipListNode
+         * @brief Internal node type used for Skip List storage
+         */
+        using skipListNode = typename skipListType::skipListNode;
+
+    public:
+
+        class Iterator final : public skipListType::Iterator,
+                               public baseIterator<const TYPE> {
+
+            bool equalPtr(const iterator<const TYPE>* other) const override;
+
+        public:
+            friend class JSet;
+
+
+            explicit Iterator(skipListNode* cur);
+
+
+            Iterator(const Iterator& other);
+
+
+            Iterator& operator=(const Iterator& other);
+
+
+            Iterator* clone() const override;
+
+            [[nodiscard]] std::string className() const override;
+
+            void operator+=(integer steps) const override;
+
+            void operator-=(integer steps) const override;
+
+            integer operator-(const iterator<const TYPE>& other) const override;
+
+            [[nodiscard]] bool hasNext() const override;
+
+            [[nodiscard]] bool hasPrev() const override;
+
+            bool atPrev(const iterator<const TYPE>* other) const override;
+
+            bool atNext(const iterator<const TYPE>* other) const override;
+
+            void next() const override;
+
+            void prev() const override;
+
+            Iterator* getPrev() const override;
+
+            const TYPE& get() override;
+
+            const TYPE get() const override;
+
+            void set(const TYPE& data) override;
+
+            [[nodiscard]] bool isValid() const override;
+
+            ~Iterator() override = default;
+        };
+
+        friend class Iterator;
+
+        explicit JSet(Compare comp = Compare{}, ALLOC alloc = ALLOC{});
+
+        JSet(const JSet& other);
+
+        JSet& operator=(const JSet& other);
+
+        JSet(JSet&& other) noexcept;
+
+        JSet& operator=(JSet&& other) noexcept;
+
+        [[nodiscard]] u_integer size() const override;
+
+        bool contains(const TYPE &e) const override;
+
+        bool add(const TYPE &e) override;
+
+        bool remove(const TYPE &e) override;
+
+        Iterator* begins() const override;
+
+        Iterator* ends() const override;
+
+        [[nodiscard]] std::string className() const override;
+
+        [[nodiscard]] std::string toString(bool enter) const override;
+
+        ~JSet() override;
+    };
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
@@ -1104,5 +1207,236 @@ std::string original::treeSet<TYPE, Compare, ALLOC>::toString(const bool enter) 
 
 template<typename TYPE, typename Compare, typename ALLOC>
 original::treeSet<TYPE, Compare, ALLOC>::~treeSet() = default;
+
+template<typename TYPE, typename Compare, typename ALLOC>
+bool original::JSet<TYPE, Compare, ALLOC>::Iterator::equalPtr(
+        const iterator<const TYPE>* other) const {
+    auto other_it = dynamic_cast<const Iterator*>(other);
+    return other_it && this->cur_ == other_it->cur_;
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+original::JSet<TYPE, Compare, ALLOC>::Iterator::Iterator(skipListNode* cur)
+        : skipListType::Iterator(cur) {}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+original::JSet<TYPE, Compare, ALLOC>::Iterator::Iterator(const Iterator& other)
+        : skipListType::Iterator(other) {}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+original::JSet<TYPE, Compare, ALLOC>::Iterator&
+original::JSet<TYPE, Compare, ALLOC>::Iterator::operator=(const Iterator& other) {
+    skipListType::Iterator::operator=(other);
+    return *this;
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+original::JSet<TYPE, Compare, ALLOC>::Iterator*
+original::JSet<TYPE, Compare, ALLOC>::Iterator::clone() const {
+    return new Iterator(*this);
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+std::string
+original::JSet<TYPE, Compare, ALLOC>::Iterator::className() const {
+    return "JSet::Iterator";
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+void original::JSet<TYPE, Compare, ALLOC>::Iterator::operator+=(integer steps) const {
+    skipListType::Iterator::operator+=(steps);
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+void original::JSet<TYPE, Compare, ALLOC>::Iterator::operator-=(integer) const {
+    throw unSupportedMethodError();
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+original::integer
+original::JSet<TYPE, Compare, ALLOC>::Iterator::operator-(
+        const iterator<const TYPE>& other) const {
+    auto other_it = dynamic_cast<const Iterator*>(&other);
+    if (other_it == nullptr)
+        return this > &other ?
+               std::numeric_limits<integer>::max() :
+               std::numeric_limits<integer>::min();
+    return skipListType::Iterator::operator-(*other_it);
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+bool original::JSet<TYPE, Compare, ALLOC>::Iterator::hasNext() const {
+    return skipListType::Iterator::hasNext();
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+bool original::JSet<TYPE, Compare, ALLOC>::Iterator::hasPrev() const {
+    throw unSupportedMethodError();
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+bool original::JSet<TYPE, Compare, ALLOC>::Iterator::atPrev(
+        const iterator<const TYPE>* other) const {
+    const auto other_it = dynamic_cast<const Iterator*>(other);
+    if (!other_it){
+        return false;
+    }
+    auto cloned_it = ownerPtr(other_it->clone());
+    return this->equalPtr(cloned_it.get());
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+bool original::JSet<TYPE, Compare, ALLOC>::Iterator::atNext(
+        const original::iterator<const TYPE>* other) const {
+    return other->atPrev(*this);
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+void original::JSet<TYPE, Compare, ALLOC>::Iterator::next() const {
+    skipListType::Iterator::next();
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+void original::JSet<TYPE, Compare, ALLOC>::Iterator::prev() const {
+    throw unSupportedMethodError();
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+original::JSet<TYPE, Compare, ALLOC>::Iterator*
+original::JSet<TYPE, Compare, ALLOC>::Iterator::getPrev() const {
+    throw unSupportedMethodError();
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+const TYPE& original::JSet<TYPE, Compare, ALLOC>::Iterator::get() {
+    return skipListType::Iterator::get().template get<0>();
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+const TYPE original::JSet<TYPE, Compare, ALLOC>::Iterator::get() const {
+    return skipListType::Iterator::get().template get<0>();
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+void original::JSet<TYPE, Compare, ALLOC>::Iterator::set(const TYPE&) {
+    throw unSupportedMethodError();
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+bool original::JSet<TYPE, Compare, ALLOC>::Iterator::isValid() const {
+    return skipListType::Iterator::isValid();
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+original::JSet<TYPE, Compare, ALLOC>::JSet(Compare comp, ALLOC alloc)
+        : skipListType(std::move(comp)),
+          set<TYPE, ALLOC>(std::move(alloc)) {}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+original::JSet<TYPE, Compare, ALLOC>::JSet(const JSet& other) : JSet() {
+    this->operator=(other);
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+original::JSet<TYPE, Compare, ALLOC>&
+original::JSet<TYPE, Compare, ALLOC>::operator=(const JSet& other) {
+    if (this == &other){
+        return *this;
+    }
+
+    this->listDestroy();
+    this->head_ = other.listCopy();
+    this->size_ = other.size_;
+    this->compare_ = other.compare_;
+    if constexpr(ALLOC::propagate_on_container_copy_assignment::value) {
+        this->allocator = other.allocator;
+        this->rebind_alloc = other.rebind_alloc;
+    }
+    return *this;
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+original::JSet<TYPE, Compare, ALLOC>::JSet(JSet&& other) noexcept : JSet() {
+    this->operator=(std::move(other));
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+original::JSet<TYPE, Compare, ALLOC>&
+original::JSet<TYPE, Compare, ALLOC>::operator=(JSet&& other) noexcept {
+    if (this == &other){
+        return *this;
+    }
+
+    this->listDestroy();
+    this->head_ = other.head_;
+    other.head_ = other.createNode();
+    this->size_ = other.size_;
+    other.size_ = 0;
+    this->compare_ = std::move(other.compare_);
+    if constexpr(ALLOC::propagate_on_container_move_assignment::value) {
+        this->allocator = std::move(other.allocator);
+        this->rebind_alloc = std::move(other.rebind_alloc);
+    }
+    return *this;
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+original::u_integer original::JSet<TYPE, Compare, ALLOC>::size() const {
+    return this->size_;
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+bool original::JSet<TYPE, Compare, ALLOC>::contains(const TYPE &e) const {
+    return this->find(e);
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+bool original::JSet<TYPE, Compare, ALLOC>::add(const TYPE &e) {
+    return this->insert(e, true);
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+bool original::JSet<TYPE, Compare, ALLOC>::remove(const TYPE &e) {
+    return this->erase(e);
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+original::JSet<TYPE, Compare, ALLOC>::Iterator*
+original::JSet<TYPE, Compare, ALLOC>::begins() const {
+    return new Iterator(this->head_->getPNext(1));
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+original::JSet<TYPE, Compare, ALLOC>::Iterator*
+original::JSet<TYPE, Compare, ALLOC>::ends() const {
+    return new Iterator(this->findLastNode());
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+std::string original::JSet<TYPE, Compare, ALLOC>::className() const {
+    return "JSet";
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+std::string original::JSet<TYPE, Compare, ALLOC>::toString(bool enter) const {
+    std::stringstream ss;
+    ss << this->className();
+    ss << "(";
+    bool first = true;
+    for (auto it = this->begin(); it != this->end(); it.next()){
+        if (!first){
+            ss << ", ";
+        }
+        ss << printable::formatString(it.get());
+        first = false;
+    }
+    ss << ")";
+    if (enter)
+        ss << "\n";
+    return ss.str();
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
+original::JSet<TYPE, Compare, ALLOC>::~JSet() = default;
 
 #endif //SETS_H
