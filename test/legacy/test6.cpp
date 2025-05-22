@@ -1,5 +1,6 @@
 #include <iostream>
 #include "thread.h"
+#include "maps.h"
 
 int main()
 {
@@ -39,5 +40,27 @@ int main()
 
     original::thread t14{task1, 10, "show: "};
     t14.detach();
+
+    auto j1 = original::JMap<int, int>();
+    const auto l = {0, 1, 2, 4, 2, 2};
+    for (const auto& e: l) {
+        if (j1.containsKey(e)){
+            j1[e] += 1;
+        } else {
+            j1.add(e, 1);
+        }
+    }
+    std::cout << "j1: " << j1 << std::endl;
+
+
+    auto j2 = original::JMap<int, int>();
+    for (int i = 0; i < 20; ++i) {
+        j2.add(i, 1);
+    }
+    std::cout << j2 << std::endl;
+    for (int i = 19; i >= 0; --i) {
+        j2.remove(i);
+    }
+    std::cout << j2 << std::endl;
     return 0;
 }
