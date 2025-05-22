@@ -741,6 +741,8 @@ namespace original {
 
             [[nodiscard]] bool hasNext() const override;
 
+            [[nodiscard]] bool hasPrev() const override;
+
             bool atPrev(const iterator<couple<const K_TYPE, V_TYPE>>* other) const override;
 
             bool atNext(const iterator<couple<const K_TYPE, V_TYPE>>* other) const override;
@@ -761,6 +763,46 @@ namespace original {
 
             ~Iterator() override = default;
         };
+
+        friend class Iterator;
+
+        explicit JMap(Compare comp = Compare{}, ALLOC alloc = ALLOC{});
+
+        JMap(const JMap& other);
+
+        JMap& operator=(const JMap& other);
+
+        JMap(JMap&& other) noexcept;
+
+        JMap& operator=(JMap&& other) noexcept;
+
+        [[nodiscard]] u_integer size() const override;
+
+        bool contains(const couple<const K_TYPE, V_TYPE> &e) const override;
+
+        bool add(const K_TYPE &k, const V_TYPE &v) override;
+
+        bool remove(const K_TYPE &k) override;
+
+        [[nodiscard]] bool containsKey(const K_TYPE &k) const override;
+
+        V_TYPE get(const K_TYPE &k) const override;
+
+        bool update(const K_TYPE &key, const V_TYPE &value) override;
+
+        const V_TYPE & operator[](const K_TYPE &k) const override;
+
+        V_TYPE & operator[](const K_TYPE &k) override;
+
+        Iterator* begins() const override;
+
+        Iterator* ends() const override;
+
+        [[nodiscard]] std::string className() const override;
+
+        [[nodiscard]] std::string toString(bool enter) const override;
+
+        ~JMap() override;
     };
 }
 
@@ -1408,6 +1450,11 @@ bool original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::hasNext() const {
 }
 
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+bool original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::hasPrev() const {
+    throw unSupportedMethodError();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
 bool original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::atPrev(
         const iterator<couple<const K_TYPE, V_TYPE>>* other) const {
     const auto other_it = dynamic_cast<const Iterator*>(other);
@@ -1415,7 +1462,7 @@ bool original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::atPrev(
         return false;
     }
     auto cloned_it = ownerPtr(other_it->clone());
-    return this->equalPtr(*cloned_it);
+    return this->equalPtr(cloned_it.get());
 }
 
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
@@ -1459,5 +1506,154 @@ template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
 bool original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::isValid() const {
     return skipListType::Iterator::isValid();
 }
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::JMap(Compare comp, ALLOC alloc)
+    : skipListType(std::move(comp)) ,
+      map<K_TYPE, V_TYPE, ALLOC>(std::move(alloc)) {}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::JMap(const JMap& other) : JMap() {
+    this->operator=(other);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>&
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::operator=(const JMap& other) {
+    if (this == &other){
+        return *this;
+    }
+
+    this->listDestroy();
+    this->head_ = other.listCopy();
+    this->size_ = other.size_;
+    this->compare_ = other.compare_;
+    if constexpr(ALLOC::propagate_on_container_copy_assignment::value) {
+        this->allocator = other.allocator;
+        this->rebind_alloc = other.rebind_alloc;
+    }
+    return *this;
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::JMap(JMap&& other) noexcept : JMap() {
+    this->operator=(std::move(other));
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>&
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::operator=(JMap&& other) noexcept {
+    if (this == &other){
+        return *this;
+    }
+
+    this->listDestroy();
+    this->head_ = other.head_;
+    other.head_ = other.createNode();
+    this->size_ = other.size_;
+    other.size_ = 0;
+    this->compare_ = std::move(other.compare_);
+    if constexpr(ALLOC::propagate_on_container_move_assignment::value) {
+        this->allocator = std::move(other.allocator);
+        this->rebind_alloc = std::move(other.rebind_alloc);
+    }
+    return *this;
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::u_integer original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::size() const {
+    return this->size_;
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+bool original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::contains(const couple<const K_TYPE, V_TYPE> &e) const {
+    return this->containsKey(e.first()) && this->get(e.first()) == e.second();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+bool original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::add(const K_TYPE &k, const V_TYPE &v) {
+    return this->insert(k, v);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+bool original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::remove(const K_TYPE &k) {
+    return this->erase(k);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+bool original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::containsKey(const K_TYPE &k) const {
+    return this->find(k);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+V_TYPE original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::get(const K_TYPE &k) const {
+    auto node = this->find(k);
+    if (!node)
+        throw noElementError();
+    return node->getValue();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+bool original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::update(const K_TYPE &key, const V_TYPE &value) {
+    return this->modify(key, value);
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+const V_TYPE& original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::operator[](const K_TYPE &k) const {
+    auto node = this->find(k);
+    if (!node)
+        throw noElementError();
+    return node->getValue();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+V_TYPE &original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::operator[](const K_TYPE &k) {
+    auto node = this->find(k);
+    if (!node) {
+        this->insert(k, V_TYPE{});
+        node = this->find(k);
+    }
+    return node->getValue();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::begins() const {
+    return new Iterator(this->head_->getPNext(1));
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::ends() const {
+    return new Iterator(this->findLastNode());
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+std::string original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::className() const {
+    return "JMap";
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+std::string original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::toString(bool enter) const {
+    std::stringstream ss;
+    ss << this->className();
+    ss << "(";
+    bool first = true;
+    for (auto it = this->begin(); it != this->end(); it.next()){
+        if (!first){
+            ss << ", ";
+        }
+        ss << "{" << printable::formatString(it.get().template get<0>()) << ": "
+           << printable::formatString(it.get().template get<1>()) << "}";
+        first = false;
+    }
+    ss << ")";
+    if (enter)
+        ss << "\n";
+    return ss.str();
+}
+
+template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::~JMap() = default;
 
 #endif //MAPS_H
