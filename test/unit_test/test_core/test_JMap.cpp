@@ -124,7 +124,7 @@ delete end;
 
 // Boundary Tests
 TEST_F(JMapTest, LargeNumberOfElements) {
-constexpr int count = 10000; // Skip lists can handle large numbers efficiently
+constexpr int count = 100000;
 for (int i = 0; i < count; ++i) {
 EXPECT_TRUE(intMap->add(i, i * 10));
 EXPECT_EQ(intMap->size(), i + 1);

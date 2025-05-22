@@ -148,7 +148,7 @@ TEST_F(TreeMapTest, IteratorEnd) {
 
 // Boundary Tests
 TEST_F(TreeMapTest, LargeNumberOfElements) {
-    constexpr int count = 100000; // Reduced from hashMap test due to tree complexity
+    constexpr int count = 100000;
     for (int i = 0; i < count; ++i) {
         EXPECT_TRUE(intMap->add(i, i * 10));
     }
