@@ -700,7 +700,6 @@ namespace original {
         ~treeMap() override;
     };
 
-    // todo
     template <typename K_TYPE,
               typename V_TYPE,
               typename Compare = increaseComparator<K_TYPE>,
@@ -953,6 +952,7 @@ original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::operator=(const hashMap &other) 
 
     this->buckets = this->bucketsCopy(other.buckets);
     this->size_ = other.size_;
+    this->hash_ = other.hash_;
     if constexpr(ALLOC::propagate_on_container_copy_assignment::value) {
         this->allocator = other.allocator;
         this->rebind_alloc = other.rebind_alloc;
@@ -975,6 +975,7 @@ original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::operator=(hashMap &&other) noexc
     this->buckets = std::move(other.buckets);
     this->size_ = other.size_;
     other.size_ = 0;
+    this->hash_ = std::move(other.hash_);
     if constexpr(ALLOC::propagate_on_container_move_assignment::value) {
         this->allocator = std::move(other.allocator);
         this->rebind_alloc = std::move(other.rebind_alloc);
@@ -1239,7 +1240,6 @@ bool original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::isValid() cons
     return RBTreeType::Iterator::isValid();
 }
 
-
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
 original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::treeMap(Compare comp, ALLOC alloc)
     : RBTreeType(std::move(comp)),
@@ -1260,6 +1260,7 @@ original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::operator=(const treeMap& othe
     this->destroyTree();
     this->root_ = other.treeCopy();
     this->size_ = other.size_;
+    this->compare_ = other.compare_;
     if constexpr(ALLOC::propagate_on_container_copy_assignment::value) {
         this->allocator = other.allocator;
         this->rebind_alloc = other.rebind_alloc;
@@ -1279,10 +1280,12 @@ original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::operator=(treeMap&& other) no
         return *this;
     }
 
+    this->destroyTree();
     this->root_ = other.root_;
     other.root_ = nullptr;
     this->size_ = other.size_;
     other.size_ = 0;
+    this->compare_ = std::move(other.compare_);
     if constexpr(ALLOC::propagate_on_container_move_assignment::value) {
         this->allocator = std::move(other.allocator);
         this->rebind_alloc = std::move(other.rebind_alloc);

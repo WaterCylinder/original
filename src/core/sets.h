@@ -746,6 +746,7 @@ original::hashSet<TYPE, HASH, ALLOC>::operator=(const hashSet &other) {
 
     this->buckets = this->bucketsCopy(other.buckets);
     this->size_ = other.size_;
+    this->hash_ = other.hash_;
     if constexpr(ALLOC::propagate_on_container_copy_assignment::value) {
         this->allocator = other.allocator;
         this->rebind_alloc = other.rebind_alloc;
@@ -768,6 +769,7 @@ original::hashSet<TYPE, HASH, ALLOC>::operator=(hashSet &&other) noexcept {
     this->buckets = std::move(other.buckets);
     this->size_ = other.size_;
     other.size_ = 0;
+    this->hash_ = std::move(other.hash_);
     if constexpr(ALLOC::propagate_on_container_move_assignment::value) {
         this->allocator = std::move(other.allocator);
         this->rebind_alloc = std::move(other.rebind_alloc);
@@ -1009,6 +1011,7 @@ original::treeSet<TYPE, Compare, ALLOC>::operator=(const treeSet& other) {
     this->destroyTree();
     this->root_ = other.treeCopy();
     this->size_ = other.size_;
+    this->compare_ = other.compare_;
     if constexpr(ALLOC::propagate_on_container_copy_assignment::value) {
         this->allocator = other.allocator;
         this->rebind_alloc = other.rebind_alloc;
@@ -1028,10 +1031,12 @@ original::treeSet<TYPE, Compare, ALLOC>::operator=(treeSet&& other) noexcept {
         return *this;
     }
 
+    this->destroyTree();
     this->root_ = other.root_;
     other.root_ = nullptr;
     this->size_ = other.size_;
     other.size_ = 0;
+    this->compare_ = std::move(other.compare_);
     if constexpr(ALLOC::propagate_on_container_move_assignment::value) {
         this->allocator = std::move(other.allocator);
         this->rebind_alloc = std::move(other.rebind_alloc);
