@@ -57,6 +57,8 @@ namespace original {
        skipListNode* head_;
        Compare compare_;
        mutable rebind_alloc_node rebind_alloc{};
+       mutable std::mt19937 gen_{std::random_device{}()};
+       mutable std::uniform_real_distribution<floating> dis_{0.0, 1.0};
 
        class Iterator {
        protected:
@@ -100,7 +102,7 @@ namespace original {
 
        static bool equal(const K_TYPE& key, skipListNode* next);
 
-       static u_integer getRandomLevels();
+       u_integer getRandomLevels();
 
        u_integer getCurLevels() const;
 
@@ -375,11 +377,7 @@ original::u_integer original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::getRando
 {
     constexpr floating p = 0.5;
     u_integer levels = 1;
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<floating> dis(0, 1);
-
-    while (dis(gen) < p) {
+    while (this->dis_(this->gen_) < p) {
         levels += 1;
     }
     return levels;
@@ -482,7 +480,7 @@ bool original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::insert(const K_TYPE& ke
         return false;
     }
 
-    auto new_levels = getRandomLevels();
+    auto new_levels = this->getRandomLevels();
     auto new_node = this->createNode(key, value, new_levels);
     if (new_levels > this->getCurLevels()){
         this->expandCurLevels(new_levels);
