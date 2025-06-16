@@ -14,19 +14,36 @@
 
 /**
  * @file sets.h
- * @brief Implementation of hashSet container
- * @details Provides a hash-based set implementation with:
- * - Average O(1) time complexity for basic operations
- * - Separate chaining collision resolution
- * - Customizable hash function and allocator
- * - Full iterator support
+ * @brief Implementation of set containers
+ * @details Provides three set implementations with different underlying data structures:
+ * 1. hashSet - Hash table based implementation
+ * 2. treeSet - Red-Black Tree based implementation
+ * 3. JSet - Skip List based implementation
  *
- * Key Features:
- * - Inherits from set interface for polymorphic use
- * - Uses hashTable as underlying storage (with bool values)
- * - Provides efficient membership testing
- * - Supports all standard set operations
- * - Exception-safe implementation
+ * Common Features:
+ * - Unique element storage (no duplicates)
+ * - Full iterator support
+ * - Customizable comparison/hash functions
+ * - Customizable allocators
+ * - Exception safety guarantees
+ * - Polymorphic usage through set interface
+ *
+ * Performance Characteristics:
+ * | Container | Insertion    | Lookup   | Deletion | Ordered | Memory Usage |
+ * |-----------|--------------|----------|----------|---------|--------------|
+ * | hashSet   | O(1) avg     | O(1)     | O(1)     | No      | Medium-High  |
+ * | treeSet   | O(log n)     | O(log n) | O(log n) | Yes     | Low          |
+ * | JSet      | O(log n) avg | O(log n) | O(log n) | Yes     | Medium       |
+ *
+ * Usage Guidelines:
+ * - Use hashSet for maximum performance when order doesn't matter
+ * - Use treeSet for ordered traversal and consistent performance
+ * - Use JSet for concurrent scenarios or when probabilistic balance is preferred
+ *
+ * @see set.h For the base interface definition
+ * @see hashTable.h For hashSet implementation details
+ * @see RBTree.h For treeSet implementation details
+ * @see skipList.h For JSet implementation details
  */
 
 namespace original {
@@ -605,9 +622,33 @@ namespace original {
     };
 
 
+    /**
+     * @class JSet
+     * @tparam TYPE Element type (must be comparable)
+     * @tparam Compare Comparison function type (default: increaseComparator<TYPE>)
+     * @tparam ALLOC Allocator type (default: allocator<couple<const TYPE, const bool>>)
+     * @brief Skip List based implementation of the set interface
+     * @details This class provides a concrete implementation of the set interface
+     * using a probabilistic skip list. It combines the functionality of:
+     * - set (interface)
+     * - skipList (storage with bool values)
+     * - iterable (iteration support)
+     *
+     * Performance Characteristics:
+     * - Insertion: Average O(log n), Worst O(n)
+     * - Lookup: Average O(log n), Worst O(n)
+     * - Deletion: Average O(log n), Worst O(n)
+     *
+     * The implementation guarantees:
+     * - Elements sorted according to comparator
+     * - Unique elements (no duplicates)
+     * - Type safety
+     * - Exception safety (basic guarantee)
+     * - Iterator validity unless modified
+     */
     template <typename TYPE,
-              typename Compare = increaseComparator<TYPE>,
-              typename ALLOC = allocator<couple<const TYPE, const bool>>>
+            typename Compare = increaseComparator<TYPE>,
+            typename ALLOC = allocator<couple<const TYPE, const bool>>>
     class JSet final : public skipList<const TYPE, const bool, ALLOC, Compare>,
                        public set<TYPE, ALLOC>,
                        public iterable<const TYPE>,
@@ -621,55 +662,145 @@ namespace original {
         using skipListNode = typename skipListType::skipListNode;
 
     public:
-
+        /**
+         * @class Iterator
+         * @brief Forward iterator for JSet
+         * @details Provides iteration over JSet elements while maintaining:
+         * - Sorted traversal order (according to comparator)
+         * - Safe invalidation detection
+         * - Const-correct access
+         *
+         * Iterator Characteristics:
+         * - Forward iteration only (throws on reverse operations)
+         * - Invalidates on container modification
+         * - Lightweight copy semantics
+         */
         class Iterator final : public skipListType::Iterator,
                                public baseIterator<const TYPE> {
 
+            /**
+             * @brief Compares iterator pointers for equality
+             * @param other Iterator to compare with
+             * @return true if iterators point to same element
+             * @internal
+             */
             bool equalPtr(const iterator<const TYPE>* other) const override;
 
         public:
             friend class JSet;
 
-
+            /**
+             * @brief Constructs iterator pointing to specific skip list node
+             * @param cur Current node pointer
+             * @note Internal constructor, not meant for direct use
+             */
             explicit Iterator(skipListNode* cur);
 
-
+            /**
+             * @brief Copy constructor
+             * @param other Iterator to copy
+             */
             Iterator(const Iterator& other);
 
-
+            /**
+             * @brief Copy assignment operator
+             * @param other Iterator to copy
+             * @return Reference to this iterator
+             */
             Iterator& operator=(const Iterator& other);
 
-
+            /**
+             * @brief Creates a copy of this iterator
+             * @return New iterator instance
+             */
             Iterator* clone() const override;
 
+            /**
+             * @brief Gets iterator class name
+             * @return "JSet::Iterator"
+             */
             [[nodiscard]] std::string className() const override;
 
+            /**
+             * @brief Advances iterator by steps
+             * @param steps Number of positions to advance
+             */
             void operator+=(integer steps) const override;
 
+            /**
+             * @brief Not supported (throws unSupportedMethodError)
+             */
             void operator-=(integer steps) const override;
 
+            /**
+             * @brief Calculates distance between iterators
+             * @param other Iterator to calculate distance to
+             * @return Distance between iterators
+             * @note Returns max/min integer values if iterators are not compatible
+             */
             integer operator-(const iterator<const TYPE>& other) const override;
 
+            /**
+             * @brief Checks if more elements exist in forward direction
+             * @return true if more elements available
+             */
             [[nodiscard]] bool hasNext() const override;
 
+            /**
+             * @brief Not supported (throws unSupportedMethodError)
+             */
             [[nodiscard]] bool hasPrev() const override;
 
+            /**
+             * @brief Checks if other is previous to this
+             * @param other Iterator to check
+             * @return true if other is previous
+             */
             bool atPrev(const iterator<const TYPE>* other) const override;
 
+            /**
+             * @brief Checks if other is next to this
+             * @param other Iterator to check
+             * @return true if other is next
+             */
             bool atNext(const iterator<const TYPE>* other) const override;
 
+            /**
+             * @brief Moves to next element
+             */
             void next() const override;
 
+            /**
+             * @brief Not supported (throws unSupportedMethodError)
+             */
             void prev() const override;
 
+            /**
+             * @brief Not supported (throws unSupportedMethodError)
+             */
             Iterator* getPrev() const override;
 
+            /**
+             * @brief Gets current element (non-const)
+             * @return Reference to current element
+             */
             const TYPE& get() override;
 
+            /**
+             * @brief Gets current element (const)
+             * @return Copy of current element
+             */
             const TYPE get() const override;
 
+            /**
+             * @brief Not supported (throws unSupportedMethodError)
+             */
             void set(const TYPE& data) override;
 
+            /**
+             * @brief Checks if iterator is valid
+             * @return true if iterator points to valid element
+             */
             [[nodiscard]] bool isValid() const override;
 
             ~Iterator() override = default;
@@ -677,32 +808,109 @@ namespace original {
 
         friend class Iterator;
 
+        /**
+         * @brief Constructs empty JSet
+         * @param comp Comparison function to use
+         * @param alloc Allocator to use
+         */
         explicit JSet(Compare comp = Compare{}, ALLOC alloc = ALLOC{});
 
+        /**
+         * @brief Copy constructor
+         * @param other JSet to copy
+         * @details Performs deep copy of all elements and skip list structure
+         * @note Allocator is copied if propagate_on_container_copy_assignment is true
+         */
         JSet(const JSet& other);
 
+        /**
+         * @brief Copy assignment operator
+         * @param other JSet to copy
+         * @return Reference to this JSet
+         * @details Performs deep copy of all elements and skip list structure
+         * @note Allocator is copied if propagate_on_container_copy_assignment is true
+         */
         JSet& operator=(const JSet& other);
 
+        /**
+         * @brief Move constructor
+         * @param other JSet to move from
+         * @details Transfers ownership of resources from other
+         * @note Leaves other in valid but unspecified state
+         */
         JSet(JSet&& other) noexcept;
 
+        /**
+         * @brief Move assignment operator
+         * @param other JSet to move from
+         * @return Reference to this JSet
+         * @details Transfers ownership of resources from other
+         * @note Leaves other in valid but unspecified state
+         * @note Allocator is moved if propagate_on_container_move_assignment is true
+         */
         JSet& operator=(JSet&& other) noexcept;
 
+        /**
+         * @brief Gets number of elements
+         * @return Current size
+         */
         [[nodiscard]] u_integer size() const override;
 
+        /**
+         * @brief Checks if element exists
+         * @param e Element to check
+         * @return true if element exists
+         */
         bool contains(const TYPE &e) const override;
 
+        /**
+         * @brief Adds new element
+         * @param e Element to add
+         * @return true if added, false if element existed
+         */
         bool add(const TYPE &e) override;
 
+        /**
+         * @brief Removes element
+         * @param e Element to remove
+         * @return true if removed, false if element didn't exist
+         * @note Average O(log n), worst case O(n) time complexity
+         */
         bool remove(const TYPE &e) override;
 
+        /**
+         * @brief Gets begin iterator
+         * @return New iterator at first element (minimum element)
+         * @note O(log n) time complexity to find first element
+         */
         Iterator* begins() const override;
 
+        /**
+         * @brief Gets end iterator
+         * @return New iterator at last element (maximum element)
+         * @note O(log n) time complexity to find last element
+         */
         Iterator* ends() const override;
 
+        /**
+         * @brief Gets class name
+         * @return "JSet"
+         */
         [[nodiscard]] std::string className() const override;
 
+        /**
+         * @brief Converts to string representation
+         * @param enter Add newline if true
+         * @return String representation of elements
+         * @note O(n) time complexity
+         */
         [[nodiscard]] std::string toString(bool enter) const override;
 
+        /**
+         * @brief Destructor
+         * @details Cleans up all skip list nodes and allocated memory
+         * @note O(n) time complexity
+         */
         ~JSet() override;
     };
 }

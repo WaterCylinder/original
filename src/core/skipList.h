@@ -5,129 +5,369 @@
 #include "vector.h"
 #include "couple.h"
 
+/**
+ * @file skipList.h
+ * @brief Skip List container implementation
+ * @details Provides a probabilistic alternative to balanced trees with:
+ * - Expected O(log n) search/insert/delete operations
+ * - Multi-level linked list structure
+ * - Custom comparator support
+ * - STL-style allocator support
+ *
+ * Key Features:
+ * - Probabilistic balancing with O(log n) expected performance
+ * - Simpler implementation than balanced trees
+ * - Sorted element storage
+ * - Customizable comparison and allocation
+ * - Full iterator support
+ * - Exception safety (basic guarantee)
+ */
 
 namespace original {
 
-   template<typename K_TYPE,
+    /**
+     * @class skipList
+     * @tparam K_TYPE Key type (must be comparable)
+     * @tparam V_TYPE Value type
+     * @tparam ALLOC Allocator type (default: allocator<K_TYPE>)
+     * @tparam Compare Comparison function type (default: increaseComparator<K_TYPE>)
+     * @brief Skip List container implementation
+     * @details This class provides a probabilistic alternative to balanced trees with:
+     * - Expected O(log n) search/insert/delete operations
+     * - Multi-level linked list structure
+     * - Custom comparator support
+     * - STL-style allocator support
+     */
+    template<typename K_TYPE,
             typename V_TYPE,
             typename ALLOC = allocator<K_TYPE>,
             typename Compare = increaseComparator<K_TYPE>>
-   class skipList {
-   protected:
-      class skipListNode {
-          couple<const K_TYPE, V_TYPE> data_;
-          vector<skipListNode*> next_;
+    class skipList {
+    protected:
+        /**
+         * @class skipListNode
+         * @brief Internal node class for Skip List
+         * @details Represents a single node in the list with:
+         * - Key-value pair storage
+         * - Vector of next pointers for multiple levels
+         */
+        class skipListNode {
+            couple<const K_TYPE, V_TYPE> data_;  ///< Key-value pair storage
+            vector<skipListNode*> next_;         ///< Vector of next pointers for each level
 
-          using rebind_alloc_pointer = typename ALLOC::template rebind_alloc<skipListNode*>;
-      public:
-          friend class skipList;
+            using rebind_alloc_pointer = typename ALLOC::template rebind_alloc<skipListNode*>;
+        public:
+            friend class skipList;
 
-          explicit skipListNode(const K_TYPE& key = K_TYPE{}, const V_TYPE& value = V_TYPE{},
-                                u_integer levels = 1, std::initializer_list<skipListNode*> next = {});
+            /**
+             * @brief Constructs a new skipListNode
+             * @param key Key to store
+             * @param value Value to store
+             * @param levels Number of levels for this node
+             * @param next Initializer list of next pointers
+             */
+            explicit skipListNode(const K_TYPE& key = K_TYPE{}, const V_TYPE& value = V_TYPE{},
+                                  u_integer levels = 1, std::initializer_list<skipListNode*> next = {});
 
-          couple<const K_TYPE, V_TYPE>& getVal();
+            /**
+             * @brief Gets key-value pair (non-const)
+             * @return Reference to key-value pair
+             */
+            couple<const K_TYPE, V_TYPE>& getVal();
 
-          const couple<const K_TYPE, V_TYPE>& getVal() const;
+            /**
+             * @brief Gets key-value pair (const)
+             * @return Const reference to key-value pair
+             */
+            const couple<const K_TYPE, V_TYPE>& getVal() const;
 
-          const K_TYPE& getKey() const;
+            /**
+             * @brief Gets key
+             * @return Const reference to key
+             */
+            const K_TYPE& getKey() const;
 
-          const V_TYPE& getValue() const;
+            /**
+             * @brief Gets value (const)
+             * @return Const reference to value
+             */
+            const V_TYPE& getValue() const;
 
-          V_TYPE& getValue();
+            /**
+             * @brief Gets value (non-const)
+             * @return Reference to value
+             */
+            V_TYPE& getValue();
 
-          [[nodiscard]] u_integer getLevels() const;
+            /**
+             * @brief Gets number of levels for this node
+             * @return Number of levels
+             */
+            [[nodiscard]] u_integer getLevels() const;
 
-          void expandLevels(u_integer new_levels);
+            /**
+             * @brief Expands node to more levels
+             * @param new_levels New total number of levels
+             */
+            void expandLevels(u_integer new_levels);
 
-          void shrinkLevels(u_integer new_levels);
+            /**
+             * @brief Shrinks node to fewer levels
+             * @param new_levels New total number of levels
+             */
+            void shrinkLevels(u_integer new_levels);
 
-          void setValue(const V_TYPE& value);
+            /**
+             * @brief Sets new value
+             * @param value New value to set
+             */
+            void setValue(const V_TYPE& value);
 
-          skipListNode* getPNext(u_integer levels) const;
+            /**
+             * @brief Gets next node at specified level
+             * @param levels Level to query (1-based)
+             * @return Pointer to next node at specified level
+             */
+            skipListNode* getPNext(u_integer levels) const;
 
-          void setPNext(u_integer levels, skipListNode* next);
+            /**
+             * @brief Sets next node at specified level
+             * @param levels Level to modify (1-based)
+             * @param next New next node to set
+             */
+            void setPNext(u_integer levels, skipListNode* next);
 
-          static void connect(u_integer levels, skipListNode* prev, skipListNode* next);
-      };
+            /**
+             * @brief Connects two nodes at specified level
+             * @param levels Level to connect at (1-based)
+             * @param prev Previous node
+             * @param next Next node
+             */
+            static void connect(u_integer levels, skipListNode* prev, skipListNode* next);
+        };
 
-       using rebind_alloc_node = typename ALLOC::template rebind_alloc<skipListNode>;
-       using rebind_alloc_pointer = typename ALLOC::template rebind_alloc<skipListNode*>;
+        using rebind_alloc_node = typename ALLOC::template rebind_alloc<skipListNode>;       ///< Rebound allocator for nodes
+        using rebind_alloc_pointer = typename ALLOC::template rebind_alloc<skipListNode*>;  ///< Rebound allocator for pointers
 
-       u_integer size_;
-       skipListNode* head_;
-       Compare compare_;
-       mutable rebind_alloc_node rebind_alloc{};
-       mutable std::mt19937 gen_{std::random_device{}()};
-       mutable std::uniform_real_distribution<floating> dis_{0.0, 1.0};
+        u_integer size_;                     ///< Number of elements
+        skipListNode* head_;                 ///< Head node pointer
+        Compare compare_;                     ///< Comparison function
+        mutable rebind_alloc_node rebind_alloc{};  ///< Node allocator
+        mutable std::mt19937 gen_{std::random_device{}()};  ///< Random number generator
+        mutable std::uniform_real_distribution<floating> dis_{0.0, 1.0};  ///< Uniform distribution for level generation
 
-       class Iterator {
-       protected:
-           mutable skipListNode* cur_;
+        /**
+         * @class Iterator
+         * @brief Forward iterator for skipList
+         * @details Provides iteration over list elements in sorted order
+         */
+        class Iterator {
+        protected:
+            mutable skipListNode* cur_;  ///< Current node pointer
 
-           explicit Iterator(skipListNode* cur = nullptr);
+            /**
+             * @brief Constructs iterator
+             * @param cur Current node pointer
+             */
+            explicit Iterator(skipListNode* cur = nullptr);
 
-           Iterator(const Iterator& other);
+            /// Copy constructor
+            Iterator(const Iterator& other);
 
-           Iterator& operator=(const Iterator& other);
+            /// Copy assignment operator
+            Iterator& operator=(const Iterator& other);
 
-           [[nodiscard]] bool hasNext() const;
+            /**
+             * @brief Checks if more elements exist forward
+             * @return true if more elements available
+             */
+            [[nodiscard]] bool hasNext() const;
 
-           void next() const;
+            /**
+             * @brief Moves to next element
+             */
+            void next() const;
 
-           Iterator* clone() const;
+            /**
+             * @brief Creates a copy of this iterator
+             * @return Pointer to new iterator
+             */
+            Iterator* clone() const;
 
-           void operator+=(integer steps) const;
+            /**
+             * @brief Advances iterator by steps
+             * @param steps Number of positions to advance
+             */
+            void operator+=(integer steps) const;
 
-           integer operator-(const Iterator& other) const;
+            /**
+             * @brief Calculates distance between iterators
+             * @param other Iterator to compare with
+             * @return Distance between iterators
+             */
+            integer operator-(const Iterator& other) const;
 
-           couple<const K_TYPE, V_TYPE>& get();
+            /**
+             * @brief Gets current element (non-const)
+             * @return Reference to current key-value pair
+             */
+            couple<const K_TYPE, V_TYPE>& get();
 
-           couple<const K_TYPE, V_TYPE> get() const;
+            /**
+             * @brief Gets current element (const)
+             * @return Copy of current key-value pair
+             */
+            couple<const K_TYPE, V_TYPE> get() const;
 
-           [[nodiscard]] bool isValid() const;
+            /**
+             * @brief Checks if iterator is valid
+             * @return true if iterator points to valid element
+             */
+            [[nodiscard]] bool isValid() const;
 
-           static integer ptrDistance(const Iterator* start, const Iterator* end);
-       };
+            /**
+             * @brief Calculates distance between two iterators
+             * @param start Starting iterator
+             * @param end Ending iterator
+             * @return Distance between iterators
+             */
+            static integer ptrDistance(const Iterator* start, const Iterator* end);
+        };
 
-       friend Iterator;
+        friend Iterator;
 
-       skipListNode* createNode(const K_TYPE& key = K_TYPE{}, const V_TYPE& value = V_TYPE{},
-                                u_integer levels = 1, std::initializer_list<skipListNode*> next = {}) const;
+        /**
+         * @brief Creates a new node with given parameters
+         * @param key Key for new node
+         * @param value Value for new node
+         * @param levels Number of levels for new node
+         * @param next Initializer list of next pointers
+         * @return Pointer to newly created node
+         * @details Uses allocator to construct node in place
+         */
+        skipListNode* createNode(const K_TYPE& key = K_TYPE{}, const V_TYPE& value = V_TYPE{},
+                                 u_integer levels = 1, std::initializer_list<skipListNode*> next = {}) const;
 
-       void destroyNode(skipListNode* node) const;
+        /**
+         * @brief Destroys a node and deallocates memory
+         * @param node Node to destroy
+         * @details Uses allocator to destroy and deallocate node
+         */
+        void destroyNode(skipListNode* node) const;
 
-       bool highPriority(skipListNode* cur, skipListNode* next) const;
+        /**
+         * @brief Compares priority between two nodes
+         * @param cur First node to compare
+         * @param next Second node to compare
+         * @return true if cur has higher priority than next
+         * @details Uses the list's comparison function
+         */
+        bool highPriority(skipListNode* cur, skipListNode* next) const;
 
-       bool highPriority(const K_TYPE& key, skipListNode* next) const;
+        /**
+         * @brief Compares priority between a key and a node
+         * @param key Key to compare
+         * @param next Node to compare
+         * @return true if key has higher priority than node's key
+         * @details Uses the list's comparison function
+         */
+        bool highPriority(const K_TYPE& key, skipListNode* next) const;
 
-       static bool equal(const K_TYPE& key, skipListNode* next);
+        /**
+         * @brief Checks if key matches node's key
+         * @param key Key to compare
+         * @param next Node to compare
+         * @return true if key matches node's key
+         */
+        static bool equal(const K_TYPE& key, skipListNode* next);
 
-       u_integer getRandomLevels();
+        /**
+         * @brief Generates random number of levels for new node
+         * @return Random number of levels (geometric distribution)
+         */
+        u_integer getRandomLevels();
 
-       u_integer getCurLevels() const;
+        /**
+         * @brief Gets current number of levels in list
+         * @return Current maximum number of levels
+         */
+        u_integer getCurLevels() const;
 
-       void expandCurLevels(u_integer new_levels);
+        /**
+         * @brief Expands list to more levels
+         * @param new_levels New total number of levels
+         */
+        void expandCurLevels(u_integer new_levels);
 
-       void shrinkCurLevels(u_integer new_levels);
+        /**
+         * @brief Shrinks list to fewer levels
+         * @param new_levels New total number of levels
+         */
+        void shrinkCurLevels(u_integer new_levels);
 
-       skipListNode* listCopy() const;
+        /**
+         * @brief Creates a deep copy of the list
+         * @return Pointer to head of copied list
+         */
+        skipListNode* listCopy() const;
 
-       skipListNode* findLastNode() const;
+        /**
+         * @brief Finds last node in list
+         * @return Pointer to last node
+         */
+        skipListNode* findLastNode() const;
 
-       explicit skipList(Compare compare = Compare{});
+        /**
+         * @brief Constructs skipList with given comparison function
+         * @param compare Comparison function to use
+         */
+        explicit skipList(Compare compare = Compare{});
 
-       skipListNode* find(const K_TYPE& key) const;
+        /**
+         * @brief Finds node with given key
+         * @param key Key to search for
+         * @return Pointer to found node, or nullptr if not found
+         * @details Uses multi-level search for efficiency
+         */
+        skipListNode* find(const K_TYPE& key) const;
 
-       bool modify(const K_TYPE& key, const V_TYPE& value);
+        /**
+         * @brief Modifies value for existing key
+         * @param key Key to modify
+         * @param value New value to set
+         * @return true if key was found and modified
+         */
+        bool modify(const K_TYPE& key, const V_TYPE& value);
 
-       bool insert(const K_TYPE& key, const V_TYPE& value);
+        /**
+         * @brief Inserts new key-value pair
+         * @param key Key to insert
+         * @param value Value to insert
+         * @return true if inserted, false if key already existed
+         * @details Automatically adjusts node levels probabilistically
+         */
+        bool insert(const K_TYPE& key, const V_TYPE& value);
 
-       bool erase(const K_TYPE& key);
+        /**
+         * @brief Erases node with given key
+         * @param key Key to erase
+         * @return true if key was found and erased
+         * @details Automatically adjusts list levels if needed
+         */
+        bool erase(const K_TYPE& key);
 
-       void listDestroy() noexcept;
+        /**
+         * @brief Destroys entire list and deallocates all nodes
+         * @details Uses sequential traversal to destroy all nodes
+         */
+        void listDestroy() noexcept;
 
-       ~skipList();
-   };
+        /**
+         * @brief Destructor
+         * @details Cleans up all list nodes and allocated memory
+         */
+        ~skipList();
+    };
 }
 
 template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
