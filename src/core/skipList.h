@@ -476,31 +476,33 @@ bool original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::modify(const K_TYPE& ke
 template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 bool original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::insert(const K_TYPE& key, const V_TYPE& value)
 {
-    if (this->find(key)){
-        return false;
-    }
-
-    auto new_levels = this->getRandomLevels();
-    auto new_node = this->createNode(key, value, new_levels);
-    if (new_levels > this->getCurLevels()){
+    u_integer new_levels = this->getRandomLevels();
+    if (new_levels > this->getCurLevels()) {
         this->expandCurLevels(new_levels);
     }
-    vector<skipListNode*> prev_nodes{new_levels, rebind_alloc_pointer{}, this->head_};
-    vector<skipListNode*> next_nodes{new_levels, rebind_alloc_pointer{}, nullptr};
-    for (u_integer i = 0; i < new_levels; ++i) {
-        while (true){
-            skipListNode* cur_node = prev_nodes[i];
-            skipListNode* next_node = cur_node->getPNext(i + 1);
-            if (!next_node || this->highPriority(key, next_node)){
-                next_nodes[i] = next_node;
-                break;
+
+    vector<skipListNode*> update(new_levels, rebind_alloc_pointer{}, nullptr);
+    skipListNode* cur = this->head_;
+
+    for (u_integer i = this->getCurLevels(); i > 0; --i) {
+        while (cur->getPNext(i) && !this->highPriority(key, cur->getPNext(i))) {
+            cur = cur->getPNext(i);
+        }
+        if (i <= new_levels) {
+            update[i - 1] = cur;
+
+            if (equal(key, cur->getPNext(i))) {
+                this->destroyNode(this->createNode(key, value));
+                return false;
             }
-            prev_nodes[i] = next_node;
         }
     }
+
+    auto new_node = this->createNode(key, value, new_levels);
     for (u_integer i = 0; i < new_levels; ++i) {
-        skipListNode::connect(i + 1, prev_nodes[i], new_node);
-        skipListNode::connect(i + 1, new_node, next_nodes[i]);
+        auto new_next = update[i]->getPNext(i + 1);
+        skipListNode::connect(i + 1, new_node, new_next);
+        skipListNode::connect(i + 1, update[i], new_node);
     }
 
     this->size_ += 1;
