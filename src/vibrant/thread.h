@@ -189,6 +189,7 @@ inline void original::pThread::join() {
             throw sysError();
         }
         this->is_joinable = false;
+        this->handle = {};
     }
 }
 
@@ -199,6 +200,7 @@ inline void original::pThread::detach() {
             throw sysError();
         }
         this->is_joinable = false;
+        this->handle = {};
     }
 }
 
