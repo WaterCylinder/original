@@ -491,8 +491,7 @@ bool original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::insert(const K_TYPE& ke
         if (i <= new_levels) {
             update[i - 1] = cur;
 
-            if (equal(key, cur->getPNext(i))) {
-                this->destroyNode(this->createNode(key, value));
+            if (equal(key, cur) && cur != this->head_) {
                 return false;
             }
         }
