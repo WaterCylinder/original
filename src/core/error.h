@@ -189,6 +189,15 @@ class allocateError final : public error
     }
 };
 
+class sysError final : public error
+{
+public:
+    [[nodiscard]] auto what() const noexcept -> const char* override
+    {
+        return "A sys error triggered.";
+    }
+};
+
 } // namespace original
 
 // ----------------- Definitions of error.h -----------------

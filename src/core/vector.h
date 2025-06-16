@@ -559,7 +559,7 @@ original::vector<TYPE, ALLOC>::vector(u_integer size, ALLOC alloc, ARGS&&... arg
 template<typename TYPE, typename ALLOC>
     original::vector<TYPE, ALLOC>::vector(const u_integer size, ALLOC alloc)
     : baseList<TYPE, ALLOC>(std::move(alloc)), size_(size),
-      max_size(size * 4 / 3), inner_begin(size / 3 - 1), body(nullptr) {
+      max_size(size * 4 / 3), inner_begin(size / 3 >= 1 ? size / 3 - 1 : 0), body(nullptr) {
 }
 
     template <typename TYPE, typename ALLOC>

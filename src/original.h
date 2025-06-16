@@ -11,6 +11,7 @@
  */
 
 #include "core/core.h"
+#include "vibrant/vibrant.h"
 
 /**
  * @namespace original

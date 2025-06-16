@@ -115,7 +115,7 @@ TEST_F(TreeSetTest, IteratorEnd) {
 
 // Boundary Tests
 TEST_F(TreeSetTest, LargeNumberOfElements) {
-    constexpr int count = 100000; // Reduced from hashSet test due to tree complexity
+    constexpr int count = 100000;
     for (int i = 0; i < count; ++i) {
         EXPECT_TRUE(intSet->add(i));
     }

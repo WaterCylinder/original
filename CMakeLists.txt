@@ -2,10 +2,10 @@
 
 cmake_minimum_required(VERSION 3.30)
 project(original LANGUAGES CXX)
-set(ORIGINAL_VERSION 0.1.0)
+set(ORIGINAL_VERSION 0.1.1)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
@@ -15,12 +15,14 @@ set(ORIGINAL_SRC_DIR ${CMAKE_SOURCE_DIR}/src)
 file(GLOB ORIGINAL_HEADERS
         "${ORIGINAL_SRC_DIR}/original.h"
         "${ORIGINAL_SRC_DIR}/core/*.h"
+        "${ORIGINAL_SRC_DIR}/vibrant/*.h"
 )
 add_library(original STATIC ${ORIGINAL_HEADERS} src/original.cpp)
 
 target_include_directories(original PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/core>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/vibrant>
         $<INSTALL_INTERFACE:include>
 )
 

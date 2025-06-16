@@ -4,6 +4,7 @@
 #include <limits>
 
 #include "iterator.h"
+#include "ownerPtr.h"
 #include "wrapper.h"
 #include "error.h"
 #include "maths.h"
@@ -187,13 +188,11 @@ namespace original
     template <typename TYPE>
     auto original::stepIterator<TYPE>::ptrDistance(const stepIterator* start, const stepIterator* end) -> integer
     {
-        auto* s = start->clone();
-        auto* e = end->clone();
+        auto s = ownerPtr(start->clone());
+        auto e = ownerPtr(end->clone());
         integer dis = 0;
         while (s->isValid()){
             if (s->_ptr == e->_ptr){
-                delete s;
-                delete e;
                 return dis;
             }
             dis += 1;
@@ -202,8 +201,6 @@ namespace original
         if (e->isValid()){
             dis = std::numeric_limits<integer>::max();
         }
-        delete s;
-        delete e;
         return dis;
     }
 

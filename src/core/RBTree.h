@@ -655,16 +655,24 @@ void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::prev() const
 template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::operator+=(const integer steps) const
 {
-    for (integer i = 0; i < steps; ++i) {
-        this->next();
+    if (steps < 0){
+        this->operator-=(-steps);
+    } else {
+        for (integer i = 0; i < steps; ++i) {
+            this->next();
+        }
     }
 }
 
 template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
 void original::RBTree<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::operator-=(integer steps) const
 {
-    for (integer i = 0; i < steps; ++i) {
-        this->prev();
+    if (steps < 0){
+        this->operator+=(-steps);
+    } else {
+        for (integer i = 0; i < steps; ++i) {
+            this->prev();
+        }
     }
 }
 
