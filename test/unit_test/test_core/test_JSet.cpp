@@ -111,7 +111,7 @@ TEST_F(JSetTest, MoveAssignment) {
 
 // 大量元素插入
 TEST_F(JSetTest, LargeNumberOfElements) {
-    constexpr int count = 10000;
+    constexpr int count = 100000;
     for (int i = 0; i < count; ++i) {
         EXPECT_TRUE(intSet->add(i));
     }
