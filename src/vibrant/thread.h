@@ -85,6 +85,12 @@ namespace original {
 
         thread& operator=(thread&& other) noexcept;
 
+        [[nodiscard]] bool joinable() const;
+
+        explicit operator bool() const;
+
+        bool operator!() const;
+
         void join();
 
         void detach();
@@ -249,6 +255,18 @@ inline original::thread::~thread()
     if (this->thread_.joinable()) {
         this->will_join ? this->thread_.join() : this->thread_.detach();
     }
+}
+
+bool original::thread::joinable() const {
+    return this->thread_.joinable();
+}
+
+original::thread::operator bool() const {
+    return this->thread_.operator bool();
+}
+
+bool original::thread::operator!() const {
+    return this->thread_.operator!();
 }
 
 #endif //THREAD_H
