@@ -45,3 +45,4 @@ if(NOT TARGET GTest::gtest)
 endif()
 
 add_subdirectory(test_core)
+add_subdirectory(test_vibrant)
