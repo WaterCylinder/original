@@ -236,7 +236,7 @@ original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::Iterator(const Ite
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
-original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator&
+typename original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator&
 original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::operator=(const Iterator& other) {
     if (this == &other){
         return *this;
@@ -257,7 +257,7 @@ void original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::next() const 
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
-original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator*
+typename original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator*
 original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::clone() const {
     return new Iterator(*this);
 }
