@@ -24,9 +24,8 @@ namespace original {
 
         [[nodiscard]] virtual bool valid() const = 0;
 
-    public:
         explicit threadBase(bool is_joinable = false);
-
+    public:
         virtual ~threadBase() noexcept(false);
 
         threadBase(const threadBase&) = delete;
