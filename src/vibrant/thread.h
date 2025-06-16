@@ -7,94 +7,257 @@
 #include "ownerPtr.h"
 
 
+/**
+ * @file thread.h
+ * @brief Thread management utilities
+ * @details Provides a layered threading abstraction with:
+ * - Low-level POSIX thread wrapper (pThread)
+ * - High-level RAII thread management (thread)
+ * - Exception-safe thread operations
+ * - Flexible join/detach policies
+ *
+ * Key Features:
+ * - Three-layer thread abstraction:
+ *   1. threadBase - Common interface and state management
+ *   2. pThread - POSIX thread wrapper
+ *   3. thread - High-level RAII wrapper
+ * - Automatic resource management
+ * - Move-only semantics
+ * - Exception safety (basic guarantee)
+ * - Configurable join/detach behavior
+ *
+ * Thread Safety:
+ * - Individual thread objects are not thread-safe
+ * - External synchronization required for shared access
+ *
+ * Exception Handling:
+ * - Throws sysError for thread operation failures
+ * - Destructors may throw if thread is joinable and not joined/detached
+ */
+
 namespace original {
+    /**
+     * @class threadBase
+     * @brief Base class for thread implementations
+     * @details Provides common thread functionality and interface
+     *
+     * Key Features:
+     * - Manages thread joinable state
+     * - Provides basic thread validity checks
+     * - Non-copyable but movable
+     */
     class threadBase {
     protected:
+        /**
+         * @class threadData
+         * @tparam Callback Type of the thread callback function
+         * @brief Wrapper for thread execution data
+         */
         template<typename Callback>
         class threadData
         {
             Callback c;
         public:
+            /**
+             * @brief Construct thread data wrapper
+             * @tparam Callback Callback function type
+             * @param c Callback to store
+             */
             explicit threadData(Callback c);
 
+            /**
+             * @brief Thread entry point wrapper
+             * @tparam Callback Callback function type
+             * @param arg Pointer to threadData instance
+             * @return Always nullptr
+             * @throw sysError if callback throws an error
+             */
             static void* run(void* arg);
         };
 
         bool is_joinable;
 
+        /**
+         * @brief Check if thread is valid
+         * @return true if thread is valid
+         */
         [[nodiscard]] virtual bool valid() const = 0;
 
+        /**
+         * @brief Construct thread base
+         * @param is_joinable Whether thread is joinable
+         */
         explicit threadBase(bool is_joinable = false);
     public:
+        /**
+         * @brief Destructor
+         * @throw sysError if thread is joinable but not joined/detached
+         */
         virtual ~threadBase() noexcept(false);
 
         threadBase(const threadBase&) = delete;
         threadBase& operator=(const threadBase&) = delete;
 
         threadBase(threadBase&& other) noexcept = default;
-
         threadBase& operator=(threadBase&& other) noexcept = default;
 
+        /**
+         * @brief Check if thread is valid
+         * @return true if thread is valid
+         */
         explicit operator bool() const;
 
+        /**
+         * @brief Check if thread is not valid
+         * @return true if thread is not valid
+         */
         bool operator!() const;
 
+        /**
+         * @brief Check if thread is joinable
+         * @return true if thread is joinable
+         */
         [[nodiscard]] bool joinable() const;
     };
 
+    /**
+     * @class pThread
+     * @brief POSIX thread implementation
+     * @details Wrapper around pthread with RAII semantics
+     */
     class pThread final : public threadBase {
         pthread_t handle;
 
         [[nodiscard]] bool valid() const override;
     public:
+        /**
+         * @brief Construct empty (invalid) thread
+         */
         explicit pThread();
 
+        /**
+         * @brief Construct and start POSIX thread
+         * @tparam Callback Callback function type
+         * @tparam ARGS Argument types for callback
+         * @param c Callback function
+         * @param args Arguments to forward to callback
+         * @throw sysError if thread creation fails
+         */
         template<typename Callback, typename... ARGS>
         explicit pThread(Callback c, ARGS&&... args);
 
         pThread(pThread&& other) noexcept;
-
         pThread& operator=(pThread&& other) noexcept;
 
+        /**
+         * @brief Wait for thread to complete
+         * @throw sysError if join fails
+         */
         void join();
 
+        /**
+         * @brief Detach thread (allow it to run independently)
+         * @throw sysError if detach fails
+         */
         void detach();
     };
 
+    /**
+     * @class thread
+     * @brief High-level thread wrapper
+     * @details Manages thread lifetime with automatic join/detach
+     */
     class thread {
-
         pThread thread_;
         bool will_join;
     public:
+        /**
+         * @brief Construct empty thread
+         */
         explicit thread();
 
+        /**
+         * @brief Construct and start thread with callback
+         * @tparam Callback Callback function type
+         * @tparam ARGS Argument types for callback
+         * @param c Callback function
+         * @param args Arguments to forward to callback
+         * @note Will automatically join on destruction
+         */
         template<typename Callback, typename... ARGS>
         explicit thread(Callback c, ARGS&&... args);
 
+        /**
+         * @brief Construct and start thread with callback and join policy
+         * @tparam Callback Callback function type
+         * @tparam ARGS Argument types for callback
+         * @param c Callback function
+         * @param will_join Whether to join on destruction
+         * @param args Arguments to forward to callback
+         */
         template<typename Callback, typename... ARGS>
         explicit thread(Callback c, bool will_join, ARGS&&... args);
 
+        /**
+         * @brief Construct from existing pThread
+         * @param p_thread Thread to wrap
+         * @param will_join Whether to join on destruction
+         */
         explicit thread(pThread p_thread, bool will_join = true);
 
         thread(const thread&) = delete;
         thread& operator=(const thread&) = delete;
 
+        /**
+         * @brief Move constructor
+         * @param other Thread to move from
+         * @note Defaults to join policy of source thread
+         */
         thread(thread&& other) noexcept;
 
+        /**
+         * @brief Move constructor with explicit join policy
+         * @param other Thread to move from
+         * @param will_join Override join policy
+         */
         thread(thread&& other, bool will_join) noexcept;
 
         thread& operator=(thread&& other) noexcept;
 
+        /**
+         * @brief Check if thread is joinable
+         * @return true if thread is joinable
+         */
         [[nodiscard]] bool joinable() const;
 
+        /**
+         * @brief Check if thread is valid
+         * @return true if thread is valid
+         */
         explicit operator bool() const;
 
+        /**
+         * @brief Check if thread is not valid
+         * @return true if thread is not valid
+         */
         bool operator!() const;
 
+        /**
+         * @brief Wait for thread to complete
+         * @throw sysError if join fails
+         */
         void join();
 
+        /**
+         * @brief Detach thread (allow it to run independently)
+         * @throw sysError if detach fails
+         */
         void detach();
 
+        /**
+         * @brief Destructor
+         * @note Automatically joins or detaches based on will_join policy
+         */
         ~thread();
     };
 }
