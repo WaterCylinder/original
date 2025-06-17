@@ -83,6 +83,8 @@ namespace original {
          */
         [[nodiscard]] virtual bool valid() const = 0;
 
+        virtual ul_integer id() const = 0;
+
         /**
          * @brief Construct thread base
          * @param is_joinable Whether thread is joinable
@@ -148,6 +150,8 @@ namespace original {
 
         pThread(pThread&& other) noexcept;
         pThread& operator=(pThread&& other) noexcept;
+
+        ul_integer id() const override;
 
         /**
          * @brief Wait for thread to complete
@@ -223,6 +227,8 @@ namespace original {
         thread(thread&& other, bool will_join) noexcept;
 
         thread& operator=(thread&& other) noexcept;
+
+        ul_integer id() const;
 
         /**
          * @brief Check if thread is joinable
@@ -350,6 +356,12 @@ inline original::pThread& original::pThread::operator=(pThread&& other) noexcept
     return *this;
 }
 
+original::ul_integer original::pThread::id() const {
+    ul_integer id = 0;
+    std::memcpy(&id, &this->handle, sizeof(pthread_t));
+    return id;
+}
+
 inline void original::pThread::join() {
     if (this->is_joinable){
         if (const int code = pthread_join(this->handle, nullptr);
@@ -418,6 +430,10 @@ inline original::thread::~thread()
     if (this->thread_.joinable()) {
         this->will_join ? this->thread_.join() : this->thread_.detach();
     }
+}
+
+original::ul_integer original::thread::id() const {
+    return this->thread_.id();
 }
 
 bool original::thread::joinable() const {
