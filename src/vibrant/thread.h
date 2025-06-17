@@ -93,9 +93,8 @@ namespace original {
     public:
         /**
          * @brief Destructor
-         * @throw sysError if thread is joinable but not joined/detached
          */
-        virtual ~threadBase() noexcept(false);
+        virtual ~threadBase();
 
         threadBase(const threadBase&) = delete;
         threadBase& operator=(const threadBase&) = delete;
@@ -302,9 +301,9 @@ inline bool original::threadBase::joinable() const {
 inline original::threadBase::threadBase(bool is_joinable)
     : is_joinable(is_joinable) {}
 
-inline original::threadBase::~threadBase() noexcept(false) {
+inline original::threadBase::~threadBase() {
     if (this->is_joinable) {
-        throw sysError();
+        std::terminate();
     }
 }
 
