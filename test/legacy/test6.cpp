@@ -9,6 +9,7 @@ int main()
         std::cout << b << a << std::endl;
     };
     original::pThread t1{task1, 1, "show: "};
+    std::cout << "id t1: " << t1.id() << std::endl;
     t1.join();
     original::pThread t2{task1, 2, "show: "};
     t2.join();
@@ -32,6 +33,7 @@ int main()
 
     original::pThread t9{task1, 8, "show: "};
     original::thread t10{std::move(t9), true};
+    std::cout << "t10 id: " << t10.id() << std::endl;
 
     original::pThread t11{task1, 9, "show: "};
     original::thread t12{std::move(t11)};
