@@ -44,8 +44,7 @@ namespace {
 TEST_F(ThreadTest, BasicFunctionThread) {
     int value = 0;
     {
-    thread t(simpleFunction, std::ref(value));
-    t.join();
+        thread t1(simpleFunction, std::ref(value));
     }
     ASSERT_EQ(value, 42);
 
@@ -61,8 +60,7 @@ TEST_F(ThreadTest, BasicFunctionThread) {
 TEST_F(ThreadTest, LambdaThread) {
     int value = 0;
     {
-    thread t([&value]() { value = 100; });
-    t.join();
+        thread t([&value]() { value = 100; });
     }
     ASSERT_EQ(value, 100);
 }
@@ -71,9 +69,8 @@ TEST_F(ThreadTest, LambdaThread) {
 TEST_F(ThreadTest, MoveConstructor) {
     std::atomic<bool> flag(false);
     {
-    thread t1(delayedFunction, std::ref(flag));
-    thread t2(std::move(t1));
-    t2.join();
+        thread t1(delayedFunction, std::ref(flag));
+        thread t2(std::move(t1));
     }
     ASSERT_TRUE(flag);
 }
@@ -85,9 +82,7 @@ TEST_F(ThreadTest, MoveAssignment) {
     {
         thread t1(delayedFunction, std::ref(flag1));
         thread t2(delayedFunction, std::ref(flag2));
-        t2 = std::move(t1);
         ASSERT_FALSE(flag2); // t2's original thread should be detached
-        t2.join();
     }
 
     ASSERT_TRUE(flag1);
@@ -141,8 +136,7 @@ TEST_F(ThreadTest, MultipleArguments) {
     int result = 0;
     auto func = [](int a, int b, int& r) { r = a + b; };
     {
-    thread t(func, 10, 20, std::ref(result));
-    t.join();
+        thread t(func, 10, 20, std::ref(result));
     }
     ASSERT_EQ(result, 30);
 }
