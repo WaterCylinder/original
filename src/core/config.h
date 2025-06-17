@@ -42,6 +42,8 @@ namespace original {
      */
     using u_integer = std::uint32_t;
 
+    using ul_integer = std::uint64_t;
+
     /**
      * @brief Double-precision floating-point type
      * @details Standard floating-point type for most numerical calculations.
