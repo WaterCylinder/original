@@ -48,6 +48,13 @@ TEST_F(ThreadTest, BasicFunctionThread) {
     t.join();
     }
     ASSERT_EQ(value, 42);
+
+    thread t2([](){});
+    ul_integer id1 = t2.id();
+    ASSERT_NE(id1, 0);  // ID should not be zero for a valid thread
+
+    thread t3;
+    ASSERT_EQ(t3.id(), 0);  // Default-constructed thread should have ID 0
 }
 
 // Test thread creation with lambda
@@ -188,4 +195,50 @@ TEST_F(ThreadTest, WillJoinFlag) {
     // Give some time for the thread to complete
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     ASSERT_TRUE(flag);
+}
+
+// Test thread ID uniqueness
+TEST_F(ThreadTest, ThreadIdUniqueness) {
+    thread t1([](){ std::this_thread::sleep_for(std::chrono::milliseconds(100)); });
+    thread t2([](){ std::this_thread::sleep_for(std::chrono::milliseconds(100)); });
+
+    ul_integer id1 = t1.id();
+    ul_integer id2 = t2.id();
+
+    ASSERT_NE(id1, 0);
+    ASSERT_NE(id2, 0);
+    ASSERT_NE(id1, id2);  // Different threads should have different IDs
+
+    t1.join();
+    t2.join();
+
+    // After joining, the IDs should be 0 because handles are reset
+    ASSERT_EQ(t1.id(), 0);
+    ASSERT_EQ(t2.id(), 0);
+}
+
+// Test thread ID after move
+TEST_F(ThreadTest, ThreadIdAfterMove) {
+    thread t1([](){});
+    ul_integer original_id = t1.id();
+
+    thread t2(std::move(t1));
+    ASSERT_EQ(t2.id(), original_id);  // ID should be preserved after move
+    ASSERT_EQ(t1.id(), 0);            // Moved-from thread should have ID 0
+
+    t2.join();
+    ASSERT_EQ(t2.id(), 0);            // After joining, ID should be 0
+}
+
+// Test pThread ID functionality
+TEST_F(ThreadTest, PThreadId) {
+    pThread pt([](){});
+    ul_integer id1 = pt.id();
+    ASSERT_NE(id1, 0);
+
+    pThread pt2(std::move(pt));
+    ASSERT_EQ(pt2.id(), id1);  // ID should be preserved after move
+    ASSERT_EQ(pt.id(), 0);     // Moved-from pThread should have ID 0
+
+    pt2.join();
 }
