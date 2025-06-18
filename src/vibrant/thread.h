@@ -33,6 +33,11 @@
  * Exception Handling:
  * - Throws sysError for thread operation failures
  * - Destructors may throw if thread is joinable and not joined/detached
+ *
+ * @ingroup Threading
+ * @see original::threadBase
+ * @see original::pThread
+ * @see original::thread
  */
 
 namespace original {
@@ -45,6 +50,8 @@ namespace original {
      * - Manages thread joinable state
      * - Provides basic thread validity checks
      * - Non-copyable but movable
+     *
+     * @note This is an abstract base class and cannot be instantiated directly
      */
     class threadBase {
     protected:
@@ -52,6 +59,8 @@ namespace original {
          * @class threadData
          * @tparam Callback Type of the thread callback function
          * @brief Wrapper for thread execution data
+         * @details Handles the storage and execution of thread callbacks,
+         * including exception handling and resource management.
          */
         template<typename Callback>
         class threadData
@@ -60,17 +69,18 @@ namespace original {
         public:
             /**
              * @brief Construct thread data wrapper
-             * @tparam Callback Callback function type
              * @param c Callback to store
+             * @post The callback is moved into the threadData object
              */
             explicit threadData(Callback c);
 
             /**
              * @brief Thread entry point wrapper
-             * @tparam Callback Callback function type
              * @param arg Pointer to threadData instance
              * @return Always nullptr
              * @throw sysError if callback throws an error
+             * @note This static method serves as the bridge between C-style pthread
+             *       callbacks and C++ callable objects.
              */
             static void* run(void* arg);
         };
@@ -79,10 +89,16 @@ namespace original {
 
         /**
          * @brief Check if thread is valid
-         * @return true if thread is valid
+         * @return true if thread is valid (has an associated execution context)
+         * @note Pure virtual function to be implemented by derived classes
          */
         [[nodiscard]] virtual bool valid() const = 0;
 
+        /**
+         * @brief Get thread identifier
+         * @return Unique identifier for the thread
+         * @note Pure virtual function to be implemented by derived classes
+         */
         virtual ul_integer id() const = 0;
 
         /**
@@ -93,6 +109,7 @@ namespace original {
     public:
         /**
          * @brief Destructor
+         * @note Terminates program if thread is joinable and not joined/detached
          */
         virtual ~threadBase();
 
@@ -117,22 +134,46 @@ namespace original {
         /**
          * @brief Check if thread is joinable
          * @return true if thread is joinable
+         * @note A thread is joinable if it represents an active thread of execution
          */
         [[nodiscard]] bool joinable() const;
+
+        /**
+         * @brief Wait for thread to complete execution
+         * @throw sysError if join operation fails
+         * @note Blocks the calling thread until this thread completes
+         */
+        virtual void join() = 0;
+
+        /**
+         * @brief Detach thread from handle
+         * @throw sysError if detach operation fails
+         * @note Allows thread to execute independently, resources automatically
+         *       released when thread completes
+         */
+        virtual void detach() = 0;
     };
 
     /**
      * @class pThread
      * @brief POSIX thread implementation
-     * @details Wrapper around pthread with RAII semantics
+     * @details Wrapper around pthread with RAII semantics. Provides low-level
+     *          thread management using POSIX threads API.
+     *
+     * @note This class is not thread-safe for concurrent operations on the same object
      */
     class pThread final : public threadBase {
-        pthread_t handle;
+        pthread_t handle; ///< Native thread handle
 
+        /**
+         * @brief Check if thread is valid
+         * @return true if thread handle is valid
+         */
         [[nodiscard]] bool valid() const override;
     public:
         /**
          * @brief Construct empty (invalid) thread
+         * @post Creates a thread object not associated with any execution
          */
         explicit pThread();
 
@@ -140,27 +181,46 @@ namespace original {
          * @brief Construct and start POSIX thread
          * @tparam Callback Callback function type
          * @tparam ARGS Argument types for callback
-         * @param c Callback function
+         * @param c Callback function to execute in new thread
          * @param args Arguments to forward to callback
          * @throw sysError if thread creation fails
+         * @post New thread starts executing the callback with provided arguments
          */
         template<typename Callback, typename... ARGS>
         explicit pThread(Callback c, ARGS&&... args);
 
+        /**
+         * @brief Move constructor
+         * @param other Thread to move from
+         * @post Source thread becomes invalid
+         */
         pThread(pThread&& other) noexcept;
+
+        /**
+         * @brief Move assignment
+         * @param other Thread to move from
+         * @return Reference to this object
+         * @post Source thread becomes invalid
+         */
         pThread& operator=(pThread&& other) noexcept;
 
+        /**
+         * @brief Get thread identifier
+         * @return Unique identifier for the thread
+         */
         ul_integer id() const override;
 
         /**
          * @brief Wait for thread to complete
-         * @throw sysError if join fails
+         * @note Terminates program if join fails
+         * @note Blocks until the thread completes execution
          */
         void join();
 
         /**
          * @brief Detach thread (allow it to run independently)
-         * @throw sysError if detach fails
+         * @note Terminates program if detach fails
+         * @note After detach, the thread object no longer represents the thread
          */
         void detach();
     };
