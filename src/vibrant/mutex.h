@@ -40,19 +40,19 @@ namespace original {
         ~pMutex() override;
     };
 
-    class mutex {
-        pMutex p_mutex_;
-        bool try_lock;
+    class scopeLock {
+        pMutex& p_mutex_;
+        bool is_locked;
     public:
-        explicit mutex(bool try_lock = false);
+        explicit scopeLock(pMutex& p_mutex, bool try_lock = false);
 
-        mutex(const mutex&) = delete;
+        scopeLock(const scopeLock&) = delete;
 
-        mutex& operator=(const mutex&) = delete;
+        scopeLock& operator=(const scopeLock&) = delete;
 
-        mutex(mutex&&) = delete;
+        scopeLock(scopeLock&&) = delete;
 
-        mutex& operator=(mutex&&) = delete;
+        scopeLock& operator=(scopeLock&&) = delete;
 
         ~mutex();
     };
@@ -102,8 +102,9 @@ original::mutex::mutex(bool try_lock) : p_mutex_{}, try_lock(try_lock) {
     }
 }
 
-original::mutex::~mutex() {
-    this->p_mutex_.unlock();
+original::scopeLock::~scopeLock() {
+    if (this->is_locked)
+        this->p_mutex_.unlock();
 }
 
 #endif //MUTEX_H
