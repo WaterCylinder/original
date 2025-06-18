@@ -54,7 +54,9 @@ namespace original {
 
         scopeLock& operator=(scopeLock&&) = delete;
 
-        ~mutex();
+        [[nodiscard]] bool isLocked() const;
+
+        ~scopeLock();
     };
 }
 
@@ -98,12 +100,18 @@ original::pMutex::~pMutex() {
     }
 }
 
-original::mutex::mutex(bool try_lock) : p_mutex_{}, try_lock(try_lock) {
-    if (this->try_lock){
-        this->p_mutex_.tryLock();
+original::scopeLock::scopeLock(pMutex& p_mutex, bool try_lock)
+    : p_mutex_(p_mutex), is_locked(false) {
+    if (try_lock){
+        this->is_locked = this->p_mutex_.tryLock();
     } else{
         this->p_mutex_.lock();
+        this->is_locked = true;
     }
+}
+
+bool original::scopeLock::isLocked() const {
+    return this->is_locked;
 }
 
 original::scopeLock::~scopeLock() {
