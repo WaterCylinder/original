@@ -443,7 +443,7 @@ inline original::pThread& original::pThread::operator=(pThread&& other) noexcept
     return *this;
 }
 
-original::ul_integer original::pThread::id() const {
+inline original::ul_integer original::pThread::id() const {
     ul_integer id = 0;
     std::memcpy(&id, &this->handle, sizeof(pthread_t));
     return id;
@@ -519,19 +519,19 @@ inline original::thread::~thread()
     }
 }
 
-original::ul_integer original::thread::id() const {
+inline original::ul_integer original::thread::id() const {
     return this->thread_.id();
 }
 
-bool original::thread::joinable() const {
+inline bool original::thread::joinable() const {
     return this->thread_.joinable();
 }
 
-original::thread::operator bool() const {
+inline original::thread::operator bool() const {
     return this->thread_.operator bool();
 }
 
-bool original::thread::operator!() const {
+inline bool original::thread::operator!() const {
     return this->thread_.operator!();
 }
 
