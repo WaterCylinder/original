@@ -9,7 +9,7 @@ namespace original {
     protected:
         virtual void lock() = 0;
 
-        virtual void tryLock() = 0;
+        virtual bool tryLock() = 0;
 
         virtual void unlock() = 0;
     public:
@@ -33,7 +33,7 @@ namespace original {
 
         void lock() override;
 
-        void tryLock() override;
+        bool tryLock() override;
 
         void unlock() override;
 
@@ -73,11 +73,15 @@ void original::pMutex::lock() {
 }
 
 
-void original::pMutex::tryLock() {
+bool original::pMutex::tryLock() {
     if (int code = pthread_mutex_trylock(&this->mutex_);
             code != 0) {
+        if (code == EBUSY)
+            return false;
+
         throw sysError();
     }
+    return true;
 }
 
 void original::pMutex::unlock() {
