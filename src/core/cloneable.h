@@ -2,7 +2,6 @@
 #define CLONEABLE_H
 #include "config.h"
 
-namespace original {
 
 /**
  * @file cloneable.h
