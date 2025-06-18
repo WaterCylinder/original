@@ -64,5 +64,7 @@ int main()
         j2.remove(i);
     }
     std::cout << j2 << std::endl;
+
+    std::cout << "On win64: " << original::printable::formatString(original::ON_WIN64()) << std::endl;
     return 0;
 }
