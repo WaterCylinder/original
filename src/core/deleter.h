@@ -1,5 +1,7 @@
 #ifndef DELETER_H
 #define DELETER_H
+#include "config.h"
+
 
 /**
 * @file deleter.h

@@ -1,5 +1,6 @@
 #ifndef CLONEABLE_H
 #define CLONEABLE_H
+#include "config.h"
 
 namespace original {
 
@@ -9,6 +10,7 @@ namespace original {
  * @details Provides functionality for cloning derived objects using the "Prototype" design pattern.
  */
 
+namespace original {
 /**
  * @class baseCloneable
  * @tparam DERIVED The type of the derived class.
