@@ -13,14 +13,5 @@
 #include "core/core.h"
 #include "vibrant/vibrant.h"
 
-/**
- * @namespace original
- * @brief Main namespace for the project Original
- * @details This namespace serves as the main container for all modules and
- * functionality within the Original project. It includes various classes, functions,
- * and data structures that form the backbone of the system.
- */
-namespace original{
-}
 
 #endif //ORIGINAL_H
