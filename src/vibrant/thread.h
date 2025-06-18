@@ -85,7 +85,7 @@ namespace original {
             static void* run(void* arg);
         };
 
-        bool is_joinable;
+        bool is_joinable; ///< Flag indicating if thread can be joined
 
         /**
          * @brief Check if thread is valid
@@ -113,11 +113,11 @@ namespace original {
          */
         virtual ~threadBase();
 
-        threadBase(const threadBase&) = delete;
-        threadBase& operator=(const threadBase&) = delete;
+        threadBase(const threadBase&) = delete; ///< Deleted copy constructor
+        threadBase& operator=(const threadBase&) = delete; ///< Deleted copy assignment
 
-        threadBase(threadBase&& other) noexcept = default;
-        threadBase& operator=(threadBase&& other) noexcept = default;
+        threadBase(threadBase&& other) noexcept = default; ///< Default move constructor
+        threadBase& operator=(threadBase&& other) noexcept = default; ///< Default move assignment
 
         /**
          * @brief Check if thread is valid
@@ -215,27 +215,37 @@ namespace original {
          * @note Terminates program if join fails
          * @note Blocks until the thread completes execution
          */
-        void join();
+        void join() override;
 
         /**
          * @brief Detach thread (allow it to run independently)
          * @note Terminates program if detach fails
          * @note After detach, the thread object no longer represents the thread
          */
-        void detach();
+        void detach() override;
     };
 
     /**
      * @class thread
      * @brief High-level thread wrapper
-     * @details Manages thread lifetime with automatic join/detach
+     * @details Manages thread lifetime with automatic join/detach. Provides
+     *          RAII semantics for thread management with configurable join policy.
+     *
+     * Example usage:
+     * @code
+     * original::thread t([](){
+     *     // thread work
+     * });
+     * @endcode
      */
     class thread {
-        pThread thread_;
-        bool will_join;
+        pThread thread_; ///< Underlying thread implementation
+        bool will_join;  ///< Join policy flag
+
     public:
         /**
          * @brief Construct empty thread
+         * @post Creates an invalid thread object
          */
         explicit thread();
 
@@ -243,9 +253,10 @@ namespace original {
          * @brief Construct and start thread with callback
          * @tparam Callback Callback function type
          * @tparam ARGS Argument types for callback
-         * @param c Callback function
+         * @param c Callback function to execute
          * @param args Arguments to forward to callback
          * @note Will automatically join on destruction
+         * @post New thread starts executing the callback
          */
         template<typename Callback, typename... ARGS>
         explicit thread(Callback c, ARGS&&... args);
@@ -254,9 +265,10 @@ namespace original {
          * @brief Construct and start thread with callback and join policy
          * @tparam Callback Callback function type
          * @tparam ARGS Argument types for callback
-         * @param c Callback function
+         * @param c Callback function to execute
          * @param will_join Whether to join on destruction
          * @param args Arguments to forward to callback
+         * @post New thread starts executing the callback
          */
         template<typename Callback, typename... ARGS>
         explicit thread(Callback c, bool will_join, ARGS&&... args);
@@ -265,16 +277,18 @@ namespace original {
          * @brief Construct from existing pThread
          * @param p_thread Thread to wrap
          * @param will_join Whether to join on destruction
+         * @post Takes ownership of the pThread object
          */
         explicit thread(pThread p_thread, bool will_join = true);
 
-        thread(const thread&) = delete;
-        thread& operator=(const thread&) = delete;
+        thread(const thread&) = delete; ///< Deleted copy constructor
+        thread& operator=(const thread&) = delete; ///< Deleted copy assignment
 
         /**
          * @brief Move constructor
          * @param other Thread to move from
          * @note Defaults to join policy of source thread
+         * @post Source thread becomes invalid
          */
         thread(thread&& other) noexcept;
 
@@ -282,11 +296,22 @@ namespace original {
          * @brief Move constructor with explicit join policy
          * @param other Thread to move from
          * @param will_join Override join policy
+         * @post Source thread becomes invalid
          */
         thread(thread&& other, bool will_join) noexcept;
 
+        /**
+         * @brief Move assignment
+         * @param other Thread to move from
+         * @return Reference to this object
+         * @post Source thread becomes invalid
+         */
         thread& operator=(thread&& other) noexcept;
 
+        /**
+         * @brief Get thread identifier
+         * @return Unique identifier for the thread
+         */
         ul_integer id() const;
 
         /**
@@ -309,19 +334,22 @@ namespace original {
 
         /**
          * @brief Wait for thread to complete
-         * @throw sysError if join fails
+         * @note Terminates program if join fails
+         * @note Blocks until the thread completes execution
          */
         void join();
 
         /**
          * @brief Detach thread (allow it to run independently)
-         * @throw sysError if detach fails
+         * @note Terminates program if detach fails
+         * @note After detach, the thread object no longer represents the thread
          */
         void detach();
 
         /**
          * @brief Destructor
          * @note Automatically joins or detaches based on will_join policy
+         * @note Terminates program if join/detach operation fails
          */
         ~thread();
     };
@@ -384,7 +412,7 @@ original::pThread::pThread(Callback c, ARGS&&... args) : threadBase(true), handl
 
     if (const int code = pthread_create(&this->handle, nullptr, &bound_thread_data::run, task); code != 0)
     {
-        throw sysError();
+        std::terminate();
     }
 }
 
@@ -425,7 +453,7 @@ inline void original::pThread::join() {
     if (this->is_joinable){
         if (const int code = pthread_join(this->handle, nullptr);
             code != 0){
-            throw sysError();
+            std::terminate();
         }
         this->is_joinable = false;
         this->handle = {};
@@ -436,7 +464,7 @@ inline void original::pThread::detach() {
     if (this->is_joinable){
         if (const int code = pthread_detach(this->handle);
             code != 0){
-            throw sysError();
+            std::terminate();
         }
         this->is_joinable = false;
         this->handle = {};
