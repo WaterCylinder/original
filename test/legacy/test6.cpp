@@ -4,11 +4,14 @@
 
 int main()
 {
-    auto task1 = [](const int a, const std::string& b)
+    original::pMutex mutex;
+    auto task1 = [&](const int a, const std::string& b)
     {
+        original::scopeLock lock{mutex};
         std::cout << b << a << std::endl;
     };
     original::pThread t1{task1, 1, "show: "};
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     std::cout << "id t1: " << t1.id() << std::endl;
     t1.join();
     original::pThread t2{task1, 2, "show: "};
@@ -33,8 +36,8 @@ int main()
 
     original::pThread t9{task1, 8, "show: "};
     original::thread t10{std::move(t9), true};
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     std::cout << "t10 id: " << t10.id() << std::endl;
-
     original::pThread t11{task1, 9, "show: "};
     original::thread t12{std::move(t11)};
 
