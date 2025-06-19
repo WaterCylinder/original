@@ -66,5 +66,18 @@ int main()
     std::cout << j2 << std::endl;
 
     std::cout << "On win64: " << original::printable::formatString(original::ON_WIN64()) << std::endl;
+    std::cout << "Using GCC: " << original::printable::formatString(original::USING_GCC()) << std::endl;
+
+    struct testClass {
+        int a;
+
+        testClass(int a) : a(a) {}
+        void print(const std::string& b){
+            std::cout << b << this->a << std::endl;
+        }
+    };
+
+    testClass tc{1};
+    original::thread t15{&testClass::print, &tc, "print(): "};
     return 0;
 }

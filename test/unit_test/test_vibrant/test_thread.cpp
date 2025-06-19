@@ -6,6 +6,20 @@
 using namespace original;
 
 namespace {
+    // Test class with member functions
+    class Worker {
+    public:
+        int result = 0;
+
+        void compute(int a, int b) {
+            result = a + b;
+        }
+
+        void setTrue(std::atomic<bool>& flag) const {
+            flag = true;
+        }
+    };
+
     // Test fixture for thread tests
     class ThreadTest : public ::testing::Test {
     protected:
@@ -54,6 +68,49 @@ TEST_F(ThreadTest, BasicFunctionThread) {
 
     thread t3;
     ASSERT_EQ(t3.id(), 0);  // Default-constructed thread should have ID 0
+}
+
+// Test non-const member function as thread entry
+TEST_F(ThreadTest, MemberFunctionThread) {
+    Worker w;
+    {
+        thread t(&Worker::compute, &w, 5, 7);
+    }
+    ASSERT_EQ(w.result, 12);
+}
+
+// Test const member function as thread entry
+TEST_F(ThreadTest, ConstMemberFunctionThread) {
+    Worker w;
+    std::atomic<bool> flag(false);
+    {
+        thread t(&Worker::setTrue, &w, std::ref(flag));
+    }
+    ASSERT_TRUE(flag);
+}
+
+// Test member function via lambda wrapping
+TEST_F(ThreadTest, LambdaWrapMemberFunction) {
+    Worker w;
+    std::atomic<bool> flag(false);
+    {
+        thread t([&]() {
+            w.compute(3, 9);
+            flag = true;
+        });
+    }
+    ASSERT_EQ(w.result, 12);
+    ASSERT_TRUE(flag);
+}
+
+// Test thread with bound member function using std::bind
+TEST_F(ThreadTest, StdBindMemberFunction) {
+    Worker w;
+    auto bound = std::bind(&Worker::compute, &w, 100, 23);
+    {
+        thread t(bound);  // no args needed, bound already
+    }
+    ASSERT_EQ(w.result, 123);
 }
 
 // Test thread creation with lambda
