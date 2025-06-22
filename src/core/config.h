@@ -276,7 +276,7 @@ namespace original {
     /**
      * @brief Double-precision floating-point type
      * @details Standard floating-point type for most numerical calculations.
-     * @note Typically 64-bit IEEE 754 floating-point (15-17 decimal digits precision)
+     * @note Typically 64-bit IEEE 754 floating-point (15-17 decimal digits' precision)
      * @note Use this for most floating-point operations requiring precision
      * @note Equivalent to double
      */
@@ -285,7 +285,7 @@ namespace original {
     /**
      * @brief Extended precision floating-point type
      * @details Highest precision floating-point type for critical numerical calculations.
-     * @note Typically 80-bit or 128-bit extended precision (18-21 decimal digits precision)
+     * @note Typically 80-bit or 128-bit extended precision (18-21 decimal digits' precision)
      * @note Use this when maximum floating-point precision is required
      * @note Equivalent to long double
      */
