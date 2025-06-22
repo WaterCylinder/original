@@ -11,11 +11,11 @@ namespace {
     public:
         int result = 0;
 
-        void compute(int a, int b) {
+        void compute(const int a, const int b) {
             result = a + b;
         }
 
-        void setTrue(std::atomic<bool>& flag) const {
+        static void setTrue(std::atomic<bool>& flag) {
             flag = true;
         }
     };
@@ -81,10 +81,9 @@ TEST_F(ThreadTest, MemberFunctionThread) {
 
 // Test const member function as thread entry
 TEST_F(ThreadTest, ConstMemberFunctionThread) {
-    Worker w;
-    std::atomic<bool> flag(false);
+    std::atomic flag(false);
     {
-        thread t(&Worker::setTrue, &w, std::ref(flag));
+        thread t(&Worker::setTrue, std::ref(flag));
     }
     ASSERT_TRUE(flag);
 }
@@ -92,9 +91,10 @@ TEST_F(ThreadTest, ConstMemberFunctionThread) {
 // Test member function via lambda wrapping
 TEST_F(ThreadTest, LambdaWrapMemberFunction) {
     Worker w;
-    std::atomic<bool> flag(false);
+    std::atomic flag(false);
     {
-        thread t([&]() {
+        thread t([&]
+        {
             w.compute(3, 9);
             flag = true;
         });
@@ -106,8 +106,8 @@ TEST_F(ThreadTest, LambdaWrapMemberFunction) {
 // Test thread with bound member function using std::bind
 TEST_F(ThreadTest, StdBindMemberFunction) {
     Worker w;
-    auto bound = std::bind(&Worker::compute, &w, 100, 23);
     {
+        auto bound = [ObjectPtr = &w] { ObjectPtr->compute(100, 23); };
         thread t(bound);  // no args needed, bound already
     }
     ASSERT_EQ(w.result, 123);
@@ -134,9 +134,9 @@ TEST_F(ThreadTest, MoveConstructor) {
 
 // Test move assignment
 TEST_F(ThreadTest, MoveAssignment) {
-    std::atomic<bool> flag1(false);
-    std::atomic<bool> flag2(false);
+    std::atomic flag1(false);
     {
+        std::atomic flag2(false);
         thread t1(delayedFunction, std::ref(flag1));
         thread t2(delayedFunction, std::ref(flag2));
         ASSERT_FALSE(flag2); // t2's original thread should be detached
@@ -191,8 +191,8 @@ TEST_F(ThreadTest, DestructorDetach) {
 // Test thread with multiple arguments
 TEST_F(ThreadTest, MultipleArguments) {
     int result = 0;
-    auto func = [](int a, int b, int& r) { r = a + b; };
     {
+        auto func = [](const int a, const int b, int& r) { r = a + b; };
         thread t(func, 10, 20, std::ref(result));
     }
     ASSERT_EQ(result, 30);

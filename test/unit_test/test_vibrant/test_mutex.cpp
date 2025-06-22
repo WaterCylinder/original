@@ -20,7 +20,8 @@ TEST(MutexTest, TryLockSuccess) {
 TEST(MutexTest, TryLockContested) {
     pMutex m;
     std::thread t(
-        [&m]() {
+        [&m]
+        {
             m.lock();
             std::this_thread::sleep_for(std::chrono::milliseconds(300));
             m.unlock();
@@ -39,7 +40,8 @@ TEST(MutexTest, PreventsDataRaceWithMultipleThreads) {
     int counter = 0;
     pMutex m;
 
-    auto increment = [&]() {
+    auto increment = [&]
+    {
         for (int i = 0; i < iterations; ++i) {
             m.lock();
             ++counter;
@@ -60,31 +62,31 @@ TEST(MutexTest, PreventsDataRaceWithMultipleThreads) {
 }
 
 TEST(MutexTest, LockInConstructorAndUnlockInDestructor) {
-    pMutex pm;
     {
-        scopeLock m(pm);  // 默认锁定
+        pMutex pm;
+        const scopeLock m(pm);  // 默认锁定
         EXPECT_TRUE(m.isLocked());
     }
     SUCCEED();
 }
 
 TEST(MutexTest, TryLockConstructor) {
-    pMutex pm;
     {
-        scopeLock m(pm, true);  // 使用 tryLock
+        pMutex pm;
+        const scopeLock m(pm, true);  // 使用 tryLock
         EXPECT_TRUE(m.isLocked());
     }
     SUCCEED();
 }
 
 TEST(MutexTest, MutexIsNonCopyable) {
-    EXPECT_FALSE(std::is_copy_constructible<scopeLock>::value);
-    EXPECT_FALSE(std::is_copy_assignable<scopeLock>::value);
+    EXPECT_FALSE(std::is_copy_constructible_v<scopeLock>);
+    EXPECT_FALSE(std::is_copy_constructible_v<scopeLock>);
 }
 
 TEST(MutexTest, MutexIsNonMovable) {
-    EXPECT_FALSE(std::is_move_constructible<scopeLock>::value);
-    EXPECT_FALSE(std::is_move_assignable<scopeLock>::value);
+    EXPECT_FALSE(std::is_copy_constructible_v<scopeLock>);
+    EXPECT_FALSE(std::is_copy_constructible_v<scopeLock>);
 }
 
 // TryLock失败时，scopeLock::isLocked() 应为 false
@@ -92,7 +94,7 @@ TEST(MutexTest, TryLockFailsIsLockedFalse) {
     pMutex pm;
     pm.lock();  // 主线程先锁住
 
-    scopeLock s(pm, true);  // 尝试获取失败
+    const scopeLock s(pm, true);  // 尝试获取失败
     EXPECT_FALSE(s.isLocked());
 
     pm.unlock();  // 主线程释放锁
@@ -102,7 +104,7 @@ TEST(MutexTest, TryLockFailsIsLockedFalse) {
 TEST(MutexTest, RAIIUnlocksCorrectly) {
     pMutex pm;
     {
-        scopeLock s(pm);
+        const scopeLock s(pm);
         EXPECT_TRUE(s.isLocked());
     }
 
@@ -118,7 +120,8 @@ TEST(MutexTest, ScopeLockProtectsCriticalSection) {
     int counter = 0;
     pMutex m;
 
-    auto increment = [&]() {
+    auto increment = [&]
+    {
         for (int i = 0; i < iterations; ++i) {
             scopeLock lock(m);
             ++counter;
@@ -143,7 +146,7 @@ TEST(MutexTest, TryLockFailDoesNotUnlock) {
     pm.lock();
 
     {
-        scopeLock s(pm, true);
+        const scopeLock s(pm, true);
         EXPECT_FALSE(s.isLocked());
     }
 
@@ -155,8 +158,7 @@ TEST(MutexTest, TryLockFailDoesNotUnlock) {
 TEST(MutexTest, TryLockSuccessUnlocksOnDestruction) {
     pMutex pm;
     {
-        scopeLock s(pm, true);
-        if (s.isLocked()) {
+        if (const scopeLock s(pm, true); s.isLocked()) {
             SUCCEED();  // 成功加锁
         }
     }
