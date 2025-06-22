@@ -99,7 +99,7 @@ namespace original {
          * @return Unique identifier for the thread
          * @note Pure virtual function to be implemented by derived classes
          */
-        virtual ul_integer id() const = 0;
+        [[nodiscard]] virtual ul_integer id() const = 0;
 
         /**
          * @brief Construct thread base
@@ -208,7 +208,7 @@ namespace original {
          * @brief Get thread identifier
          * @return Unique identifier for the thread
          */
-        ul_integer id() const override;
+        [[nodiscard]] ul_integer id() const override;
 
         /**
          * @brief Wait for thread to complete
@@ -312,7 +312,7 @@ namespace original {
          * @brief Get thread identifier
          * @return Unique identifier for the thread
          */
-        ul_integer id() const;
+        [[nodiscard]] ul_integer id() const;
 
         /**
          * @brief Check if thread is joinable
