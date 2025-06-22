@@ -154,7 +154,7 @@ namespace original {
         Compare compare_;                     ///< Comparison function
         mutable rebind_alloc_node rebind_alloc{};  ///< Node allocator
         mutable std::mt19937 gen_{std::random_device{}()};  ///< Random number generator
-        mutable std::uniform_real_distribution<floating> dis_{0.0, 1.0};  ///< Uniform distribution for level generation
+        mutable std::uniform_real_distribution<> dis_{0.0, 1.0};  ///< Uniform distribution for level generation
 
         /**
          * @class Iterator
