@@ -55,7 +55,7 @@ namespace original {
          * @details Deallocates the memory used by the array through the configured allocator.
          *          Destroys all elements before de-allocation.
          */
-        void arrDestruct() noexcept;
+        void arrDestroy() noexcept;
 
     public:
 
@@ -262,7 +262,7 @@ namespace original {
     }
 
     template<typename TYPE, typename ALLOC>
-    void original::array<TYPE, ALLOC>::arrDestruct() noexcept
+    void original::array<TYPE, ALLOC>::arrDestroy() noexcept
     {
         if (this->body){
             for (u_integer i = 0; i < this->size_; ++i) {
@@ -344,7 +344,7 @@ namespace original {
         if (this == &other)
             return *this;
 
-        this->arrDestruct();
+        this->arrDestroy();
 
         this->arrInit(other.size());
         for (u_integer i = 0; i < this->size_; i++) {
@@ -366,7 +366,7 @@ namespace original {
         if (this == &other)
             return *this;
 
-        this->arrDestruct();
+        this->arrDestroy();
 
         this->body = other.body;
         this->size_ = other.size_;
@@ -379,7 +379,7 @@ namespace original {
 
     template<typename TYPE, typename ALLOC>
     original::array<TYPE, ALLOC>::~array() {
-        this->arrDestruct();
+        this->arrDestroy();
     }
 
     template<typename TYPE, typename ALLOC>

@@ -74,7 +74,7 @@ namespace original{
          * - No memory leaks occur for properly destructible elements
          *
          */
-        void vectorArrayDestruct() noexcept;
+        void vectorArrayDestroy() noexcept;
 
         /**
          * @brief Allocates and constructs a new array
@@ -415,7 +415,7 @@ namespace original{
     }
 
     template <typename TYPE, typename ALLOC>
-    auto original::vector<TYPE, ALLOC>::vectorArrayDestruct() noexcept -> void
+    auto original::vector<TYPE, ALLOC>::vectorArrayDestroy() noexcept -> void
     {
         if (this->body) {
             for (u_integer i = 0; i < this->max_size; ++i) {
@@ -473,7 +473,7 @@ namespace original{
         const integer offset = static_cast<integer>(new_begin) - static_cast<integer>(this->inner_begin);
         vector::moveElements(this->body, this->inner_begin,
                              this->size(), new_body, offset);
-        this->vectorArrayDestruct();
+        this->vectorArrayDestroy();
         this->body = new_body;
         this->max_size = new_size;
         this->inner_begin = new_begin;
@@ -584,7 +584,7 @@ template<typename TYPE, typename ALLOC>
         if (this == &other)
             return *this;
 
-        this->vectorArrayDestruct();
+        this->vectorArrayDestroy();
 
         this->max_size = other.max_size;
         this->inner_begin = other.inner_begin;
@@ -612,7 +612,7 @@ template<typename TYPE, typename ALLOC>
         if (this == &other)
             return *this;
 
-        this->vectorArrayDestruct();
+        this->vectorArrayDestroy();
         this->body = other.body;
         other.body = nullptr;
         this->max_size = other.max_size;
@@ -815,7 +815,7 @@ template<typename TYPE, typename ALLOC>
 
     template <typename TYPE, typename ALLOC>
     original::vector<TYPE, ALLOC>::~vector() {
-        this->vectorArrayDestruct();
+        this->vectorArrayDestroy();
     }
 
     template<typename T, typename... ARGS>

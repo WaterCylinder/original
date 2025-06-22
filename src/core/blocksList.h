@@ -65,7 +65,7 @@ namespace original {
          * @details Uses the configured allocator to destroy all elements
          *          and deallocate all memory blocks.
          */
-        void blocksListDestruct() noexcept;
+        void blocksListDestroy() noexcept;
 
         /**
          * @brief Converts the block and position to an absolute index.
@@ -496,7 +496,7 @@ namespace original {
     }
 
     template <typename TYPE, typename ALLOC>
-    auto original::blocksList<TYPE, ALLOC>::blocksListDestruct() noexcept -> void
+    auto original::blocksList<TYPE, ALLOC>::blocksListDestroy() noexcept -> void
     {
         for (auto* block : this->map) {
             for (u_integer i = 0; i < BLOCK_MAX_SIZE; ++i) {
@@ -842,7 +842,7 @@ namespace original {
     original::blocksList<TYPE, ALLOC>& original::blocksList<TYPE, ALLOC>::operator=(const blocksList& other) {
         if (this == &other) return *this;
 
-        this->blocksListDestruct();
+        this->blocksListDestroy();
         this->map = vector<TYPE*>{};
 
         for (integer i = 0; i < other.map.size(); ++i) {
@@ -876,7 +876,7 @@ namespace original {
         if (this == &other)
             return *this;
 
-        this->blocksListDestruct();
+        this->blocksListDestroy();
 
         this->map = std::move(other.map);
         this->first_ = other.first_;
@@ -1059,7 +1059,7 @@ namespace original {
 
     template <typename TYPE, typename ALLOC>
     original::blocksList<TYPE, ALLOC>::~blocksList() {
-        this->blocksListDestruct();
+        this->blocksListDestroy();
     }
 
 #endif //BLOCKSLIST_H

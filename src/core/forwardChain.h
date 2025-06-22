@@ -173,7 +173,7 @@ namespace original {
         /**
          * @brief Destroys the chain by deleting all nodes.
          */
-        void chainDestruction();
+        void chainDestroy();
     public:
 
         /**
@@ -496,7 +496,7 @@ namespace original {
     }
 
     template <typename TYPE, typename ALLOC>
-    auto original::forwardChain<TYPE, ALLOC>::chainDestruction() -> void
+    auto original::forwardChain<TYPE, ALLOC>::chainDestroy() -> void
     {
         auto cur = this->begin_;
         while (cur)
@@ -593,7 +593,7 @@ namespace original {
     template <typename TYPE, typename ALLOC>
     auto original::forwardChain<TYPE, ALLOC>::operator=(const forwardChain &other) -> forwardChain& {
         if (this == &other) return *this;
-        this->chainDestruction();
+        this->chainDestroy();
         this->size_ = other.size_;
         if (this->size() != 0){
             auto other_ = other.begin_;
@@ -624,7 +624,7 @@ namespace original {
         if (this == &other)
             return *this;
 
-        this->chainDestruction();
+        this->chainDestroy();
         this->begin_ = other.begin_;
         this->size_ = other.size_;
         if constexpr (ALLOC::propagate_on_container_move_assignment::value){
@@ -805,7 +805,7 @@ namespace original {
 
     template <typename TYPE, typename ALLOC>
     original::forwardChain<TYPE, ALLOC>::~forwardChain() {
-        this->chainDestruction();
+        this->chainDestroy();
     }
 
 #endif //FORWARDCHAIN_H
