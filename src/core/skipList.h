@@ -285,7 +285,7 @@ namespace original {
          * @brief Generates random number of levels for new node
          * @return Random number of levels (geometric distribution)
          */
-        u_integer getRandomLevels();
+        u_integer getRandomLevels() const;
 
         /**
          * @brief Gets current number of levels in list
@@ -613,7 +613,7 @@ bool original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::equal(const K_TYPE& key
 }
 
 template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
-original::u_integer original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::getRandomLevels()
+original::u_integer original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::getRandomLevels() const
 {
     constexpr floating p = 0.5;
     u_integer levels = 1;
