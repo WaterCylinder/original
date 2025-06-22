@@ -60,23 +60,23 @@ namespace original {
     };
 }
 
-original::pMutex::pMutex() : mutex_{} {
-    if (int code = pthread_mutex_init(&this->mutex_, nullptr);
+inline original::pMutex::pMutex() : mutex_{} {
+    if (const int code = pthread_mutex_init(&this->mutex_, nullptr);
         code != 0){
         throw sysError();
     }
 }
 
-void original::pMutex::lock() {
-    if (int code = pthread_mutex_lock(&this->mutex_);
+inline void original::pMutex::lock() {
+    if (const int code = pthread_mutex_lock(&this->mutex_);
         code != 0) {
         throw sysError();
     }
 }
 
 
-bool original::pMutex::tryLock() {
-    if (int code = pthread_mutex_trylock(&this->mutex_);
+inline bool original::pMutex::tryLock() {
+    if (const int code = pthread_mutex_trylock(&this->mutex_);
             code != 0) {
         if (code == EBUSY)
             return false;
@@ -86,21 +86,21 @@ bool original::pMutex::tryLock() {
     return true;
 }
 
-void original::pMutex::unlock() {
-    if (int code = pthread_mutex_unlock(&this->mutex_);
+inline void original::pMutex::unlock() {
+    if (const int code = pthread_mutex_unlock(&this->mutex_);
         code != 0){
         throw sysError();
     }
 }
 
-original::pMutex::~pMutex() {
-    if (int code = pthread_mutex_destroy(&this->mutex_);
+inline original::pMutex::~pMutex() {
+    if (const int code = pthread_mutex_destroy(&this->mutex_);
         code != 0){
         std::terminate();
     }
 }
 
-original::scopeLock::scopeLock(pMutex& p_mutex, bool try_lock)
+inline original::scopeLock::scopeLock(pMutex& p_mutex, bool try_lock)
     : p_mutex_(p_mutex), is_locked(false) {
     if (try_lock){
         this->is_locked = this->p_mutex_.tryLock();
@@ -110,11 +110,11 @@ original::scopeLock::scopeLock(pMutex& p_mutex, bool try_lock)
     }
 }
 
-bool original::scopeLock::isLocked() const {
+inline bool original::scopeLock::isLocked() const {
     return this->is_locked;
 }
 
-original::scopeLock::~scopeLock() {
+inline original::scopeLock::~scopeLock() {
     if (this->is_locked)
         this->p_mutex_.unlock();
 }
