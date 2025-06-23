@@ -231,12 +231,23 @@ namespace original {
      * @details Manages thread lifetime with automatic join/detach. Provides
      *          RAII semantics for thread management with configurable join policy.
      *
+     * Key Features:
+     * - Wraps low-level pThread with automatic cleanup
+     * - Configurable join policy (AUTO_JOIN or AUTO_DETACH)
+     *
+     * Join Policy:
+     * - joinPolicy::AUTO_JOIN: join the thread in destructor
+     * - joinPolicy::AUTO_DETACH: detach the thread in destructor
+     *
      * Example usage:
      * @code
      * original::thread t([](){
      *     // thread work
-     * });
+     * }, original::thread::AUTO_DETACH);
      * @endcode
+     *
+     * @see original::pThread
+     * @see original::thread::joinPolicy
      */
     class thread {
         pThread thread_; ///< Underlying thread implementation
@@ -244,67 +255,90 @@ namespace original {
 
     public:
         /**
+         * @enum joinPolicy
+         * @brief Defines thread cleanup policy on destruction
+         * @details Controls whether a thread should be joined or detached automatically
+         * when the thread object is destroyed.
+         *
+         * @var AUTO_JOIN
+         * The thread is joined in the destructor (blocking cleanup).
+         *
+         * @var AUTO_DETACH
+         * The thread is detached in the destructor (non-blocking cleanup).
+         */
+        enum class joinPolicy {
+            AUTO_JOIN,   ///< Join the thread automatically on destruction
+            AUTO_DETACH, ///< Detach the thread automatically on destruction
+        };
+
+        /// @brief Alias for joinPolicy::AUTO_JOIN
+        static constexpr auto AUTO_JOIN = joinPolicy::AUTO_JOIN;
+
+        /// @brief Alias for joinPolicy::AUTO_DETACH
+        static constexpr auto AUTO_DETACH = joinPolicy::AUTO_DETACH;
+
+        /**
          * @brief Construct empty thread
-         * @post Creates an invalid thread object
+         * @post Creates an invalid thread object (not associated with any execution)
          */
         explicit thread();
 
         /**
-         * @brief Construct and start thread with callback
-         * @tparam Callback Callback function type
-         * @tparam ARGS Argument types for callback
-         * @param c Callback function to execute
-         * @param args Arguments to forward to callback
-         * @note Will automatically join on destruction
-         * @post New thread starts executing the callback
+         * @brief Construct and start thread with callback (AUTO_JOIN policy)
+         * @tparam Callback Callable type
+         * @tparam ARGS Argument types
+         * @param c Callable to execute in thread
+         * @param args Arguments forwarded to the callable
+         * @post Thread starts and will be joined on destruction
          */
         template<typename Callback, typename... ARGS>
         explicit thread(Callback c, ARGS&&... args);
 
         /**
-         * @brief Construct and start thread with callback and join policy
-         * @tparam Callback Callback function type
-         * @tparam ARGS Argument types for callback
-         * @param c Callback function to execute
-         * @param will_join Whether to join on destruction
-         * @param args Arguments to forward to callback
-         * @post New thread starts executing the callback
+         * @brief Construct and start a thread with the given callback and join policy
+         * @tparam Callback Type of the callable object
+         * @tparam ARGS Types of arguments to pass to the callable
+         * @param c Callable object to run in the new thread
+         * @param policy Join policy (AUTO_JOIN or AUTO_DETACH)
+         * @param args Arguments forwarded to the callable
+         * @post Starts a new thread and applies the specified join policy
+         *
+         * @see joinPolicy
          */
         template<typename Callback, typename... ARGS>
-        explicit thread(Callback c, bool will_join, ARGS&&... args);
+        explicit thread(Callback c, joinPolicy policy, ARGS&&... args);
 
         /**
-         * @brief Construct from existing pThread
-         * @param p_thread Thread to wrap
-         * @param will_join Whether to join on destruction
-         * @post Takes ownership of the pThread object
+         * @brief Construct a thread from an existing pThread with a join policy
+         * @param p_thread The POSIX thread wrapper to take ownership of
+         * @param policy Join policy (AUTO_JOIN or AUTO_DETACH)
+         * @post Takes ownership of the thread and applies the specified join policy
          */
-        explicit thread(pThread p_thread, bool will_join = true);
+        explicit thread(pThread p_thread, joinPolicy policy = AUTO_JOIN);
 
         thread(const thread&) = delete; ///< Deleted copy constructor
         thread& operator=(const thread&) = delete; ///< Deleted copy assignment
 
         /**
-         * @brief Move constructor
+         * @brief Move constructor (defaults to AUTO_JOIN)
          * @param other Thread to move from
-         * @note Defaults to join policy of source thread
-         * @post Source thread becomes invalid
+         * @post Ownership transferred; will join on destruction
          */
         thread(thread&& other) noexcept;
 
         /**
-         * @brief Move constructor with explicit join policy
+         * @brief Move constructor with specified join policy
          * @param other Thread to move from
-         * @param will_join Override join policy
-         * @post Source thread becomes invalid
+         * @param policy Join policy (AUTO_JOIN or AUTO_DETACH)
+         * @post Ownership transferred and join behavior follows policy
          */
-        thread(thread&& other, bool will_join) noexcept;
+        thread(thread&& other, joinPolicy policy) noexcept;
 
         /**
          * @brief Move assignment
          * @param other Thread to move from
          * @return Reference to this object
-         * @post Source thread becomes invalid
+         * @post Ownership and join policy transferred
          */
         thread& operator=(thread&& other) noexcept;
 
@@ -479,17 +513,17 @@ original::thread::thread(Callback c, ARGS&&... args)
     : thread_(std::forward<Callback>(c), std::forward<ARGS>(args)...), will_join(true) {}
 
 template <typename Callback, typename ... ARGS>
-original::thread::thread(Callback c, const bool will_join, ARGS&&... args)
-    : thread_(std::forward<Callback>(c), std::forward<ARGS>(args)...), will_join(will_join) {}
+original::thread::thread(Callback c, const joinPolicy policy, ARGS&&... args)
+    : thread_(std::forward<Callback>(c), std::forward<ARGS>(args)...), will_join(policy == AUTO_JOIN) {}
 
-inline original::thread::thread(pThread p_thread, const bool will_join)
-    : thread_(std::move(p_thread)), will_join(will_join) {}
+inline original::thread::thread(pThread p_thread, const joinPolicy policy)
+    : thread_(std::move(p_thread)), will_join(policy == AUTO_JOIN) {}
 
 inline original::thread::thread(thread&& other) noexcept
     : thread_(std::move(other.thread_)), will_join(true) {}
 
-inline original::thread::thread(thread&& other, const bool will_join) noexcept
-    : thread_(std::move(other.thread_)), will_join(will_join) {}
+inline original::thread::thread(thread&& other, const joinPolicy policy) noexcept
+    : thread_(std::move(other.thread_)), will_join(policy == AUTO_JOIN) {}
 
 inline original::thread& original::thread::operator=(thread&& other) noexcept {
     if (this == &other) {
