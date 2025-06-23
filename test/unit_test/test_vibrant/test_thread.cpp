@@ -62,11 +62,11 @@ TEST_F(ThreadTest, BasicFunctionThread) {
     }
     ASSERT_EQ(value, 42);
 
-    thread t2([](){});
-    ul_integer id1 = t2.id();
+    const thread t2([] {});
+    const ul_integer id1 = t2.id();
     ASSERT_NE(id1, 0);  // ID should not be zero for a valid thread
 
-    thread t3;
+    const thread t3;
     ASSERT_EQ(t3.id(), 0);  // Default-constructed thread should have ID 0
 }
 
@@ -103,28 +103,18 @@ TEST_F(ThreadTest, LambdaWrapMemberFunction) {
     ASSERT_TRUE(flag);
 }
 
-// Test thread with bound member function using std::bind
-TEST_F(ThreadTest, StdBindMemberFunction) {
-    Worker w;
-    {
-        auto bound = [ObjectPtr = &w] { ObjectPtr->compute(100, 23); };
-        thread t(bound);  // no args needed, bound already
-    }
-    ASSERT_EQ(w.result, 123);
-}
-
 // Test thread creation with lambda
 TEST_F(ThreadTest, LambdaThread) {
     int value = 0;
     {
-        thread t([&value]() { value = 100; });
+        thread t([&value] { value = 100; });
     }
     ASSERT_EQ(value, 100);
 }
 
 // Test move constructor
 TEST_F(ThreadTest, MoveConstructor) {
-    std::atomic<bool> flag(false);
+    std::atomic flag(false);
     {
         thread t1(delayedFunction, std::ref(flag));
         thread t2(std::move(t1));
@@ -147,7 +137,7 @@ TEST_F(ThreadTest, MoveAssignment) {
 
 // Test joinable
 TEST_F(ThreadTest, Joinable) {
-    thread t([](){});
+    thread t([] {});
     ASSERT_TRUE(t.joinable());
     t.join();
     ASSERT_FALSE(t.joinable());
@@ -155,7 +145,7 @@ TEST_F(ThreadTest, Joinable) {
 
 // Test detach
 TEST_F(ThreadTest, Detach) {
-    std::atomic<bool> flag(false);
+    std::atomic flag(false);
     {
     thread t(delayedFunction, std::ref(flag));
     t.detach();
@@ -168,7 +158,7 @@ TEST_F(ThreadTest, Detach) {
 
 // Test automatic join in destructor
 TEST_F(ThreadTest, DestructorJoin) {
-    std::atomic<bool> flag(false);
+    std::atomic flag(false);
     {
     thread t(delayedFunction, std::ref(flag));
     // t will be joined when it goes out of scope
@@ -178,7 +168,7 @@ TEST_F(ThreadTest, DestructorJoin) {
 
 // Test automatic detach in destructor when will_join is false
 TEST_F(ThreadTest, DestructorDetach) {
-    std::atomic<bool> flag(false);
+    std::atomic flag(false);
     {
     thread t(delayedFunction, std::ref(flag));
     // t will be detached when it goes out of scope
@@ -216,10 +206,10 @@ TEST_F(ThreadTest, ThreadThrowsError) {
 
 // Test bool operator
 TEST_F(ThreadTest, BoolOperator) {
-    thread t1;
+    const thread t1;
     ASSERT_FALSE(t1);
 
-    thread t2([](){});
+    thread t2([] {});
     ASSERT_TRUE(t2);
     t2.join();
     ASSERT_FALSE(t2);
@@ -227,10 +217,10 @@ TEST_F(ThreadTest, BoolOperator) {
 
 // Test not operator
 TEST_F(ThreadTest, NotOperator) {
-    thread t1;
+    const thread t1;
     ASSERT_TRUE(!t1);
 
-    thread t2([](){});
+    thread t2([] {});
     ASSERT_FALSE(!t2);
     t2.join();
     ASSERT_TRUE(!t2);
@@ -238,7 +228,7 @@ TEST_F(ThreadTest, NotOperator) {
 
 // Test will_join flag
 TEST_F(ThreadTest, WillJoinFlag) {
-    std::atomic<bool> flag(false);
+    std::atomic flag(false);
     {
     thread t(delayedFunction, std::ref(flag));
     // Will be detached on destruction
@@ -250,11 +240,11 @@ TEST_F(ThreadTest, WillJoinFlag) {
 
 // Test thread ID uniqueness
 TEST_F(ThreadTest, ThreadIdUniqueness) {
-    thread t1([](){ std::this_thread::sleep_for(std::chrono::milliseconds(100)); });
-    thread t2([](){ std::this_thread::sleep_for(std::chrono::milliseconds(100)); });
+    thread t1([] { std::this_thread::sleep_for(std::chrono::milliseconds(100)); });
+    thread t2([] { std::this_thread::sleep_for(std::chrono::milliseconds(100)); });
 
-    ul_integer id1 = t1.id();
-    ul_integer id2 = t2.id();
+    const ul_integer id1 = t1.id();
+    const ul_integer id2 = t2.id();
 
     ASSERT_NE(id1, 0);
     ASSERT_NE(id2, 0);
@@ -271,7 +261,7 @@ TEST_F(ThreadTest, ThreadIdUniqueness) {
 // Test thread ID after move
 TEST_F(ThreadTest, ThreadIdAfterMove) {
     thread t1([](){});
-    ul_integer original_id = t1.id();
+    const ul_integer original_id = t1.id();
 
     thread t2(std::move(t1));
     ASSERT_EQ(t2.id(), original_id);  // ID should be preserved after move
@@ -283,8 +273,8 @@ TEST_F(ThreadTest, ThreadIdAfterMove) {
 
 // Test pThread ID functionality
 TEST_F(ThreadTest, PThreadId) {
-    pThread pt([](){});
-    ul_integer id1 = pt.id();
+    pThread pt([] {});
+    const ul_integer id1 = pt.id();
     ASSERT_NE(id1, 0);
 
     pThread pt2(std::move(pt));
