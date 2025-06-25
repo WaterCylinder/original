@@ -174,6 +174,56 @@ concept SuperOf = std::is_base_of_v<Base, Derive> || std::is_same_v<Base, Derive
 template <typename Base, typename Derive>
 concept ExtendsOf = std::derived_from<Derive, Base> || std::is_same_v<Base, Derive>;
 
+
+template <u_integer...>
+class indexSequence {
+public:
+    static consteval u_integer size() noexcept;
+};
+
+class makeIndexSequence {
+    template <u_integer NUM, u_integer... INTS>
+    class indexSequenceImpl;
+
+    template <u_integer... INTS>
+    class indexSequenceImpl<0, INTS...> {
+    public:
+        using type = indexSequence<INTS...>;
+    };
+
+    template <u_integer NUM, u_integer... INTS>
+    class indexSequenceImpl : public indexSequenceImpl<NUM - 1, NUM - 1, INTS...>{
+    public:
+        using type = indexSequenceImpl<NUM - 1, NUM - 1, INTS...>::type;
+    };
+public:
+    template <u_integer NUM>
+    friend consteval auto makeSequence() noexcept;
+};
+
+    template <u_integer NUM>
+    consteval auto makeSequence() noexcept; //NOLINT: Forward declaration for 'makeReverseSequence'
+
+    template<u_integer... Indices>
+    constexpr auto reverseIndexSequenceImpl(indexSequence<Indices...>)
+    -> indexSequence<sizeof...(Indices) - 1 - Indices...>;
+
+    template<u_integer N>
+    using makeReverseSequence = decltype(
+    reverseIndexSequenceImpl(makeSequence<N>())
+    );
+
 } // namespace original
+
+template<original::u_integer... INTS>
+consteval original::u_integer original::indexSequence<INTS...>::size() noexcept {
+    return sizeof...(INTS);
+}
+
+template<original::u_integer NUM>
+consteval auto original::makeSequence() noexcept {
+    using sequence = makeIndexSequence::indexSequenceImpl<NUM>::type;
+    return sequence{};
+}
 
 #endif // TYPES_H
