@@ -64,7 +64,7 @@ TEST(MutexTest, PreventsDataRaceWithMultipleThreads) {
 TEST(MutexTest, LockInConstructorAndUnlockInDestructor) {
     {
         pMutex pm;
-        const scopeLock m(pm);  // 默认锁定
+        const uniqueLock m(pm);  // 默认锁定
         EXPECT_TRUE(m.isLocked());
     }
     SUCCEED();
@@ -73,7 +73,7 @@ TEST(MutexTest, LockInConstructorAndUnlockInDestructor) {
 TEST(MutexTest, TryLockConstructor) {
     {
         pMutex pm;
-        const scopeLock m(pm, true);  // 使用 tryLock
+        const uniqueLock m(pm, uniqueLock::TRY_LOCK);  // 使用 tryLock
         EXPECT_TRUE(m.isLocked());
     }
     SUCCEED();
@@ -89,12 +89,12 @@ TEST(MutexTest, MutexIsNonMovable) {
     EXPECT_FALSE(std::is_copy_constructible_v<scopeLock>);
 }
 
-// TryLock失败时，scopeLock::isLocked() 应为 false
+// TryLock失败时，uniqueLock::isLocked() 应为 false
 TEST(MutexTest, TryLockFailsIsLockedFalse) {
     pMutex pm;
     pm.lock();  // 主线程先锁住
 
-    const scopeLock s(pm, true);  // 尝试获取失败
+    const uniqueLock s(pm, uniqueLock::TRY_LOCK);  // 尝试获取失败
     EXPECT_FALSE(s.isLocked());
 
     pm.unlock();  // 主线程释放锁
@@ -104,7 +104,7 @@ TEST(MutexTest, TryLockFailsIsLockedFalse) {
 TEST(MutexTest, RAIIUnlocksCorrectly) {
     pMutex pm;
     {
-        const scopeLock s(pm);
+        uniqueLock s(pm);
         EXPECT_TRUE(s.isLocked());
     }
 
@@ -123,7 +123,7 @@ TEST(MutexTest, ScopeLockProtectsCriticalSection) {
     auto increment = [&]
     {
         for (int i = 0; i < iterations; ++i) {
-            scopeLock lock(m);
+            uniqueLock lock(m);
             ++counter;
         }
     };
@@ -146,7 +146,7 @@ TEST(MutexTest, TryLockFailDoesNotUnlock) {
     pm.lock();
 
     {
-        const scopeLock s(pm, true);
+        const uniqueLock s(pm, uniqueLock::TRY_LOCK);
         EXPECT_FALSE(s.isLocked());
     }
 
@@ -158,7 +158,7 @@ TEST(MutexTest, TryLockFailDoesNotUnlock) {
 TEST(MutexTest, TryLockSuccessUnlocksOnDestruction) {
     pMutex pm;
     {
-        if (const scopeLock s(pm, true); s.isLocked()) {
+        if (const uniqueLock s(pm, uniqueLock::TRY_LOCK); s.isLocked()) {
             SUCCEED();  // 成功加锁
         }
     }
