@@ -12,6 +12,8 @@ namespace original {
         virtual bool tryLock() = 0;
 
         virtual void unlock() = 0;
+
+        [[nodiscard]] virtual ul_integer id() const = 0;
     public:
         explicit mutexBase() = default;
 
@@ -30,6 +32,8 @@ namespace original {
         pMutex(pMutex&&) = delete;
 
         pMutex& operator=(pMutex&&) = delete;
+
+        [[nodiscard]] ul_integer id() const override;
 
         void lock() override;
 
@@ -67,13 +71,18 @@ inline original::pMutex::pMutex() : mutex_{} {
     }
 }
 
+original::ul_integer original::pMutex::id() const {
+    ul_integer id = 0;
+    std::memcpy(&id, &this->mutex_, sizeof(pthread_mutex_t));
+    return id;
+}
+
 inline void original::pMutex::lock() {
     if (const int code = pthread_mutex_lock(&this->mutex_);
         code != 0) {
         throw sysError();
     }
 }
-
 
 inline bool original::pMutex::tryLock() {
     if (const int code = pthread_mutex_trylock(&this->mutex_);
