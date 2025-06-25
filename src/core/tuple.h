@@ -233,7 +233,7 @@ namespace original{
          * @brief Get the number of elements in the tuple
          * @return The size of the tuple (number of elements)
          */
-        static constexpr u_integer size();
+        static consteval u_integer size() noexcept;
 
         /**
          * @brief Access element by index (const lvalue-reference version)
@@ -693,8 +693,7 @@ original::tuple<TYPES...>& original::tuple<TYPES...>::operator=(tuple&& other) n
 }
 
 template<typename... TYPES>
-constexpr original::u_integer original::tuple<TYPES...>::size()
-{
+consteval original::u_integer original::tuple<TYPES...>::size() noexcept {
     return SIZE;
 }
 

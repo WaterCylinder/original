@@ -42,7 +42,7 @@ namespace original{
     template <typename TYPE, typename ALLOC = allocator<TYPE>>
     class vector final : public baseList<TYPE, ALLOC>, public iterationStream<TYPE, vector<TYPE, ALLOC>>{
         u_integer size_;                 ///< Current number of elements
-        const u_integer INNER_SIZE_INIT = 16; ///< Initial buffer capacity
+        static constexpr u_integer INNER_SIZE_INIT = 16; ///< Initial buffer capacity
         u_integer max_size;              ///< Current buffer capacity
         u_integer inner_begin;           ///< Starting index in circular buffer
         TYPE* body;                     ///< Internal storage buffer
@@ -409,9 +409,9 @@ namespace original{
     auto original::vector<TYPE, ALLOC>::vectorInit() -> void
     {
         this->size_ = 0;
-        this->max_size = this->INNER_SIZE_INIT;
-        this->inner_begin = (this->INNER_SIZE_INIT - 1)/2;
-        this->body = vector::vectorArrayInit(this->INNER_SIZE_INIT);
+        this->max_size = INNER_SIZE_INIT;
+        this->inner_begin = (INNER_SIZE_INIT - 1)/2;
+        this->body = vector::vectorArrayInit(INNER_SIZE_INIT);
     }
 
     template <typename TYPE, typename ALLOC>
