@@ -76,8 +76,8 @@ int main()
     struct testClass {
         int a;
 
-        testClass(int a) : a(a) {}
-        void print(const std::string& b){
+        explicit testClass(int a) : a(a) {}
+        void print(const std::string& b) const{
             std::cout << b << this->a << std::endl;
         }
     };
