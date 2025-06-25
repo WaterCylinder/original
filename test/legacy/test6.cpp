@@ -84,5 +84,9 @@ int main()
 
     testClass tc{1};
     original::thread t15{&testClass::print, &tc, "print(): "};
+
+    original::pMutex m1;
+    original::pMutex m2;
+    original::multiLock ml{m1, m2};
     return 0;
 }
