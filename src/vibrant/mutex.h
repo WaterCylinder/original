@@ -44,9 +44,41 @@ namespace original {
         ~pMutex() override;
     };
 
-    class scopeLock {
+    class uniqueLock {
         pMutex& p_mutex_;
         bool is_locked;
+
+        enum class lockPolicy {
+            MANUAL_LOCK,
+            AUTO_LOCK,
+            TRY_LOCK,
+        };
+    public:
+        static constexpr lockPolicy MANUAL_LOCK = lockPolicy::MANUAL_LOCK;
+        static constexpr lockPolicy AUTO_LOCK = lockPolicy::AUTO_LOCK;
+        static constexpr lockPolicy TRY_LOCK = lockPolicy::TRY_LOCK;
+
+        explicit uniqueLock(pMutex& p_mutex, lockPolicy policy = AUTO_LOCK);
+
+        uniqueLock(const uniqueLock&) = delete;
+
+        uniqueLock& operator=(const uniqueLock&) = delete;
+
+        uniqueLock(uniqueLock&&) = delete;
+
+        uniqueLock& operator=(uniqueLock&&) = delete;
+
+        [[nodiscard]] bool isLocked() const noexcept;
+
+        void lock();
+
+        bool tryLock();
+
+        void unlock();
+
+        ~uniqueLock();
+    };
+
     public:
         explicit scopeLock(pMutex& p_mutex, bool try_lock = false);
 
@@ -109,23 +141,50 @@ inline original::pMutex::~pMutex() {
     }
 }
 
-inline original::scopeLock::scopeLock(pMutex& p_mutex, bool try_lock)
+inline original::uniqueLock::uniqueLock(pMutex& p_mutex, lockPolicy policy)
     : p_mutex_(p_mutex), is_locked(false) {
-    if (try_lock){
-        this->is_locked = this->p_mutex_.tryLock();
-    } else{
-        this->p_mutex_.lock();
-        this->is_locked = true;
+    switch (policy) {
+        case MANUAL_LOCK:
+            break;
+        case AUTO_LOCK:
+            this->lock();
+            break;
+        case TRY_LOCK:
+            this->tryLock();
     }
 }
 
-inline bool original::scopeLock::isLocked() const {
+inline bool original::uniqueLock::isLocked() const noexcept {
     return this->is_locked;
 }
 
-inline original::scopeLock::~scopeLock() {
+void original::uniqueLock::lock() {
     if (this->is_locked)
+        throw sysError();
+
+    this->p_mutex_.lock();
+    this->is_locked = true;
+}
+
+bool original::uniqueLock::tryLock() {
+    if (this->is_locked)
+        throw sysError();
+
+    this->is_locked = this->p_mutex_.tryLock();
+    return this->is_locked;
+}
+
+void original::uniqueLock::unlock() {
+    if (this->is_locked){
         this->p_mutex_.unlock();
+        this->is_locked = false;
+    }
+}
+
+inline original::uniqueLock::~uniqueLock() {
+    this->unlock();
+}
+
 }
 
 #endif //MUTEX_H
