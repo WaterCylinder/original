@@ -80,13 +80,17 @@ TEST(MutexTest, TryLockConstructor) {
 }
 
 TEST(MutexTest, MutexIsNonCopyable) {
-    EXPECT_FALSE(std::is_copy_constructible_v<scopeLock>);
-    EXPECT_FALSE(std::is_copy_constructible_v<scopeLock>);
+    EXPECT_FALSE(std::is_copy_constructible_v<pMutex>);
+    EXPECT_FALSE(std::is_copy_assignable_v<pMutex>);
+    EXPECT_FALSE(std::is_copy_constructible_v<uniqueLock>);
+    EXPECT_FALSE(std::is_copy_assignable_v<uniqueLock>);
 }
 
 TEST(MutexTest, MutexIsNonMovable) {
-    EXPECT_FALSE(std::is_copy_constructible_v<scopeLock>);
-    EXPECT_FALSE(std::is_copy_constructible_v<scopeLock>);
+    EXPECT_FALSE(std::is_move_constructible_v<pMutex>);
+    EXPECT_FALSE(std::is_move_assignable_v<pMutex>);
+    EXPECT_FALSE(std::is_move_constructible_v<uniqueLock>);
+    EXPECT_FALSE(std::is_move_assignable_v<uniqueLock>);
 }
 
 // TryLock失败时，uniqueLock::isLocked() 应为 false
