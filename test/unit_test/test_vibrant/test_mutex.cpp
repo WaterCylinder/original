@@ -110,10 +110,11 @@ TEST(MutexTest, RAIIUnlocksCorrectly) {
     {
         uniqueLock s(pm);
         EXPECT_TRUE(s.isLocked());
+        // 测试期间尝试加锁应该失败
+        EXPECT_FALSE(pm.tryLock());
     }
-
-    // 如果前面未释放成功，这里会阻塞或抛异常
-    EXPECT_NO_THROW(pm.lock());
+    // 现在应该能加锁
+    EXPECT_TRUE(pm.tryLock());
     pm.unlock();
 }
 
@@ -170,4 +171,141 @@ TEST(MutexTest, TryLockSuccessUnlocksOnDestruction) {
     // 若未正确释放，此处将阻塞
     EXPECT_NO_THROW(pm.lock());
     pm.unlock();
+}
+
+// 测试解锁后可以再次加锁
+TEST(MutexTest, CanRelockAfterUnlock) {
+    pMutex m;
+    m.lock();
+    m.unlock();
+    EXPECT_NO_THROW(m.lock());  // 再次加锁不应抛出异常
+    m.unlock();
+}
+
+// 测试uniqueLock解锁后可以再次加锁
+TEST(MutexTest, UniqueLockCanRelockAfterUnlock) {
+    pMutex pm;
+    {
+        uniqueLock lock(pm);
+        lock.unlock();
+        EXPECT_NO_THROW(lock.lock());  // 再次加锁
+    }
+    // 析构时应自动解锁
+    EXPECT_NO_THROW(pm.lock());  // 验证锁已释放
+    pm.unlock();
+}
+
+// 测试多次加锁解锁循环
+TEST(MutexTest, MultipleLockUnlockCycles) {
+    pMutex m;
+    for (int i = 0; i < 100; ++i) {
+        EXPECT_NO_THROW(m.lock());
+        EXPECT_NO_THROW(m.unlock());
+    }
+}
+
+// 测试uniqueLock手动锁策略
+TEST(MutexTest, ManualLockPolicy) {
+    pMutex pm;
+    {
+        uniqueLock lock(pm, uniqueLock::MANUAL_LOCK);
+        EXPECT_FALSE(lock.isLocked());
+        EXPECT_NO_THROW(lock.lock());
+        EXPECT_TRUE(lock.isLocked());
+        EXPECT_NO_THROW(lock.unlock());
+        EXPECT_FALSE(lock.isLocked());
+    }
+    // 验证锁已释放
+    EXPECT_NO_THROW(pm.lock());
+    pm.unlock();
+}
+
+// 测试跨线程的加锁解锁顺序
+TEST(MutexTest, CrossThreadLockUnlockSequence) {
+    pMutex m;
+    std::atomic thread_locked{false};
+    std::atomic main_proceed{false};
+
+    std::thread t([&] {
+        m.lock();
+        thread_locked = true;
+        while (!main_proceed) {}  // 等待主线程
+        m.unlock();
+    });
+
+    // 等待线程加锁
+    while (!thread_locked) {}
+
+    EXPECT_FALSE(m.tryLock());  // 应该失败，因为线程持有锁
+
+    main_proceed = true;  // 让线程继续
+    t.join();
+
+    EXPECT_TRUE(m.tryLock());  // 现在应该能加锁
+    m.unlock();
+}
+
+TEST(MultiLockTest, MultiLockLocksAndUnlocksInReverseOrder) {
+    std::vector<ul_integer> lock_order;
+    std::vector<ul_integer> unlock_order;
+
+    class Trackable {
+        pMutex mutex_;
+        std::vector<ul_integer>& lock_record_;
+        std::vector<ul_integer>& unlock_record_;
+    public:
+        explicit Trackable(std::vector<ul_integer>& lock_rec, std::vector<ul_integer>& unlock_rec)
+                : lock_record_(lock_rec), unlock_record_(unlock_rec) {}
+
+        void lock() {
+            mutex_.lock();
+            lock_record_.push_back(mutex_.id());
+        }
+
+        void unlock() {
+            unlock_record_.push_back(mutex_.id());
+            mutex_.unlock();
+        }
+
+        [[nodiscard]] ul_integer id() const {
+            return mutex_.id();
+        }
+    };
+
+    Trackable t1(lock_order, unlock_order);
+    Trackable t2(lock_order, unlock_order);
+    Trackable t3(lock_order, unlock_order);
+
+    {
+        multiLock lock(t1, t2, t3);
+        EXPECT_EQ(lock_order.size(), 3);
+        EXPECT_NE(std::find(lock_order.begin(), lock_order.end(), t1.id()), lock_order.end());
+        EXPECT_NE(std::find(lock_order.begin(), lock_order.end(), t2.id()), lock_order.end());
+        EXPECT_NE(std::find(lock_order.begin(), lock_order.end(), t3.id()), lock_order.end());
+    }
+
+    EXPECT_EQ(unlock_order.size(), 3);
+    EXPECT_EQ(std::vector<ul_integer>(unlock_order.rbegin(), unlock_order.rend()), lock_order);
+}
+
+TEST(MultiLockTest, MultiLockProtectsMultipleResources) {
+    constexpr int iterations = 1000;
+    int x = 0, y = 0;
+    pMutex mx, my;
+
+    auto worker = [&]() {
+        for (int i = 0; i < iterations; ++i) {
+            multiLock lock(mx, my);
+            ++x;
+            ++y;
+        }
+    };
+
+    thread t1(worker), t2(worker), t3(worker);
+    t1.join();
+    t2.join();
+    t3.join();
+
+    EXPECT_EQ(x, iterations * 3);
+    EXPECT_EQ(y, iterations * 3);
 }
