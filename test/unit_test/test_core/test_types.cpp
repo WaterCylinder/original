@@ -227,3 +227,17 @@ TEST(ConceptTest, ExtendsOfTest) {
     EXPECT_FALSE((ExtendsOf<Base, Unrelated>)); // Unrelated 类
 }
 
+TEST(IndexSequenceTest, MakeSequenceSizeCheck) {
+    constexpr u_integer size1 = 3;
+    constexpr u_integer size2 = 0;
+    constexpr u_integer size3 = 5;
+
+    constexpr auto seq0 = makeSequence<size1>();
+    EXPECT_EQ(decltype(seq0)::size(), size1);
+
+    constexpr auto seq1 = makeSequence<size2>();
+    EXPECT_EQ(decltype(seq1)::size(), size2);
+
+    constexpr auto seq2 = makeSequence<size3>();
+    EXPECT_EQ(decltype(seq2)::size(), size3);
+}
