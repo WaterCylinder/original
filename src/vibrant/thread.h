@@ -253,7 +253,6 @@ namespace original {
         pThread thread_; ///< Underlying thread implementation
         bool will_join;  ///< Join policy flag
 
-    public:
         /**
          * @enum joinPolicy
          * @brief Defines thread cleanup policy on destruction
@@ -270,6 +269,7 @@ namespace original {
             AUTO_JOIN,   ///< Join the thread automatically on destruction
             AUTO_DETACH, ///< Detach the thread automatically on destruction
         };
+    public:
 
         /// @brief Alias for joinPolicy::AUTO_JOIN
         static constexpr auto AUTO_JOIN = joinPolicy::AUTO_JOIN;
