@@ -1,7 +1,10 @@
 #ifndef MUTEX_H
 #define MUTEX_H
+
+#include <cstring>
 #include "pthread.h"
 #include "error.h"
+#include "tuple.h"
 
 
 namespace original {
@@ -79,20 +82,27 @@ namespace original {
         ~uniqueLock();
     };
 
+    template<typename... MUTEX>
+    class multiLock {
+        tuple<MUTEX* ...> m_list;
+
+        template<u_integer... IDX>
+        void lockAll(indexSequence<IDX...> sequence);
+
+        template<u_integer... IDX>
+        void unlockAll(indexSequence<IDX...> sequence);
     public:
-        explicit scopeLock(pMutex& p_mutex, bool try_lock = false);
+        explicit multiLock(MUTEX&... mutex);
 
-        scopeLock(const scopeLock&) = delete;
+        multiLock(const multiLock&) = delete;
 
-        scopeLock& operator=(const scopeLock&) = delete;
+        multiLock& operator=(const multiLock&) = delete;
 
-        scopeLock(scopeLock&&) = delete;
+        multiLock(multiLock&&) = delete;
 
-        scopeLock& operator=(scopeLock&&) = delete;
+        multiLock& operator=(multiLock&&) = delete;
 
-        [[nodiscard]] bool isLocked() const;
-
-        ~scopeLock();
+        ~multiLock();
     };
 }
 
@@ -185,6 +195,27 @@ inline original::uniqueLock::~uniqueLock() {
     this->unlock();
 }
 
+template<typename... MUTEX>
+template<original::u_integer... IDX>
+void original::multiLock<MUTEX...>::lockAll(indexSequence<IDX...>) {
+    (..., this->m_list.template get<IDX>()->lock());
+}
+
+template<typename... MUTEX>
+template<original::u_integer... IDX>
+void original::multiLock<MUTEX...>::unlockAll(indexSequence<IDX...>) {
+    (..., this->m_list.template get<IDX>()->unlock());
+}
+
+template<typename... MUTEX>
+original::multiLock<MUTEX...>::multiLock(MUTEX&... mutex)
+    : m_list(&mutex...) {
+    this->lockAll(makeSequence<sizeof...(MUTEX)>());
+}
+
+template<typename... MUTEX>
+original::multiLock<MUTEX...>::~multiLock(){
+    this->unlockAll(makeReverseSequence<sizeof...(MUTEX)>());
 }
 
 #endif //MUTEX_H
