@@ -27,6 +27,37 @@ namespace original {
         virtual ~mutexBase() = default;
     };
 
+    class lockGuard {
+    protected:
+        virtual void lock() = 0;
+
+        virtual bool tryLock() = 0;
+
+        virtual void unlock() = 0;
+
+        [[nodiscard]] virtual bool isLocked() const noexcept = 0;
+    public:
+        enum class lockPolicy {
+            MANUAL_LOCK,
+            AUTO_LOCK,
+            TRY_LOCK,
+            ADOPT_LOCK,
+        };
+
+        static constexpr lockPolicy MANUAL_LOCK = lockPolicy::MANUAL_LOCK;
+        static constexpr lockPolicy AUTO_LOCK = lockPolicy::AUTO_LOCK;
+        static constexpr lockPolicy TRY_LOCK = lockPolicy::TRY_LOCK;
+        static constexpr lockPolicy ADOPT_LOCK = lockPolicy::ADOPT_LOCK;
+
+        explicit lockGuard() = default;
+
+        lockGuard(const lockGuard&) = delete;
+
+        lockGuard& operator=(const lockGuard&) = delete;
+
+        virtual ~lockGuard() = default;
+    };
+
     class pMutex final : public mutexBase {
         pthread_mutex_t mutex_;
     public:
@@ -47,43 +78,30 @@ namespace original {
         ~pMutex() override;
     };
 
-    class uniqueLock {
+    class uniqueLock final : public lockGuard {
         pMutex& p_mutex_;
         bool is_locked;
 
-        enum class lockPolicy {
-            MANUAL_LOCK,
-            AUTO_LOCK,
-            TRY_LOCK,
-        };
     public:
-        static constexpr lockPolicy MANUAL_LOCK = lockPolicy::MANUAL_LOCK;
-        static constexpr lockPolicy AUTO_LOCK = lockPolicy::AUTO_LOCK;
-        static constexpr lockPolicy TRY_LOCK = lockPolicy::TRY_LOCK;
-
         explicit uniqueLock(pMutex& p_mutex, lockPolicy policy = AUTO_LOCK);
-
-        uniqueLock(const uniqueLock&) = delete;
-
-        uniqueLock& operator=(const uniqueLock&) = delete;
 
         uniqueLock(uniqueLock&&) = delete;
 
         uniqueLock& operator=(uniqueLock&&) = delete;
 
-        [[nodiscard]] bool isLocked() const noexcept;
+        [[nodiscard]] bool isLocked() const noexcept override;
 
-        void lock();
+        void lock() override;
 
-        bool tryLock();
+        bool tryLock() override;
 
-        void unlock();
+        void unlock() override;
 
         ~uniqueLock();
     };
 
     template<typename... MUTEX>
-    class multiLock {
+    class multiLock final : public lockGuard {
         tuple<MUTEX* ...> m_list;
 
         template<u_integer... IDX>
