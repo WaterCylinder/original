@@ -103,18 +103,28 @@ namespace original {
     template<typename... MUTEX>
     class multiLock final : public lockGuard {
         tuple<MUTEX* ...> m_list;
+        bool is_locked_all;
 
-        template<u_integer... IDX>
-        void lockAll(indexSequence<IDX...> sequence);
+        template<u_integer... IDXES>
+        void lockAll(indexSequence<IDXES...> sequence);
 
-        template<u_integer... IDX>
-        void unlockAll(indexSequence<IDX...> sequence);
+        template<u_integer... IDXES>
+        bool tryLockAll(indexSequence<IDXES...> sequence);
+
+        template<u_integer... IDXES>
+        void unlockAll(indexSequence<IDXES...> sequence);
     public:
         explicit multiLock(MUTEX&... mutex);
 
-        multiLock(const multiLock&) = delete;
+        multiLock(lockPolicy policy, MUTEX&... mutex);
 
-        multiLock& operator=(const multiLock&) = delete;
+        [[nodiscard]] bool isLocked() const noexcept override;
+
+        void lock() override;
+
+        bool tryLock() override;
+
+        void unlock() override;
 
         multiLock(multiLock&&) = delete;
 
@@ -179,6 +189,9 @@ inline original::uniqueLock::uniqueLock(pMutex& p_mutex, lockPolicy policy)
             break;
         case TRY_LOCK:
             this->tryLock();
+            break;
+        case ADOPT_LOCK:
+            this->is_locked = true;
     }
 }
 
@@ -214,26 +227,94 @@ inline original::uniqueLock::~uniqueLock() {
 }
 
 template<typename... MUTEX>
-template<original::u_integer... IDX>
-void original::multiLock<MUTEX...>::lockAll(indexSequence<IDX...>) {
-    (..., this->m_list.template get<IDX>()->lock());
+template<original::u_integer... IDXES>
+void original::multiLock<MUTEX...>::lockAll(indexSequence<IDXES...>) {
+    (..., this->m_list.template get<IDXES>()->lock());
+    this->is_locked_all = true;
 }
 
 template<typename... MUTEX>
-template<original::u_integer... IDX>
-void original::multiLock<MUTEX...>::unlockAll(indexSequence<IDX...>) {
-    (..., this->m_list.template get<IDX>()->unlock());
+template<original::u_integer... IDXES>
+bool original::multiLock<MUTEX...>::tryLockAll(indexSequence<IDXES...>) {
+    bool success = true;
+    bool lock_status[sizeof...(IDXES)] = {};
+    auto tryLockStatusUpdate = [&](auto i, auto* mutex) {
+        if (mutex->tryLock()) {
+            lock_status[i] = true;
+        } else {
+            success = false;
+        }
+    };
+
+    u_integer idx = 0;
+    ((tryLockStatusUpdate(idx++, this->m_list.template get<IDXES>())), ...);
+
+    if (!success) {
+        idx = 0;
+        ((lock_status[idx]
+            ? this->m_list.template get<IDXES>()->unlock() : void(), ++idx), ...);
+    }
+    this->is_locked_all = success;
+    return success;
+}
+
+template<typename... MUTEX>
+template<original::u_integer... IDXES>
+void original::multiLock<MUTEX...>::unlockAll(indexSequence<IDXES...>) {
+    (..., this->m_list.template get<IDXES>()->unlock());
 }
 
 template<typename... MUTEX>
 original::multiLock<MUTEX...>::multiLock(MUTEX&... mutex)
-    : m_list(&mutex...) {
+    : multiLock(AUTO_LOCK, mutex...) {}
+
+template<typename... MUTEX>
+original::multiLock<MUTEX...>::multiLock(lockPolicy policy, MUTEX&... mutex)
+    : m_list(&mutex...), is_locked_all(false) {
+    switch (policy) {
+        case MANUAL_LOCK:
+            break;
+        case AUTO_LOCK:
+            this->lock();
+            break;
+        case TRY_LOCK:
+            this->tryLock();
+            break;
+        case ADOPT_LOCK:
+            this->is_locked_all = true;
+    }
+}
+
+template<typename... MUTEX>
+bool original::multiLock<MUTEX...>::isLocked() const noexcept {
+    return this->is_locked_all;
+}
+
+template<typename... MUTEX>
+void original::multiLock<MUTEX...>::lock() {
+    if (this->is_locked_all)
+        throw sysError();
+
     this->lockAll(makeSequence<sizeof...(MUTEX)>());
 }
 
 template<typename... MUTEX>
+bool original::multiLock<MUTEX...>::tryLock() {
+    if (this->is_locked_all)
+        throw sysError();
+
+    return this->tryLockAll(makeSequence<sizeof...(MUTEX)>());
+}
+
+template<typename... MUTEX>
+void original::multiLock<MUTEX...>::unlock() {
+    if (this->is_locked_all)
+        this->unlockAll(makeReverseSequence<sizeof...(MUTEX)>());
+}
+
+template<typename... MUTEX>
 original::multiLock<MUTEX...>::~multiLock(){
-    this->unlockAll(makeReverseSequence<sizeof...(MUTEX)>());
+    this->unlock();
 }
 
 #endif //MUTEX_H
