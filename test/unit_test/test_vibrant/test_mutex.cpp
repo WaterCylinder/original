@@ -118,8 +118,8 @@ TEST(MutexTest, RAIIUnlocksCorrectly) {
     pm.unlock();
 }
 
-// 多线程验证scopeLock作用域内有效
-TEST(MutexTest, ScopeLockProtectsCriticalSection) {
+// 多线程验证uniqueLock作用域内有效
+TEST(MutexTest, UniqueLockProtectsCriticalSection) {
     constexpr int thread_count = 10;
     constexpr int iterations = 10000;
     int counter = 0;
@@ -262,6 +262,13 @@ TEST(MultiLockTest, MultiLockLocksAndUnlocksInReverseOrder) {
             lock_record_.push_back(mutex_.id());
         }
 
+        bool tryLock(){
+            bool success = mutex_.tryLock();
+            if (success)
+                lock_record_.push_back(mutex_.id());
+            return success;
+        }
+
         void unlock() {
             unlock_record_.push_back(mutex_.id());
             mutex_.unlock();
@@ -308,4 +315,47 @@ TEST(MultiLockTest, MultiLockProtectsMultipleResources) {
 
     EXPECT_EQ(x, iterations * 3);
     EXPECT_EQ(y, iterations * 3);
+}
+
+TEST(MutexTest, AdoptLockPolicyAssumesLocked) {
+    pMutex m;
+    m.lock();  // 手动加锁
+
+    {
+        uniqueLock lock(m, uniqueLock::ADOPT_LOCK);
+        EXPECT_TRUE(lock.isLocked());
+        EXPECT_FALSE(m.tryLock());  // 锁未被释放
+    }
+
+    // 析构后应自动释放
+    EXPECT_TRUE(m.tryLock());
+    m.unlock();
+}
+
+TEST(MultiLockTest, AdoptLockSkipsLocking) {
+    pMutex m1, m2;
+    m1.lock();
+    m2.lock();
+
+    {
+        multiLock lock(lockGuard::ADOPT_LOCK, m1, m2);
+        EXPECT_TRUE(lock.isLocked());
+        EXPECT_FALSE(m1.tryLock());
+        EXPECT_FALSE(m2.tryLock());
+    }
+
+    EXPECT_TRUE(m1.tryLock());
+    EXPECT_TRUE(m2.tryLock());
+    m1.unlock();
+    m2.unlock();
+}
+
+TEST(MultiLockTest, TryLockFailsWhenAnyMutexUnavailable) {
+    pMutex m1, m2;
+    m1.lock();  // 抢占一个锁
+
+    multiLock lock(lockGuard::TRY_LOCK, m1, m2);
+    EXPECT_FALSE(lock.isLocked());
+
+    m1.unlock();
 }
