@@ -34,6 +34,12 @@ namespace original {
             DAY,
         };
 
+        enum class calendar {
+            YEAR,
+            MONTH,
+            DAY,
+        };
+
         static constexpr unit NANOSECOND = unit::NANOSECOND;
         static constexpr unit MICROSECOND = unit::MICROSECOND;
         static constexpr unit MILLISECOND = unit::MILLISECOND;
@@ -41,6 +47,10 @@ namespace original {
         static constexpr unit MINUTE = unit::MINUTE;
         static constexpr unit HOUR = unit::HOUR;
         static constexpr unit DAY = unit::DAY;
+
+        static constexpr calendar DATE_DAY = calendar::DAY;
+        static constexpr calendar DATE_MONTH = calendar::MONTH;
+        static constexpr calendar DATE_YEAR = calendar::YEAR;
 
 
         static constexpr time_val_type FACTOR_NANOSECOND = UNIT_FACTOR[static_cast<ul_integer>(NANOSECOND)];
