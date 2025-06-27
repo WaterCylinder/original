@@ -1,8 +1,10 @@
 #ifndef ORIGINAL_ZEIT_H
 #define ORIGINAL_ZEIT_H
+#include <cmath>
 #include "config.h"
 #include "comparable.h"
 #include "hash.h"
+#include "printable.h"
 
 
 namespace original {
@@ -19,6 +21,7 @@ namespace original {
                 UNIT_FACTOR_BASE * 1000 * 1000 * 1000,
                 UNIT_FACTOR_BASE * 1000 * 1000 * 1000 * 60,
                 UNIT_FACTOR_BASE * 1000 * 1000 * 1000 * 60 * 60,
+                UNIT_FACTOR_BASE * 1000 * 1000 * 1000 * 60 * 60 * 24,
         };
     public:
         enum class unit {
@@ -28,6 +31,7 @@ namespace original {
             SECOND,
             MINUTE,
             HOUR,
+            DAY,
         };
 
         static constexpr unit NANOSECOND = unit::NANOSECOND;
@@ -36,6 +40,8 @@ namespace original {
         static constexpr unit SECOND = unit::SECOND;
         static constexpr unit MINUTE = unit::MINUTE;
         static constexpr unit HOUR = unit::HOUR;
+        static constexpr unit DAY = unit::DAY;
+
 
         static constexpr time_val_type FACTOR_NANOSECOND = UNIT_FACTOR[static_cast<ul_integer>(NANOSECOND)];
         static constexpr time_val_type FACTOR_MICROSECOND = UNIT_FACTOR[static_cast<ul_integer>(MICROSECOND)];
@@ -43,6 +49,7 @@ namespace original {
         static constexpr time_val_type FACTOR_SECOND = UNIT_FACTOR[static_cast<ul_integer>(SECOND)];
         static constexpr time_val_type FACTOR_MINUTE = UNIT_FACTOR[static_cast<ul_integer>(MINUTE)];
         static constexpr time_val_type FACTOR_HOUR = UNIT_FACTOR[static_cast<ul_integer>(HOUR)];
+        static constexpr time_val_type FACTOR_DAY = UNIT_FACTOR[static_cast<ul_integer>(DAY)];
 
         class duration : public comparable<duration>, public hashable<duration> {
             time_val_type nano_seconds_;
@@ -139,6 +146,10 @@ namespace original {
             return time::duration(static_cast<time::time_val_type>(val), time::HOUR);
         }
 
+        inline time::duration operator""_d(unsigned long long val) {
+            return time::duration(static_cast<time::time_val_type>(val), time::DAY);
+        }
+
         inline time::duration operator"" _ns(long double val) {
             return time::duration(static_cast<time::time_val_type>(val * time::FACTOR_NANOSECOND + 0.5), time::NANOSECOND);
         }
@@ -162,11 +173,18 @@ namespace original {
         inline time::duration operator"" _h(long double val) {
             return time::duration(static_cast<time::time_val_type>(val * time::FACTOR_HOUR + 0.5), time::NANOSECOND);
         }
+
+        inline time::duration operator""_d(long double val) {
+            return time::duration(static_cast<time::time_val_type>(std::llround(val * time::FACTOR_DAY)), time::NANOSECOND);
+        }
     }
 }
 
 original::time::duration::duration(time_val_type val, unit unit) {
     switch (unit) {
+        case unit::DAY:
+            this->nano_seconds_ = FACTOR_DAY * val;
+            break;
         case unit::HOUR:
             this->nano_seconds_ = FACTOR_HOUR * val;
             break;
@@ -183,7 +201,7 @@ original::time::duration::duration(time_val_type val, unit unit) {
             this->nano_seconds_ = FACTOR_MICROSECOND * val;
             break;
         case unit::NANOSECOND:
-            this->nano_seconds_ = val;
+            this->nano_seconds_ = FACTOR_NANOSECOND * val;
     }
 }
 
@@ -205,6 +223,9 @@ original::time::time_val_type
 original::time::duration::value(unit unit) const noexcept {
     time_val_type val = this->nano_seconds_;
     switch (unit) {
+        case unit::DAY:
+            val /= FACTOR_DAY;
+            break;
         case unit::HOUR:
             val /= FACTOR_HOUR;
             break;
