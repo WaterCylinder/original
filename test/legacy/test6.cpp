@@ -3,6 +3,8 @@
 #include <thread>
 #include "maps.h"
 #include "mutex.h"
+#include "zeit.h"
+
 
 int main()
 {
@@ -88,5 +90,8 @@ int main()
     original::pMutex m1;
     original::pMutex m2;
     original::multiLock ml{m1, m2};
+
+    auto d1 = original::time::duration(100, original::time::MILLISECOND);
+    std::cout << d1 << std::endl;
     return 0;
 }
