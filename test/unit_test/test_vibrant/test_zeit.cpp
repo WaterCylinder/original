@@ -7,6 +7,7 @@ using namespace original::literals;
 
 // 简写类型
 using duration = time::duration;
+using point = time::point;
 using unit = time::unit;
 
 TEST(DurationTest, ConstructorAndValue) {
@@ -184,4 +185,68 @@ TEST(DurationTest, FloatingPointPrecisionLimits) {
 
     auto d2 = 0.000000001_h;
     EXPECT_EQ(d2.value(unit::NANOSECOND), 3600); // 1ns = 1e-9小时 → 3600ns
+}
+
+TEST(TimePointTest, BasicConstructionAndValue) {
+    point p1(1, time::SECOND);
+    EXPECT_EQ(p1.value(time::SECOND), 1);
+    EXPECT_EQ(p1.value(time::MILLISECOND), 1000);
+    EXPECT_EQ(p1.value(time::NANOSECOND), 1'000'000'000);
+    point p1d(1, time::DAY);
+    EXPECT_EQ(p1d.value(time::HOUR), 24);
+    EXPECT_EQ(p1d.value(time::SECOND), 86400);
+}
+
+TEST(TimePointTest, ConstructionFromDuration) {
+    duration d(500, time::MILLISECOND);
+    point p(d);
+    EXPECT_EQ(p.value(time::MILLISECOND), 500);
+}
+
+TEST(TimePointTest, NowFunctionShouldBeGreaterThanZero) {
+    auto now = point::now();
+    EXPECT_GT(now.value(time::SECOND), 0);  // 假设机器时间正确
+}
+
+TEST(TimePointTest, PointAdditionAndSubtraction) {
+    point p1(1, time::SECOND);
+    duration d(500, time::MILLISECOND);
+    point p2 = p1 + d;
+    EXPECT_EQ(p2.value(time::MILLISECOND), 1500);
+
+    point p3 = p2 - d;
+    EXPECT_EQ(p3.value(time::MILLISECOND), 1000);
+
+    point p_day(0, time::SECOND);
+    duration one_day(1, time::DAY);
+    point p_next = p_day + one_day;
+
+    EXPECT_EQ(p_next.value(time::DAY), 1);
+    EXPECT_EQ((p_next - p_day).value(time::HOUR), 24);
+}
+
+TEST(TimePointTest, PointMinusPointReturnsDuration) {
+    point p1(2, time::SECOND);
+    point p2(500, time::MILLISECOND);
+    duration d = p1 - p2;
+    EXPECT_EQ(d.value(time::MILLISECOND), 1500);
+}
+
+TEST(TimePointTest, PointCompare) {
+    point p1(1, time::SECOND);
+    point p2(2, time::SECOND);
+
+    EXPECT_LT(p1, p2);
+    EXPECT_GT(p2, p1);
+    EXPECT_EQ(p1, p1);
+}
+
+TEST(TimePointTest, HashAndEquality) {
+    point p1(123456, time::MICROSECOND);
+    point p2(123456, time::MICROSECOND);
+    point p3(123457, time::MICROSECOND);
+
+    EXPECT_EQ(p1, p2);
+    EXPECT_EQ(p1.toHash(), p2.toHash());
+    EXPECT_NE(p1, p3);
 }
