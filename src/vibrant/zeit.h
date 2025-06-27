@@ -171,27 +171,27 @@ namespace original {
     time::duration operator-(const time::point& lhs, const time::point& rhs);
 
     namespace literals {
-        inline time::duration operator"" _ns(unsigned long long val) {
+        inline time::duration operator""_ns(unsigned long long val) {
             return time::duration(static_cast<time::time_val_type>(val), time::NANOSECOND);
         }
 
-        inline time::duration operator"" _us(unsigned long long val) {
+        inline time::duration operator""_us(unsigned long long val) {
             return time::duration(static_cast<time::time_val_type>(val), time::MICROSECOND);
         }
 
-        inline time::duration operator"" _ms(unsigned long long val) {
+        inline time::duration operator""_ms(unsigned long long val) {
             return time::duration(static_cast<time::time_val_type>(val), time::MILLISECOND);
         }
 
-        inline time::duration operator"" _s(unsigned long long val) {
+        inline time::duration operator""_s(unsigned long long val) {
             return time::duration(static_cast<time::time_val_type>(val), time::SECOND);
         }
 
-        inline time::duration operator"" _min(unsigned long long val) {
+        inline time::duration operator""_min(unsigned long long val) {
             return time::duration(static_cast<time::time_val_type>(val), time::MINUTE);
         }
 
-        inline time::duration operator"" _h(unsigned long long val) {
+        inline time::duration operator""_h(unsigned long long val) {
             return time::duration(static_cast<time::time_val_type>(val), time::HOUR);
         }
 
@@ -199,28 +199,28 @@ namespace original {
             return time::duration(static_cast<time::time_val_type>(val), time::DAY);
         }
 
-        inline time::duration operator"" _ns(long double val) {
-            return time::duration(static_cast<time::time_val_type>(val * time::FACTOR_NANOSECOND + 0.5), time::NANOSECOND);
+        inline time::duration operator""_ns(long double val) {
+            return time::duration(static_cast<time::time_val_type>(std::llround(val * time::FACTOR_NANOSECOND)), time::NANOSECOND);
         }
 
-        inline time::duration operator"" _us(long double val) {
-            return time::duration(static_cast<time::time_val_type>(val * time::FACTOR_MICROSECOND + 0.5), time::NANOSECOND);
+        inline time::duration operator""_us(long double val) {
+            return time::duration(static_cast<time::time_val_type>(std::llround(val * time::FACTOR_MICROSECOND)), time::NANOSECOND);
         }
 
-        inline time::duration operator"" _ms(long double val) {
-            return time::duration(static_cast<time::time_val_type>(val * time::FACTOR_MILLISECOND + 0.5), time::NANOSECOND);
+        inline time::duration operator""_ms(long double val) {
+            return time::duration(static_cast<time::time_val_type>(std::llround(val * time::FACTOR_MILLISECOND)), time::NANOSECOND);
         }
 
-        inline time::duration operator"" _s(long double val) {
-            return time::duration(static_cast<time::time_val_type>(val * time::FACTOR_SECOND + 0.5), time::NANOSECOND);
+        inline time::duration operator""_s(long double val) {
+            return time::duration(static_cast<time::time_val_type>(std::llround(val * time::FACTOR_SECOND)), time::NANOSECOND);
         }
 
-        inline time::duration operator"" _min(long double val) {
-            return time::duration(static_cast<time::time_val_type>(val * time::FACTOR_MINUTE + 0.5), time::NANOSECOND);
+        inline time::duration operator""_min(long double val) {
+            return time::duration(static_cast<time::time_val_type>(std::llround(val * time::FACTOR_MINUTE)), time::NANOSECOND);
         }
 
-        inline time::duration operator"" _h(long double val) {
-            return time::duration(static_cast<time::time_val_type>(val * time::FACTOR_HOUR + 0.5), time::NANOSECOND);
+        inline time::duration operator""_h(long double val) {
+            return time::duration(static_cast<time::time_val_type>(std::llround(val * time::FACTOR_HOUR)), time::NANOSECOND);
         }
 
         inline time::duration operator""_d(long double val) {
