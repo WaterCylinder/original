@@ -90,6 +90,14 @@ namespace original {
 
             std::string toString(bool enter) const override;
 
+            duration& operator++();
+
+            duration operator++(int postfix);
+
+            duration& operator--();
+
+            duration operator--(int postfix);
+
             duration& operator+=(const duration& other);
 
             duration& operator-=(const duration& other);
@@ -141,6 +149,14 @@ namespace original {
             u_integer toHash() const noexcept override;
 
             std::string toString(bool enter) const override;
+
+            point& operator++();
+
+            point operator++(int postfix);
+
+            point& operator--();
+
+            point operator--(int postfix);
 
             point& operator+=(const duration& d);
 
@@ -324,6 +340,32 @@ std::string original::time::duration::toString(bool enter) const {
 }
 
 original::time::duration&
+original::time::duration::operator++() {
+    this->nano_seconds_ += 1;
+    return *this;
+}
+
+original::time::duration
+original::time::duration::operator++(int postfix) {
+    duration res{*this};
+    this->nano_seconds_ += 1;
+    return res;
+}
+
+original::time::duration&
+original::time::duration::operator--() {
+    this->nano_seconds_ -= 1;
+    return *this;
+}
+
+original::time::duration
+original::time::duration::operator--(int postfix) {
+    duration res(*this);
+    this->nano_seconds_ -= 1;
+    return res;
+}
+
+original::time::duration&
 original::time::duration::operator+=(const duration& other) {
     this->nano_seconds_ += other.nano_seconds_;
     return *this;
@@ -467,6 +509,32 @@ original::time::point::toString(bool enter) const {
 }
 
 original::time::point&
+original::time::point::operator++() {
+    this->nano_since_epoch_++;
+    return *this;
+}
+
+original::time::point
+original::time::point::operator++(int postfix) {
+    point res{*this};
+    this->nano_since_epoch_++;
+    return res;
+}
+
+original::time::point&
+original::time::point::operator--() {
+    this->nano_since_epoch_--;
+    return *this;
+}
+
+original::time::point
+original::time::point::operator--(int postfix) {
+    point res{*this};
+    this->nano_since_epoch_--;
+    return res;
+}
+
+original::time::point&
 original::time::point::operator+=(const time::duration& d) {
     this->nano_since_epoch_ += d;
     return *this;
@@ -480,7 +548,7 @@ original::time::point::operator-=(const time::duration& d) {
 
 original::time::point
 original::operator-(const time::point &p, const time::duration &d) {
-    time::point res(p);
+    time::point res{p};
     res -= d;
     return res;
 }
@@ -492,7 +560,7 @@ original::operator-(const time::point &lhs, const time::point &rhs) {
 
 original::time::point
 original::operator+(const time::point &p, const time::duration &d) {
-    time::point res(p);
+    time::point res{p};
     res += d;
     return res;
 }
