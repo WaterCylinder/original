@@ -5,6 +5,7 @@
 #include "comparable.h"
 #include "hash.h"
 #include "printable.h"
+#include "error.h"
 
 
 namespace original {
@@ -168,6 +169,55 @@ namespace original {
 
             friend duration operator-(const point& lhs, const point& rhs);
         };
+    };
+
+    class date final
+            : public comparable<date>,
+              public hashable<date>,
+              public printable {
+
+        integer year_;
+        integer month_;
+        integer day_;
+        integer hour_;
+        integer minute_;
+        integer second_;
+
+        static inline constexpr integer DAYS_OF_MONTH[] {
+            31, 28, 31, 30, 31, 30,
+            31, 31, 30, 31, 30, 31
+        };
+
+        static inline constexpr bool isValidYear(integer year);
+
+        static inline constexpr bool isValidMonth(integer month);
+
+        static inline constexpr bool isValidDay(integer day);
+
+        void set(integer year, integer month, integer day,
+                 integer hour, integer minute, integer second);
+    public:
+        static inline constexpr bool isLeapYear(integer year);
+
+        static inline constexpr integer daysOfMonth(integer year, integer month);
+
+        static inline constexpr bool isValidYMD(integer year, integer month, integer day);
+
+        static inline constexpr bool isValidHMS(integer hour, integer minute, integer second);
+
+        static inline constexpr bool isValid(integer year, integer month, integer day,
+                                             integer hour, integer minute, integer second);
+
+        date(integer year = 1970, integer month = 1, integer day = 1,
+             integer hour = 0, integer minute = 0, integer second = 0);
+
+        date(const date& other) = default;
+
+        date& operator=(const date& other) = default;
+
+        date(date&& other) noexcept;
+
+        date& operator=(date&& other) noexcept;
     };
 
     const time::duration original::time::duration::ZERO = duration{};
@@ -563,6 +613,93 @@ original::operator+(const time::point &p, const time::duration &d) {
     time::point res{p};
     res += d;
     return res;
+}
+
+constexpr bool
+original::date::isValidYear(integer year) {
+    return 0 <= year;
+}
+
+constexpr bool
+original::date::isValidMonth(integer month) {
+    return 1 <= month && month <= 12;
+}
+
+constexpr bool
+original::date::isValidDay(original::integer day) {
+    return 1 <= day && day <= 31;
+}
+
+void original::date::set(integer year, integer month, integer day,
+                         integer hour, integer minute, integer second) {
+    this->year_ = year;
+    this->month_ = month;
+    this->day_ = day;
+    this->hour_ = hour;
+    this->minute_ = minute;
+    this->second_ = second;
+}
+
+constexpr bool
+original::date::isLeapYear(integer year) {
+    if (!isValidYear(year))
+        return false;
+    return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+}
+
+constexpr original::integer
+original::date::daysOfMonth(integer year, integer month) {
+    if (!isValidYear(year) || !isValidMonth(month))
+        throw valueError();
+
+    if (month == 2 && isLeapYear(year)){
+        return DAYS_OF_MONTH[month - 1] + 1;
+    }
+    return DAYS_OF_MONTH[month - 1];
+}
+
+constexpr bool
+original::date::isValidYMD(integer year, integer month, integer day) {
+    if (!isValidYear(year) || !isValidMonth(month) || !isValidDay(day))
+        return false;
+
+    return day <= daysOfMonth(year, month);
+}
+
+constexpr bool
+original::date::isValidHMS(integer hour, integer minute, integer second) {
+    return 0 <= hour && hour <= 23 &&
+           0 <= minute && minute <= 59 &&
+           0 <= second && second <= 59;
+}
+
+constexpr bool
+original::date::isValid(integer year, integer month, integer day,
+                        integer hour, integer minute, integer second) {
+    return isValidYMD(year, month, day) && isValidHMS(hour, minute, second);
+}
+
+original::date::date(integer year, integer month, integer day,
+                     integer hour, integer minute, integer second) {
+    if (!isValid(year, month, day, hour, minute, second))
+        throw valueError();
+
+    this->set(year, month, day, hour, minute, second);
+}
+
+original::date::date(date&& other) noexcept : date() {
+    this->operator=(std::move(other));
+}
+
+original::date&
+original::date::operator=(date&& other) noexcept {
+    if (this == &other)
+        return *this;
+
+    this->set(other.year_, other.month_, other.day_,
+              other.hour_, other.minute_, other.second_);
+    other.set(1970, 1, 1, 0, 0, 0);
+    return *this;
 }
 
 #endif //ORIGINAL_ZEIT_H
