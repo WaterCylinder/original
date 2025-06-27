@@ -51,7 +51,12 @@ namespace original {
         static constexpr time_val_type FACTOR_HOUR = UNIT_FACTOR[static_cast<ul_integer>(HOUR)];
         static constexpr time_val_type FACTOR_DAY = UNIT_FACTOR[static_cast<ul_integer>(DAY)];
 
-        class duration : public comparable<duration>, public hashable<duration> {
+        class point;
+
+        class duration final
+                      : public comparable<duration>,
+                        public hashable<duration>,
+                        public printable {
             time_val_type nano_seconds_;
 
         public:
@@ -72,6 +77,10 @@ namespace original {
             [[nodiscard]] time_val_type value(unit unit = MILLISECOND) const noexcept;
 
             [[nodiscard]] integer compareTo(const duration& other) const override;
+
+            u_integer toHash() const noexcept override;
+
+            std::string toString(bool enter) const override;
 
             duration& operator+=(const duration& other);
 
@@ -292,6 +301,18 @@ original::time::duration::compareTo(const duration& other) const {
     if (this->nano_seconds_ == other.nano_seconds_)
         return 0;
     return this->nano_seconds_ > other.nano_seconds_ ? 1 : -1;
+}
+
+original::u_integer original::time::duration::toHash() const noexcept {
+    return hash<time::time_val_type>::hashFunc(this->nano_seconds_);
+}
+
+std::string original::time::duration::toString(bool enter) const {
+    std::stringstream ss;
+    ss << "(duration " << this->nano_seconds_ << "ns)";
+    if (enter)
+        ss << "\n";
+    return ss.str();
 }
 
 original::time::duration&
