@@ -3,5 +3,6 @@
 
 #include "mutex.h"
 #include "thread.h"
+#include "zeit.h"
 
 #endif //VIBRANT_H
