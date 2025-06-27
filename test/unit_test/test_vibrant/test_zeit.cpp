@@ -15,6 +15,12 @@ TEST(DurationTest, ConstructorAndValue) {
     EXPECT_EQ(d1.value(unit::MILLISECOND), 5000);
     EXPECT_EQ(d1.value(unit::MICROSECOND), 5000000);
     EXPECT_EQ(d1.value(unit::NANOSECOND), 5000000000);
+    EXPECT_EQ(d1.value(unit::DAY), 0); // 5秒 < 1天，取整应为0
+
+    duration d2(2, unit::DAY);
+    EXPECT_EQ(d2.value(unit::SECOND), 2 * 24 * 60 * 60);
+    EXPECT_EQ(d2.value(unit::HOUR), 2 * 24);
+    EXPECT_EQ(d2.value(unit::MINUTE), 2 * 24 * 60);
 }
 
 TEST(DurationTest, AdditionAndSubtraction) {
@@ -44,6 +50,12 @@ TEST(DurationTest, MultiplicationAndDivision) {
     auto q = triple / d2;
     EXPECT_EQ(q.value(unit::NANOSECOND), (9LL * 1000000000LL) / (2LL * 1000000000LL));
     EXPECT_EQ(q.value(unit::NANOSECOND), 4); // 9 / 2 向下取整
+    duration one_day(1, unit::DAY);
+    duration two_days = one_day * 2;
+    EXPECT_EQ(two_days.value(unit::DAY), 2);
+
+    duration half_day = two_days / 4;
+    EXPECT_EQ(half_day.value(unit::HOUR), 12);
 }
 
 TEST(DurationTest, DivFloating) {
@@ -55,6 +67,14 @@ TEST(DurationTest, DivFloating) {
 
     double result2 = d1.div(4, time::SECOND);
     EXPECT_DOUBLE_EQ(result2, 2.5);
+    duration d_day(1, unit::DAY);
+    double hours = d_day.div(1, unit::HOUR);
+    EXPECT_DOUBLE_EQ(hours, 24.0);
+
+    duration two_days(2, unit::DAY);
+    double ratio = two_days.div(d_day);
+    EXPECT_DOUBLE_EQ(ratio, 2.0);
+
 }
 
 TEST(DurationTest, BasicComparisons) {
@@ -98,7 +118,6 @@ TEST(DurationTest, BasicComparisons) {
 }
 
 TEST(DurationTest, HashEqualAndHashUse) {
-    // todo: 有点问题，之后再修
     duration d1(2, time::SECOND);
     duration d2(2000, time::MILLISECOND); // equal in value
     duration d3(1, time::SECOND);         // not equal
@@ -142,6 +161,9 @@ TEST(DurationTest, IntegerLiterals) {
     EXPECT_EQ((1_s).value(unit::NANOSECOND), 1000000000);
     EXPECT_EQ((1_min).value(unit::NANOSECOND), 60LL * 1000000000);
     EXPECT_EQ((1_h).value(unit::NANOSECOND), 60LL * 60 * 1000000000);
+    EXPECT_EQ((1_d).value(unit::HOUR), 24);
+    EXPECT_EQ((1_d).value(unit::SECOND), 86400);
+    EXPECT_EQ((2_d).value(unit::DAY), 2);
 }
 
 TEST(DurationTest, IntegerLiteralConversionToMilliseconds) {
