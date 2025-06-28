@@ -6,6 +6,7 @@
 #include "hash.h"
 #include "printable.h"
 #include "error.h"
+#include <iomanip>
 
 
 namespace original {
@@ -68,6 +69,7 @@ namespace original {
         static constexpr integer EPOCH_DAY = 1;
 
         class point;
+        class UTCTime;
 
         class duration final
                       : public comparable<duration>,
@@ -144,6 +146,8 @@ namespace original {
             duration nano_since_epoch_;
 
         public:
+            friend class UTCTime;
+
             static point now();
 
             explicit point(time_val_type val = 0, unit unit = MILLISECOND);
@@ -176,55 +180,81 @@ namespace original {
 
             friend duration operator-(const point& lhs, const point& rhs);
         };
-    };
 
-    class date final
-            : public comparable<date>,
-              public hashable<date>,
-              public printable {
+        class UTCTime
+                : public comparable<UTCTime>,
+                  public hashable<UTCTime>,
+                  public printable {
 
-        integer year_;
-        integer month_;
-        integer day_;
-        integer hour_;
-        integer minute_;
-        integer second_;
+            integer year_;
+            integer month_;
+            integer day_;
+            integer hour_;
+            integer minute_;
+            integer second_;
 
-        static inline constexpr integer DAYS_OF_MONTH[] {
-            31, 28, 31, 30, 31, 30,
-            31, 31, 30, 31, 30, 31
+            static inline constexpr integer DAYS_OF_MONTH[] {
+                    31, 28, 31, 30, 31, 30,
+                    31, 31, 30, 31, 30, 31
+            };
+
+            static inline constexpr bool isValidYear(integer year);
+
+            static inline constexpr bool isValidMonth(integer month);
+
+            static inline constexpr bool isValidDay(integer day);
+
+            void set(integer year, integer month, integer day,
+                     integer hour, integer minute, integer second);
+        public:
+            static const UTCTime EPOCH;
+
+            static UTCTime now();
+
+            static inline constexpr bool isLeapYear(integer year);
+
+            static inline constexpr integer daysOfMonth(integer year, integer month);
+
+            static inline constexpr bool isValidYMD(integer year, integer month, integer day);
+
+            static inline constexpr bool isValidHMS(integer hour, integer minute, integer second);
+
+            static inline constexpr bool isValid(integer year, integer month, integer day,
+                                                 integer hour, integer minute, integer second);
+
+            explicit UTCTime(integer year = EPOCH_YEAR, integer month = EPOCH_MONTH, integer day = EPOCH_DAY,
+                             integer hour = 0, integer minute = 0, integer second = 0);
+
+            explicit UTCTime(const time::point& p);
+
+            UTCTime(const UTCTime& other) = default;
+
+            UTCTime& operator=(const UTCTime& other) = default;
+
+            UTCTime(UTCTime&& other) noexcept;
+
+            UTCTime& operator=(UTCTime&& other) noexcept;
+
+            integer value(unit unit) const noexcept;
+
+            integer value(calendar calendar) const noexcept;
+
+            explicit operator point() const;
+
+            integer compareTo(const UTCTime& other) const override;
+
+            u_integer toHash() const noexcept override;
+
+            std::string className() const override;
+
+            std::string toString(bool enter) const override;
+
+            friend UTCTime operator+(const UTCTime& p, const duration& d);
+
+            friend UTCTime operator-(const UTCTime& p, const duration& d);
+
+            friend duration operator-(const UTCTime& lhs, const UTCTime& rhs);
         };
-
-        static inline constexpr bool isValidYear(integer year);
-
-        static inline constexpr bool isValidMonth(integer month);
-
-        static inline constexpr bool isValidDay(integer day);
-
-        void set(integer year, integer month, integer day,
-                 integer hour, integer minute, integer second);
-    public:
-        static inline constexpr bool isLeapYear(integer year);
-
-        static inline constexpr integer daysOfMonth(integer year, integer month);
-
-        static inline constexpr bool isValidYMD(integer year, integer month, integer day);
-
-        static inline constexpr bool isValidHMS(integer hour, integer minute, integer second);
-
-        static inline constexpr bool isValid(integer year, integer month, integer day,
-                                             integer hour, integer minute, integer second);
-
-        date(integer year = 1970, integer month = 1, integer day = 1,
-             integer hour = 0, integer minute = 0, integer second = 0);
-
-        date(const date& other) = default;
-
-        date& operator=(const date& other) = default;
-
-        date(date&& other) noexcept;
-
-        date& operator=(date&& other) noexcept;
     };
 
     const time::duration original::time::duration::ZERO = duration{};
@@ -250,6 +280,14 @@ namespace original {
     time::point operator-(const time::point& p, const time::duration& d);
 
     time::duration operator-(const time::point& lhs, const time::point& rhs);
+
+    const time::UTCTime original::time::UTCTime::EPOCH = time::UTCTime{};
+
+    time::UTCTime operator+(const time::UTCTime& t, const time::duration& d);
+
+    time::UTCTime operator-(const time::UTCTime& t, const time::duration& d);
+
+    time::duration operator-(const time::UTCTime& lhs, const time::UTCTime& rhs);
 
     namespace literals {
         inline time::duration operator""_ns(unsigned long long val) {
@@ -623,22 +661,22 @@ original::operator+(const time::point &p, const time::duration &d) {
 }
 
 constexpr bool
-original::date::isValidYear(integer year) {
+original::time::UTCTime::isValidYear(integer year) {
     return 0 <= year;
 }
 
 constexpr bool
-original::date::isValidMonth(integer month) {
+original::time::UTCTime::isValidMonth(integer month) {
     return 1 <= month && month <= 12;
 }
 
 constexpr bool
-original::date::isValidDay(original::integer day) {
+original::time::UTCTime::isValidDay(integer day) {
     return 1 <= day && day <= 31;
 }
 
-void original::date::set(integer year, integer month, integer day,
-                         integer hour, integer minute, integer second) {
+void original::time::UTCTime::set(integer year, integer month, integer day,
+                                  integer hour, integer minute, integer second) {
     this->year_ = year;
     this->month_ = month;
     this->day_ = day;
@@ -647,15 +685,22 @@ void original::date::set(integer year, integer month, integer day,
     this->second_ = second;
 }
 
+
+
+original::time::UTCTime
+original::time::UTCTime::now() {
+    return UTCTime{point::now()};
+}
+
 constexpr bool
-original::date::isLeapYear(integer year) {
+original::time::UTCTime::isLeapYear(integer year) {
     if (!isValidYear(year))
         return false;
     return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
 }
 
 constexpr original::integer
-original::date::daysOfMonth(integer year, integer month) {
+original::time::UTCTime::daysOfMonth(integer year, integer month) {
     if (!isValidYear(year) || !isValidMonth(month))
         throw valueError();
 
@@ -666,7 +711,7 @@ original::date::daysOfMonth(integer year, integer month) {
 }
 
 constexpr bool
-original::date::isValidYMD(integer year, integer month, integer day) {
+original::time::UTCTime::isValidYMD(integer year, integer month, integer day) {
     if (!isValidYear(year) || !isValidMonth(month) || !isValidDay(day))
         return false;
 
@@ -674,39 +719,188 @@ original::date::isValidYMD(integer year, integer month, integer day) {
 }
 
 constexpr bool
-original::date::isValidHMS(integer hour, integer minute, integer second) {
+original::time::UTCTime::isValidHMS(integer hour, integer minute, integer second) {
     return 0 <= hour && hour <= 23 &&
            0 <= minute && minute <= 59 &&
            0 <= second && second <= 59;
 }
 
 constexpr bool
-original::date::isValid(integer year, integer month, integer day,
-                        integer hour, integer minute, integer second) {
+original::time::UTCTime::isValid(integer year, integer month, integer day,
+                                 integer hour, integer minute, integer second) {
     return isValidYMD(year, month, day) && isValidHMS(hour, minute, second);
 }
 
-original::date::date(integer year, integer month, integer day,
-                     integer hour, integer minute, integer second) {
+original::time::UTCTime::UTCTime(integer year, integer month, integer day,
+                                 integer hour, integer minute, integer second) {
     if (!isValid(year, month, day, hour, minute, second))
         throw valueError();
 
     this->set(year, month, day, hour, minute, second);
 }
 
-original::date::date(date&& other) noexcept : date() {
+original::time::UTCTime::UTCTime(const point& p) {
+    const auto nano_seconds = p.value(NANOSECOND);
+    integer year, month, day, hour, minute, second;
+
+    second = nano_seconds / FACTOR_SECOND;
+
+    minute = second / (FACTOR_MINUTE / FACTOR_SECOND);
+    second %= (FACTOR_MINUTE / FACTOR_SECOND);
+
+    hour = minute / (FACTOR_HOUR / FACTOR_MINUTE);
+    minute %= (FACTOR_HOUR / FACTOR_MINUTE);
+
+    day = hour / (FACTOR_DAY / FACTOR_HOUR);
+    hour %= (FACTOR_DAY / FACTOR_HOUR);
+
+    year = EPOCH_YEAR;
+    while (true){
+        integer days_in_year = isLeapYear(year) ? DAYS_LEAP_YEAR : DAYS_COMMON_YEAR;
+        if (day < days_in_year){
+            break;
+        }
+
+        day -= days_in_year;
+        year += 1;
+    }
+
+    month = 1;
+    while (true){
+        integer dim = daysOfMonth(year, month);
+        if (day < dim){
+            break;
+        }
+
+        day -= dim;
+        month += 1;
+    }
+
+    day += 1;
+
+    this->set(year, month, day, hour, minute, second);
+}
+
+original::time::UTCTime::UTCTime(UTCTime&& other) noexcept : UTCTime() {
     this->operator=(std::move(other));
 }
 
-original::date&
-original::date::operator=(date&& other) noexcept {
+original::time::UTCTime&
+original::time::UTCTime::operator=(UTCTime&& other) noexcept {
     if (this == &other)
         return *this;
 
     this->set(other.year_, other.month_, other.day_,
               other.hour_, other.minute_, other.second_);
-    other.set(1970, 1, 1, 0, 0, 0);
+    other.set(EPOCH_YEAR, EPOCH_MONTH, EPOCH_DAY, 0, 0, 0);
     return *this;
+}
+
+original::integer
+original::time::UTCTime::value(unit unit) const noexcept {
+    switch (unit) {
+        case SECOND:
+            return this->second_;
+        case MINUTE:
+            return this->minute_;
+        case HOUR:
+            return this->hour_;
+        case DAY:
+            return this->day_;
+        default:
+            break;
+    }
+    return 0;
+}
+
+original::integer
+original::time::UTCTime::value(calendar calendar) const noexcept {
+    switch (calendar) {
+        case MONTH:
+            return this->month_;
+        case YEAR:
+        default:
+            return this->year_;
+    }
+}
+
+original::time::UTCTime::operator point() const {
+    time_val_type total_days = 0;
+
+    for (integer y = EPOCH_YEAR; y < this->year_; ++y) {
+        total_days += isLeapYear(y) ? DAYS_LEAP_YEAR : DAYS_COMMON_YEAR;
+    }
+
+    for (integer m = 1; m < this->month_; ++m) {
+        total_days += daysOfMonth(this->year_, m);
+    }
+
+    total_days += (this->day_ - 1);
+
+    time_val_type total_seconds = total_days * (FACTOR_DAY / FACTOR_SECOND);
+    total_seconds += this->hour_ * (FACTOR_HOUR / FACTOR_SECOND);
+    total_seconds += this->minute_ * (FACTOR_MINUTE / FACTOR_SECOND);
+    total_seconds += this->second_;
+
+    return point{total_seconds, SECOND};
+}
+
+original::integer
+original::time::UTCTime::compareTo(const UTCTime& other) const {
+    if (this->year_ != other.year_)
+        return this->year_ > other.year_ ? 1 : -1;
+    if (this->month_ != other.month_)
+        return this->month_ > other.month_ ? 1 : -1;
+    if (this->day_ != other.day_)
+        return this->day_ > other.day_ ? 1 : -1;
+    if (this->hour_ != other.hour_)
+        return this->hour_ > other.hour_ ? 1 : -1;
+    if (this->minute_ != other.minute_)
+        return this->minute_ > other.minute_ ? 1 : -1;
+    if (this->second_ != other.second_)
+        return this->second_ > other.second_ ? 1 : -1;
+    return 0;
+}
+
+original::u_integer
+original::time::UTCTime::toHash() const noexcept {
+    u_integer seed = 0;
+    hash<UTCTime>::hashCombine(seed, this->year_, this->month_, this->day_,
+                               this-> hour_, this->minute_, this->second_);
+    return seed;
+}
+
+std::string original::time::UTCTime::className() const {
+    return "time::UTCTime";
+}
+
+std::string original::time::UTCTime::toString(bool enter) const {
+    std::stringstream ss;
+    ss << "(" << this->className() << " "
+       << this->year_ << "-"
+       << std::setw(2) << std::setfill('0') << this->month_ << "-"
+       << std::setw(2) << std::setfill('0') << this->day_ << " "
+       << std::setw(2) << std::setfill('0') << this->hour_ << ":"
+       << std::setw(2) << std::setfill('0') << this->minute_ << ":"
+       << std::setw(2) << std::setfill('0') << this->second_ << ")";
+    if (enter)
+        ss << "\n";
+    return ss.str();
+}
+
+original::time::UTCTime
+original::operator-(const time::UTCTime& t, const time::duration& d) {
+    return time::UTCTime{static_cast<time::point>(t) - d};
+}
+
+original::time::duration
+original::operator-(const time::UTCTime& lhs, const time::UTCTime& rhs) {
+    return static_cast<time::point>(lhs) - static_cast<time::point>(rhs);
+}
+
+original::time::UTCTime
+original::operator+(const time::UTCTime& t, const time::duration& d) {
+    return time::UTCTime{static_cast<time::point>(t) + d};
 }
 
 #endif //ORIGINAL_ZEIT_H
