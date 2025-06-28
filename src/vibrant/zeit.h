@@ -197,6 +197,16 @@ namespace original {
             integer minute_;
             integer second_;
 
+            enum class weekdays : integer {
+                SATURDAY,
+                SUNDAY,
+                MONDAY,
+                TUESDAY,
+                WEDNESDAY,
+                THURSDAY,
+                FRIDAY,
+            };
+
             static inline constexpr integer DAYS_OF_MONTH[] {
                     31, 28, 31, 30, 31, 30,
                     31, 31, 30, 31, 30, 31
@@ -211,6 +221,19 @@ namespace original {
             void set(integer year, integer month, integer day,
                      integer hour, integer minute, integer second);
         public:
+            static constexpr weekdays SATURDAY = weekdays::SATURDAY;
+            static constexpr weekdays SUNDAY = weekdays::SUNDAY;
+            static constexpr weekdays MONDAY = weekdays::MONDAY;
+            static constexpr weekdays TUESDAY = weekdays::TUESDAY;
+            static constexpr weekdays WEDNESDAY = weekdays::WEDNESDAY;
+            static constexpr weekdays THURSDAY = weekdays::THURSDAY;
+            static constexpr weekdays FRIDAY = weekdays::FRIDAY;
+
+
+            static constexpr integer DAYS_WEEK = 7;
+            static constexpr integer MONTHS_YEAR = std::size(DAYS_OF_MONTH);
+            static constexpr integer YEARS_CENTURY = 100;
+
             static const UTCTime EPOCH;
 
             static UTCTime now();
@@ -219,12 +242,18 @@ namespace original {
 
             static inline constexpr integer daysOfMonth(integer year, integer month);
 
+            static inline constexpr weekdays weekday(integer year, integer month, integer day);
+
             static inline constexpr bool isValidYMD(integer year, integer month, integer day);
 
             static inline constexpr bool isValidHMS(integer hour, integer minute, integer second);
 
             static inline constexpr bool isValid(integer year, integer month, integer day,
                                                  integer hour, integer minute, integer second);
+
+            [[nodiscard]] bool isLeapYear() const;
+
+            [[nodiscard]] weekdays weekday() const;
 
             explicit UTCTime(integer year = EPOCH_YEAR, integer month = EPOCH_MONTH, integer day = EPOCH_DAY,
                              integer hour = 0, integer minute = 0, integer second = 0);
@@ -724,6 +753,32 @@ original::time::UTCTime::daysOfMonth(integer year, integer month) {
     return DAYS_OF_MONTH[month - 1];
 }
 
+constexpr original::time::UTCTime::weekdays
+original::time::UTCTime::weekday(integer year, integer month, integer day) {
+    if (!isValidYMD(year, month, day))
+        throw valueError();
+
+    integer corrected_year, corrected_month;
+    if (month == 1 || month == 2){
+        corrected_year = year - 1;
+        corrected_month = MONTHS_YEAR + month;
+    } else {
+        corrected_year = year;
+        corrected_month = month;
+    }
+    integer century = corrected_year / YEARS_CENTURY;
+    integer years_in_century = corrected_year % YEARS_CENTURY;
+
+    return static_cast<weekdays>((
+               day +
+               (13 * (corrected_month + 1)) / 5 +
+               years_in_century +
+               years_in_century / 4 +
+               century / 4 +
+               5 * century
+           ) % DAYS_WEEK);
+}
+
 constexpr bool
 original::time::UTCTime::isValidYMD(integer year, integer month, integer day) {
     if (!isValidYear(year) || !isValidMonth(month) || !isValidDay(day))
@@ -743,6 +798,15 @@ constexpr bool
 original::time::UTCTime::isValid(integer year, integer month, integer day,
                                  integer hour, integer minute, integer second) {
     return isValidYMD(year, month, day) && isValidHMS(hour, minute, second);
+}
+
+bool original::time::UTCTime::isLeapYear() const {
+    return isLeapYear(this->year_);
+}
+
+original::time::UTCTime::weekdays
+original::time::UTCTime::weekday() const {
+    return weekday(this->year_, this->month_, this->day_);
 }
 
 original::time::UTCTime::UTCTime(integer year, integer month, integer day,
