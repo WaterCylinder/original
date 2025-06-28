@@ -1,7 +1,6 @@
 #ifndef HASH_H
 #define HASH_H
 
-
 #include "config.h"
 #include <cstring>
 #include <string>
