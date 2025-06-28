@@ -79,6 +79,9 @@ namespace original {
     template <typename TYPE>
     class hash {
 
+        template <typename T>
+        static inline void hashCombine(u_integer& seed, const T& value) noexcept;
+
         /**
          * @brief Internal implementation of the hash function
          * @tparam T The type of object to hash
@@ -120,6 +123,9 @@ namespace original {
          * @note This is the fundamental hashing operation used by other specializations
          */
         static u_integer fnv1a(const byte* data, u_integer size) noexcept;
+
+        template <typename T, typename... Rest>
+        static inline void hashCombine(u_integer& seed, const T& value, const Rest&... rest) noexcept;
 
         /**
          * @brief Default hash function fallback
@@ -235,6 +241,21 @@ namespace original {
     };
 }
 
+
+namespace std {
+    template <typename T>
+    requires original::isHashable<T>
+    struct hash<T> {
+        std::size_t operator()(const T& t) const noexcept; // NOLINT
+    };
+}
+
+template<typename TYPE>
+template<typename T>
+void original::hash<TYPE>::hashCombine(u_integer &seed, const T& value) noexcept {
+    seed ^= hash<T>::hashFunc(value) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+}
+
 template<typename TYPE>
 template<typename T>
 original::u_integer original::hash<TYPE>::hashFuncImpl(const T &t) noexcept {
@@ -255,6 +276,13 @@ original::u_integer original::hash<TYPE>::fnv1a(const byte* data, const u_intege
         hash *= FNV_32_PRIME;
     }
     return hash;
+}
+
+template<typename TYPE>
+template<typename T, typename... Rest>
+void original::hash<TYPE>::hashCombine(u_integer &seed, const T& value, const Rest&... rest) noexcept {
+    hashCombine(seed, value);
+    (hashCombine(seed, rest), ...);
 }
 
 template<typename TYPE>
@@ -319,5 +347,11 @@ bool original::hashable<DERIVED>::equals(const DERIVED &other) const noexcept {
 
 template <typename DERIVED>
 original::hashable<DERIVED>::~hashable() = default;
+
+template <typename T>
+requires original::isHashable<T>
+std::size_t std::hash<T>::operator()(const T &t) const noexcept {
+    return static_cast<std::size_t>(t.toHash());
+}
 
 #endif //HASH_H
