@@ -98,6 +98,8 @@ namespace original {
 
             u_integer toHash() const noexcept override;
 
+            std::string className() const override;
+
             std::string toString(bool enter) const override;
 
             duration& operator++();
@@ -159,6 +161,8 @@ namespace original {
             [[nodiscard]] integer compareTo(const point& other) const override;
 
             u_integer toHash() const noexcept override;
+
+            std::string className() const override;
 
             std::string toString(bool enter) const override;
 
@@ -426,9 +430,13 @@ original::u_integer original::time::duration::toHash() const noexcept {
     return hash<time::time_val_type>::hashFunc(this->nano_seconds_);
 }
 
+std::string original::time::duration::className() const {
+    return "time::duration";
+}
+
 std::string original::time::duration::toString(bool enter) const {
     std::stringstream ss;
-    ss << "(duration " << this->nano_seconds_ << "ns)";
+    ss << "(" << this->className() << " " << this->nano_seconds_ << "ns)";
     if (enter)
         ss << "\n";
     return ss.str();
@@ -594,10 +602,14 @@ original::time::point::toHash() const noexcept {
     return this->nano_since_epoch_.toHash();
 }
 
+std::string original::time::point::className() const {
+    return "time::point";
+}
+
 std::string
 original::time::point::toString(bool enter) const {
     std::stringstream ss;
-    ss << "(point " << this->nano_since_epoch_.nano_seconds_ << ")";
+    ss << "(" << this->className() << " " << this->nano_since_epoch_.nano_seconds_ << ")";
     if (enter)
         ss << "\n";
     return ss.str();
