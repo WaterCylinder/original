@@ -250,3 +250,122 @@ TEST(TimePointTest, HashAndEquality) {
     EXPECT_EQ(p1.toHash(), p2.toHash());
     EXPECT_NE(p1, p3);
 }
+
+TEST(UTCTimeTest, Construction) {
+    time::UTCTime t1; // 默认构造应为 1970-01-01 00:00:00
+    EXPECT_EQ(t1.toString(false), "(time::UTCTime 1970-01-01 00:00:00)");
+    t1 = time::UTCTime::EPOCH;
+    EXPECT_EQ(t1.toString(false), "(time::UTCTime 1970-01-01 00:00:00)");
+
+    time::UTCTime t2(2024, 6, 1, 12, 30, 45);
+    EXPECT_EQ(t2.value(time::YEAR), 2024);
+    EXPECT_EQ(t2.value(time::MONTH), 6);
+    EXPECT_EQ(t2.value(time::DAY), 1);
+    EXPECT_EQ(t2.value(time::HOUR), 12);
+    EXPECT_EQ(t2.value(time::MINUTE), 30);
+    EXPECT_EQ(t2.value(time::SECOND), 45);
+
+    time::point p {time::UTCTime(2024, 6, 1, 12, 0, 0)}; // 转换为point再还原
+    time::UTCTime t3(p);
+    EXPECT_EQ(t3.value(time::YEAR), 2024);
+    EXPECT_EQ(t3.value(time::MONTH), 6);
+    EXPECT_EQ(t3.value(time::DAY), 1);
+    EXPECT_EQ(t3.value(time::HOUR), 12);
+}
+
+TEST(UTCTimeTest, DurationAddSubtract) {
+    time::UTCTime t(2024, 1, 1, 0, 0, 0);
+    auto t_plus = t + 1_d;
+    EXPECT_EQ(t_plus.value(time::DAY), 2);
+    EXPECT_EQ(t_plus, time::UTCTime (2024, 1, 2, 0, 0, 0));
+
+    auto t_minus = t_plus - 1_d;
+    EXPECT_EQ(t_minus.toString(false), t.toString(false));
+    EXPECT_EQ(t_minus, t);
+
+    auto d = t_plus - t;
+    EXPECT_EQ(d.value(time::HOUR), 24);
+}
+
+TEST(UTCTimeTest, ComparisonOperators) {
+    time::UTCTime t1(2024, 6, 1, 0, 0, 0);
+    time::UTCTime t2(2024, 6, 1, 0, 0, 1);
+    time::UTCTime t3(2024, 5, 31, 23, 59, 59);
+    EXPECT_TRUE(t1 < t2);
+    EXPECT_TRUE(t1 <= t2);
+    EXPECT_TRUE(t2 > t1);
+    EXPECT_TRUE(t2 >= t1);
+    EXPECT_FALSE(t1 == t2);
+    EXPECT_TRUE(t1 != t2);
+
+    EXPECT_TRUE(t3 < t2);
+    EXPECT_TRUE(t3 <= t2);
+    EXPECT_FALSE(t3 > t1);
+    EXPECT_FALSE(t3 >= t1);
+    EXPECT_FALSE(t3 == t2);
+    EXPECT_TRUE(t3 != t2);
+}
+
+TEST(UTCTimeTest, HashFunctionality) {
+    time::UTCTime t1(2023, 12, 25, 10, 30, 0);
+    time::UTCTime t2(2023, 12, 25, 10, 30, 0);
+    time::UTCTime t3(2024, 1, 1, 0, 0, 0);
+
+    EXPECT_TRUE(t1 == t2);
+    EXPECT_EQ(t1.toHash(), t2.toHash());
+    EXPECT_NE(t1.toHash(), t3.toHash());
+
+    std::unordered_set<time::UTCTime, hash<time::UTCTime>> utcSet;
+    utcSet.insert(t1);
+    EXPECT_TRUE(utcSet.contains(t2));
+    EXPECT_FALSE(utcSet.contains(t3));
+}
+
+TEST(UTCTimeTest, WeekdayCalculation) {
+    time::UTCTime christmas(2023, 12, 25, 0, 0, 0); // Monday
+    EXPECT_EQ(christmas.weekday(), time::UTCTime::MONDAY);
+
+    time::UTCTime new_year(2000, 1, 1, 0, 0, 0); // Saturday
+    EXPECT_EQ(new_year.weekday(), time::UTCTime::SATURDAY);
+}
+
+TEST(UTCTimeTest, NowFunction) {
+    auto now = time::UTCTime::now();
+    EXPECT_GE(now.value(time::YEAR), 2024); // 当前年应大于等于2024
+}
+
+TEST(UTCTimeTest, LeapYearDetection) {
+    EXPECT_TRUE(time::UTCTime::isLeapYear(2000));  // 400整除，闰年
+    EXPECT_FALSE(time::UTCTime::isLeapYear(1900)); // 100整除但非400整除，不是闰年
+    EXPECT_TRUE(time::UTCTime::isLeapYear(2024));  // 4整除，闰年
+    EXPECT_FALSE(time::UTCTime::isLeapYear(2023)); // 平年
+}
+
+TEST(UTCTimeTest, DaysOfMonthCheck) {
+    EXPECT_EQ(time::UTCTime::daysOfMonth(2023, 2), 28);
+    EXPECT_EQ(time::UTCTime::daysOfMonth(2024, 2), 29); // 闰年
+    EXPECT_EQ(time::UTCTime::daysOfMonth(2024, 1), 31);
+    EXPECT_EQ(time::UTCTime::daysOfMonth(2024, 4), 30);
+}
+
+TEST(UTCTimeTest, ValidYMD) {
+    EXPECT_TRUE(time::UTCTime::isValidYMD(2024, 2, 29)); // 闰年2月29合法
+    EXPECT_FALSE(time::UTCTime::isValidYMD(2023, 2, 29)); // 非闰年2月29非法
+    EXPECT_TRUE(time::UTCTime::isValidYMD(2024, 4, 30));  // 合法日期
+    EXPECT_FALSE(time::UTCTime::isValidYMD(2024, 4, 31)); // 四月无31号
+}
+
+TEST(UTCTimeTest, ValidHMS) {
+    EXPECT_TRUE(time::UTCTime::isValidHMS(0, 0, 0));
+    EXPECT_TRUE(time::UTCTime::isValidHMS(23, 59, 59));
+    EXPECT_FALSE(time::UTCTime::isValidHMS(24, 0, 0));
+    EXPECT_FALSE(time::UTCTime::isValidHMS(0, 60, 0));
+    EXPECT_FALSE(time::UTCTime::isValidHMS(0, 0, 60));
+}
+
+TEST(UTCTimeTest, ValidFullDateTime) {
+    EXPECT_TRUE(time::UTCTime::isValid(2024, 2, 29, 23, 59, 59));
+    EXPECT_FALSE(time::UTCTime::isValid(2023, 2, 29, 12, 0, 0)); // 非法日
+    EXPECT_FALSE(time::UTCTime::isValid(2023, 12, 31, 24, 0, 0)); // 非法时
+}
+
