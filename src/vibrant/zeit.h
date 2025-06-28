@@ -60,6 +60,13 @@ namespace original {
         static constexpr time_val_type FACTOR_HOUR = UNIT_FACTOR[static_cast<ul_integer>(HOUR)];
         static constexpr time_val_type FACTOR_DAY = UNIT_FACTOR[static_cast<ul_integer>(DAY)];
 
+        static constexpr integer DAYS_LEAP_YEAR = 366;
+        static constexpr integer DAYS_COMMON_YEAR = 365;
+
+        static constexpr integer EPOCH_YEAR = 1970;
+        static constexpr integer EPOCH_MONTH = 1;
+        static constexpr integer EPOCH_DAY = 1;
+
         class point;
 
         class duration final
