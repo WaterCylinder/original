@@ -154,7 +154,7 @@ namespace original {
 
             explicit point(time_val_type val = 0, unit unit = MILLISECOND);
 
-            explicit point(duration  d);
+            explicit point(duration d);
 
             [[nodiscard]] time_val_type value(unit unit = MILLISECOND) const noexcept;
 
@@ -426,8 +426,9 @@ original::time::duration::compareTo(const duration& other) const {
     return this->nano_seconds_ > other.nano_seconds_ ? 1 : -1;
 }
 
-original::u_integer original::time::duration::toHash() const noexcept {
-    return hash<time::time_val_type>::hashFunc(this->nano_seconds_);
+original::u_integer
+original::time::duration::toHash() const noexcept {
+    return hash<time_val_type>::hashFunc(this->nano_seconds_);
 }
 
 std::string original::time::duration::className() const {
@@ -449,7 +450,7 @@ original::time::duration::operator++() {
 }
 
 original::time::duration
-original::time::duration::operator++(int postfix) {
+original::time::duration::operator++(int) {
     duration res{*this};
     this->nano_seconds_ += 1;
     return res;
@@ -462,7 +463,7 @@ original::time::duration::operator--() {
 }
 
 original::time::duration
-original::time::duration::operator--(int postfix) {
+original::time::duration::operator--(int) {
     duration res(*this);
     this->nano_seconds_ -= 1;
     return res;
@@ -493,7 +494,7 @@ original::time::duration::operator/=(time_val_type factor) {
 }
 
 original::time::duration&
-original::time::duration::operator/=(const time::duration& other) {
+original::time::duration::operator/=(const duration& other) {
     this->nano_seconds_ /= other.nano_seconds_;
     return *this;
 }
@@ -504,7 +505,7 @@ original::time::duration::div(time_val_type factor, unit unit) const {
 }
 
 original::floating
-original::time::duration::div(const time::duration& other) const {
+original::time::duration::div(const duration& other) const {
     return static_cast<floating>(this->nano_seconds_) / static_cast<floating>(other.nano_seconds_);
 }
 
@@ -564,7 +565,8 @@ original::abs(const time::duration& d) {
     return time::duration{val, time::NANOSECOND};
 }
 
-original::time::point original::time::point::now() {
+original::time::point
+original::time::point::now() {
 #if ORIGINAL_COMPILER_GCC || (ORIGINAL_COMPILER_CLANG && ORIGINAL_PLATFORM_LINUX)
     struct timespec ts{};
     clock_gettime(CLOCK_REALTIME, &ts);
@@ -581,19 +583,19 @@ original::time::point original::time::point::now() {
 #endif
 }
 
-original::time::point::point(time::time_val_type val, time::unit unit)
+original::time::point::point(time_val_type val, unit unit)
     : nano_since_epoch_(val, unit) {}
 
-original::time::point::point(time::duration d)
+original::time::point::point(duration d)
     : nano_since_epoch_(std::move(d)) {}
 
 original::time::time_val_type
-original::time::point::value(time::unit unit) const noexcept {
+original::time::point::value(unit unit) const noexcept {
     return this->nano_since_epoch_.value(unit);
 }
 
 original::integer
-original::time::point::compareTo(const time::point& other) const {
+original::time::point::compareTo(const point& other) const {
     return this->nano_since_epoch_.compareTo(other.nano_since_epoch_);
 }
 
@@ -617,38 +619,38 @@ original::time::point::toString(bool enter) const {
 
 original::time::point&
 original::time::point::operator++() {
-    this->nano_since_epoch_++;
+    ++this->nano_since_epoch_;
     return *this;
 }
 
 original::time::point
-original::time::point::operator++(int postfix) {
+original::time::point::operator++(int) {
     point res{*this};
-    this->nano_since_epoch_++;
+    ++this->nano_since_epoch_;
     return res;
 }
 
 original::time::point&
 original::time::point::operator--() {
-    this->nano_since_epoch_--;
+    --this->nano_since_epoch_;
     return *this;
 }
 
 original::time::point
-original::time::point::operator--(int postfix) {
+original::time::point::operator--(int) {
     point res{*this};
-    this->nano_since_epoch_--;
+    --this->nano_since_epoch_;
     return res;
 }
 
 original::time::point&
-original::time::point::operator+=(const time::duration& d) {
+original::time::point::operator+=(const duration& d) {
     this->nano_since_epoch_ += d;
     return *this;
 }
 
 original::time::point&
-original::time::point::operator-=(const time::duration& d) {
+original::time::point::operator-=(const duration& d) {
     this->nano_since_epoch_ -= d;
     return *this;
 }
