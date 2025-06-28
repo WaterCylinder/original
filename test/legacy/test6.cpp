@@ -93,5 +93,9 @@ int main()
 
     auto d1 = original::time::duration(100, original::time::MILLISECOND);
     std::cout << d1 << std::endl;
+
+    const auto now_utc = original::time::UTCTime::now();
+    std::cout << "London now: " << now_utc << std::endl;
+    std::cout << "test convert: " << original::time::UTCTime{static_cast<original::time::point>(now_utc)} << std::endl;
     return 0;
 }
