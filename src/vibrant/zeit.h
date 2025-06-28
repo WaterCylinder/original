@@ -7,6 +7,7 @@
 #include "printable.h"
 #include "error.h"
 #include <iomanip>
+#include <chrono>
 
 
 namespace original {
@@ -185,7 +186,7 @@ namespace original {
             friend duration operator-(const point& lhs, const point& rhs);
         };
 
-        class UTCTime
+        class UTCTime final
                 : public comparable<UTCTime>,
                   public hashable<UTCTime>,
                   public printable {
@@ -727,8 +728,6 @@ void original::time::UTCTime::set(integer year, integer month, integer day,
     this->minute_ = minute;
     this->second_ = second;
 }
-
-
 
 original::time::UTCTime
 original::time::UTCTime::now() {
