@@ -6,130 +6,350 @@
 #include "error.h"
 #include "tuple.h"
 
+/**
+ * @file mutex.h
+ * @brief Cross-platform mutex and lock management utilities
+ * @details
+ * This header defines the mutex abstraction and RAII-based locking
+ * mechanisms for multithreaded programming within the `original` namespace.
+ */
+
 
 namespace original {
+    /**
+     * @class mutexBase
+     * @brief Abstract base class for mutex implementations
+     * @details Provides the interface for mutex operations including:
+     * - Lock/unlock functionality
+     * - Try-lock capability
+     * - Access to native handle
+     *
+     * @note This is an abstract base class and cannot be instantiated directly.
+     *       Derived classes must implement all pure virtual methods.
+     */
     class mutexBase {
     protected:
+        /**
+         * @brief Locks the mutex, blocking if necessary
+         * @throws sysError if the lock operation fails
+         */
         virtual void lock() = 0;
 
+        /**
+         * @brief Attempts to lock the mutex without blocking
+         * @return true if lock was acquired, false otherwise
+         * @throws sysError if the operation fails (other than EBUSY)
+         */
         virtual bool tryLock() = 0;
 
+        /**
+         * @brief Unlocks the mutex
+         * @throws sysError if the unlock operation fails
+         */
         virtual void unlock() = 0;
 
+        /**
+         * @brief Gets a unique identifier for the mutex
+         * @return Unique identifier based on mutex internal state
+         */
         [[nodiscard]] virtual ul_integer id() const = 0;
+
+        /**
+         * @brief Gets the native handle of the mutex
+         * @return Pointer to the native mutex handle
+         */
+        [[nodiscard]] virtual const void* nativeHandle() const noexcept = 0;
     public:
+        /// Native handle type for platform-specific mutex implementations
+        using native_handle = void;
+
+        /// Default constructor
         explicit mutexBase() = default;
 
+        /// Deleted copy constructor
         mutexBase(const mutexBase&) = delete;
 
+        /// Deleted copy assignment operator
         mutexBase& operator=(const mutexBase&) = delete;
 
+        /// Virtual destructor
         virtual ~mutexBase() = default;
     };
 
+    /**
+     * @class lockGuard
+     * @brief Abstract base class for lock guard implementations
+     * @details Provides the interface for RAII-style lock management including:
+     * - Various locking policies (automatic, manual, try-lock)
+     * - Lock/unlock functionality
+     * - Lock state query
+     */
     class lockGuard {
     protected:
+        /**
+         * @brief Locks the associated mutex(es)
+         * @throws sysError if the lock operation fails
+         */
         virtual void lock() = 0;
 
+        /**
+         * @brief Attempts to lock the associated mutex(es) without blocking
+         * @return true if lock was acquired, false otherwise
+         * @throws sysError if the operation fails
+         */
         virtual bool tryLock() = 0;
 
+        /**
+         * @brief Unlocks the associated mutex(es)
+         * @throws sysError if the unlock operation fails
+         */
         virtual void unlock() = 0;
 
+        /**
+         * @brief Checks if the guard currently holds the lock
+         * @return true if locked, false otherwise
+         */
         [[nodiscard]] virtual bool isLocked() const noexcept = 0;
     public:
+        /**
+         * @enum lockPolicy
+         * @brief Locking policies for guard construction
+         */
         enum class lockPolicy {
-            MANUAL_LOCK,
-            AUTO_LOCK,
-            TRY_LOCK,
-            ADOPT_LOCK,
+            MANUAL_LOCK,    ///< Don't lock automatically
+            AUTO_LOCK,      ///< Lock immediately on construction
+            TRY_LOCK,       ///< Try to lock immediately on construction
+            ADOPT_LOCK,     ///< Assume lock is already held
         };
 
+        /// Constant for manual lock policy
         static constexpr auto MANUAL_LOCK = lockPolicy::MANUAL_LOCK;
+        /// Constant for automatic lock policy
         static constexpr auto AUTO_LOCK = lockPolicy::AUTO_LOCK;
+        /// Constant for try-lock policy
         static constexpr auto TRY_LOCK = lockPolicy::TRY_LOCK;
+        /// Constant for adopt lock policy
         static constexpr auto ADOPT_LOCK = lockPolicy::ADOPT_LOCK;
 
+        /// Default constructor
         explicit lockGuard() = default;
 
+        /// Deleted copy constructor
         lockGuard(const lockGuard&) = delete;
 
+        /// Deleted copy assignment operator
         lockGuard& operator=(const lockGuard&) = delete;
 
+        /// Virtual destructor
         virtual ~lockGuard() = default;
     };
 
+    /**
+     * @class pMutex
+     * @brief POSIX thread mutex implementation
+     * @extends mutexBase
+     * @details Wrapper around pthread_mutex_t with RAII semantics.
+     * Provides basic mutex functionality with proper initialization
+     * and cleanup.
+     */
     class pMutex final : public mutexBase {
-        pthread_mutex_t mutex_;
+        pthread_mutex_t mutex_; ///< Internal POSIX mutex handle
     public:
+        /// Native handle type (pthread_mutex_t)
+        using native_handle = pthread_mutex_t;
+
+        /**
+         * @brief Constructs and initializes the mutex
+         * @throws sysError if mutex initialization fails
+         */
         explicit pMutex();
 
+        /// Deleted move constructor
         pMutex(pMutex&&) = delete;
 
+        /// Deleted move assignment operator
         pMutex& operator=(pMutex&&) = delete;
 
+        /**
+         * @brief Gets a unique identifier for the mutex
+         * @return Unique identifier based on mutex internal state
+         */
         [[nodiscard]] ul_integer id() const override;
 
+        /**
+         * @brief Gets the native mutex handle
+         * @return Pointer to the internal pthread_mutex_t
+         */
+        [[nodiscard]] const void* nativeHandle() const noexcept override;
+
+        /**
+         * @brief Locks the mutex, blocking if necessary
+         * @throws sysError if the lock operation fails
+         */
         void lock() override;
 
+        /**
+         * @brief Attempts to lock the mutex without blocking
+         * @return true if lock was acquired, false if mutex is busy
+         * @throws sysError if the operation fails (other than EBUSY)
+         */
         bool tryLock() override;
 
+        /**
+         * @brief Unlocks the mutex
+         * @throws sysError if the unlock operation fails
+         */
         void unlock() override;
 
+        /**
+         * @brief Destroys the mutex
+         * @note Calls std::terminate() if mutex destruction fails
+         */
         ~pMutex() override;
     };
 
+    /**
+     * @class uniqueLock
+     * @brief RAII wrapper for single mutex locking
+     * @extends lockGuard
+     * @details Provides scoped lock management for a single pMutex
+     * with various locking policies.
+     */
     class uniqueLock final : public lockGuard {
-        pMutex& p_mutex_;
-        bool is_locked;
+        pMutex& p_mutex_;   ///< Reference to managed mutex
+        bool is_locked;     ///< Current lock state
 
     public:
+        /**
+         * @brief Constructs a uniqueLock with specified policy
+         * @param p_mutex Mutex to manage
+         * @param policy Locking policy (default: AUTO_LOCK)
+         * @throws sysError if locking fails
+         */
         explicit uniqueLock(pMutex& p_mutex, lockPolicy policy = AUTO_LOCK);
 
+        /// Deleted move constructor
         uniqueLock(uniqueLock&&) = delete;
 
+        /// Deleted move assignment operator
         uniqueLock& operator=(uniqueLock&&) = delete;
 
+        /**
+         * @brief Checks if the lock is currently held
+         * @return true if locked, false otherwise
+         */
         [[nodiscard]] bool isLocked() const noexcept override;
 
+        /**
+         * @brief Locks the associated mutex
+         * @throws sysError if already locked or locking fails
+         */
         void lock() override;
 
+        /**
+         * @brief Attempts to lock the associated mutex without blocking
+         * @return true if lock was acquired, false otherwise
+         * @throws sysError if already locked or operation fails
+         */
         bool tryLock() override;
 
+        /**
+         * @brief Unlocks the associated mutex
+         * @throws sysError if not locked or unlock fails
+         */
         void unlock() override;
 
+        /**
+         * @brief Destructor - automatically unlocks if locked
+         */
         ~uniqueLock() override;
     };
 
+    /**
+     * @class multiLock
+     * @brief RAII wrapper for multiple mutex locking
+     * @extends lockGuard
+     * @tparam MUTEX Variadic template parameter pack for mutex types
+     * @details Provides scoped lock management for multiple mutexes
+     * with deadlock avoidance and various locking policies.
+     */
     template<typename... MUTEX>
     class multiLock final : public lockGuard {
-        tuple<MUTEX* ...> m_list;
-        bool is_locked_all;
+        tuple<MUTEX* ...> m_list;    ///< Tuple of managed mutex pointers
+        bool is_locked_all;           ///< Current lock state for all mutexes
 
+        /**
+         * @brief Locks all managed mutexes
+         * @tparam IDXES Template parameter pack for index sequence
+         * @param sequence Index sequence for tuple access
+         */
         template<u_integer... IDXES>
         void lockAll(indexSequence<IDXES...> sequence);
 
+        /**
+         * @brief Attempts to lock all managed mutexes without blocking
+         * @tparam IDXES Template parameter pack for index sequence
+         * @param sequence Index sequence for tuple access
+         * @return true if all locks were acquired, false otherwise
+         */
         template<u_integer... IDXES>
         bool tryLockAll(indexSequence<IDXES...> sequence);
 
+        /**
+         * @brief Unlocks all managed mutexes
+         * @tparam IDXES Template parameter pack for index sequence
+         * @param sequence Index sequence for tuple access
+         */
         template<u_integer... IDXES>
         void unlockAll(indexSequence<IDXES...> sequence);
     public:
+        /**
+         * @brief Constructs a multiLock with AUTO_LOCK policy
+         * @param mutex References to mutexes to manage
+         */
         explicit multiLock(MUTEX&... mutex);
 
-        multiLock(lockPolicy policy, MUTEX&... mutex);
+        /**
+         * @brief Constructs a multiLock with specified policy
+         * @param policy Locking policy to use
+         * @param mutex References to mutexes to manage
+         */
+        explicit multiLock(lockPolicy policy, MUTEX&... mutex);
 
+        /**
+         * @brief Checks if all mutexes are currently locked
+         * @return true if all locked, false otherwise
+         */
         [[nodiscard]] bool isLocked() const noexcept override;
 
+        /**
+         * @brief Locks all managed mutexes
+         * @throws sysError if already locked or locking fails
+         */
         void lock() override;
 
+        /**
+         * @brief Attempts to lock all managed mutexes without blocking
+         * @return true if all locks were acquired, false otherwise
+         * @throws sysError if already locked or operation fails
+         */
         bool tryLock() override;
 
+        /**
+         * @brief Unlocks all managed mutexes
+         * @throws sysError if not locked or unlock fails
+         */
         void unlock() override;
 
+        /// Deleted move constructor
         multiLock(multiLock&&) = delete;
 
+        /// Deleted move assignment operator
         multiLock& operator=(multiLock&&) = delete;
 
+        /**
+         * @brief Destructor - automatically unlocks all if locked
+         */
         ~multiLock() override;
     };
 }
@@ -145,6 +365,11 @@ inline original::ul_integer original::pMutex::id() const {
     ul_integer id = 0;
     std::memcpy(&id, &this->mutex_, sizeof(pthread_mutex_t));
     return id;
+}
+
+inline const void* original::pMutex::nativeHandle() const noexcept
+{
+    return &this->mutex_;
 }
 
 inline void original::pMutex::lock() {
