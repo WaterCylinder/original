@@ -54,15 +54,7 @@ namespace original {
          */
         [[nodiscard]] virtual ul_integer id() const = 0;
 
-        /**
-         * @brief Gets the native handle of the mutex
-         * @return Pointer to the native mutex handle
-         */
-        [[nodiscard]] virtual const void* nativeHandle() const noexcept = 0;
     public:
-        /// Native handle type for platform-specific mutex implementations
-        using native_handle = void;
-
         /// Default constructor
         explicit mutexBase() = default;
 
@@ -71,6 +63,12 @@ namespace original {
 
         /// Deleted copy assignment operator
         mutexBase& operator=(const mutexBase&) = delete;
+
+        /**
+         * @brief Gets the native handle of the mutex
+         * @return Pointer to the native mutex handle
+         */
+        [[nodiscard]] virtual void* nativeHandle() noexcept = 0;
 
         /// Virtual destructor
         virtual ~mutexBase() = default;
@@ -180,7 +178,7 @@ namespace original {
          * @brief Gets the native mutex handle
          * @return Pointer to the internal pthread_mutex_t
          */
-        [[nodiscard]] const void* nativeHandle() const noexcept override;
+        [[nodiscard]] void* nativeHandle() noexcept override;
 
         /**
          * @brief Locks the mutex, blocking if necessary
@@ -367,7 +365,7 @@ inline original::ul_integer original::pMutex::id() const {
     return id;
 }
 
-inline const void* original::pMutex::nativeHandle() const noexcept
+inline void* original::pMutex::nativeHandle() noexcept
 {
     return &this->mutex_;
 }
