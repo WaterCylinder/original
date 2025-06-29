@@ -8,14 +8,42 @@
 #include "error.h"
 #include <iomanip>
 
+/**
+ * @file zeit.h
+ * @brief Time and date handling utilities
+ * @details Provides classes for time duration, points in time, and UTC date/time handling.
+ * Includes support for:
+ * - Time durations with various units (nanoseconds to days)
+ * - Time points representing moments in time
+ * - UTC date/time with calendar operations
+ * - Literals for time durations
+ *
+ * Key features:
+ * - High precision time representation (nanoseconds)
+ * - Calendar calculations (leap years, days in month, etc.)
+ * - Platform-independent time operations
+ * - Comparable, hashable, and printable interfaces
+ */
+
+
 
 namespace original {
+    /**
+     * @class time
+     * @brief Namespace-like class containing time-related utilities
+     * @details Contains duration, point, and UTCTime classes along with
+     * unit definitions and conversion factors.
+     */
     class time final {
     public:
+        /// Type used for storing time values
         using time_val_type = integer;
+
     private:
+        /// Base unit factor for time calculations
         static constexpr time_val_type UNIT_FACTOR_BASE = 1;
 
+        /// Array of conversion factors for different time units
         static constexpr time_val_type UNIT_FACTOR[] {
                 UNIT_FACTOR_BASE,
                 UNIT_FACTOR_BASE * 1000,
@@ -25,274 +53,736 @@ namespace original {
                 UNIT_FACTOR_BASE * 1000 * 1000 * 1000 * 60 * 60,
                 UNIT_FACTOR_BASE * 1000 * 1000 * 1000 * 60 * 60 * 24,
         };
+
     public:
+        /**
+         * @enum unit
+         * @brief Time units supported by the library
+         */
         enum class unit {
-            NANOSECOND,
-            MICROSECOND,
-            MILLISECOND,
-            SECOND,
-            MINUTE,
-            HOUR,
-            DAY,
+            NANOSECOND,    ///< Nanoseconds (1e-9 seconds)
+            MICROSECOND,   ///< Microseconds (1e-6 seconds)
+            MILLISECOND,   ///< Milliseconds (1e-3 seconds)
+            SECOND,       ///< Seconds
+            MINUTE,       ///< Minutes (60 seconds)
+            HOUR,         ///< Hours (3600 seconds)
+            DAY,          ///< Days (86400 seconds)
         };
 
+        /// Constant for nanosecond unit
         static constexpr auto NANOSECOND = unit::NANOSECOND;
+        /// Constant for microsecond unit
         static constexpr auto MICROSECOND = unit::MICROSECOND;
+        /// Constant for millisecond unit
         static constexpr auto MILLISECOND = unit::MILLISECOND;
+        /// Constant for second unit
         static constexpr auto SECOND = unit::SECOND;
+        /// Constant for minute unit
         static constexpr auto MINUTE = unit::MINUTE;
+        /// Constant for hour unit
         static constexpr auto HOUR = unit::HOUR;
+        /// Constant for day unit
         static constexpr auto DAY = unit::DAY;
 
+        /// Conversion factor for nanoseconds
         static constexpr time_val_type FACTOR_NANOSECOND = UNIT_FACTOR[static_cast<ul_integer>(NANOSECOND)];
+        /// Conversion factor for microseconds
         static constexpr time_val_type FACTOR_MICROSECOND = UNIT_FACTOR[static_cast<ul_integer>(MICROSECOND)];
+        /// Conversion factor for milliseconds
         static constexpr time_val_type FACTOR_MILLISECOND = UNIT_FACTOR[static_cast<ul_integer>(MILLISECOND)];
+        /// Conversion factor for seconds
         static constexpr time_val_type FACTOR_SECOND = UNIT_FACTOR[static_cast<ul_integer>(SECOND)];
+        /// Conversion factor for minutes
         static constexpr time_val_type FACTOR_MINUTE = UNIT_FACTOR[static_cast<ul_integer>(MINUTE)];
+        /// Conversion factor for hours
         static constexpr time_val_type FACTOR_HOUR = UNIT_FACTOR[static_cast<ul_integer>(HOUR)];
+        /// Conversion factor for days
         static constexpr time_val_type FACTOR_DAY = UNIT_FACTOR[static_cast<ul_integer>(DAY)];
 
+        /// Days in a leap year
         static constexpr integer DAYS_LEAP_YEAR = 366;
+        /// Days in a common year
         static constexpr integer DAYS_COMMON_YEAR = 365;
 
+        /// Epoch year (Unix epoch)
         static constexpr integer EPOCH_YEAR = 1970;
+        /// Epoch month (Unix epoch)
         static constexpr integer EPOCH_MONTH = 1;
+        /// Epoch day (Unix epoch)
         static constexpr integer EPOCH_DAY = 1;
 
+        /// Forward declaration of point class
         class point;
+        /// Forward declaration of UTCTime class
         class UTCTime;
 
+        /**
+         * @class duration
+         * @brief Represents a time duration with nanosecond precision
+         * @extends comparable
+         * @extends hashable
+         * @extends printable
+         * @details Supports arithmetic operations and conversions between
+         * different time units.
+         */
         class duration final
                       : public comparable<duration>,
                         public hashable<duration>,
                         public printable {
-            time_val_type nano_seconds_;
+            time_val_type nano_seconds_; ///< Internal storage in nanoseconds
 
         public:
             friend class point;
 
+            /// Zero duration constant
             static const duration ZERO;
 
+            /**
+             * @brief Constructs a duration with given value and unit
+             * @param val Time value
+             * @param unit Unit of time (default: MILLISECOND)
+             */
             explicit duration(time_val_type val = 0, unit unit = MILLISECOND);
 
+            /// Default copy constructor
             duration(const duration& other) = default;
 
+            /// Default copy assignment
             duration& operator=(const duration& other) = default;
 
+            /**
+             * @brief Move constructor
+             * @param other Duration to move from
+             */
             duration(duration&& other) noexcept;
 
+            /**
+             * @brief Move assignment
+             * @param other Duration to move from
+             * @return Reference to this duration
+             */
             duration& operator=(duration&& other) noexcept;
 
+            /**
+             * @brief Gets the duration value in specified units
+             * @param unit Unit to return value in (default: MILLISECOND)
+             * @return Duration value in requested units
+             */
             [[nodiscard]] time_val_type value(unit unit = MILLISECOND) const noexcept;
 
+            /**
+             * @brief Compares this duration to another
+             * @param other Duration to compare with
+             * @return Negative if this < other, 0 if equal, positive if this > other
+             */
             [[nodiscard]] integer compareTo(const duration& other) const override;
 
+            /**
+             * @brief Computes hash value for this duration
+             * @return Hash value
+             */
             u_integer toHash() const noexcept override;
 
+            /**
+             * @brief Gets the class name
+             * @return "time::duration"
+             */
             std::string className() const override;
 
+            /**
+             * @brief Converts duration to string representation
+             * @param enter Whether to include newline
+             * @return String representation
+             */
             std::string toString(bool enter) const override;
 
+            /**
+             * @brief Prefix increment (adds 1 nanosecond)
+             * @return Reference to modified duration
+             */
             duration& operator++();
 
+            /**
+             * @brief Postfix increment (adds 1 nanosecond)
+             * @param postfix Dummy parameter for postfix
+             * @return Copy of duration before increment
+             */
             duration operator++(int postfix);
 
+            /**
+             * @brief Prefix decrement (subtracts 1 nanosecond)
+             * @return Reference to modified duration
+             */
             duration& operator--();
 
+            /**
+             * @brief Postfix decrement (subtracts 1 nanosecond)
+             * @param postfix Dummy parameter for postfix
+             * @return Copy of duration before decrement
+             */
             duration operator--(int postfix);
 
+            /**
+             * @brief Adds another duration to this one
+             * @param other Duration to add
+             * @return Reference to modified duration
+             */
             duration& operator+=(const duration& other);
 
+            /**
+             * @brief Subtracts another duration from this one
+             * @param other Duration to subtract
+             * @return Reference to modified duration
+             */
             duration& operator-=(const duration& other);
 
+            /**
+             * @brief Multiplies duration by a factor
+             * @param factor Multiplication factor
+             * @return Reference to modified duration
+             */
             duration& operator*=(time_val_type factor);
 
+            /**
+             * @brief Divides duration by a factor
+             * @param factor Division factor
+             * @return Reference to modified duration
+             */
             duration& operator/=(time_val_type factor);
 
+            /**
+             * @brief Divides duration by another duration
+             * @param other Duration to divide by
+             * @return Reference to modified duration
+             */
             duration& operator/=(const duration& other);
 
+            /**
+             * @brief Floating-point division by a factor
+             * @param factor Division factor
+             * @param unit Unit for factor (default: MILLISECOND)
+             * @return Floating-point result
+             */
             [[nodiscard]] floating div(time_val_type factor, unit unit = MILLISECOND) const;
 
+            /**
+             * @brief Floating-point division by another duration
+             * @param other Duration to divide by
+             * @return Floating-point result
+             */
             [[nodiscard]] floating div(const duration& other) const;
 
+            /**
+             * @brief Negation operator
+             * @param d Duration to negate
+             * @return Negated duration
+             */
             friend duration operator-(const duration& d);
 
+            /**
+             * @brief Addition operator
+             * @param lhs Left operand
+             * @param rhs Right operand
+             * @return Sum of durations
+             */
             friend duration operator+(const duration& lhs, const duration& rhs);
 
+            /**
+             * @brief Subtraction operator
+             * @param lhs Left operand
+             * @param rhs Right operand
+             * @return Difference of durations
+             */
             friend duration operator-(const duration& lhs, const duration& rhs);
 
+            /**
+             * @brief Multiplication operator (duration * factor)
+             * @param d Duration to multiply
+             * @param factor Multiplication factor
+             * @return Product of duration and factor
+             */
             friend duration operator*(const duration& d, time_val_type factor);
 
+            /**
+             * @brief Multiplication operator (factor * duration)
+             * @param factor Multiplication factor
+             * @param d Duration to multiply
+             * @return Product of factor and duration
+             */
             friend duration operator*(time_val_type factor, const duration& d);
 
+            /**
+             * @brief Division operator (duration / factor)
+             * @param d Duration to divide
+             * @param factor Division factor
+             * @return Quotient of duration and factor
+             */
             friend duration operator/(const duration& d, time_val_type factor);
 
+            /**
+             * @brief Division operator (duration / duration)
+             * @param lhs Left operand
+             * @param rhs Right operand
+             * @return Quotient of durations
+             */
             friend duration operator/(const duration& lhs, const duration& rhs);
 
+            /**
+             * @brief Absolute value of duration
+             * @param d Duration to get absolute value of
+             * @return Absolute duration
+             */
             friend duration abs(const duration& d);
         };
 
+        /**
+         * @class point
+         * @brief Represents a point in time with nanosecond precision
+         * @extends comparable
+         * @extends hashable
+         * @extends printable
+         * @details Represents time since epoch (1970-01-01 00:00:00 UTC)
+         */
         class point final
                 : public comparable<point>,
                   public hashable<point>,
                   public printable {
-            duration nano_since_epoch_;
+            duration nano_since_epoch_; ///< Duration since epoch
 
         public:
             friend class UTCTime;
 
+            /**
+             * @brief Gets current time point
+             * @return Current time point
+             */
             static point now();
 
+            /**
+             * @brief Constructs time point from value and unit
+             * @param val Time value
+             * @param unit Unit of time (default: MILLISECOND)
+             */
             explicit point(time_val_type val = 0, unit unit = MILLISECOND);
 
+            /**
+             * @brief Constructs time point from duration
+             * @param d Duration since epoch
+             */
             explicit point(duration d);
 
+            /**
+             * @brief Gets time value in specified units
+             * @param unit Unit to return value in (default: MILLISECOND)
+             * @return Time value in requested units
+             */
             [[nodiscard]] time_val_type value(unit unit = MILLISECOND) const noexcept;
 
+            /**
+             * @brief Compares this time point to another
+             * @param other Time point to compare with
+             * @return Negative if this < other, 0 if equal, positive if this > other
+             */
             [[nodiscard]] integer compareTo(const point& other) const override;
 
+            /**
+             * @brief Computes hash value for this time point
+             * @return Hash value
+             */
             u_integer toHash() const noexcept override;
 
+            /**
+             * @brief Gets the class name
+             * @return "time::point"
+             */
             std::string className() const override;
 
+            /**
+             * @brief Converts time point to string representation
+             * @param enter Whether to include newline
+             * @return String representation
+             */
             std::string toString(bool enter) const override;
 
+            /**
+             * @brief Prefix increment (adds 1 nanosecond)
+             * @return Reference to modified time point
+             */
             point& operator++();
 
+            /**
+             * @brief Postfix increment (adds 1 nanosecond)
+             * @param postfix Dummy parameter for postfix
+             * @return Copy of time point before increment
+             */
             point operator++(int postfix);
 
+            /**
+             * @brief Prefix decrement (subtracts 1 nanosecond)
+             * @return Reference to modified time point
+             */
             point& operator--();
 
+            /**
+             * @brief Postfix decrement (subtracts 1 nanosecond)
+             * @param postfix Dummy parameter for postfix
+             * @return Copy of time point before decrement
+             */
             point operator--(int postfix);
 
+            /**
+             * @brief Adds duration to time point
+             * @param d Duration to add
+             * @return Reference to modified time point
+             */
             point& operator+=(const duration& d);
 
+            /**
+             * @brief Subtracts duration from time point
+             * @param d Duration to subtract
+             * @return Reference to modified time point
+             */
             point& operator-=(const duration& d);
 
+            /**
+             * @brief Adds duration to time point
+             * @param p Time point
+             * @param d Duration to add
+             * @return New time point after addition
+             */
             friend point operator+(const point& p, const duration& d);
 
+            /**
+             * @brief Subtracts duration from time point
+             * @param p Time point
+             * @param d Duration to subtract
+             * @return New time point after subtraction
+             */
             friend point operator-(const point& p, const duration& d);
 
+            /**
+             * @brief Computes duration between two time points
+             * @param lhs Left operand
+             * @param rhs Right operand
+             * @return Duration between points
+             */
             friend duration operator-(const point& lhs, const point& rhs);
         };
 
+        /**
+         * @class UTCTime
+         * @brief Represents a UTC calendar date and time
+         * @extends comparable
+         * @extends hashable
+         * @extends printable
+         * @details Provides calendar operations including:
+         * - Leap year detection
+         * - Days in month calculation
+         * - Weekday calculation
+         * - Conversion to/from time points
+         */
         class UTCTime final
                 : public comparable<UTCTime>,
                   public hashable<UTCTime>,
                   public printable {
 
-            integer year_{};
-            integer month_{};
-            integer day_{};
-            integer hour_{};
-            integer minute_{};
-            integer second_{};
+            integer year_{};    ///< Year component
+            integer month_{};   ///< Month component (1-12)
+            integer day_{};     ///< Day component (1-31)
+            integer hour_{};    ///< Hour component (0-23)
+            integer minute_{};  ///< Minute component (0-59)
+            integer second_{};  ///< Second component (0-59)
 
+            /**
+             * @enum calendar
+             * @brief Calendar component types
+             */
             enum class calendar : integer {
-                YEAR,
-                MONTH,
+                YEAR,   ///< Year component
+                MONTH,  ///< Month component
             };
 
+            /**
+             * @enum weekdays
+             * @brief Days of the week
+             */
             enum class weekdays : integer {
-                SATURDAY,
-                SUNDAY,
-                MONDAY,
-                TUESDAY,
-                WEDNESDAY,
-                THURSDAY,
-                FRIDAY,
+                SATURDAY, ///< Saturday
+                SUNDAY,   ///< Sunday
+                MONDAY,   ///< Monday
+                TUESDAY,  ///< Tuesday
+                WEDNESDAY,///< Wednesday
+                THURSDAY, ///< Thursday
+                FRIDAY,   ///< Friday
             };
 
+            /// Days in each month (non-leap year)
             static constexpr integer DAYS_OF_MONTH[] {
                     31, 28, 31, 30, 31, 30,
                     31, 31, 30, 31, 30, 31
             };
 
+            /**
+             * @brief Checks if year is valid
+             * @param year Year to check
+             * @return true if valid, false otherwise
+             */
             static constexpr bool isValidYear(integer year);
 
+            /**
+             * @brief Checks if month is valid
+             * @param month Month to check
+             * @return true if valid, false otherwise
+             */
             static constexpr bool isValidMonth(integer month);
 
+            /**
+             * @brief Checks if day is valid
+             * @param day Day to check
+             * @return true if valid, false otherwise
+             */
             static constexpr bool isValidDay(integer day);
 
+            /**
+             * @brief Sets all time components
+             * @param year Year
+             * @param month Month
+             * @param day Day
+             * @param hour Hour
+             * @param minute Minute
+             * @param second Second
+             */
             void set(integer year, integer month, integer day,
                      integer hour, integer minute, integer second);
+
         public:
             friend time;
 
+            /// Constant for Saturday
             static constexpr auto SATURDAY = weekdays::SATURDAY;
+            /// Constant for Sunday
             static constexpr auto SUNDAY = weekdays::SUNDAY;
+            /// Constant for Monday
             static constexpr auto MONDAY = weekdays::MONDAY;
+            /// Constant for Tuesday
             static constexpr auto TUESDAY = weekdays::TUESDAY;
+            /// Constant for Wednesday
             static constexpr auto WEDNESDAY = weekdays::WEDNESDAY;
+            /// Constant for Thursday
             static constexpr auto THURSDAY = weekdays::THURSDAY;
+            /// Constant for Friday
             static constexpr auto FRIDAY = weekdays::FRIDAY;
 
-
+            /// Days in a week
             static constexpr integer DAYS_WEEK = 7;
+            /// Months in a year
             static constexpr integer MONTHS_YEAR = std::size(DAYS_OF_MONTH);
+            /// Years in a century
             static constexpr integer YEARS_CENTURY = 100;
 
+            /// Epoch time constant (1970-01-01 00:00:00)
             static const UTCTime EPOCH;
 
+            /**
+             * @brief Gets current UTC time
+             * @return Current UTC time
+             */
             static UTCTime now();
 
+            /**
+             * @brief Checks if year is a leap year
+             * @param year Year to check
+             * @return true if leap year, false otherwise
+             */
             static constexpr bool isLeapYear(integer year);
 
+            /**
+             * @brief Gets days in specified month
+             * @param year Year (for leap year calculation)
+             * @param month Month (1-12)
+             * @return Number of days in month
+             * @throws valueError if month is invalid
+             */
             static constexpr integer daysOfMonth(integer year, integer month);
 
+            /**
+             * @brief Calculates weekday for given date
+             * @param year Year
+             * @param month Month (1-12)
+             * @param day Day (1-31)
+             * @return Weekday for date
+             * @throws valueError if date is invalid
+             */
             static constexpr weekdays weekday(integer year, integer month, integer day);
 
+            /**
+             * @brief Checks if year-month-day is valid
+             * @param year Year
+             * @param month Month (1-12)
+             * @param day Day (1-31)
+             * @return true if valid, false otherwise
+             */
             static constexpr bool isValidYMD(integer year, integer month, integer day);
 
+            /**
+             * @brief Checks if hour-minute-second is valid
+             * @param hour Hour (0-23)
+             * @param minute Minute (0-59)
+             * @param second Second (0-59)
+             * @return true if valid, false otherwise
+             */
             static constexpr bool isValidHMS(integer hour, integer minute, integer second);
 
+            /**
+             * @brief Checks if full date-time is valid
+             * @param year Year
+             * @param month Month (1-12)
+             * @param day Day (1-31)
+             * @param hour Hour (0-23)
+             * @param minute Minute (0-59)
+             * @param second Second (0-59)
+             * @return true if valid, false otherwise
+             */
             static constexpr bool isValid(integer year, integer month, integer day,
                                           integer hour, integer minute, integer second);
 
+            /**
+             * @brief Checks if this year is a leap year
+             * @return true if leap year, false otherwise
+             */
             [[nodiscard]] bool isLeapYear() const;
 
+            /**
+             * @brief Gets weekday for this date
+             * @return Weekday
+             */
             [[nodiscard]] weekdays weekday() const;
 
+            /**
+             * @brief Constructs UTC time at epoch (1970-01-01 00:00:00)
+             */
             explicit UTCTime();
 
+            /**
+             * @brief Constructs UTC time with specified components
+             * @param year Year
+             * @param month Month (1-12)
+             * @param day Day (1-31)
+             * @param hour Hour (0-23)
+             * @param minute Minute (0-59)
+             * @param second Second (0-59)
+             * @throws valueError if any component is invalid
+             */
             explicit UTCTime(integer year, integer month, integer day,
                              integer hour, integer minute, integer second);
 
+            /**
+             * @brief Constructs UTC time from time::point
+             * @param p Time point to convert
+             * @warning Construction from time::point to UTCTime may lose precision
+             * since UTCTime only stores whole seconds
+             */
             explicit UTCTime(const point& p);
 
+            /// Default copy constructor
             UTCTime(const UTCTime& other) = default;
 
+            /// Default copy assignment
             UTCTime& operator=(const UTCTime& other) = default;
 
+            /**
+             * @brief Move constructor
+             * @param other UTCTime to move from
+             */
             UTCTime(UTCTime&& other) noexcept;
 
+            /**
+             * @brief Move assignment
+             * @param other UTCTime to move from
+             * @return Reference to this UTCTime
+             */
             UTCTime& operator=(UTCTime&& other) noexcept;
 
+            /**
+             * @brief Gets time component value
+             * @param unit Time unit to get
+             * @return Value of requested component
+             */
             integer value(unit unit) const noexcept;
 
+            /**
+             * @brief Gets calendar component value
+             * @param calendar Calendar component to get
+             * @return Value of requested component
+             */
             integer value(calendar calendar) const noexcept;
 
+            /**
+             * @brief Converts to time::point
+             * @return Time point representing this UTC time
+             * @warning When converting back to time::point, the time point will only
+             * have second-level precision (sub-second components will be zero)
+             */
             explicit operator point() const;
 
+            /**
+             * @brief Compares this UTCTime to another
+             * @param other UTCTime to compare with
+             * @return Negative if this < other, 0 if equal, positive if this > other
+             */
             integer compareTo(const UTCTime& other) const override;
 
+            /**
+             * @brief Computes hash value for this UTCTime
+             * @return Hash value
+             */
             u_integer toHash() const noexcept override;
 
+            /**
+             * @brief Gets the class name
+             * @return "time::UTCTime"
+             */
             std::string className() const override;
 
+            /**
+             * @brief Converts UTCTime to string representation (YYYY-MM-DD HH:MM:SS)
+             * @param enter Whether to include newline
+             * @return String representation
+             */
             std::string toString(bool enter) const override;
 
+            /**
+             * @brief Adds duration to UTCTime
+             * @param t UTCTime
+             * @param d Duration to add
+             * @return New UTCTime after addition
+             */
             friend UTCTime operator+(const UTCTime& t, const duration& d);
 
+            /**
+             * @brief Subtracts duration from UTCTime
+             * @param t UTCTime
+             * @param d Duration to subtract
+             * @return New UTCTime after subtraction
+             */
             friend UTCTime operator-(const UTCTime& t, const duration& d);
 
+            /**
+             * @brief Computes duration between two UTCTimes
+             * @param lhs Left operand
+             * @param rhs Right operand
+             * @return Duration between UTCTimes
+             */
             friend duration operator-(const UTCTime& lhs, const UTCTime& rhs);
         };
 
+        /// Constant for month calendar component
         static constexpr auto MONTH = UTCTime::calendar::MONTH;
+        /// Constant for year calendar component
         static constexpr auto YEAR = UTCTime::calendar::YEAR;
     };
 
+    /// Zero duration constant
     const time::duration time::duration::ZERO = duration{};
 
     time::duration operator-(const time::duration& d);
@@ -317,6 +807,7 @@ namespace original {
 
     time::duration operator-(const time::point& lhs, const time::point& rhs);
 
+    /// Epoch time constant (1970-01-01 00:00:00)
     const time::UTCTime time::UTCTime::EPOCH = UTCTime{};
 
     time::UTCTime operator+(const time::UTCTime& t, const time::duration& d);
@@ -325,59 +816,133 @@ namespace original {
 
     time::duration operator-(const time::UTCTime& lhs, const time::UTCTime& rhs);
 
+    /**
+     * @namespace literals
+     * @brief User-defined literals for time durations
+     */
     namespace literals {
+        /**
+         * @brief Creates nanosecond duration from integer literal
+         * @param val Value in nanoseconds
+         * @return Duration object
+         */
         inline time::duration operator""_ns(const unsigned long long val) {
             return time::duration(static_cast<time::time_val_type>(val), time::NANOSECOND);
         }
 
+        /**
+         * @brief Creates microsecond duration from integer literal
+         * @param val Value in microseconds
+         * @return Duration object
+         */
         inline time::duration operator""_us(const unsigned long long val) {
             return time::duration(static_cast<time::time_val_type>(val), time::MICROSECOND);
         }
 
+        /**
+         * @brief Creates millisecond duration from integer literal
+         * @param val Value in milliseconds
+         * @return Duration object
+         */
         inline time::duration operator""_ms(const unsigned long long val) {
             return time::duration(static_cast<time::time_val_type>(val), time::MILLISECOND);
         }
 
+        /**
+         * @brief Creates second duration from integer literal
+         * @param val Value in seconds
+         * @return Duration object
+         */
         inline time::duration operator""_s(const unsigned long long val) {
             return time::duration(static_cast<time::time_val_type>(val), time::SECOND);
         }
 
+        /**
+         * @brief Creates minute duration from integer literal
+         * @param val Value in minutes
+         * @return Duration object
+         */
         inline time::duration operator""_min(const unsigned long long val) {
             return time::duration(static_cast<time::time_val_type>(val), time::MINUTE);
         }
 
+        /**
+         * @brief Creates hour duration from integer literal
+         * @param val Value in hours
+         * @return Duration object
+         */
         inline time::duration operator""_h(const unsigned long long val) {
             return time::duration(static_cast<time::time_val_type>(val), time::HOUR);
         }
 
+        /**
+         * @brief Creates day duration from integer literal
+         * @param val Value in days
+         * @return Duration object
+         */
         inline time::duration operator""_d(const unsigned long long val) {
             return time::duration(static_cast<time::time_val_type>(val), time::DAY);
         }
 
+        /**
+         * @brief Creates nanosecond duration from floating-point literal
+         * @param val Value in nanoseconds
+         * @return Duration object
+         */
         inline time::duration operator""_ns(const long double val) {
             return time::duration(std::llround(val * time::FACTOR_NANOSECOND), time::NANOSECOND);
         }
 
+        /**
+         * @brief Creates microsecond duration from floating-point literal
+         * @param val Value in microseconds
+         * @return Duration object
+         */
         inline time::duration operator""_us(const long double val) {
             return time::duration(std::llround(val * time::FACTOR_MICROSECOND), time::NANOSECOND);
         }
 
+        /**
+         * @brief Creates millisecond duration from floating-point literal
+         * @param val Value in milliseconds
+         * @return Duration object
+         */
         inline time::duration operator""_ms(const long double val) {
             return time::duration(std::llround(val * time::FACTOR_MILLISECOND), time::NANOSECOND);
         }
 
+        /**
+         * @brief Creates second duration from floating-point literal
+         * @param val Value in seconds
+         * @return Duration object
+         */
         inline time::duration operator""_s(const long double val) {
             return time::duration(std::llround(val * time::FACTOR_SECOND), time::NANOSECOND);
         }
 
+        /**
+         * @brief Creates minute duration from floating-point literal
+         * @param val Value in minutes
+         * @return Duration object
+         */
         inline time::duration operator""_min(const long double val) {
             return time::duration(std::llround(val * time::FACTOR_MINUTE), time::NANOSECOND);
         }
 
+        /**
+         * @brief Creates hour duration from floating-point literal
+         * @param val Value in hours
+         * @return Duration object
+         */
         inline time::duration operator""_h(const long double val) {
             return time::duration(std::llround(val * time::FACTOR_HOUR), time::NANOSECOND);
         }
 
+        /**
+         * @brief Creates day duration from floating-point literal
+         * @param val Value in days
+         * @return Duration object
+         */
         inline time::duration operator""_d(const long double val) {
             return time::duration(std::llround(val * time::FACTOR_DAY), time::NANOSECOND);
         }
