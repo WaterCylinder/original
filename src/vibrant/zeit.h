@@ -17,7 +17,7 @@ namespace original {
     private:
         static constexpr time_val_type UNIT_FACTOR_BASE = 1;
 
-        static inline constexpr time_val_type UNIT_FACTOR[] {
+        static constexpr time_val_type UNIT_FACTOR[] {
                 UNIT_FACTOR_BASE,
                 UNIT_FACTOR_BASE * 1000,
                 UNIT_FACTOR_BASE * 1000 * 1000,
@@ -37,22 +37,13 @@ namespace original {
             DAY,
         };
 
-        enum class calendar {
-            YEAR,
-            MONTH,
-        };
-
-        static constexpr unit NANOSECOND = unit::NANOSECOND;
-        static constexpr unit MICROSECOND = unit::MICROSECOND;
-        static constexpr unit MILLISECOND = unit::MILLISECOND;
-        static constexpr unit SECOND = unit::SECOND;
-        static constexpr unit MINUTE = unit::MINUTE;
-        static constexpr unit HOUR = unit::HOUR;
-        static constexpr unit DAY = unit::DAY;
-
-        static constexpr calendar MONTH = calendar::MONTH;
-        static constexpr calendar YEAR = calendar::YEAR;
-
+        static constexpr auto NANOSECOND = unit::NANOSECOND;
+        static constexpr auto MICROSECOND = unit::MICROSECOND;
+        static constexpr auto MILLISECOND = unit::MILLISECOND;
+        static constexpr auto SECOND = unit::SECOND;
+        static constexpr auto MINUTE = unit::MINUTE;
+        static constexpr auto HOUR = unit::HOUR;
+        static constexpr auto DAY = unit::DAY;
 
         static constexpr time_val_type FACTOR_NANOSECOND = UNIT_FACTOR[static_cast<ul_integer>(NANOSECOND)];
         static constexpr time_val_type FACTOR_MICROSECOND = UNIT_FACTOR[static_cast<ul_integer>(MICROSECOND)];
@@ -191,12 +182,17 @@ namespace original {
                   public hashable<UTCTime>,
                   public printable {
 
-            integer year_;
-            integer month_;
-            integer day_;
-            integer hour_;
-            integer minute_;
-            integer second_;
+            integer year_{};
+            integer month_{};
+            integer day_{};
+            integer hour_{};
+            integer minute_{};
+            integer second_{};
+
+            enum class calendar : integer {
+                YEAR,
+                MONTH,
+            };
 
             enum class weekdays : integer {
                 SATURDAY,
@@ -208,27 +204,29 @@ namespace original {
                 FRIDAY,
             };
 
-            static inline constexpr integer DAYS_OF_MONTH[] {
+            static constexpr integer DAYS_OF_MONTH[] {
                     31, 28, 31, 30, 31, 30,
                     31, 31, 30, 31, 30, 31
             };
 
-            static inline constexpr bool isValidYear(integer year);
+            static constexpr bool isValidYear(integer year);
 
-            static inline constexpr bool isValidMonth(integer month);
+            static constexpr bool isValidMonth(integer month);
 
-            static inline constexpr bool isValidDay(integer day);
+            static constexpr bool isValidDay(integer day);
 
             void set(integer year, integer month, integer day,
                      integer hour, integer minute, integer second);
         public:
-            static constexpr weekdays SATURDAY = weekdays::SATURDAY;
-            static constexpr weekdays SUNDAY = weekdays::SUNDAY;
-            static constexpr weekdays MONDAY = weekdays::MONDAY;
-            static constexpr weekdays TUESDAY = weekdays::TUESDAY;
-            static constexpr weekdays WEDNESDAY = weekdays::WEDNESDAY;
-            static constexpr weekdays THURSDAY = weekdays::THURSDAY;
-            static constexpr weekdays FRIDAY = weekdays::FRIDAY;
+            friend time;
+
+            static constexpr auto SATURDAY = weekdays::SATURDAY;
+            static constexpr auto SUNDAY = weekdays::SUNDAY;
+            static constexpr auto MONDAY = weekdays::MONDAY;
+            static constexpr auto TUESDAY = weekdays::TUESDAY;
+            static constexpr auto WEDNESDAY = weekdays::WEDNESDAY;
+            static constexpr auto THURSDAY = weekdays::THURSDAY;
+            static constexpr auto FRIDAY = weekdays::FRIDAY;
 
 
             static constexpr integer DAYS_WEEK = 7;
@@ -239,27 +237,29 @@ namespace original {
 
             static UTCTime now();
 
-            static inline constexpr bool isLeapYear(integer year);
+            static constexpr bool isLeapYear(integer year);
 
-            static inline constexpr integer daysOfMonth(integer year, integer month);
+            static constexpr integer daysOfMonth(integer year, integer month);
 
-            static inline constexpr weekdays weekday(integer year, integer month, integer day);
+            static constexpr weekdays weekday(integer year, integer month, integer day);
 
-            static inline constexpr bool isValidYMD(integer year, integer month, integer day);
+            static constexpr bool isValidYMD(integer year, integer month, integer day);
 
-            static inline constexpr bool isValidHMS(integer hour, integer minute, integer second);
+            static constexpr bool isValidHMS(integer hour, integer minute, integer second);
 
-            static inline constexpr bool isValid(integer year, integer month, integer day,
-                                                 integer hour, integer minute, integer second);
+            static constexpr bool isValid(integer year, integer month, integer day,
+                                          integer hour, integer minute, integer second);
 
             [[nodiscard]] bool isLeapYear() const;
 
             [[nodiscard]] weekdays weekday() const;
 
-            explicit UTCTime(integer year = EPOCH_YEAR, integer month = EPOCH_MONTH, integer day = EPOCH_DAY,
-                             integer hour = 0, integer minute = 0, integer second = 0);
+            explicit UTCTime();
 
-            explicit UTCTime(const time::point& p);
+            explicit UTCTime(integer year, integer month, integer day,
+                             integer hour, integer minute, integer second);
+
+            explicit UTCTime(const point& p);
 
             UTCTime(const UTCTime& other) = default;
 
@@ -283,15 +283,18 @@ namespace original {
 
             std::string toString(bool enter) const override;
 
-            friend UTCTime operator+(const UTCTime& p, const duration& d);
+            friend UTCTime operator+(const UTCTime& t, const duration& d);
 
-            friend UTCTime operator-(const UTCTime& p, const duration& d);
+            friend UTCTime operator-(const UTCTime& t, const duration& d);
 
             friend duration operator-(const UTCTime& lhs, const UTCTime& rhs);
         };
+
+        static constexpr auto MONTH = UTCTime::calendar::MONTH;
+        static constexpr auto YEAR = UTCTime::calendar::YEAR;
     };
 
-    const time::duration original::time::duration::ZERO = duration{};
+    const time::duration time::duration::ZERO = duration{};
 
     time::duration operator-(const time::duration& d);
 
@@ -315,7 +318,7 @@ namespace original {
 
     time::duration operator-(const time::point& lhs, const time::point& rhs);
 
-    const time::UTCTime original::time::UTCTime::EPOCH = time::UTCTime{};
+    const time::UTCTime time::UTCTime::EPOCH = UTCTime{};
 
     time::UTCTime operator+(const time::UTCTime& t, const time::duration& d);
 
@@ -324,65 +327,65 @@ namespace original {
     time::duration operator-(const time::UTCTime& lhs, const time::UTCTime& rhs);
 
     namespace literals {
-        inline time::duration operator""_ns(unsigned long long val) {
+        inline time::duration operator""_ns(const unsigned long long val) {
             return time::duration(static_cast<time::time_val_type>(val), time::NANOSECOND);
         }
 
-        inline time::duration operator""_us(unsigned long long val) {
+        inline time::duration operator""_us(const unsigned long long val) {
             return time::duration(static_cast<time::time_val_type>(val), time::MICROSECOND);
         }
 
-        inline time::duration operator""_ms(unsigned long long val) {
+        inline time::duration operator""_ms(const unsigned long long val) {
             return time::duration(static_cast<time::time_val_type>(val), time::MILLISECOND);
         }
 
-        inline time::duration operator""_s(unsigned long long val) {
+        inline time::duration operator""_s(const unsigned long long val) {
             return time::duration(static_cast<time::time_val_type>(val), time::SECOND);
         }
 
-        inline time::duration operator""_min(unsigned long long val) {
+        inline time::duration operator""_min(const unsigned long long val) {
             return time::duration(static_cast<time::time_val_type>(val), time::MINUTE);
         }
 
-        inline time::duration operator""_h(unsigned long long val) {
+        inline time::duration operator""_h(const unsigned long long val) {
             return time::duration(static_cast<time::time_val_type>(val), time::HOUR);
         }
 
-        inline time::duration operator""_d(unsigned long long val) {
+        inline time::duration operator""_d(const unsigned long long val) {
             return time::duration(static_cast<time::time_val_type>(val), time::DAY);
         }
 
-        inline time::duration operator""_ns(long double val) {
-            return time::duration(static_cast<time::time_val_type>(std::llround(val * time::FACTOR_NANOSECOND)), time::NANOSECOND);
+        inline time::duration operator""_ns(const long double val) {
+            return time::duration(std::llround(val * time::FACTOR_NANOSECOND), time::NANOSECOND);
         }
 
-        inline time::duration operator""_us(long double val) {
-            return time::duration(static_cast<time::time_val_type>(std::llround(val * time::FACTOR_MICROSECOND)), time::NANOSECOND);
+        inline time::duration operator""_us(const long double val) {
+            return time::duration(std::llround(val * time::FACTOR_MICROSECOND), time::NANOSECOND);
         }
 
-        inline time::duration operator""_ms(long double val) {
-            return time::duration(static_cast<time::time_val_type>(std::llround(val * time::FACTOR_MILLISECOND)), time::NANOSECOND);
+        inline time::duration operator""_ms(const long double val) {
+            return time::duration(std::llround(val * time::FACTOR_MILLISECOND), time::NANOSECOND);
         }
 
-        inline time::duration operator""_s(long double val) {
-            return time::duration(static_cast<time::time_val_type>(std::llround(val * time::FACTOR_SECOND)), time::NANOSECOND);
+        inline time::duration operator""_s(const long double val) {
+            return time::duration(std::llround(val * time::FACTOR_SECOND), time::NANOSECOND);
         }
 
-        inline time::duration operator""_min(long double val) {
-            return time::duration(static_cast<time::time_val_type>(std::llround(val * time::FACTOR_MINUTE)), time::NANOSECOND);
+        inline time::duration operator""_min(const long double val) {
+            return time::duration(std::llround(val * time::FACTOR_MINUTE), time::NANOSECOND);
         }
 
-        inline time::duration operator""_h(long double val) {
-            return time::duration(static_cast<time::time_val_type>(std::llround(val * time::FACTOR_HOUR)), time::NANOSECOND);
+        inline time::duration operator""_h(const long double val) {
+            return time::duration(std::llround(val * time::FACTOR_HOUR), time::NANOSECOND);
         }
 
-        inline time::duration operator""_d(long double val) {
-            return time::duration(static_cast<time::time_val_type>(std::llround(val * time::FACTOR_DAY)), time::NANOSECOND);
+        inline time::duration operator""_d(const long double val) {
+            return time::duration(std::llround(val * time::FACTOR_DAY), time::NANOSECOND);
         }
     }
 }
 
-original::time::duration::duration(time_val_type val, unit unit) {
+inline original::time::duration::duration(const time_val_type val, const unit unit) {
     switch (unit) {
         case unit::DAY:
             this->nano_seconds_ = FACTOR_DAY * val;
@@ -407,11 +410,11 @@ original::time::duration::duration(time_val_type val, unit unit) {
     }
 }
 
-original::time::duration::duration(duration&& other) noexcept : duration() {
+inline original::time::duration::duration(duration&& other) noexcept : duration() {
     this->operator=(std::move(other));
 }
 
-original::time::duration&
+inline original::time::duration&
 original::time::duration::operator=(duration&& other) noexcept {
     if (this == &other)
         return *this;
@@ -421,8 +424,8 @@ original::time::duration::operator=(duration&& other) noexcept {
     return *this;
 }
 
-original::time::time_val_type
-original::time::duration::value(unit unit) const noexcept {
+inline original::time::time_val_type
+original::time::duration::value(const unit unit) const noexcept {
     time_val_type val = this->nano_seconds_;
     switch (unit) {
         case unit::DAY:
@@ -449,23 +452,23 @@ original::time::duration::value(unit unit) const noexcept {
     return val;
 }
 
-original::integer
+inline original::integer
 original::time::duration::compareTo(const duration& other) const {
     if (this->nano_seconds_ == other.nano_seconds_)
         return 0;
     return this->nano_seconds_ > other.nano_seconds_ ? 1 : -1;
 }
 
-original::u_integer
+inline original::u_integer
 original::time::duration::toHash() const noexcept {
     return hash<time_val_type>::hashFunc(this->nano_seconds_);
 }
 
-std::string original::time::duration::className() const {
+inline std::string original::time::duration::className() const {
     return "time::duration";
 }
 
-std::string original::time::duration::toString(bool enter) const {
+inline std::string original::time::duration::toString(const bool enter) const {
     std::stringstream ss;
     ss << "(" << this->className() << " " << this->nano_seconds_ << "ns)";
     if (enter)
@@ -473,132 +476,132 @@ std::string original::time::duration::toString(bool enter) const {
     return ss.str();
 }
 
-original::time::duration&
+inline original::time::duration&
 original::time::duration::operator++() {
     this->nano_seconds_ += 1;
     return *this;
 }
 
-original::time::duration
+inline original::time::duration
 original::time::duration::operator++(int) {
     duration res{*this};
     this->nano_seconds_ += 1;
     return res;
 }
 
-original::time::duration&
+inline original::time::duration&
 original::time::duration::operator--() {
     this->nano_seconds_ -= 1;
     return *this;
 }
 
-original::time::duration
+inline original::time::duration
 original::time::duration::operator--(int) {
     duration res(*this);
     this->nano_seconds_ -= 1;
     return res;
 }
 
-original::time::duration&
+inline original::time::duration&
 original::time::duration::operator+=(const duration& other) {
     this->nano_seconds_ += other.nano_seconds_;
     return *this;
 }
 
-original::time::duration&
+inline original::time::duration&
 original::time::duration::operator-=(const duration& other) {
     this->nano_seconds_ -= other.nano_seconds_;
     return *this;
 }
 
-original::time::duration&
-original::time::duration::operator*=(time_val_type factor) {
+inline original::time::duration&
+original::time::duration::operator*=(const time_val_type factor) {
     this->nano_seconds_ *= factor;
     return *this;
 }
 
-original::time::duration&
-original::time::duration::operator/=(time_val_type factor) {
+inline original::time::duration&
+original::time::duration::operator/=(const time_val_type factor) {
     this->nano_seconds_ /= factor;
     return *this;
 }
 
-original::time::duration&
+inline original::time::duration&
 original::time::duration::operator/=(const duration& other) {
     this->nano_seconds_ /= other.nano_seconds_;
     return *this;
 }
 
-original::floating
-original::time::duration::div(time_val_type factor, unit unit) const {
+inline original::floating
+original::time::duration::div(const time_val_type factor, const unit unit) const {
     return this->div(duration{factor, unit});
 }
 
-original::floating
+inline original::floating
 original::time::duration::div(const duration& other) const {
     return static_cast<floating>(this->nano_seconds_) / static_cast<floating>(other.nano_seconds_);
 }
 
-original::time::duration
+inline original::time::duration
 original::operator-(const time::duration& d) {
-    time::duration res(d);
+    time::duration res{d};
     res.nano_seconds_ = -res.nano_seconds_;
     return res;
 }
 
-original::time::duration
+inline original::time::duration
 original::operator+(const time::duration& lhs, const time::duration& rhs) {
-    time::duration d(lhs);
+    time::duration d{lhs};
     d += rhs;
     return d;
 }
 
-original::time::duration
+inline original::time::duration
 original::operator-(const time::duration& lhs, const time::duration& rhs) {
-    time::duration d(lhs);
+    time::duration d{lhs};
     d -= rhs;
     return d;
 }
 
-original::time::duration
-original::operator*(const time::duration &d, time::time_val_type factor) {
-    time::duration res(d);
+inline original::time::duration
+original::operator*(const time::duration &d, const time::time_val_type factor) {
+    time::duration res{d};
     res *= factor;
     return res;
 }
 
-original::time::duration
-original::operator*(time::time_val_type factor, const time::duration& d) {
-    time::duration res(d);
+inline original::time::duration
+original::operator*(const time::time_val_type factor, const time::duration& d) {
+    time::duration res{d};
     res *= factor;
     return res;
 }
 
-original::time::duration
-original::operator/(const time::duration &d, time::time_val_type factor) {
-    time::duration res(d);
+inline original::time::duration
+original::operator/(const time::duration &d, const time::time_val_type factor) {
+    time::duration res{d};
     res /= factor;
     return res;
 }
 
-original::time::duration
+inline original::time::duration
 original::operator/(const time::duration& lhs, const time::duration& rhs) {
-    time::duration d(lhs);
+    time::duration d{lhs};
     d /= rhs;
     return d;
 }
 
-original::time::duration
+inline original::time::duration
 original::abs(const time::duration& d) {
     time::time_val_type val = d.nano_seconds_;
     val = val < 0 ? -val : val;
     return time::duration{val, time::NANOSECOND};
 }
 
-original::time::point
+inline original::time::point
 original::time::point::now() {
 #if ORIGINAL_COMPILER_GCC || (ORIGINAL_COMPILER_CLANG && ORIGINAL_PLATFORM_LINUX)
-    struct timespec ts{};
+    timespec ts{};
     clock_gettime(CLOCK_REALTIME, &ts);
     time_val_type ns = ts.tv_sec * FACTOR_SECOND + ts.tv_nsec;
     return point(ns, NANOSECOND);
@@ -613,33 +616,33 @@ original::time::point::now() {
 #endif
 }
 
-original::time::point::point(time_val_type val, unit unit)
+inline original::time::point::point(const time_val_type val, const unit unit)
     : nano_since_epoch_(val, unit) {}
 
-original::time::point::point(duration d)
+inline original::time::point::point(duration d)
     : nano_since_epoch_(std::move(d)) {}
 
-original::time::time_val_type
-original::time::point::value(unit unit) const noexcept {
+inline original::time::time_val_type
+original::time::point::value(const unit unit) const noexcept {
     return this->nano_since_epoch_.value(unit);
 }
 
-original::integer
+inline original::integer
 original::time::point::compareTo(const point& other) const {
     return this->nano_since_epoch_.compareTo(other.nano_since_epoch_);
 }
 
-original::u_integer
+inline original::u_integer
 original::time::point::toHash() const noexcept {
     return this->nano_since_epoch_.toHash();
 }
 
-std::string original::time::point::className() const {
+inline std::string original::time::point::className() const {
     return "time::point";
 }
 
-std::string
-original::time::point::toString(bool enter) const {
+inline std::string
+original::time::point::toString(const bool enter) const {
     std::stringstream ss;
     ss << "(" << this->className() << " " << this->nano_since_epoch_.nano_seconds_ << ")";
     if (enter)
@@ -647,57 +650,57 @@ original::time::point::toString(bool enter) const {
     return ss.str();
 }
 
-original::time::point&
+inline original::time::point&
 original::time::point::operator++() {
     ++this->nano_since_epoch_;
     return *this;
 }
 
-original::time::point
+inline original::time::point
 original::time::point::operator++(int) {
     point res{*this};
     ++this->nano_since_epoch_;
     return res;
 }
 
-original::time::point&
+inline original::time::point&
 original::time::point::operator--() {
     --this->nano_since_epoch_;
     return *this;
 }
 
-original::time::point
+inline original::time::point
 original::time::point::operator--(int) {
     point res{*this};
     --this->nano_since_epoch_;
     return res;
 }
 
-original::time::point&
+inline original::time::point&
 original::time::point::operator+=(const duration& d) {
     this->nano_since_epoch_ += d;
     return *this;
 }
 
-original::time::point&
+inline original::time::point&
 original::time::point::operator-=(const duration& d) {
     this->nano_since_epoch_ -= d;
     return *this;
 }
 
-original::time::point
+inline original::time::point
 original::operator-(const time::point &p, const time::duration &d) {
     time::point res{p};
     res -= d;
     return res;
 }
 
-original::time::duration
+inline original::time::duration
 original::operator-(const time::point &lhs, const time::point &rhs) {
     return lhs.nano_since_epoch_ - rhs.nano_since_epoch_;
 }
 
-original::time::point
+inline original::time::point
 original::operator+(const time::point &p, const time::duration &d) {
     time::point res{p};
     res += d;
@@ -705,22 +708,22 @@ original::operator+(const time::point &p, const time::duration &d) {
 }
 
 constexpr bool
-original::time::UTCTime::isValidYear(integer year) {
+original::time::UTCTime::isValidYear(const integer year) {
     return 0 <= year;
 }
 
 constexpr bool
-original::time::UTCTime::isValidMonth(integer month) {
+original::time::UTCTime::isValidMonth(const integer month) {
     return 1 <= month && month <= 12;
 }
 
 constexpr bool
-original::time::UTCTime::isValidDay(integer day) {
+original::time::UTCTime::isValidDay(const integer day) {
     return 1 <= day && day <= 31;
 }
 
-void original::time::UTCTime::set(integer year, integer month, integer day,
-                                  integer hour, integer minute, integer second) {
+inline void original::time::UTCTime::set(const integer year, const integer month, const integer day,
+                                         const integer hour, const integer minute, const integer second) {
     this->year_ = year;
     this->month_ = month;
     this->day_ = day;
@@ -729,20 +732,20 @@ void original::time::UTCTime::set(integer year, integer month, integer day,
     this->second_ = second;
 }
 
-original::time::UTCTime
+inline original::time::UTCTime
 original::time::UTCTime::now() {
     return UTCTime{point::now()};
 }
 
 constexpr bool
-original::time::UTCTime::isLeapYear(integer year) {
+original::time::UTCTime::isLeapYear(const integer year) {
     if (!isValidYear(year))
         return false;
     return (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
 }
 
 constexpr original::integer
-original::time::UTCTime::daysOfMonth(integer year, integer month) {
+original::time::UTCTime::daysOfMonth(const integer year, const integer month) {
     if (!isValidYear(year) || !isValidMonth(month))
         throw valueError();
 
@@ -753,7 +756,7 @@ original::time::UTCTime::daysOfMonth(integer year, integer month) {
 }
 
 constexpr original::time::UTCTime::weekdays
-original::time::UTCTime::weekday(integer year, integer month, integer day) {
+original::time::UTCTime::weekday(const integer year, const integer month, const integer day) {
     if (!isValidYMD(year, month, day))
         throw valueError();
 
@@ -765,12 +768,12 @@ original::time::UTCTime::weekday(integer year, integer month, integer day) {
         corrected_year = year;
         corrected_month = month;
     }
-    integer century = corrected_year / YEARS_CENTURY;
-    integer years_in_century = corrected_year % YEARS_CENTURY;
+    const integer century = corrected_year / YEARS_CENTURY;
+    const integer years_in_century = corrected_year % YEARS_CENTURY;
 
     return static_cast<weekdays>((
                day +
-               (13 * (corrected_month + 1)) / 5 +
+               13 * (corrected_month + 1) / 5 +
                years_in_century +
                years_in_century / 4 +
                century / 4 +
@@ -779,7 +782,7 @@ original::time::UTCTime::weekday(integer year, integer month, integer day) {
 }
 
 constexpr bool
-original::time::UTCTime::isValidYMD(integer year, integer month, integer day) {
+original::time::UTCTime::isValidYMD(const integer year, const integer month, const integer day) {
     if (!isValidYear(year) || !isValidMonth(month) || !isValidDay(day))
         return false;
 
@@ -787,53 +790,55 @@ original::time::UTCTime::isValidYMD(integer year, integer month, integer day) {
 }
 
 constexpr bool
-original::time::UTCTime::isValidHMS(integer hour, integer minute, integer second) {
+original::time::UTCTime::isValidHMS(const integer hour, const integer minute, const integer second) {
     return 0 <= hour && hour <= 23 &&
            0 <= minute && minute <= 59 &&
            0 <= second && second <= 59;
 }
 
 constexpr bool
-original::time::UTCTime::isValid(integer year, integer month, integer day,
-                                 integer hour, integer minute, integer second) {
+original::time::UTCTime::isValid(const integer year, const integer month, const integer day,
+                                 const integer hour, const integer minute, const integer second) {
     return isValidYMD(year, month, day) && isValidHMS(hour, minute, second);
 }
 
-bool original::time::UTCTime::isLeapYear() const {
+inline bool original::time::UTCTime::isLeapYear() const {
     return isLeapYear(this->year_);
 }
 
-original::time::UTCTime::weekdays
+inline original::time::UTCTime::weekdays
 original::time::UTCTime::weekday() const {
     return weekday(this->year_, this->month_, this->day_);
 }
 
-original::time::UTCTime::UTCTime(integer year, integer month, integer day,
-                                 integer hour, integer minute, integer second) {
+inline original::time::UTCTime::UTCTime()
+    : UTCTime(EPOCH_YEAR, EPOCH_MONTH, EPOCH_DAY, 0, 0, 0) {}
+
+inline original::time::UTCTime::UTCTime(const integer year, const integer month, const integer day,
+                                        const integer hour, const integer minute, const integer second) {
     if (!isValid(year, month, day, hour, minute, second))
         throw valueError();
 
     this->set(year, month, day, hour, minute, second);
 }
 
-original::time::UTCTime::UTCTime(const point& p) {
+inline original::time::UTCTime::UTCTime(const point& p) {
     const auto nano_seconds = p.value(NANOSECOND);
-    integer year, month, day, hour, minute, second;
 
-    second = nano_seconds / FACTOR_SECOND;
+    integer second = nano_seconds / FACTOR_SECOND;
 
-    minute = second / (FACTOR_MINUTE / FACTOR_SECOND);
+    integer minute = second / (FACTOR_MINUTE / FACTOR_SECOND);
     second %= (FACTOR_MINUTE / FACTOR_SECOND);
 
-    hour = minute / (FACTOR_HOUR / FACTOR_MINUTE);
+    integer hour = minute / (FACTOR_HOUR / FACTOR_MINUTE);
     minute %= (FACTOR_HOUR / FACTOR_MINUTE);
 
-    day = hour / (FACTOR_DAY / FACTOR_HOUR);
+    integer day = hour / (FACTOR_DAY / FACTOR_HOUR);
     hour %= (FACTOR_DAY / FACTOR_HOUR);
 
-    year = EPOCH_YEAR;
+    integer year = EPOCH_YEAR;
     while (true){
-        integer days_in_year = isLeapYear(year) ? DAYS_LEAP_YEAR : DAYS_COMMON_YEAR;
+        const integer days_in_year = isLeapYear(year) ? DAYS_LEAP_YEAR : DAYS_COMMON_YEAR;
         if (day < days_in_year){
             break;
         }
@@ -842,9 +847,9 @@ original::time::UTCTime::UTCTime(const point& p) {
         year += 1;
     }
 
-    month = 1;
+    integer month = 1;
     while (true){
-        integer dim = daysOfMonth(year, month);
+        const integer dim = daysOfMonth(year, month);
         if (day < dim){
             break;
         }
@@ -858,11 +863,11 @@ original::time::UTCTime::UTCTime(const point& p) {
     this->set(year, month, day, hour, minute, second);
 }
 
-original::time::UTCTime::UTCTime(UTCTime&& other) noexcept : UTCTime() {
+inline original::time::UTCTime::UTCTime(UTCTime&& other) noexcept : UTCTime() {
     this->operator=(std::move(other));
 }
 
-original::time::UTCTime&
+inline original::time::UTCTime&
 original::time::UTCTime::operator=(UTCTime&& other) noexcept {
     if (this == &other)
         return *this;
@@ -873,8 +878,8 @@ original::time::UTCTime::operator=(UTCTime&& other) noexcept {
     return *this;
 }
 
-original::integer
-original::time::UTCTime::value(unit unit) const noexcept {
+inline original::integer
+original::time::UTCTime::value(const unit unit) const noexcept {
     switch (unit) {
         case SECOND:
             return this->second_;
@@ -890,8 +895,8 @@ original::time::UTCTime::value(unit unit) const noexcept {
     return 0;
 }
 
-original::integer
-original::time::UTCTime::value(calendar calendar) const noexcept {
+inline original::integer
+original::time::UTCTime::value(const calendar calendar) const noexcept {
     switch (calendar) {
         case MONTH:
             return this->month_;
@@ -901,7 +906,7 @@ original::time::UTCTime::value(calendar calendar) const noexcept {
     }
 }
 
-original::time::UTCTime::operator point() const {
+inline original::time::UTCTime::operator point() const {
     time_val_type total_days = 0;
 
     for (integer y = EPOCH_YEAR; y < this->year_; ++y) {
@@ -912,7 +917,7 @@ original::time::UTCTime::operator point() const {
         total_days += daysOfMonth(this->year_, m);
     }
 
-    total_days += (this->day_ - 1);
+    total_days += this->day_ - 1;
 
     time_val_type total_seconds = total_days * (FACTOR_DAY / FACTOR_SECOND);
     total_seconds += this->hour_ * (FACTOR_HOUR / FACTOR_SECOND);
@@ -922,7 +927,7 @@ original::time::UTCTime::operator point() const {
     return point{total_seconds, SECOND};
 }
 
-original::integer
+inline original::integer
 original::time::UTCTime::compareTo(const UTCTime& other) const {
     if (this->year_ != other.year_)
         return this->year_ > other.year_ ? 1 : -1;
@@ -939,7 +944,7 @@ original::time::UTCTime::compareTo(const UTCTime& other) const {
     return 0;
 }
 
-original::u_integer
+inline original::u_integer
 original::time::UTCTime::toHash() const noexcept {
     u_integer seed = 0;
     hash<UTCTime>::hashCombine(seed, this->year_, this->month_, this->day_,
@@ -947,11 +952,11 @@ original::time::UTCTime::toHash() const noexcept {
     return seed;
 }
 
-std::string original::time::UTCTime::className() const {
+inline std::string original::time::UTCTime::className() const {
     return "time::UTCTime";
 }
 
-std::string original::time::UTCTime::toString(bool enter) const {
+inline std::string original::time::UTCTime::toString(const bool enter) const {
     std::stringstream ss;
     ss << "(" << this->className() << " "
        << this->year_ << "-"
@@ -965,17 +970,17 @@ std::string original::time::UTCTime::toString(bool enter) const {
     return ss.str();
 }
 
-original::time::UTCTime
+inline original::time::UTCTime
 original::operator-(const time::UTCTime& t, const time::duration& d) {
     return time::UTCTime{static_cast<time::point>(t) - d};
 }
 
-original::time::duration
+inline original::time::duration
 original::operator-(const time::UTCTime& lhs, const time::UTCTime& rhs) {
     return static_cast<time::point>(lhs) - static_cast<time::point>(rhs);
 }
 
-original::time::UTCTime
+inline original::time::UTCTime
 original::operator+(const time::UTCTime& t, const time::duration& d) {
     return time::UTCTime{static_cast<time::point>(t) + d};
 }

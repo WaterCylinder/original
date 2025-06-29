@@ -44,10 +44,10 @@ namespace original {
             ADOPT_LOCK,
         };
 
-        static constexpr lockPolicy MANUAL_LOCK = lockPolicy::MANUAL_LOCK;
-        static constexpr lockPolicy AUTO_LOCK = lockPolicy::AUTO_LOCK;
-        static constexpr lockPolicy TRY_LOCK = lockPolicy::TRY_LOCK;
-        static constexpr lockPolicy ADOPT_LOCK = lockPolicy::ADOPT_LOCK;
+        static constexpr auto MANUAL_LOCK = lockPolicy::MANUAL_LOCK;
+        static constexpr auto AUTO_LOCK = lockPolicy::AUTO_LOCK;
+        static constexpr auto TRY_LOCK = lockPolicy::TRY_LOCK;
+        static constexpr auto ADOPT_LOCK = lockPolicy::ADOPT_LOCK;
 
         explicit lockGuard() = default;
 
@@ -97,7 +97,7 @@ namespace original {
 
         void unlock() override;
 
-        ~uniqueLock();
+        ~uniqueLock() override;
     };
 
     template<typename... MUTEX>
@@ -130,7 +130,7 @@ namespace original {
 
         multiLock& operator=(multiLock&&) = delete;
 
-        ~multiLock();
+        ~multiLock() override;
     };
 }
 
@@ -141,7 +141,7 @@ inline original::pMutex::pMutex() : mutex_{} {
     }
 }
 
-original::ul_integer original::pMutex::id() const {
+inline original::ul_integer original::pMutex::id() const {
     ul_integer id = 0;
     std::memcpy(&id, &this->mutex_, sizeof(pthread_mutex_t));
     return id;
@@ -199,7 +199,7 @@ inline bool original::uniqueLock::isLocked() const noexcept {
     return this->is_locked;
 }
 
-void original::uniqueLock::lock() {
+inline void original::uniqueLock::lock() {
     if (this->is_locked)
         throw sysError();
 
@@ -207,7 +207,7 @@ void original::uniqueLock::lock() {
     this->is_locked = true;
 }
 
-bool original::uniqueLock::tryLock() {
+inline bool original::uniqueLock::tryLock() {
     if (this->is_locked)
         throw sysError();
 
@@ -215,7 +215,7 @@ bool original::uniqueLock::tryLock() {
     return this->is_locked;
 }
 
-void original::uniqueLock::unlock() {
+inline void original::uniqueLock::unlock() {
     if (this->is_locked){
         this->p_mutex_.unlock();
         this->is_locked = false;
