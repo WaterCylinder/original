@@ -371,6 +371,10 @@ namespace original {
              */
             explicit point(duration d);
 
+#ifdef ORIGINAL_COMPILER_GCC
+            explicit point(const timespec& ts);
+#endif
+
             /**
              * @brief Gets time value in specified units
              * @param unit Unit to return value in (default: MILLISECOND)
@@ -403,6 +407,10 @@ namespace original {
              * @return String representation
              */
             std::string toString(bool enter) const override;
+
+#ifdef ORIGINAL_COMPILER_GCC
+            explicit operator timespec() const;
+#endif
 
             /**
              * @brief Prefix increment (adds 1 nanosecond)
@@ -1167,8 +1175,7 @@ original::time::point::now() {
 #if ORIGINAL_COMPILER_GCC || (ORIGINAL_COMPILER_CLANG && ORIGINAL_PLATFORM_LINUX)
     timespec ts{};
     clock_gettime(CLOCK_REALTIME, &ts);
-    time_val_type ns = ts.tv_sec * FACTOR_SECOND + ts.tv_nsec;
-    return point(ns, NANOSECOND);
+    return point{ts};
 #elif ORIGINAL_PLATFORM_APPLE
     struct timeval tv;
     gettimeofday(&tv, nullptr);
@@ -1185,6 +1192,14 @@ inline original::time::point::point(const time_val_type val, const unit unit)
 
 inline original::time::point::point(duration d)
     : nano_since_epoch_(std::move(d)) {}
+
+#ifdef ORIGINAL_COMPILER_GCC
+inline original::time::point::point(const timespec& ts)
+{
+    const time_val_type nanoseconds = ts.tv_sec * FACTOR_SECOND + ts.tv_nsec;
+    this->nano_since_epoch_ = duration{nanoseconds, NANOSECOND};
+}
+#endif
 
 inline original::time::time_val_type
 original::time::point::value(const unit unit) const noexcept {
@@ -1213,6 +1228,16 @@ original::time::point::toString(const bool enter) const {
         ss << "\n";
     return ss.str();
 }
+
+#ifdef ORIGINAL_COMPILER_GCC
+inline original::time::point::operator timespec() const
+{
+    auto nanoseconds = this->value(NANOSECOND);
+    const auto seconds = nanoseconds / FACTOR_SECOND;
+    nanoseconds %= FACTOR_SECOND;
+    return timespec{seconds, static_cast<long>(nanoseconds)};  //NOLINT: The remaining nanosecond value is within the range of type long.
+}
+#endif
 
 inline original::time::point&
 original::time::point::operator++() {
