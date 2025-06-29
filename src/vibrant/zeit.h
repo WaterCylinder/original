@@ -7,7 +7,6 @@
 #include "printable.h"
 #include "error.h"
 #include <iomanip>
-#include <chrono>
 
 
 namespace original {
@@ -901,9 +900,11 @@ original::time::UTCTime::value(const calendar calendar) const noexcept {
         case MONTH:
             return this->month_;
         case YEAR:
-        default:
             return this->year_;
+        default:
+            break;
     }
+    return 0;
 }
 
 inline original::time::UTCTime::operator point() const {
