@@ -783,7 +783,7 @@ namespace original {
     };
 
     /// Zero duration constant
-    const time::duration time::duration::ZERO = duration{};
+    inline const time::duration time::duration::ZERO = duration{};
 
     time::duration operator-(const time::duration& d);
 
@@ -808,7 +808,7 @@ namespace original {
     time::duration operator-(const time::point& lhs, const time::point& rhs);
 
     /// Epoch time constant (1970-01-01 00:00:00)
-    const time::UTCTime time::UTCTime::EPOCH = UTCTime{};
+    inline const time::UTCTime time::UTCTime::EPOCH = UTCTime{};
 
     time::UTCTime operator+(const time::UTCTime& t, const time::duration& d);
 
