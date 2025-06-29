@@ -6,6 +6,8 @@
 #include "zeit.h"
 
 
+using namespace original::literals;
+
 int main()
 {
     original::pMutex mutex;
@@ -96,6 +98,7 @@ int main()
 
     const auto now_utc = original::time::UTCTime::now();
     std::cout << "London now: " << now_utc << std::endl;
+    std::cout << "Beijing now: " << now_utc + 8_h << std::endl;
     std::cout << "test convert: " << original::time::UTCTime{static_cast<original::time::point>(now_utc)} << std::endl;
     std::cout << static_cast<original::integer>(now_utc.weekday()) << std::endl;
     return 0;
