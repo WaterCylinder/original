@@ -5,6 +5,7 @@
 #include "functional"
 #include "pthread.h"
 #include "ownerPtr.h"
+#include "zeit.h"
 
 
 /**
@@ -270,6 +271,8 @@ namespace original {
         [[nodiscard]] bool valid() const override;
     public:
 
+        static inline void sleep(const time::duration& d);
+
         /// @brief Alias for joinPolicy::AUTO_JOIN
         static constexpr auto AUTO_JOIN = joinPolicy::AUTO_JOIN;
 
@@ -495,6 +498,19 @@ inline original::pThread::~pThread()
 inline bool original::thread::valid() const
 {
     return this->thread_.operator bool();
+}
+
+inline void original::thread::sleep(const time::duration& d)
+{
+    if (d.value() < 0)
+        return;
+
+#ifdef ORIGINAL_COMPILER_GCC
+    auto ts = static_cast<timespec>(d);
+    while (nanosleep(&ts, &ts) == -1 && errno == EINTR) {}
+#else
+    // to be continued
+#endif
 }
 
 inline original::thread::thread()
