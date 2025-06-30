@@ -506,10 +506,20 @@ inline void original::thread::sleep(const time::duration& d)
         return;
 
 #ifdef ORIGINAL_COMPILER_GCC
-    auto ts = static_cast<timespec>(d);
-    while (nanosleep(&ts, &ts) == -1 && errno == EINTR) {}
+    const auto deadline = time::point::now() + d;
+    const auto ts = static_cast<timespec>(deadline);
+
+    while (true) {
+        if (const int ret = clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &ts, nullptr)
+            ; ret == 0) break;
+        if (errno == EINTR) continue;
+        if (errno == EINVAL) {
+            if (time::point::now() >= deadline) return;
+        }
+        throw sysError();
+    }
 #else
-    // to be continued
+    ::Sleep(static_cast<DWORD>((d.value() + 999999) / 1000000));
 #endif
 }
 
