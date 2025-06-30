@@ -720,6 +720,18 @@ namespace original {
             UTCTime& operator=(UTCTime&& other) noexcept;
 
             /**
+             * @brief Returns a new UTCTime object containing only the calendar date.
+             * @return A new UTCTime object with time components cleared (00:00:00).
+             * @see UTCTime::toString(), UTCTime::now()
+             * @code
+             * UTCTime t(2025, 6, 28, 11, 12, 30);
+             * UTCTime d = t.date();
+             * // d == (time::UTCTime 2025-06-28 00:00:00)
+             * @endcode
+             */
+            UTCTime date() const;
+
+            /**
              * @brief Gets time component value
              * @param unit Time unit to get
              * @return Value of requested component
@@ -1482,6 +1494,11 @@ original::time::UTCTime::operator=(UTCTime&& other) noexcept {
               other.hour_, other.minute_, other.second_);
     other.set(EPOCH_YEAR, EPOCH_MONTH, EPOCH_DAY, 0, 0, 0);
     return *this;
+}
+
+inline original::time::UTCTime original::time::UTCTime::date() const
+{
+    return UTCTime{this->year_, this->month_, this->day_, 0, 0, 0};
 }
 
 inline original::integer
