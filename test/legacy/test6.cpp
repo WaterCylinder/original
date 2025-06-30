@@ -101,5 +101,11 @@ int main()
     std::cout << "Beijing now: " << now_utc + 8_h << std::endl;
     std::cout << "test convert: " << original::time::UTCTime{static_cast<original::time::point>(now_utc)} << std::endl;
     std::cout << static_cast<original::integer>(now_utc.weekday()) << std::endl;
+
+    constexpr original::integer sec = 5;
+    std::cout << "Sleep before: " << original::time::UTCTime::now() << std::endl;
+    std::cout << "Sleep for: " << sec << " second(s)." << std::endl;
+    original::thread::sleep(original::time::duration{sec, original::time::SECOND});
+    std::cout << "Sleep after: " << original::time::UTCTime::now() << std::endl;
     return 0;
 }
