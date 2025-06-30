@@ -85,8 +85,6 @@ namespace original {
             static void* run(void* arg);
         };
 
-        bool is_joinable; ///< Flag indicating if thread can be joined
-
         /**
          * @brief Check if thread is valid
          * @return true if thread is valid (has an associated execution context)
@@ -100,18 +98,15 @@ namespace original {
          * @note Pure virtual function to be implemented by derived classes
          */
         [[nodiscard]] virtual ul_integer id() const = 0;
-
-        /**
-         * @brief Construct thread base
-         * @param is_joinable Whether thread is joinable
-         */
-        explicit threadBase(bool is_joinable = false);
     public:
+
+        explicit threadBase() noexcept = default;
+
         /**
          * @brief Destructor
          * @note Terminates program if thread is joinable and not joined/detached
          */
-        virtual ~threadBase();
+        virtual ~threadBase() noexcept = default;
 
         threadBase(const threadBase&) = delete; ///< Deleted copy constructor
         threadBase& operator=(const threadBase&) = delete; ///< Deleted copy assignment
@@ -136,7 +131,7 @@ namespace original {
          * @return true if thread is joinable
          * @note A thread is joinable if it represents an active thread of execution
          */
-        [[nodiscard]] bool joinable() const;
+        [[nodiscard]] virtual bool joinable() const = 0;
 
         /**
          * @brief Wait for thread to complete execution
@@ -164,6 +159,7 @@ namespace original {
      */
     class pThread final : public threadBase {
         pthread_t handle; ///< Native thread handle
+        bool is_joinable; ///< Flag indicating if thread can be joined
 
         /**
          * @brief Check if thread is valid
@@ -210,6 +206,8 @@ namespace original {
          */
         [[nodiscard]] ul_integer id() const override;
 
+        bool joinable() const override;
+
         /**
          * @brief Wait for thread to complete
          * @note Terminates program if join fails
@@ -223,6 +221,8 @@ namespace original {
          * @note After detach, the thread object no longer represents the thread
          */
         void detach() override;
+
+        ~pThread() override;
     };
 
     /**
@@ -249,7 +249,7 @@ namespace original {
      * @see original::pThread
      * @see original::thread::joinPolicy
      */
-    class thread {
+    class thread final : public threadBase {
         pThread thread_; ///< Underlying thread implementation
         bool will_join;  ///< Join policy flag
 
@@ -269,6 +269,8 @@ namespace original {
             AUTO_JOIN,   ///< Join the thread automatically on destruction
             AUTO_DETACH, ///< Detach the thread automatically on destruction
         };
+
+        [[nodiscard]] bool valid() const override;
     public:
 
         /// @brief Alias for joinPolicy::AUTO_JOIN
@@ -346,46 +348,30 @@ namespace original {
          * @brief Get thread identifier
          * @return Unique identifier for the thread
          */
-        [[nodiscard]] ul_integer id() const;
+        [[nodiscard]] ul_integer id() const override;
 
-        /**
-         * @brief Check if thread is joinable
-         * @return true if thread is joinable
-         */
-        [[nodiscard]] bool joinable() const;
-
-        /**
-         * @brief Check if thread is valid
-         * @return true if thread is valid
-         */
-        explicit operator bool() const;
-
-        /**
-         * @brief Check if thread is not valid
-         * @return true if thread is not valid
-         */
-        bool operator!() const;
+        bool joinable() const override;
 
         /**
          * @brief Wait for thread to complete
          * @note Terminates program if join fails
          * @note Blocks until the thread completes execution
          */
-        void join();
+        void join() override;
 
         /**
          * @brief Detach thread (allow it to run independently)
          * @note Terminates program if detach fails
          * @note After detach, the thread object no longer represents the thread
          */
-        void detach();
+        void detach() override;
 
         /**
          * @brief Destructor
          * @note Automatically joins or detaches based on will_join policy
          * @note Terminates program if join/detach operation fails
          */
-        ~thread();
+        ~thread() override;
     };
 }
 
@@ -416,23 +402,10 @@ inline bool original::threadBase::operator!() const
     return !this->valid();
 }
 
-inline bool original::threadBase::joinable() const {
-    return this->is_joinable;
-}
-
-inline original::threadBase::threadBase(bool is_joinable)
-    : is_joinable(is_joinable) {}
-
-inline original::threadBase::~threadBase() {
-    if (this->is_joinable) {
-        std::terminate();
-    }
-}
-
-inline original::pThread::pThread() : handle() {}
+inline original::pThread::pThread() : handle(), is_joinable() {}
 
 template<typename Callback, typename... ARGS>
-original::pThread::pThread(Callback c, ARGS&&... args) : threadBase(true), handle()
+original::pThread::pThread(Callback c, ARGS&&... args) : handle(), is_joinable(true)
 {
     auto bound_lambda =
     [func = std::forward<Callback>(c), ...lambda_args = std::forward<ARGS>(args)]() mutable {
@@ -483,6 +456,11 @@ inline original::ul_integer original::pThread::id() const {
     return id;
 }
 
+inline bool original::pThread::joinable() const
+{
+    return this->is_joinable;
+}
+
 inline void original::pThread::join() {
     if (this->is_joinable){
         if (const int code = pthread_join(this->handle, nullptr);
@@ -503,6 +481,18 @@ inline void original::pThread::detach() {
         this->is_joinable = false;
         this->handle = {};
     }
+}
+
+inline original::pThread::~pThread()
+{
+    if (this->is_joinable) {
+        std::terminate();
+    }
+}
+
+inline bool original::thread::valid() const
+{
+    return this->thread_.operator bool();
 }
 
 inline original::thread::thread()
@@ -557,16 +547,9 @@ inline original::ul_integer original::thread::id() const {
     return this->thread_.id();
 }
 
-inline bool original::thread::joinable() const {
+inline bool original::thread::joinable() const
+{
     return this->thread_.joinable();
-}
-
-inline original::thread::operator bool() const {
-    return this->thread_.operator bool();
-}
-
-inline bool original::thread::operator!() const {
-    return this->thread_.operator!();
 }
 
 #endif //THREAD_H
