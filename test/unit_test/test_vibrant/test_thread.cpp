@@ -1,9 +1,12 @@
 #include <gtest/gtest.h>
 #include "thread.h"
 #include <atomic>
+#include "zeit.h"
 #include <chrono>
 
 using namespace original;
+using namespace original::literals;
+using namespace std::literals;
 
 namespace {
     // Test class with member functions
@@ -282,4 +285,101 @@ TEST_F(ThreadTest, PThreadId) {
     ASSERT_EQ(pt.id(), 0);     // Moved-from pThread should have ID 0
 
     pt2.join();
+}
+
+TEST_F(ThreadTest, NowFunctionTimeSpendTest) {
+    constexpr integer count = 1e6;
+    for (integer i = 0; i < count; ++i) {
+        time::point::now();
+    }
+}
+
+// Test sleep_for functionality
+TEST_F(ThreadTest, SleepForDuration) {
+    using namespace original::literals;  // For duration literals
+
+    // Test basic sleep functionality
+    auto start = std::chrono::steady_clock::now();
+    thread::sleep(500_ms);  // Sleep for 500 milliseconds
+    auto end = std::chrono::steady_clock::now();
+
+    auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    ASSERT_GE(elapsed.count(), 500);  // Should sleep at least 500ms
+    ASSERT_LE(elapsed.count(), 550);  // With some tolerance for scheduling
+
+    // Test with different time units
+    start = std::chrono::steady_clock::now();
+    thread::sleep(1_s + 200_ms);  // Sleep for 1.2 seconds
+    end = std::chrono::steady_clock::now();
+
+    elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    ASSERT_GE(elapsed.count(), 1200);
+    ASSERT_LE(elapsed.count(), 1250);
+
+    // Test short sleep
+    const auto p1 = time::point::now();
+    thread::sleep(50_ms);
+    const auto p2 = time::point::now();
+    const auto elapsed2 = p2 - p1;
+    ASSERT_GE(elapsed2.value(time::MICROSECOND), 35000);
+    ASSERT_LE(elapsed2.value(time::MICROSECOND), 65000);
+}
+
+TEST_F(ThreadTest, SleepCompletion) {
+    std::atomic sleep_completed(false);
+
+    thread t([&] {
+        thread::sleep(100_ms);
+        sleep_completed = true;
+    });
+
+    t.join();
+    ASSERT_TRUE(sleep_completed);
+}
+
+// Test sleep_for with zero or negative duration
+TEST_F(ThreadTest, SleepZeroOrNegative) {
+    auto start = std::chrono::steady_clock::now();
+    thread::sleep(0_s);  // Zero duration
+    auto end = std::chrono::steady_clock::now();
+
+    auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+    ASSERT_LT(elapsed.count(), 100000);  // Should return almost immediately
+
+    start = std::chrono::steady_clock::now();
+    thread::sleep(-100_ms);  // Negative duration
+    end = std::chrono::steady_clock::now();
+
+    elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start);
+    ASSERT_LT(elapsed.count(), 100000);  // Should return almost immediately
+}
+
+// Test sleep_for in multiple threads
+TEST_F(ThreadTest, SleepInMultipleThreads) {
+    constexpr int num_threads = 5;
+    std::vector<int> completion_order;
+    std::mutex mtx;
+
+    auto worker = [&](const int id, const time::duration& sleep_time) {
+        thread::sleep(sleep_time);
+        std::lock_guard lock(mtx);
+        completion_order.push_back(id);
+    };
+
+    std::vector<thread> threads;
+    for (int i = 0; i < num_threads; ++i) {
+        // Each thread sleeps for (i+1)*100 milliseconds
+        threads.emplace_back(worker, i, (i+1)*100_ms);
+    }
+
+    // Wait for all threads to complete
+    for (auto& t : threads) {
+        t.join();
+    }
+
+    // Verify threads completed in expected order
+    ASSERT_EQ(completion_order.size(), num_threads);
+    for (int i = 0; i < num_threads; ++i) {
+        ASSERT_EQ(completion_order[i], i);
+    }
 }
