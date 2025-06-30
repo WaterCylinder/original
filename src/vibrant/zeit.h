@@ -144,6 +144,10 @@ namespace original {
              */
             explicit duration(time_val_type val = 0, unit unit = MILLISECOND);
 
+#ifdef ORIGINAL_COMPILER_GCC
+            explicit duration(const timespec& ts);
+#endif
+
             /// Default copy constructor
             duration(const duration& other) = default;
 
@@ -195,6 +199,10 @@ namespace original {
              * @return String representation
              */
             std::string toString(bool enter) const override;
+
+#ifdef ORIGINAL_COMPILER_GCC
+            explicit operator timespec() const;
+#endif
 
             /**
              * @brief Prefix increment (adds 1 nanosecond)
@@ -982,6 +990,11 @@ inline original::time::duration::duration(const time_val_type val, const unit un
     }
 }
 
+#ifdef ORIGINAL_COMPILER_GCC
+inline original::time::duration::duration(const timespec& ts)
+    : nano_seconds_(ts.tv_sec * FACTOR_SECOND + ts.tv_nsec) {}
+#endif
+
 inline original::time::duration::duration(duration&& other) noexcept : duration() {
     this->operator=(std::move(other));
 }
@@ -1047,6 +1060,16 @@ inline std::string original::time::duration::toString(const bool enter) const {
         ss << "\n";
     return ss.str();
 }
+
+#ifdef ORIGINAL_COMPILER_GCC
+inline original::time::duration::operator timespec() const
+{
+    auto nanoseconds = this->value(NANOSECOND);
+    const auto seconds = nanoseconds / FACTOR_SECOND;
+    nanoseconds %= FACTOR_SECOND;
+    return timespec{seconds, static_cast<long>(nanoseconds)};  //NOLINT: The remaining nanosecond value is within the range of type long.
+}
+#endif
 
 inline original::time::duration&
 original::time::duration::operator++() {
@@ -1195,10 +1218,7 @@ inline original::time::point::point(duration d)
 
 #ifdef ORIGINAL_COMPILER_GCC
 inline original::time::point::point(const timespec& ts)
-{
-    const time_val_type nanoseconds = ts.tv_sec * FACTOR_SECOND + ts.tv_nsec;
-    this->nano_since_epoch_ = duration{nanoseconds, NANOSECOND};
-}
+    : nano_since_epoch_(ts) {}
 #endif
 
 inline original::time::time_val_type
@@ -1232,10 +1252,7 @@ original::time::point::toString(const bool enter) const {
 #ifdef ORIGINAL_COMPILER_GCC
 inline original::time::point::operator timespec() const
 {
-    auto nanoseconds = this->value(NANOSECOND);
-    const auto seconds = nanoseconds / FACTOR_SECOND;
-    nanoseconds %= FACTOR_SECOND;
-    return timespec{seconds, static_cast<long>(nanoseconds)};  //NOLINT: The remaining nanosecond value is within the range of type long.
+    return static_cast<timespec>(this->nano_since_epoch_);
 }
 #endif
 
