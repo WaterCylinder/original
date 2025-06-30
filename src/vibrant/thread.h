@@ -15,29 +15,6 @@
  * - High-level RAII thread management (thread)
  * - Exception-safe thread operations
  * - Flexible join/detach policies
- *
- * Key Features:
- * - Three-layer thread abstraction:
- *   1. threadBase - Common interface and state management
- *   2. pThread - POSIX thread wrapper
- *   3. thread - High-level RAII wrapper
- * - Automatic resource management
- * - Move-only semantics
- * - Exception safety (basic guarantee)
- * - Configurable join/detach behavior
- *
- * Thread Safety:
- * - Individual thread objects are not thread-safe
- * - External synchronization required for shared access
- *
- * Exception Handling:
- * - Throws sysError for thread operation failures
- * - Destructors may throw if thread is joinable and not joined/detached
- *
- * @ingroup Threading
- * @see original::threadBase
- * @see original::pThread
- * @see original::thread
  */
 
 namespace original {
@@ -50,6 +27,7 @@ namespace original {
      * - Manages thread joinable state
      * - Provides basic thread validity checks
      * - Non-copyable but movable
+     * - Serves as base for both pThread and thread implementations
      *
      * @note This is an abstract base class and cannot be instantiated directly
      */
@@ -100,6 +78,10 @@ namespace original {
         [[nodiscard]] virtual ul_integer id() const = 0;
     public:
 
+        /**
+         * @brief Default constructor
+         * @note Creates an invalid thread object
+         */
         explicit threadBase() noexcept = default;
 
         /**
@@ -130,6 +112,7 @@ namespace original {
          * @brief Check if thread is joinable
          * @return true if thread is joinable
          * @note A thread is joinable if it represents an active thread of execution
+         * @note Pure virtual function to be implemented by derived classes
          */
         [[nodiscard]] virtual bool joinable() const = 0;
 
@@ -156,6 +139,7 @@ namespace original {
      *          thread management using POSIX threads API.
      *
      * @note This class is not thread-safe for concurrent operations on the same object
+     * @note Implements the threadBase interface for POSIX threads
      */
     class pThread final : public threadBase {
         pthread_t handle; ///< Native thread handle
@@ -206,7 +190,12 @@ namespace original {
          */
         [[nodiscard]] ul_integer id() const override;
 
-        bool joinable() const override;
+        /**
+         * @brief Check if thread is joinable
+         * @return true if thread is joinable
+         * @note Implementation of threadBase::joinable()
+         */
+        [[nodiscard]] bool joinable() const override;
 
         /**
          * @brief Wait for thread to complete
@@ -222,6 +211,10 @@ namespace original {
          */
         void detach() override;
 
+        /**
+         * @brief Destructor
+         * @note Terminates program if thread is joinable and not joined/detached
+         */
         ~pThread() override;
     };
 
@@ -230,10 +223,13 @@ namespace original {
      * @brief High-level thread wrapper
      * @details Manages thread lifetime with automatic join/detach. Provides
      *          RAII semantics for thread management with configurable join policy.
+     *          Implements threadBase interface while wrapping a pThread instance.
      *
      * Key Features:
      * - Wraps low-level pThread with automatic cleanup
      * - Configurable join policy (AUTO_JOIN or AUTO_DETACH)
+     * - Implements threadBase interface
+     * - Delegates all thread operations to contained pThread instance
      *
      * Join Policy:
      * - joinPolicy::AUTO_JOIN: join the thread in destructor
@@ -247,6 +243,7 @@ namespace original {
      * @endcode
      *
      * @see original::pThread
+     * @see original::threadBase
      * @see original::thread::joinPolicy
      */
     class thread final : public threadBase {
@@ -350,7 +347,12 @@ namespace original {
          */
         [[nodiscard]] ul_integer id() const override;
 
-        bool joinable() const override;
+        /**
+         * @brief Check if thread is joinable
+         * @return true if thread is joinable
+         * @note Implementation of threadBase::joinable()
+         */
+        [[nodiscard]] bool joinable() const override;
 
         /**
          * @brief Wait for thread to complete
@@ -429,7 +431,7 @@ inline bool original::pThread::valid() const
 }
 
 inline original::pThread::pThread(pThread&& other) noexcept
-    : threadBase(std::move(other)), handle() {
+    : pThread() {
     this->operator=(std::move(other));
 }
 
