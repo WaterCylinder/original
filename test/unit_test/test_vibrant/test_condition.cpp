@@ -1,12 +1,11 @@
 #include <gtest/gtest.h>
-#include <thread>
-#include <chrono>
+#include "zeit.h"
 #include "mutex.h"
 #include "condition.h"
 #include "thread.h"
 
 using namespace original;
-using namespace std::chrono;
+using namespace original::literals;
 
 class pConditionTest : public testing::Test {
 protected:
@@ -24,7 +23,7 @@ TEST_F(pConditionTest, BasicNotifyTest) {
         }
     }, thread::AUTO_JOIN);
 
-    std::this_thread::sleep_for(50ms); // 让线程进入 wait 状态
+    thread::sleep(50_ms); // 让线程进入 wait 状态
 
     {
         uniqueLock lock(mutex);
@@ -39,14 +38,14 @@ TEST_F(pConditionTest, BasicNotifyTest) {
 // 测试 waitFor 的超时行为
 TEST_F(pConditionTest, TimedWaitTimeoutTest) {
     uniqueLock lock(mutex);
-    const bool result = cond.waitFor(mutex, time::duration(200, time::unit::MILLISECOND));
+    const bool result = cond.waitFor(mutex, 200_ms);
     EXPECT_FALSE(result);  // 应超时
 }
 
 // 测试 waitFor 在超时前被唤醒
 TEST_F(pConditionTest, TimedWaitNotTimeoutTest) {
     thread t([&] {
-        std::this_thread::sleep_for(50ms); // 等待 50ms 再唤醒
+        thread::sleep(50_ms); // 等待 50ms 再唤醒
         uniqueLock lock(mutex);
         ready = true;
         cond.notify();
@@ -55,7 +54,7 @@ TEST_F(pConditionTest, TimedWaitNotTimeoutTest) {
     bool result;
     {
         uniqueLock lock(mutex);
-        result = cond.waitFor(mutex, time::duration(200, time::unit::MILLISECOND));
+        result = cond.waitFor(mutex, 200_ms);
     }
 
     EXPECT_TRUE(result);
@@ -78,7 +77,7 @@ TEST_F(pConditionTest, NotifyAllWakesAllWaiters) {
         wake_count++;
     });
 
-    std::this_thread::sleep_for(50ms); // 等待线程进入阻塞状态
+    thread::sleep(50_ms); // 等待线程进入阻塞状态
 
     {
         uniqueLock lock(mutex);
