@@ -271,6 +271,16 @@ namespace original {
         [[nodiscard]] bool valid() const override;
     public:
 
+        /**
+         * @brief Puts the current thread to sleep for a specified duration
+         * @param d Duration to sleep
+         * @note This is a platform-independent sleep function:
+         * - On GCC/Linux uses clock_nanosleep with CLOCK_REALTIME
+         * - On Windows uses Sleep() with millisecond precision
+         * - Handles EINTR interruptions automatically
+         * - Negative durations result in no sleep
+         * @throw sysError if sleep operation fails (except on Windows)
+         */
         static inline void sleep(const time::duration& d);
 
         /// @brief Alias for joinPolicy::AUTO_JOIN

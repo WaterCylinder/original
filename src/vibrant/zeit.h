@@ -145,6 +145,13 @@ namespace original {
             explicit duration(time_val_type val = 0, unit unit = MILLISECOND);
 
 #ifdef ORIGINAL_COMPILER_GCC
+            /**
+             * @brief Constructs a duration from a POSIX timespec structure
+             * @param ts timespec structure containing seconds and nanoseconds
+             * @note Only available when compiled with GCC
+             * @details Converts the timespec's tv_sec (seconds) and tv_nsec (nanoseconds)
+             *          into a unified duration value in nanoseconds.
+             */
             explicit duration(const timespec& ts);
 #endif
 
@@ -201,6 +208,11 @@ namespace original {
             std::string toString(bool enter) const override;
 
 #ifdef ORIGINAL_COMPILER_GCC
+            /**
+             * @brief Converts duration to timespec (POSIX time structure)
+             * @return timespec structure containing seconds and nanoseconds
+             * @note Only available when compiled with GCC
+             */
             explicit operator timespec() const;
 #endif
 
