@@ -383,3 +383,105 @@ TEST_F(ThreadTest, SleepInMultipleThreads) {
         ASSERT_EQ(completion_order[i], i);
     }
 }
+
+// Test comparable interface
+TEST_F(ThreadTest, ComparableInterface) {
+    thread t1([] {});
+    thread t2([] {});
+
+    // Test comparison operators
+    ASSERT_NE(t1.id(), t2.id());  // Different threads should have different IDs
+    ASSERT_NE(t1, t2);
+    ASSERT_TRUE(t1 < t2 || t1 > t2);  // One should be less than the other
+
+    // Test move and compare
+    thread t3(std::move(t1));
+    ASSERT_EQ(t1.id(), 0);  // Moved-from thread should be invalid
+    ASSERT_NE(t3.id(), 0);  // Moved-to thread should be valid
+    ASSERT_NE(t3, t2);
+
+    t2.join();
+    t3.join();
+
+    // After joining, both should be equal (invalid)
+    ASSERT_EQ(t2, t3);
+}
+
+// Test hashable interface
+TEST_F(ThreadTest, HashableInterface) {
+    thread t1([] {});
+    thread t2([] {});
+
+    // Test hash values
+    const u_integer hash1 = t1.toHash();
+    const u_integer hash2 = t2.toHash();
+
+    ASSERT_NE(hash1, 0);
+    ASSERT_NE(hash2, 0);
+    ASSERT_NE(hash1, hash2);  // Different threads should have different hashes
+
+    // Test equals
+    ASSERT_FALSE(t1.equals(t2));
+
+    // Test move and hash
+    thread t3(std::move(t1));
+    ASSERT_EQ(t1.toHash(), 0);  // Moved-from thread should have hash 0
+    ASSERT_NE(t3.toHash(), 0);  // Moved-to thread should have valid hash
+
+    t2.join();
+    t3.join();
+
+    // After joining, both should have hash 0
+    ASSERT_EQ(t2.toHash(), 0);
+    ASSERT_EQ(t3.toHash(), 0);
+    ASSERT_TRUE(t2.equals(t3));
+}
+
+// Test printable interface
+TEST_F(ThreadTest, PrintableInterface) {
+    thread t1([] {});
+    thread t2;
+
+    // Test className
+    ASSERT_EQ(t1.className(), "thread");
+
+    // Test toString
+    const std::string str1 = t1.toString(false);
+    const std::string str2 = t2.toString(false);
+
+    ASSERT_TRUE(str1.find("thread") != std::string::npos);
+    ASSERT_TRUE(str1.find(std::to_string(t1.id())) != std::string::npos);
+    ASSERT_TRUE(str2.find("thread") != std::string::npos);
+
+    // Test operator<<
+    std::ostringstream oss;
+    oss << t1;
+    ASSERT_TRUE(oss.str().find("thread") != std::string::npos);
+
+    // Test after move
+    thread t3(std::move(t1));
+    const std::string str3 = t1.toString(false);
+    ASSERT_TRUE(str3.find("thread") != std::string::npos);
+
+    t3.join();
+    t2.join();
+}
+
+// Test pThread printable interface
+TEST_F(ThreadTest, PThreadPrintableInterface) {
+    pThread pt1([] {});
+    pThread pt2;
+
+    // Test className
+    ASSERT_EQ(pt1.className(), "pThread");
+
+    // Test toString
+    const std::string str1 = pt1.toString(false);
+    const std::string str2 = pt2.toString(false);
+
+    ASSERT_TRUE(str1.find("pThread") != std::string::npos);
+    ASSERT_TRUE(str1.find(std::to_string(pt1.id())) != std::string::npos);
+    ASSERT_TRUE(str2.find("pThread") != std::string::npos);
+
+    pt1.join();
+}
