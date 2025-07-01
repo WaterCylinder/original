@@ -15,6 +15,12 @@ namespace original
 
         virtual bool waitFor(mutexBase& mutex, time::duration d) = 0;
 
+        template<typename Pred>
+        void wait(mutexBase& mutex, Pred predicate) noexcept(noexcept(predicate()));
+
+        template<typename Pred>
+        bool waitFor(mutexBase& mutex, time::duration d, Pred predicate) noexcept(noexcept(predicate()));
+
         virtual void notify() = 0;
 
         virtual void notifyAll() = 0;
@@ -31,6 +37,9 @@ namespace original
         pthread_cond_t cond_;
 
     public:
+        using conditionBase::wait;
+        using conditionBase::waitFor;
+
         explicit pCondition();
 
         void wait(mutexBase& mutex) override;
@@ -43,6 +52,28 @@ namespace original
 
         ~pCondition() override;
     };
+}
+
+template<typename Pred>
+void original::conditionBase::wait(mutexBase& mutex, Pred predicate) noexcept(noexcept(predicate())) {
+    while (!predicate()){
+        this->wait(mutex);
+    }
+}
+
+template<typename Pred>
+bool original::conditionBase::waitFor(mutexBase& mutex, time::duration d, Pred predicate) noexcept(noexcept(predicate())) {
+    const time::point start = time::point::now();
+    while (!predicate()) {
+        auto elapsed = time::point::now() - start;
+        if (elapsed >= d)
+            return false;
+        if (!this->waitFor(mutex, d - elapsed))
+            return false;
+        if (predicate())
+            return true;
+    }
+    return true;
 }
 
 inline original::pCondition::pCondition() : cond_{}
