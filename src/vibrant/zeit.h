@@ -1214,7 +1214,7 @@ original::time::point::now() {
 #elif ORIGINAL_PLATFORM_APPLE
     struct timeval tv;
     gettimeofday(&tv, nullptr);
-    time_val_type ns = tv.tv_sec * FACTOR_SECOND + tv.tv_usec * 1000;
+    time_val_type ns = tv.tv_sec * FACTOR_SECOND + tv.tv_usec * FACTOR_MICROSECOND;
     return point(ns, NANOSECOND);
 #else
     // Other implements not complete
