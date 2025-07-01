@@ -103,9 +103,9 @@ int main()
     std::cout << static_cast<original::integer>(now_utc.weekday()) << std::endl;
 
     constexpr original::integer sec = 5;
-    std::cout << "Sleep before: " << original::time::UTCTime::now() << std::endl;
+    std::cout << "Sleep before: " << original::time::UTCTime::localNow() << std::endl;
     std::cout << "Sleep for: " << sec << " second(s)." << std::endl;
     original::thread::sleep(original::time::duration{sec, original::time::SECOND});
-    std::cout << "Sleep after: " << original::time::UTCTime::now() << std::endl;
+    std::cout << "Sleep after: " << original::time::UTCTime::localNow() << std::endl;
     return 0;
 }
