@@ -88,6 +88,7 @@ int main()
 
     testClass tc{1};
     original::thread t15{&testClass::print, &tc, "print(): "};
+    std::cout << t15 << std::endl;
 
     original::pMutex m1;
     original::pMutex m2;
