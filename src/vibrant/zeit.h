@@ -395,6 +395,11 @@ namespace original {
             explicit point(duration d);
 
 #ifdef ORIGINAL_COMPILER_GCC
+            /**
+             * @brief Constructs a time point from a POSIX timespec structure.
+             * @param ts The timespec structure containing seconds and nanoseconds since the epoch.
+             * @note The conversion computes the total nanoseconds from ts.tv_sec and ts.tv_nsec.
+             */
             explicit point(const timespec& ts);
 #endif
 
@@ -432,6 +437,11 @@ namespace original {
             std::string toString(bool enter) const override;
 
 #ifdef ORIGINAL_COMPILER_GCC
+            /**
+             * @brief Converts this time point to a POSIX timespec structure.
+             * @return A timespec representing this time point with seconds and nanoseconds since the epoch.
+             * @note Nanoseconds are truncated if the internal value is not aligned to nanosecond precision.
+             */
             explicit operator timespec() const;
 #endif
 
