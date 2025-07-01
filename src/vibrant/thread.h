@@ -519,7 +519,7 @@ inline void original::thread::sleep(const time::duration& d)
         throw sysError();
     }
 #else
-    ::Sleep(static_cast<DWORD>((d.value() + 999999) / 1000000));
+    ::Sleep(static_cast<DWORD>((d.value() + time::FACTOR_MILLISECOND - 1) / time::FACTOR_MILLISECOND));
 #endif
 }
 
