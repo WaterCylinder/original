@@ -32,7 +32,10 @@ namespace original {
      *
      * @note This is an abstract base class and cannot be instantiated directly
      */
-    class threadBase {
+    template <typename DERIVED>
+    class threadBase : public comparable<DERIVED>,
+                       public hashable<DERIVED>,
+                       public printable {
     protected:
         /**
          * @class threadData
@@ -89,7 +92,7 @@ namespace original {
          * @brief Destructor
          * @note Terminates program if thread is joinable and not joined/detached
          */
-        virtual ~threadBase() noexcept = default;
+        ~threadBase() noexcept override = default;
 
         threadBase(const threadBase&) = delete; ///< Deleted copy constructor
         threadBase& operator=(const threadBase&) = delete; ///< Deleted copy assignment
@@ -131,6 +134,10 @@ namespace original {
          *       released when thread completes
          */
         virtual void detach() = 0;
+
+        std::string className() const override;
+
+        std::string toString(bool enter) const override;
     };
 
     /**
@@ -142,7 +149,7 @@ namespace original {
      * @note This class is not thread-safe for concurrent operations on the same object
      * @note Implements the threadBase interface for POSIX threads
      */
-    class pThread final : public threadBase {
+    class pThread final : public threadBase<pThread> {
         pthread_t handle; ///< Native thread handle
         bool is_joinable; ///< Flag indicating if thread can be joined
 
@@ -198,6 +205,12 @@ namespace original {
          */
         [[nodiscard]] bool joinable() const override;
 
+        integer compareTo(const original::pThread &other) const override;
+
+        u_integer toHash() const noexcept override;
+
+        std::string className() const override;
+
         /**
          * @brief Wait for thread to complete
          * @note Terminates program if join fails
@@ -247,7 +260,7 @@ namespace original {
      * @see original::threadBase
      * @see original::thread::joinPolicy
      */
-    class thread final : public threadBase {
+    class thread final : public threadBase<thread> {
         pThread thread_; ///< Underlying thread implementation
         bool will_join;  ///< Join policy flag
 
@@ -367,6 +380,12 @@ namespace original {
          */
         [[nodiscard]] bool joinable() const override;
 
+        integer compareTo(const original::thread &other) const override;
+
+        u_integer toHash() const noexcept override;
+
+        std::string className() const override;
+
         /**
          * @brief Wait for thread to complete
          * @note Terminates program if join fails
@@ -391,12 +410,14 @@ namespace original {
 }
 
 
+template <typename DERIVED>
 template <typename Callback>
-original::threadBase::threadData<Callback>::threadData(Callback c)
+original::threadBase<DERIVED>::threadData<Callback>::threadData(Callback c)
     : c(std::move(c)) {}
 
+template <typename DERIVED>
 template <typename Callback>
-void* original::threadBase::threadData<Callback>::run(void* arg)
+void* original::threadBase<DERIVED>::threadData<Callback>::run(void* arg)
 {
     auto self = ownerPtr<threadData>(static_cast<threadData*>(arg));
     try {
@@ -407,14 +428,32 @@ void* original::threadBase::threadData<Callback>::run(void* arg)
     return nullptr;
 }
 
-inline original::threadBase::operator bool() const
+template <typename DERIVED>
+inline original::threadBase<DERIVED>::operator bool() const
 {
     return this->valid();
 }
 
-inline bool original::threadBase::operator!() const
+template <typename DERIVED>
+inline bool original::threadBase<DERIVED>::operator!() const
 {
     return !this->valid();
+}
+
+template<typename DERIVED>
+std::string original::threadBase<DERIVED>::className() const {
+    return "threadBase";
+}
+
+template<typename DERIVED>
+std::string original::threadBase<DERIVED>::toString(bool enter) const {
+    std::stringstream ss;
+    ss << "(" << this->className() << " ";
+    ss << "#" << this->id();
+    ss << ")";
+    if (enter)
+        ss << "\n";
+    return ss.str();
 }
 
 inline original::pThread::pThread() : handle(), is_joinable() {}
@@ -474,6 +513,22 @@ inline original::ul_integer original::pThread::id() const {
 inline bool original::pThread::joinable() const
 {
     return this->is_joinable;
+}
+
+inline original::integer
+original::pThread::compareTo(const pThread& other) const {
+    if (this->id() != other.id())
+        return this->id() > other.id() ? 1 : -1;
+    return 0;
+}
+
+inline original::u_integer
+original::pThread::toHash() const noexcept {
+    return hash<pThread>::hashFunc(this->id());
+}
+
+inline std::string original::pThread::className() const {
+    return "pThread";
 }
 
 inline void original::pThread::join() {
@@ -562,6 +617,20 @@ inline original::thread& original::thread::operator=(thread&& other) noexcept {
     this->will_join = other.will_join;
     other.will_join = false;
     return *this;
+}
+
+inline original::integer
+original::thread::compareTo(const thread& other) const {
+    return this->thread_.compareTo(other.thread_);
+}
+
+inline original::u_integer
+original::thread::toHash() const noexcept {
+    return this->thread_.toHash();
+}
+
+inline std::string original::thread::className() const {
+    return "thread";
 }
 
 inline void original::thread::join()
