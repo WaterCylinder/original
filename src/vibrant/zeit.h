@@ -7,6 +7,9 @@
 #include "printable.h"
 #include "error.h"
 #include <iomanip>
+#ifdef ORIGINAL_COMPILER_GCC
+#include "time.h"
+#endif
 
 /**
  * @file zeit.h
@@ -616,6 +619,20 @@ namespace original {
              * @return Current UTC time
              */
             static UTCTime now();
+
+            /**
+             * @brief Returns the system's local timezone offset in hours from UTC.
+             * @return Local timezone offset in hours.
+             * @note This accounts for daylight saving time if applicable.
+             */
+            static integer localZonedOffset();
+
+            /**
+             * @brief Returns the current local time as UTCTime.
+             * @return UTCTime representing local time.
+             * @note This is computed by adding the local timezone offset to the current UTC time.
+             */
+            static UTCTime localNow();
 
             /**
              * @brief Checks if year is a leap year
@@ -1365,6 +1382,34 @@ inline void original::time::UTCTime::set(const integer year, const integer month
 inline original::time::UTCTime
 original::time::UTCTime::now() {
     return UTCTime{point::now()};
+}
+
+inline original::integer
+original::time::UTCTime::localZonedOffset() {
+    integer offset_seconds = 0;
+#if ORIGINAL_COMPILER_GCC
+    integer t = std::time(nullptr);
+    tm local_tm{};
+    localtime_s(&local_tm, &t);
+    struct tm utc_tm;
+    gmtime_s(&utc_tm, &t);
+    offset_seconds = static_cast<integer>(difftime(mktime(&local_tm), mktime(&utc_tm)));
+#else
+    TIME_ZONE_INFORMATION tz_info;
+    DWORD result = GetTimeZoneInformation(&tz_info);
+    if (result != TIME_ZONE_ID_INVALID) {
+        offset_seconds = -tz_info.Bias * (FACTOR_MINUTE / FACTOR_SECOND);
+        if (result == TIME_ZONE_ID_DAYLIGHT) {
+            offset_seconds -= tz_info.DaylightBias * (FACTOR_MINUTE / FACTOR_SECOND);
+        }
+    }
+#endif
+    return offset_seconds / (FACTOR_HOUR / FACTOR_SECOND);
+}
+
+inline original::time::UTCTime
+original::time::UTCTime::localNow() {
+    return time::UTCTime::now() + time::duration{time::UTCTime::localZonedOffset(), time::HOUR};
 }
 
 constexpr bool
