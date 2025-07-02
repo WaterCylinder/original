@@ -397,7 +397,8 @@ namespace original {
     auto original::array<TYPE, ALLOC>::get(integer index) const -> TYPE
     {
         if (this->indexOutOfBound(index)){
-            throw outOfBoundError();
+            throw outOfBoundError("Index " + std::to_string(this->parseNegIndex(index)) +
+                                  " out of bound max index " + std::to_string(this->size() - 1) + ".");
         }
         return this->body[this->parseNegIndex(index)];
     }
@@ -406,7 +407,8 @@ namespace original {
     auto original::array<TYPE, ALLOC>::operator[](integer index) -> TYPE&
     {
         if (this->indexOutOfBound(index)){
-            throw outOfBoundError();
+            throw outOfBoundError("Index " + std::to_string(this->parseNegIndex(index)) +
+                                  " out of bound max index " + std::to_string(this->size() - 1) + ".");
         }
         return this->body[this->parseNegIndex(index)];
     }
@@ -415,7 +417,8 @@ namespace original {
     auto original::array<TYPE, ALLOC>::set(integer index, const TYPE &e) -> void
     {
         if (this->indexOutOfBound(index)){
-            throw outOfBoundError();
+            throw outOfBoundError("Index " + std::to_string(this->parseNegIndex(index)) +
+                                  " out of bound max index " + std::to_string(this->size() - 1) + ".");
         }
         this->body[this->parseNegIndex(index)] = e;
     }

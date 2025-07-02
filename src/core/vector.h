@@ -652,7 +652,8 @@ template<typename TYPE, typename ALLOC>
     {
         if (this->indexOutOfBound(index))
         {
-            throw outOfBoundError();
+            throw outOfBoundError("Index " + std::to_string(this->parseNegIndex(index)) +
+                                  " out of bound max index " + std::to_string(this->size() - 1) + ".");
         }
         index = this->toInnerIdx(this->parseNegIndex(index));
         return this->body[index];
@@ -663,7 +664,8 @@ template<typename TYPE, typename ALLOC>
     {
         if (this->indexOutOfBound(index))
         {
-            throw outOfBoundError();
+            throw outOfBoundError("Index " + std::to_string(this->parseNegIndex(index)) +
+                                  " out of bound max index " + std::to_string(this->size() - 1) + ".");
         }
         index = this->toInnerIdx(this->parseNegIndex(index));
         return this->body[index];
@@ -674,7 +676,8 @@ template<typename TYPE, typename ALLOC>
     {
         if (this->indexOutOfBound(index))
         {
-            throw outOfBoundError();
+            throw outOfBoundError("Index " + std::to_string(this->parseNegIndex(index)) +
+                                  " out of bound max index " + std::to_string(this->size() - 1) + ".");
         }
         index = this->toInnerIdx(this->parseNegIndex(index));
         this->body[index] = e;
@@ -715,7 +718,8 @@ template<typename TYPE, typename ALLOC>
         {
             if (this->indexOutOfBound(index))
             {
-                throw outOfBoundError();
+                throw outOfBoundError("Index " + std::to_string(this->parseNegIndex(index)) +
+                                      " out of bound max index " + std::to_string(this->size() - 1) + ".");
             }
             this->adjust(1);
             index = this->toInnerIdx(this->parseNegIndex(index));
@@ -767,7 +771,8 @@ template<typename TYPE, typename ALLOC>
             return this->popEnd();
         }
         if (this->indexOutOfBound(index)){
-            throw outOfBoundError();
+            throw outOfBoundError("Index " + std::to_string(this->parseNegIndex(index)) +
+                                  " out of bound max index " + std::to_string(this->size() - 1) + ".");
         }
         TYPE res = this->get(index);
         index = this->toInnerIdx(this->parseNegIndex(index));
