@@ -182,7 +182,7 @@ namespace original {
              * @param unit Unit to return value in (default: MILLISECOND)
              * @return Duration value in requested units
              */
-            [[nodiscard]] time_val_type value(unit unit = MILLISECOND) const noexcept;
+            [[nodiscard]] time_val_type value(unit unit = MILLISECOND) const;
 
             /**
              * @brief Compares this duration to another
@@ -775,14 +775,14 @@ namespace original {
              * @param unit Time unit to get
              * @return Value of requested component
              */
-            integer value(unit unit) const noexcept;
+            integer value(unit unit) const;
 
             /**
              * @brief Gets calendar component value
              * @param calendar Calendar component to get
              * @return Value of requested component
              */
-            integer value(calendar calendar) const noexcept;
+            integer value(calendar calendar) const;
 
             /**
              * @brief Converts to time::point
@@ -1038,6 +1038,9 @@ inline original::time::duration::duration(const time_val_type val, const unit un
             break;
         case unit::NANOSECOND:
             this->nano_seconds_ = FACTOR_NANOSECOND * val;
+            break;
+        default:
+            throw valueError();
     }
 }
 
@@ -1061,7 +1064,7 @@ original::time::duration::operator=(duration&& other) noexcept {
 }
 
 inline original::time::time_val_type
-original::time::duration::value(const unit unit) const noexcept {
+original::time::duration::value(const unit unit) const {
     time_val_type val = this->nano_seconds_;
     switch (unit) {
         case unit::DAY:
@@ -1084,6 +1087,9 @@ original::time::duration::value(const unit unit) const noexcept {
             break;
         case unit::NANOSECOND:
             val /= FACTOR_NANOSECOND;
+            break;
+        default:
+            throw valueError();
     }
     return val;
 }
@@ -1569,7 +1575,7 @@ inline original::time::UTCTime original::time::UTCTime::date() const
 }
 
 inline original::integer
-original::time::UTCTime::value(const unit unit) const noexcept {
+original::time::UTCTime::value(const unit unit) const {
     switch (unit) {
         case SECOND:
             return this->second_;
@@ -1580,22 +1586,20 @@ original::time::UTCTime::value(const unit unit) const noexcept {
         case DAY:
             return this->day_;
         default:
-            break;
+            throw valueError();
     }
-    return 0;
 }
 
 inline original::integer
-original::time::UTCTime::value(const calendar calendar) const noexcept {
+original::time::UTCTime::value(const calendar calendar) const {
     switch (calendar) {
         case MONTH:
             return this->month_;
         case YEAR:
             return this->year_;
         default:
-            break;
+            throw valueError();
     }
-    return 0;
 }
 
 inline original::time::UTCTime::operator point() const {
