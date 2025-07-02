@@ -430,7 +430,7 @@ template<typename... TYPES>
 template<original::u_integer I, typename T>
 template<original::u_integer I_DIFF>
 const auto& original::tuple<TYPES...>::tupleImpl<I, T>::get() const {
-    staticError<outOfBoundError, (I_DIFF > 0)>{};
+    staticError<outOfBoundError, (I_DIFF > 0)>::asserts();
 
     return cur_elem;
 }
@@ -439,7 +439,7 @@ template<typename... TYPES>
 template<original::u_integer I, typename T>
 template<original::u_integer I_DIFF>
 auto& original::tuple<TYPES...>::tupleImpl<I, T>::get() {
-    staticError<outOfBoundError, (I_DIFF > 0)>{};
+    staticError<outOfBoundError, (I_DIFF > 0)>::asserts();
 
     return cur_elem;
 }
@@ -448,8 +448,8 @@ template<typename... TYPES>
 template<original::u_integer I, typename T>
 template<original::u_integer I_DIFF, typename E>
 void original::tuple<TYPES...>::tupleImpl<I, T>::set(const E& e) {
-    staticError<outOfBoundError, (I_DIFF > 0)>{};
-    staticError<valueError, !std::is_convertible_v<E, T>>{};
+    staticError<outOfBoundError, (I_DIFF > 0)>::asserts();
+    staticError<valueError, !std::is_convertible_v<E, T>>::asserts();
 
     cur_elem = static_cast<T>(e);
 }
@@ -529,7 +529,7 @@ template<original::u_integer I, typename T, typename TS>
 template<original::u_integer I_DIFF, typename E>
 void original::tuple<TYPES...>::tupleImpl<I, T, TS>::set(const E& e) {
     if constexpr (I_DIFF == 0){
-        staticError<valueError, !std::is_convertible_v<E, T>>{};
+        staticError<valueError, !std::is_convertible_v<E, T>>::asserts();
 
         cur_elem = static_cast<T>(e);
     } else{
@@ -619,7 +619,7 @@ template<original::u_integer I, typename T, typename... TS>
 template<original::u_integer I_DIFF, typename E>
 void original::tuple<TYPES...>::tupleImpl<I, T, TS...>::set(const E& e) {
     if constexpr (I_DIFF == 0){
-        staticError<valueError, !std::is_convertible_v<E, T>>{};
+        staticError<valueError, !std::is_convertible_v<E, T>>::asserts();
 
         cur_elem = static_cast<T>(e);
     } else{
@@ -720,7 +720,7 @@ template<typename... TYPES>
 template<original::u_integer BEGIN_IDX, original::u_integer N_ELEMS>
 auto original::tuple<TYPES...>::slice() const {
     constexpr bool out_of_bound = BEGIN_IDX >= SIZE || BEGIN_IDX + N_ELEMS > SIZE;
-    staticError<outOfBoundError, out_of_bound>{};
+    staticError<outOfBoundError, out_of_bound>::asserts();
 
     return this->_slice(
             std::make_integer_sequence<u_integer, N_ELEMS>{},
