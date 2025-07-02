@@ -8,7 +8,7 @@
 #include "error.h"
 #include <iomanip>
 #ifdef ORIGINAL_COMPILER_GCC
-#include "time.h"
+#include <ctime>
 #endif
 
 /**
@@ -1143,7 +1143,7 @@ original::time::duration::operator--() {
 
 inline original::time::duration
 original::time::duration::operator--(int) {
-    duration res(*this);
+    duration res{*this};
     this->nano_seconds_ -= 1;
     return res;
 }
@@ -1401,7 +1401,7 @@ original::time::UTCTime::localZonedOffset() {
     integer t = std::time(nullptr);
     tm local_tm{};
     localtime_s(&local_tm, &t);
-    struct tm utc_tm;
+    struct tm utc_tm{};
     gmtime_s(&utc_tm, &t);
     offset_seconds = static_cast<integer>(difftime(mktime(&local_tm), mktime(&utc_tm)));
 #else
