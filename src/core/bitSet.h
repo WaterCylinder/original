@@ -848,20 +848,23 @@ namespace original {
 
     template<typename ALLOC_>
     auto original::operator&(const bitSet<ALLOC_> &lbs, const bitSet<ALLOC_> &rbs) -> bitSet<ALLOC_> {
-        bitSet bs(lbs);
-        return bs &= rbs;
+        bitSet bs{lbs};
+        bs &= rbs;
+        return bs;
     }
 
     template<typename ALLOC_>
     auto original::operator|(const bitSet<ALLOC_> &lbs, const bitSet<ALLOC_> &rbs) -> bitSet<ALLOC_> {
-        bitSet bs(lbs);
-        return bs |= rbs;
+        bitSet bs{lbs};
+        bs |= rbs;
+        return bs;
     }
 
     template<typename ALLOC_>
     auto original::operator^(const bitSet<ALLOC_> &lbs, const bitSet<ALLOC_> &rbs) -> bitSet<ALLOC_> {
-        bitSet bs(lbs);
-        return bs ^= rbs;
+        bitSet bs{lbs};
+        bs ^= rbs;
+        return bs;
     }
 
     template<typename ALLOC_>

@@ -394,7 +394,8 @@ void original::allocator<TYPE>::deallocate(TYPE* ptr, u_integer) {
 }
 
 template<typename TYPE>
-constexpr original::u_integer original::objPoolAllocator<TYPE>::getChunkIndex(const u_integer size) {
+inline constexpr original::u_integer
+original::objPoolAllocator<TYPE>::getChunkIndex(const u_integer size) {
     u_integer index = 0;
     while (static_cast<u_integer>(1) << index < size) {
         index += 1;
