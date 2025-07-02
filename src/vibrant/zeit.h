@@ -493,6 +493,8 @@ namespace original {
              */
             friend point operator+(const point& p, const duration& d);
 
+            friend point operator+(const duration& d, const point& p);
+
             /**
              * @brief Subtracts duration from time point
              * @param p Time point
@@ -826,6 +828,8 @@ namespace original {
              */
             friend UTCTime operator+(const UTCTime& t, const duration& d);
 
+            friend UTCTime operator+(const duration& d, const UTCTime& t);
+
             /**
              * @brief Subtracts duration from UTCTime
              * @param t UTCTime
@@ -870,6 +874,8 @@ namespace original {
 
     time::point operator+(const time::point& p, const time::duration& d);
 
+    time::point operator+(const time::duration& d, const time::point& p);
+
     time::point operator-(const time::point& p, const time::duration& d);
 
     time::duration operator-(const time::point& lhs, const time::point& rhs);
@@ -878,6 +884,8 @@ namespace original {
     inline const time::UTCTime time::UTCTime::EPOCH = UTCTime{};
 
     time::UTCTime operator+(const time::UTCTime& t, const time::duration& d);
+
+    time::UTCTime operator+(const time::duration& d, const time::UTCTime& t);
 
     time::UTCTime operator-(const time::UTCTime& t, const time::duration& d);
 
@@ -1370,6 +1378,11 @@ original::operator+(const time::point &p, const time::duration &d) {
     return res;
 }
 
+inline original::time::point
+original::operator+(const time::duration &d, const time::point &p) {
+    return p + d;
+}
+
 constexpr bool
 original::time::UTCTime::isValidYear(const integer year) {
     return 0 <= year;
@@ -1679,6 +1692,11 @@ original::operator-(const time::UTCTime& lhs, const time::UTCTime& rhs) {
 inline original::time::UTCTime
 original::operator+(const time::UTCTime& t, const time::duration& d) {
     return time::UTCTime{static_cast<time::point>(t) + d};
+}
+
+inline original::time::UTCTime
+original::operator+(const time::duration &d, const time::UTCTime &t) {
+    return t + d;
 }
 
 #endif //ORIGINAL_ZEIT_H
