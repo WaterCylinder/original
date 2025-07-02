@@ -1,13 +1,14 @@
 #ifndef ERROR_H
 #define ERROR_H
 #include <exception>
+#include "printable.h"
 #include "types.h"
 
 /**
  * @file error.h
  * @brief Custom exception classes and callback validation utilities.
- * @details This header defines a collection of exception types for error handling
- *          and a template-based callback signature checker for interface validation.
+ * @details This header defines domain-specific exception types for the Original project,
+ *          along with compile-time and runtime validation utilities for callback signatures.
  */
 
 namespace original {
@@ -40,14 +41,54 @@ namespace original {
 
     /**
      * @class error
-     * @brief Base interface for all exception types in Original
-     * @details Inherits from std::exception to provide standard exception handling integration.
-     * Serves as the root type for all domain-specific exceptions in Original.
+     * @brief Base class for all exceptions in the Original project.
+     * @details Inherits from std::exception and implements
+     * the printable interface for custom formatting.
      *
-     * @note All exceptions in Original should inherit from this class to maintain consistent
-     * error handling behavior across the codebase.
+     * @note All exceptions in Original should inherit from this class to
+     * maintain consistent error handling behavior across the codebase.
      */
-    class error : public std::exception{};
+    class error
+            : public std::exception,
+              public printable {
+    #define ORIGINAL_ERROR_MSG "An error thrown"
+    protected:
+        const std::string msg_;
+
+        /**
+         * @brief Provides default message when no custom message is supplied.
+         */
+        virtual std::string defaultMsg() const {
+            return ORIGINAL_ERROR_MSG;
+        }
+    public:
+        /**
+         * @brief Constructs an exception with an optional message.
+         * @param msg Optional custom error message.
+         */
+        explicit error(std::string msg) : msg_(std::move(msg)) {}
+
+        /**
+         * @brief Returns the class name as string.
+         */
+        std::string className() const override {
+            return "error";
+        }
+
+        /**
+         * @brief Returns the full error message.
+         */
+        const char* what() const noexcept override {
+            std::stringstream ss;
+            ss << "Original::" << this->className() << ": ";
+            if (!this->msg_.empty()){
+                ss << this->msg_ << ".";
+            } else {
+                ss << this->defaultMsg() << ".";
+            }
+            return ss.str().c_str();
+        }
+    };
 
     /**
      * @class staticError
@@ -83,9 +124,17 @@ namespace original {
  */
 class outOfBoundError final : public error {
 public:
-    [[nodiscard]] auto what() const noexcept -> const char* override
-    {
-        return "Out of the bound of the object.";
+    #define ORIGINAL_OUT_OF_BOUND_ERROR_MSG "Wrong value given"
+
+    explicit outOfBoundError(std::string msg = "")
+        : error(msg) {}
+
+    std::string className() const override{
+        return "outOfBoundError";
+    }
+
+    std::string defaultMsg() const override {
+        return ORIGINAL_OUT_OF_BOUND_ERROR_MSG;
     }
 };
 
@@ -96,9 +145,17 @@ public:
  */
 class valueError final : public error {
 public:
-    [[nodiscard]] auto what() const noexcept -> const char* override
-    {
-        return "Wrong value given.";
+    #define ORIGINAL_VALUE_ERROR_ERROR_MSG "Wrong value given"
+
+    explicit valueError(std::string msg = "")
+    : error(msg) {}
+
+    std::string className() const override{
+        return "valueError";
+    }
+
+    std::string defaultMsg() const override {
+        return ORIGINAL_VALUE_ERROR_ERROR_MSG;
     }
 };
 
@@ -109,9 +166,17 @@ public:
  */
 class nullPointerError final : public error {
 public:
-    [[nodiscard]] auto what() const noexcept -> const char* override
-    {
-        return "Attempting to access null pointer.";
+    #define ORIGINAL_NULL_POINTER_ERROR_MSG "Attempting to access null pointer"
+
+    explicit nullPointerError(std::string msg = "")
+    : error(msg) {}
+
+    std::string className() const override{
+        return "nullPointerError";
+    }
+
+    std::string defaultMsg() const override {
+        return ORIGINAL_NULL_POINTER_ERROR_MSG;
     }
 };
 
@@ -122,9 +187,17 @@ public:
  */
 class unSupportedMethodError final : public error {
 public:
-    [[nodiscard]] auto what() const noexcept -> const char* override
-    {
-        return "Unsupported Method for class.";
+    #define ORIGINAL_UNSUPPORTED_METHOD_ERROR_MSG "Unsupported Method for the call"
+
+    explicit unSupportedMethodError(std::string msg = "")
+    : error(msg) {}
+
+    std::string className() const override{
+        return "unSupportedMethodError";
+    }
+
+    std::string defaultMsg() const override {
+        return ORIGINAL_UNSUPPORTED_METHOD_ERROR_MSG;
     }
 };
 
@@ -135,9 +208,17 @@ public:
  */
 class noElementError final : public error {
 public:
-    [[nodiscard]] auto what() const noexcept -> const char* override
-    {
-        return "No such element.";
+    #define ORIGINAL_NO_ELEMENT_ERROR_MSG "No such element"
+
+    explicit noElementError(std::string msg = "")
+    : error(msg) {}
+
+    std::string className() const override{
+        return "noElementError";
+    }
+
+    std::string defaultMsg() const override {
+        return ORIGINAL_NO_ELEMENT_ERROR_MSG;
     }
 };
 
@@ -148,9 +229,17 @@ public:
  */
 class callbackSignatureError final : public error {
 public:
-    [[nodiscard]] auto what() const noexcept -> const char* override
-    {
-        return "Callback signature mismatch.";
+    #define ORIGINAL_CALLBACK_SIGNATURE_ERROR_MSG "Callback signature mismatch"
+
+    explicit callbackSignatureError(std::string msg = "")
+    : error(msg) {}
+
+    std::string className() const override{
+        return "callbackSignatureError";
+    }
+
+    std::string defaultMsg() const override {
+        return ORIGINAL_CALLBACK_SIGNATURE_ERROR_MSG;
     }
 };
 
@@ -161,9 +250,17 @@ public:
  */
 class callbackReturnTypeError final : public error {
 public:
-    [[nodiscard]] auto what() const noexcept -> const char* override
-    {
-        return "Return type of callback mismatch.";
+    #define ORIGINAL_CALLBACK_RETURN_TYPE_ERROR_MSG "Return type of callback mismatch"
+
+    explicit callbackReturnTypeError(std::string msg = "")
+    : error(msg) {}
+
+    std::string className() const override{
+        return "callbackReturnTypeError";
+    }
+
+    std::string defaultMsg() const override {
+        return ORIGINAL_CALLBACK_RETURN_TYPE_ERROR_MSG;
     }
 };
 
@@ -182,19 +279,39 @@ public:
 */
 class allocateError final : public error
 {
-    public:
-    [[nodiscard]] auto what() const noexcept -> const char* override
-    {
-        return "Can not allocate memory.";
+public:
+    #define ORIGINAL_ALLOCATE_ERROR_MSG "Can not allocate memory"
+
+    explicit allocateError(std::string msg = "")
+    : error(msg) {}
+
+    std::string className() const override{
+        return "allocateError";
+    }
+
+    std::string defaultMsg() const override {
+        return ORIGINAL_ALLOCATE_ERROR_MSG;
     }
 };
 
+/**
+ * @class sysError
+ * @brief Exception for generic system failure.
+ */
 class sysError final : public error
 {
 public:
-    [[nodiscard]] auto what() const noexcept -> const char* override
-    {
-        return "A sys error triggered.";
+    #define ORIGINAL_SYS_ERROR_MSG "A system error triggered"
+
+    explicit sysError(std::string msg = "")
+    : error(msg) {}
+
+    std::string className() const override{
+        return "sysError";
+    }
+
+    std::string defaultMsg() const override {
+        return ORIGINAL_SYS_ERROR_MSG;
     }
 };
 
