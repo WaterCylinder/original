@@ -92,27 +92,26 @@ namespace original {
 
     /**
      * @class staticError
-     * @tparam ERR Exception type to associate with the static assertion (must inherit from error)
-     * @tparam TRIGGERING_CONDITION Boolean condition triggering the assertion when true
-     * @brief Compile-time error assertion utility
-     * @details Enforces compile-time constraints by triggering static assertions with
-     * exception-specific error messages. The assertion fires when TRIGGERING_CONDITION evaluates to true.
+     * @brief Compile-time error triggering utility.
+     * @tparam ERR Exception class to represent the error.
+     * @tparam TRIGGERING_CONDITION Whether to trigger the static assertion.
+     * @requires ERR must inherit from error.
      *
-     * @requires ExtendsOf<error, ERR> (ERR must inherit from error)
-     *
-     * @code{.cpp}
-     * template<typename T>
-     * void validate() {
-     *     staticError<valueError, !std::is_arithmetic_v<T>>();
-     * }
-     * // Triggers "Wrong value given" static assertion if T isn't arithmetic
+     * @code
+     * staticError<valueError, !std::is_integral_v<integer>>::asserts();
      * @endcode
      */
     template<typename ERR, const bool TRIGGERING_CONDITION>
     requires ExtendsOf<error, ERR>
     class staticError
     {
-        static_assert(!TRIGGERING_CONDITION);
+    public:
+        /**
+         * @brief Triggers static assertion if the condition is true.
+         */
+        static void asserts(){
+            static_assert(!TRIGGERING_CONDITION);
+        }
     };
 
 // ----------------- Exception Classes -----------------
@@ -335,55 +334,91 @@ void original::callBackChecker::check() {
 template <const bool TRIGGERING_CONDITION>
 class original::staticError<original::error, TRIGGERING_CONDITION>
 {
-    static_assert(!TRIGGERING_CONDITION, "A static assert triggered");
+public:
+    static void asserts(){
+        static_assert(!TRIGGERING_CONDITION, ORIGINAL_ERROR_MSG);
+    }
 };
 
 template <const bool TRIGGERING_CONDITION>
 class original::staticError<original::outOfBoundError, TRIGGERING_CONDITION>
 {
-    static_assert(!TRIGGERING_CONDITION, "Out of the bound of the object");
+public:
+    static void asserts(){
+        static_assert(!TRIGGERING_CONDITION, ORIGINAL_OUT_OF_BOUND_ERROR_MSG);
+    }
 };
 
 template <const bool TRIGGERING_CONDITION>
 class original::staticError<original::valueError, TRIGGERING_CONDITION>
 {
-    static_assert(!TRIGGERING_CONDITION, "Wrong value given");
+public:
+    static void asserts(){
+        static_assert(!TRIGGERING_CONDITION, ORIGINAL_VALUE_ERROR_ERROR_MSG);
+    }
 };
 
 template <const bool TRIGGERING_CONDITION>
 class original::staticError<original::nullPointerError, TRIGGERING_CONDITION>
 {
-    static_assert(!TRIGGERING_CONDITION, "Attempting to access null pointer");
+public:
+    static void asserts(){
+        static_assert(!TRIGGERING_CONDITION, ORIGINAL_NULL_POINTER_ERROR_MSG);
+    }
 };
 
 template <const bool TRIGGERING_CONDITION>
 class original::staticError<original::unSupportedMethodError, TRIGGERING_CONDITION>
 {
-    static_assert(!TRIGGERING_CONDITION, "Unsupported Method for class");
+public:
+    static void asserts(){
+        static_assert(!TRIGGERING_CONDITION, ORIGINAL_UNSUPPORTED_METHOD_ERROR_MSG);
+    }
 };
 
 template <const bool TRIGGERING_CONDITION>
 class original::staticError<original::noElementError, TRIGGERING_CONDITION>
 {
-    static_assert(!TRIGGERING_CONDITION, "No such element");
+public:
+    static void asserts(){
+        static_assert(!TRIGGERING_CONDITION, ORIGINAL_NO_ELEMENT_ERROR_MSG);
+    }
 };
 
 template <const bool TRIGGERING_CONDITION>
 class original::staticError<original::callbackSignatureError, TRIGGERING_CONDITION>
 {
-    static_assert(!TRIGGERING_CONDITION, "Return type of callback mismatch");
+public:
+    static void asserts(){
+        static_assert(!TRIGGERING_CONDITION, ORIGINAL_CALLBACK_SIGNATURE_ERROR_MSG);
+    }
 };
 
 template <const bool TRIGGERING_CONDITION>
 class original::staticError<original::callbackReturnTypeError, TRIGGERING_CONDITION>
 {
-    static_assert(!TRIGGERING_CONDITION, "Callback signature mismatch");
+public:
+    static void asserts(){
+        static_assert(!TRIGGERING_CONDITION, ORIGINAL_CALLBACK_RETURN_TYPE_ERROR_MSG);
+    }
 };
 
 template <const bool TRIGGERING_CONDITION>
 class original::staticError<original::allocateError, TRIGGERING_CONDITION>
 {
-    static_assert(!TRIGGERING_CONDITION, "Can not allocate memory");
+public:
+    static void asserts(){
+        static_assert(!TRIGGERING_CONDITION, ORIGINAL_ALLOCATE_ERROR_MSG);
+    }
+};
+
+template <const bool TRIGGERING_CONDITION>
+class original::staticError<original::sysError, TRIGGERING_CONDITION>
+{
+public:
+    static void asserts(){
+        static_assert(!TRIGGERING_CONDITION, ORIGINAL_SYS_ERROR_MSG);
+    }
 };
 
 #endif // ERROR_H
