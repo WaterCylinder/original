@@ -23,16 +23,16 @@ namespace original {
     public:
         /**
          * @brief Validates a callback's signature and return type.
-         * @tparam Callback Type of the callback to check
-         * @tparam Ret_TYPE Expected return type
-         * @tparam Args_TYPE Expected argument types
-         * @throw CallbackSignatureError If arguments don't match
-         * @throw CallbackReturnTypeError If return type doesn't match
+         * @tparam Callback Type of the callback to check.
+         * @tparam Ret_TYPE Expected return type.
+         * @tparam Args_TYPE Expected argument types.
+         * @throw callbackSignatureError If arguments don't match.
+         * @throw callbackReturnTypeError If return type doesn't match.
          *
-         * @code{.cpp}
-         * auto callback = [](int x) { return x * 1.5f; };
-         * callBackChecker::check<decltype(callback), float, int>();  // Valid
-         * callBackChecker::check<decltype(callback), int, int>();    // Throws callbackReturnTypeError
+         * @code
+         * auto cb = [](int x) { return x + 1.0f; };
+         * callBackChecker::check<decltype(cb), float, int>(); // OK
+         * callBackChecker::check<decltype(cb), int, int>();   // Throws callbackReturnTypeError
          * @endcode
          */
         template<typename Callback, typename Ret_TYPE, typename ...Args_TYPE>
