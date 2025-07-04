@@ -11,6 +11,7 @@ using namespace original::literals;
 
 int main()
 {
+    std::cout << "id of main thread: " << original::thread::thisId() << std::endl;
     original::pMutex print_mtx;
     original::pCondition p;
 
