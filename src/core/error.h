@@ -75,10 +75,7 @@ namespace original {
             return "error";
         }
 
-        /**
-         * @brief Returns the full error message.
-         */
-        const char* what() const noexcept override {
+        std::string message() const noexcept {
             std::stringstream ss;
             ss << "Original::" << this->className() << ": ";
             if (!this->msg_.empty()){
@@ -86,7 +83,14 @@ namespace original {
             } else {
                 ss << this->defaultMsg() << ".";
             }
-            return ss.str().c_str();
+            return ss.str();
+        }
+
+        /**
+         * @brief Returns the full error message.
+         */
+        const char* what() const noexcept override {
+            return this->message().c_str();
         }
     };
 
