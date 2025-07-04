@@ -115,7 +115,7 @@ int main()
     std::cout << "London now: " << now_utc << std::endl;
     std::cout << "Beijing now: " << now_utc + 8_h << std::endl;
     std::cout << "test convert: " << original::time::UTCTime{static_cast<original::time::point>(now_utc)} << std::endl;
-    std::cout << static_cast<original::integer>(now_utc.weekday()) << std::endl;
+    std::cout << "now_utc.weekday(): " << static_cast<original::integer>(now_utc.weekday()) << std::endl;
 
     constexpr original::integer sec = 5;
     std::cout << "Sleep before: " << original::time::UTCTime::localNow() << std::endl;
