@@ -4,12 +4,26 @@
 #include "maps.h"
 #include "mutex.h"
 #include "zeit.h"
+#include "condition.h"
 
 
 using namespace original::literals;
 
 int main()
 {
+    original::pMutex print_mtx;
+    original::pCondition p;
+
+    auto printErr = [&](const original::error& e){
+        original::uniqueLock lock{print_mtx};
+        std::cout << e << ": " << e.message() << std::endl;
+        p.notify();
+    };
+
+    auto err = original::valueError("Divided by zero");
+    original::thread print_thread {printErr, std::cref(err)};
+    p.wait(print_mtx);
+
     original::pMutex mutex;
     auto task1 = [&](const int a, const std::string& b)
     {
