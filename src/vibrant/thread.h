@@ -284,6 +284,8 @@ namespace original {
         [[nodiscard]] bool valid() const override;
     public:
 
+        static ul_integer thisId();
+
         /**
          * @brief Puts the current thread to sleep for a specified duration
          * @param d Duration to sleep
@@ -563,6 +565,16 @@ inline original::pThread::~pThread()
 inline bool original::thread::valid() const
 {
     return this->thread_.operator bool();
+}
+
+inline original::ul_integer
+original::thread::thisId() {
+    ul_integer id = 0;
+#ifdef ORIGINAL_COMPILER_GCC
+    auto handle = pthread_self();
+    std::memcpy(&id, &handle, sizeof(pthread_t));
+#endif
+    return id;
 }
 
 inline void original::thread::sleep(const time::duration& d)
