@@ -130,7 +130,7 @@ public:
     #define ORIGINAL_OUT_OF_BOUND_ERROR_MSG "Wrong value given"
 
     explicit outOfBoundError(std::string msg = "")
-        : error(msg) {}
+        : error(std::move(msg)) {}
 
     std::string className() const override{
         return "outOfBoundError";
@@ -151,7 +151,7 @@ public:
     #define ORIGINAL_VALUE_ERROR_ERROR_MSG "Wrong value given"
 
     explicit valueError(std::string msg = "")
-    : error(msg) {}
+    : error(std::move(msg)) {}
 
     std::string className() const override{
         return "valueError";
@@ -172,7 +172,7 @@ public:
     #define ORIGINAL_NULL_POINTER_ERROR_MSG "Attempting to access null pointer"
 
     explicit nullPointerError(std::string msg = "")
-    : error(msg) {}
+    : error(std::move(msg)) {}
 
     std::string className() const override{
         return "nullPointerError";
@@ -193,7 +193,7 @@ public:
     #define ORIGINAL_UNSUPPORTED_METHOD_ERROR_MSG "Unsupported Method for the call"
 
     explicit unSupportedMethodError(std::string msg = "")
-    : error(msg) {}
+    : error(std::move(msg)) {}
 
     std::string className() const override{
         return "unSupportedMethodError";
@@ -214,7 +214,7 @@ public:
     #define ORIGINAL_NO_ELEMENT_ERROR_MSG "No such element"
 
     explicit noElementError(std::string msg = "")
-    : error(msg) {}
+    : error(std::move(msg)) {}
 
     std::string className() const override{
         return "noElementError";
@@ -235,7 +235,7 @@ public:
     #define ORIGINAL_CALLBACK_SIGNATURE_ERROR_MSG "Callback signature mismatch"
 
     explicit callbackSignatureError(std::string msg = "")
-    : error(msg) {}
+    : error(std::move(msg)) {}
 
     std::string className() const override{
         return "callbackSignatureError";
@@ -256,7 +256,7 @@ public:
     #define ORIGINAL_CALLBACK_RETURN_TYPE_ERROR_MSG "Return type of callback mismatch"
 
     explicit callbackReturnTypeError(std::string msg = "")
-    : error(msg) {}
+    : error(std::move(msg)) {}
 
     std::string className() const override{
         return "callbackReturnTypeError";
@@ -286,7 +286,7 @@ public:
     #define ORIGINAL_ALLOCATE_ERROR_MSG "Can not allocate memory"
 
     explicit allocateError(std::string msg = "")
-    : error(msg) {}
+    : error(std::move(msg)) {}
 
     std::string className() const override{
         return "allocateError";
@@ -307,7 +307,7 @@ public:
     #define ORIGINAL_SYS_ERROR_MSG "A system error triggered"
 
     explicit sysError(std::string msg = "")
-    : error(msg) {}
+    : error(std::move(msg)) {}
 
     std::string className() const override{
         return "sysError";
