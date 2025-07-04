@@ -71,6 +71,7 @@
 #include "map.h"
 #include "maps.h"
 #include "maths.h"
+#include "optional.h"
 #include "ownerPtr.h"
 #include "printable.h"
 #include "prique.h"
