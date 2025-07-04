@@ -17,6 +17,17 @@
 
 namespace original {
 
+    class none {
+    public:
+        consteval explicit none() = default;
+
+        constexpr ~none() = default;
+
+        consteval explicit operator bool() const;
+
+        consteval bool operator!() const;
+    };
+
 /**
  * @concept NotNull
  * @brief Ensures the parameter pack is not empty.
@@ -214,6 +225,14 @@ public:
     );
 
 } // namespace original
+
+consteval original::none::operator bool() const {
+    return false;
+}
+
+consteval bool original::none::operator!() const {
+    return true;
+}
 
 template<original::u_integer... INTS>
 consteval original::u_integer original::indexSequence<INTS...>::size() noexcept {
