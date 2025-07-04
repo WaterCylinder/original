@@ -19,7 +19,7 @@ namespace original
         void wait(mutexBase& mutex, Pred predicate) noexcept(noexcept(predicate()));
 
         template<typename Pred>
-        bool waitFor(mutexBase& mutex, time::duration d, Pred predicate) noexcept(noexcept(predicate()));
+        bool waitFor(mutexBase& mutex, const time::duration& d, Pred predicate) noexcept(noexcept(predicate()));
 
         virtual void notify() = 0;
 
@@ -62,7 +62,7 @@ void original::conditionBase::wait(mutexBase& mutex, Pred predicate) noexcept(no
 }
 
 template<typename Pred>
-bool original::conditionBase::waitFor(mutexBase& mutex, time::duration d, Pred predicate) noexcept(noexcept(predicate())) {
+bool original::conditionBase::waitFor(mutexBase& mutex, const time::duration& d, Pred predicate) noexcept(noexcept(predicate())) {
     const time::point start = time::point::now();
     while (!predicate()) {
         auto elapsed = time::point::now() - start;
@@ -91,7 +91,8 @@ inline void original::pCondition::wait(mutexBase& mutex)
         throw valueError();
     }
 
-    pthread_cond_wait(&this->cond_, static_cast<pMutex::native_handle*>(p_mutex->nativeHandle()));
+    auto handle = static_cast<pMutex::native_handle*>(p_mutex->nativeHandle());
+    pthread_cond_wait(&this->cond_, handle);
 }
 
 inline bool original::pCondition::waitFor(mutexBase& mutex, const time::duration d)
@@ -102,9 +103,8 @@ inline bool original::pCondition::waitFor(mutexBase& mutex, const time::duration
     }
 
     const auto ts = static_cast<timespec>(time::point::now() + d);
-    const int code = pthread_cond_timedwait(&this->cond_,
-                                            static_cast<pMutex::native_handle*>(p_mutex->nativeHandle()),
-                                            &ts);
+    auto handle = static_cast<pMutex::native_handle*>(p_mutex->nativeHandle());
+    const int code = pthread_cond_timedwait(&this->cond_, handle, &ts);
     if (code == 0) return true;
     if (code == ETIMEDOUT) return false;
     throw sysError();
