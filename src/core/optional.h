@@ -57,6 +57,8 @@ namespace original {
 
         explicit operator bool() const;
 
+        bool hasValue() const;
+
         ~alternative();
     };
 }
@@ -213,6 +215,12 @@ void original::alternative<TYPE>::set(const TYPE &t) {
 template<typename TYPE>
 original::alternative<TYPE>::operator bool() const {
     return this->non_none_type_;
+}
+
+template <typename TYPE>
+bool original::alternative<TYPE>::hasValue() const
+{
+    return this->operator bool();
 }
 
 template<typename TYPE>
