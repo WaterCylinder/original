@@ -359,9 +359,7 @@ inline original::pMutex::pMutex() : mutex_{} {
 }
 
 inline original::ul_integer original::pMutex::id() const {
-    ul_integer id = 0;
-    std::memcpy(&id, &this->mutex_, sizeof(pthread_mutex_t));
-    return id;
+    return reinterpret_cast<ul_integer>(&this->mutex_);
 }
 
 inline void* original::pMutex::nativeHandle() noexcept

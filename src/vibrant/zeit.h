@@ -1419,9 +1419,19 @@ original::time::UTCTime::localZonedOffset() {
 #if ORIGINAL_COMPILER_GCC
     integer t = std::time(nullptr);
     tm local_tm{};
+#if ORIGINAL_PLATFORM_WINDOWS
     localtime_s(&local_tm, &t);
-    struct tm utc_tm{};
+#else
+    localtime_r(&t, &local_tm);
+#endif
+
+    tm utc_tm{};
+#if ORIGINAL_PLATFORM_WINDOWS
     gmtime_s(&utc_tm, &t);
+#else
+    gmtime_r(&t, &utc_tm);
+#endif
+
     offset_seconds = static_cast<integer>(difftime(mktime(&local_tm), mktime(&utc_tm)));
 #else
     TIME_ZONE_INFORMATION tz_info;
