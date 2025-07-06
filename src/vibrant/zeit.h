@@ -1438,7 +1438,7 @@ original::time::UTCTime::localZonedOffset() {
 
 inline original::time::UTCTime
 original::time::UTCTime::localNow() {
-    return time::UTCTime::now() + time::duration{time::UTCTime::localZonedOffset(), time::HOUR};
+    return now() + duration{localZonedOffset(), HOUR};
 }
 
 constexpr bool

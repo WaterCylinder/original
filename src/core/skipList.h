@@ -420,7 +420,7 @@ original::u_integer original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipList
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
-void original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode::expandLevels(original::u_integer new_levels) {
+void original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode::expandLevels(u_integer new_levels) {
     if (this->getLevels() >= new_levels){
         return;
     }
@@ -431,7 +431,7 @@ void original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode::expandLev
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
-void original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode::shrinkLevels(original::u_integer new_levels) {
+void original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode::shrinkLevels(u_integer new_levels) {
     if (new_levels >= this->getLevels() || new_levels == 0){
         return;
     }
@@ -630,12 +630,12 @@ original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::getCurLevels() const {
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
-void original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::expandCurLevels(original::u_integer new_levels) {
+void original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::expandCurLevels(u_integer new_levels) {
     this->head_->expandLevels(new_levels);
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
-void original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::shrinkCurLevels(original::u_integer new_levels) {
+void original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::shrinkCurLevels(u_integer new_levels) {
     this->head_->shrinkLevels(new_levels);
 }
 
@@ -682,7 +682,7 @@ original::skipList<K_TYPE, V_TYPE, ALLOC,Compare>::find(const K_TYPE& key) const
         return nullptr;
     }
 
-    u_integer levels = this->getCurLevels();
+    const u_integer levels = this->getCurLevels();
     auto cur_p = this->head_;
     skipListNode* next_p;
     for (u_integer i = levels; i > 0; --i) {

@@ -11,7 +11,7 @@ using point = time::point;
 using unit = time::unit;
 
 TEST(DurationTest, ConstructorAndValue) {
-    duration d1(5, unit::SECOND);
+    const duration d1(5, unit::SECOND);
     EXPECT_EQ(d1.value(unit::SECOND), 5);
     EXPECT_EQ(d1.value(unit::MILLISECOND), 5000);
     EXPECT_EQ(d1.value(unit::MICROSECOND), 5000000);
@@ -25,16 +25,16 @@ TEST(DurationTest, ConstructorAndValue) {
 }
 
 TEST(DurationTest, AdditionAndSubtraction) {
-    duration d1(2, unit::SECOND);
-    duration d2(3, unit::SECOND);
+    const duration d1(2, unit::SECOND);
+    const duration d2(3, unit::SECOND);
 
-    auto sum = d1 + d2;
+    const auto sum = d1 + d2;
     EXPECT_EQ(sum.value(unit::SECOND), 5);
 
-    auto diff = d2 - d1;
+    const auto diff = d2 - d1;
     EXPECT_EQ(diff.value(unit::SECOND), 1);
 
-    auto neg = -d1;
+    const auto neg = -d1;
     EXPECT_EQ(neg.value(unit::SECOND), -2);
 }
 
@@ -60,20 +60,20 @@ TEST(DurationTest, MultiplicationAndDivision) {
 }
 
 TEST(DurationTest, DivFloating) {
-    duration d1(10, unit::SECOND);
-    duration d2(3, unit::SECOND);
+    const duration d1(10, unit::SECOND);
+    const duration d2(3, unit::SECOND);
 
-    double result1 = d1.div(d2);
+    const double result1 = d1.div(d2);
     EXPECT_DOUBLE_EQ(result1, 10.0 / 3.0);
 
-    double result2 = d1.div(4, time::SECOND);
+    const double result2 = d1.div(4, time::SECOND);
     EXPECT_DOUBLE_EQ(result2, 2.5);
-    duration d_day(1, unit::DAY);
-    double hours = d_day.div(1, unit::HOUR);
+    const duration d_day(1, unit::DAY);
+    const double hours = d_day.div(1, unit::HOUR);
     EXPECT_DOUBLE_EQ(hours, 24.0);
 
-    duration two_days(2, unit::DAY);
-    double ratio = two_days.div(d_day);
+    const duration two_days(2, unit::DAY);
+    const double ratio = two_days.div(d_day);
     EXPECT_DOUBLE_EQ(ratio, 2.0);
 
 }
@@ -119,9 +119,9 @@ TEST(DurationTest, BasicComparisons) {
 }
 
 TEST(DurationTest, HashEqualAndHashUse) {
-    duration d1(2, time::SECOND);
-    duration d2(2000, time::MILLISECOND); // equal in value
-    duration d3(1, time::SECOND);         // not equal
+    const duration d1(2, time::SECOND);
+    const duration d2(2000, time::MILLISECOND); // equal in value
+    const duration d3(1, time::SECOND);         // not equal
 
     // equals()
     EXPECT_TRUE(d1.equals(d2));
@@ -141,17 +141,17 @@ TEST(DurationTest, HashEqualAndHashUse) {
 }
 
 TEST(DurationTest, StaticZero) {
-    auto zero = duration::ZERO;
+    const auto zero = duration::ZERO;
     EXPECT_EQ(zero.value(), 0);
     EXPECT_EQ(zero.value(unit::SECOND), 0);
 }
 
 TEST(DurationTest, AbsFunction) {
-    duration d1(-10, unit::MILLISECOND);
-    auto absVal = abs(d1);
+    const duration d1(-10, unit::MILLISECOND);
+    const auto absVal = abs(d1);
     EXPECT_EQ(absVal.value(unit::MILLISECOND), 10);
 
-    duration d2(20, unit::MILLISECOND);
+    const duration d2(20, unit::MILLISECOND);
     EXPECT_EQ(abs(d2).value(unit::MILLISECOND), 20);
 }
 
@@ -180,31 +180,31 @@ TEST(DurationTest, FloatingPointLiteralsRoundedDown) {
 }
 
 TEST(DurationTest, FloatingPointPrecisionLimits) {
-    auto d1 = 1.234567_s;
+    const auto d1 = 1.234567_s;
     EXPECT_NEAR(d1.value(unit::MILLISECOND), 1234, 1); // 1.234567秒 ≈ 1234.567ms，整数截断
 
-    auto d2 = 0.000000001_h;
+    const auto d2 = 0.000000001_h;
     EXPECT_EQ(d2.value(unit::NANOSECOND), 3600); // 1ns = 1e-9小时 → 3600ns
 }
 
 TEST(TimePointTest, BasicConstructionAndValue) {
-    point p1(1, time::SECOND);
+    const point p1(1, time::SECOND);
     EXPECT_EQ(p1.value(time::SECOND), 1);
     EXPECT_EQ(p1.value(time::MILLISECOND), 1000);
     EXPECT_EQ(p1.value(time::NANOSECOND), 1'000'000'000);
-    point p1d(1, time::DAY);
+    const point p1d(1, time::DAY);
     EXPECT_EQ(p1d.value(time::HOUR), 24);
     EXPECT_EQ(p1d.value(time::SECOND), 86400);
 }
 
 TEST(TimePointTest, ConstructionFromDuration) {
-    duration d(500, time::MILLISECOND);
-    point p(d);
+    const duration d(500, time::MILLISECOND);
+    const point p(d);
     EXPECT_EQ(p.value(time::MILLISECOND), 500);
 }
 
 TEST(TimePointTest, NowFunctionShouldBeGreaterThanZero) {
-    auto now = point::now();
+    const auto now = point::now();
     EXPECT_GT(now.value(time::SECOND), 0);  // 假设机器时间正确
 }
 
@@ -226,15 +226,15 @@ TEST(TimePointTest, PointAdditionAndSubtraction) {
 }
 
 TEST(TimePointTest, PointMinusPointReturnsDuration) {
-    point p1(2, time::SECOND);
-    point p2(500, time::MILLISECOND);
-    duration d = p1 - p2;
+    const point p1(2, time::SECOND);
+    const point p2(500, time::MILLISECOND);
+    const duration d = p1 - p2;
     EXPECT_EQ(d.value(time::MILLISECOND), 1500);
 }
 
 TEST(TimePointTest, PointCompare) {
-    point p1(1, time::SECOND);
-    point p2(2, time::SECOND);
+    const point p1(1, time::SECOND);
+    const point p2(2, time::SECOND);
 
     EXPECT_LT(p1, p2);
     EXPECT_GT(p2, p1);
@@ -242,9 +242,9 @@ TEST(TimePointTest, PointCompare) {
 }
 
 TEST(TimePointTest, HashAndEquality) {
-    point p1(123456, time::MICROSECOND);
-    point p2(123456, time::MICROSECOND);
-    point p3(123457, time::MICROSECOND);
+    const point p1(123456, time::MICROSECOND);
+    const point p2(123456, time::MICROSECOND);
+    const point p3(123457, time::MICROSECOND);
 
     EXPECT_EQ(p1, p2);
     EXPECT_EQ(p1.toHash(), p2.toHash());
@@ -274,16 +274,16 @@ TEST(UTCTimeTest, Construction) {
 }
 
 TEST(UTCTimeTest, DurationAddSubtract) {
-    time::UTCTime t(2024, 1, 1, 0, 0, 0);
-    auto t_plus = t + 1_d;
+    const time::UTCTime t(2024, 1, 1, 0, 0, 0);
+    const auto t_plus = t + 1_d;
     EXPECT_EQ(t_plus.value(time::DAY), 2);
     EXPECT_EQ(t_plus, time::UTCTime (2024, 1, 2, 0, 0, 0));
 
-    auto t_minus = t_plus - 1_d;
+    const auto t_minus = t_plus - 1_d;
     EXPECT_EQ(t_minus.toString(false), t.toString(false));
     EXPECT_EQ(t_minus, t);
 
-    auto d = t_plus - t;
+    const auto d = t_plus - t;
     EXPECT_EQ(d.value(time::HOUR), 24);
 }
 
@@ -307,9 +307,9 @@ TEST(UTCTimeTest, ComparisonOperators) {
 }
 
 TEST(UTCTimeTest, HashFunctionality) {
-    time::UTCTime t1(2023, 12, 25, 10, 30, 0);
-    time::UTCTime t2(2023, 12, 25, 10, 30, 0);
-    time::UTCTime t3(2024, 1, 1, 0, 0, 0);
+    const time::UTCTime t1(2023, 12, 25, 10, 30, 0);
+    const time::UTCTime t2(2023, 12, 25, 10, 30, 0);
+    const time::UTCTime t3(2024, 1, 1, 0, 0, 0);
 
     EXPECT_TRUE(t1 == t2);
     EXPECT_EQ(t1.toHash(), t2.toHash());
@@ -322,15 +322,15 @@ TEST(UTCTimeTest, HashFunctionality) {
 }
 
 TEST(UTCTimeTest, WeekdayCalculation) {
-    time::UTCTime christmas(2023, 12, 25, 0, 0, 0); // Monday
+    const time::UTCTime christmas(2023, 12, 25, 0, 0, 0); // Monday
     EXPECT_EQ(christmas.weekday(), time::UTCTime::MONDAY);
 
-    time::UTCTime new_year(2000, 1, 1, 0, 0, 0); // Saturday
+    const time::UTCTime new_year(2000, 1, 1, 0, 0, 0); // Saturday
     EXPECT_EQ(new_year.weekday(), time::UTCTime::SATURDAY);
 }
 
 TEST(UTCTimeTest, NowFunction) {
-    auto now = time::UTCTime::now();
+    const auto now = time::UTCTime::now();
     EXPECT_GE(now.value(time::YEAR), 2024); // 当前年应大于等于2024
 }
 

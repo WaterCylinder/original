@@ -205,7 +205,7 @@ class makeIndexSequence {
     template <u_integer NUM, u_integer... INTS>
     class indexSequenceImpl : public indexSequenceImpl<NUM - 1, NUM - 1, INTS...>{
     public:
-        using type = indexSequenceImpl<NUM - 1, NUM - 1, INTS...>::type;
+        using type = typename indexSequenceImpl<NUM - 1, NUM - 1, INTS...>::type;
     };
 public:
     template <u_integer NUM>
@@ -241,7 +241,7 @@ consteval original::u_integer original::indexSequence<INTS...>::size() noexcept 
 
 template<original::u_integer NUM>
 consteval auto original::makeSequence() noexcept {
-    using sequence = makeIndexSequence::indexSequenceImpl<NUM>::type;
+    using sequence = typename makeIndexSequence::indexSequenceImpl<NUM>::type;
     return sequence{};
 }
 

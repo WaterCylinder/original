@@ -263,7 +263,7 @@ TEST(MultiLockTest, MultiLockLocksAndUnlocksInReverseOrder) {
         }
 
         bool tryLock(){
-            bool success = mutex_.tryLock();
+            const bool success = mutex_.tryLock();
             if (success)
                 lock_record_.push_back(mutex_.id());
             return success;
@@ -286,13 +286,13 @@ TEST(MultiLockTest, MultiLockLocksAndUnlocksInReverseOrder) {
     {
         multiLock lock(t1, t2, t3);
         EXPECT_EQ(lock_order.size(), 3);
-        EXPECT_NE(std::find(lock_order.begin(), lock_order.end(), t1.id()), lock_order.end());
-        EXPECT_NE(std::find(lock_order.begin(), lock_order.end(), t2.id()), lock_order.end());
-        EXPECT_NE(std::find(lock_order.begin(), lock_order.end(), t3.id()), lock_order.end());
+        EXPECT_NE(std::ranges::find(lock_order, t1.id()), lock_order.end());
+        EXPECT_NE(std::ranges::find(lock_order, t2.id()), lock_order.end());
+        EXPECT_NE(std::ranges::find(lock_order, t3.id()), lock_order.end());
     }
 
     EXPECT_EQ(unlock_order.size(), 3);
-    EXPECT_EQ(std::vector<ul_integer>(unlock_order.rbegin(), unlock_order.rend()), lock_order);
+    EXPECT_EQ(std::vector(unlock_order.rbegin(), unlock_order.rend()), lock_order);
 }
 
 TEST(MultiLockTest, MultiLockProtectsMultipleResources) {
@@ -322,7 +322,7 @@ TEST(MutexTest, AdoptLockPolicyAssumesLocked) {
     m.lock();  // 手动加锁
 
     {
-        uniqueLock lock(m, uniqueLock::ADOPT_LOCK);
+        const uniqueLock lock(m, uniqueLock::ADOPT_LOCK);
         EXPECT_TRUE(lock.isLocked());
         EXPECT_FALSE(m.tryLock());  // 锁未被释放
     }
@@ -338,7 +338,7 @@ TEST(MultiLockTest, AdoptLockSkipsLocking) {
     m2.lock();
 
     {
-        multiLock lock(lockGuard::ADOPT_LOCK, m1, m2);
+        const multiLock lock(lockGuard::ADOPT_LOCK, m1, m2);
         EXPECT_TRUE(lock.isLocked());
         EXPECT_FALSE(m1.tryLock());
         EXPECT_FALSE(m2.tryLock());
@@ -354,7 +354,7 @@ TEST(MultiLockTest, TryLockFailsWhenAnyMutexUnavailable) {
     pMutex m1, m2;
     m1.lock();  // 抢占一个锁
 
-    multiLock lock(lockGuard::TRY_LOCK, m1, m2);
+    const multiLock lock(lockGuard::TRY_LOCK, m1, m2);
     EXPECT_FALSE(lock.isLocked());
 
     m1.unlock();

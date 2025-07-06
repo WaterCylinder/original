@@ -1,7 +1,6 @@
 #ifndef MUTEX_H
 #define MUTEX_H
 
-#include <cstring>
 #include "pthread.h"
 #include "error.h"
 #include "tuple.h"
@@ -492,7 +491,7 @@ original::multiLock<MUTEX...>::multiLock(MUTEX&... mutex)
     : multiLock(AUTO_LOCK, mutex...) {}
 
 template<typename... MUTEX>
-original::multiLock<MUTEX...>::multiLock(lockPolicy policy, MUTEX&... mutex)
+original::multiLock<MUTEX...>::multiLock(const lockPolicy policy, MUTEX&... mutex)
     : m_list(&mutex...), is_locked_all(false) {
     switch (policy) {
         case MANUAL_LOCK:
