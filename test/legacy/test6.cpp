@@ -1,6 +1,5 @@
 #include <iostream>
 #include "thread.h"
-#include <thread>
 #include "maps.h"
 #include "mutex.h"
 #include "zeit.h"
@@ -22,7 +21,7 @@ int main()
         p.notify();
     };
 
-    auto err = original::valueError("Divided by zero");
+    const auto err = original::valueError("Divided by zero");
     original::thread print_thread {printErr, std::cref(err)};
     p.wait(print_mtx);
 
@@ -33,7 +32,7 @@ int main()
         std::cout << b << a << std::endl;
     };
     original::pThread t1{task1, 1, "show: "};
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    original::thread::sleep(100_ms);
     std::cout << "id t1: " << t1.id() << std::endl;
     t1.join();
     original::pThread t2{task1, 2, "show: "};
@@ -58,7 +57,7 @@ int main()
 
     original::pThread t9{task1, 8, "show: "};
     original::thread t10{std::move(t9), original::thread::AUTO_JOIN};
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    original::thread::sleep(100_ms);
     std::cout << "t10 id: " << t10.id() << std::endl;
     original::pThread t11{task1, 9, "show: "};
     original::thread t12{std::move(t11)};
@@ -69,8 +68,7 @@ int main()
     t14.detach();
 
     auto j1 = original::JMap<int, int>();
-    const auto l = {0, 1, 2, 4, 2, 2};
-    for (const auto& e: l) {
+    for (const auto l = {0, 1, 2, 4, 2, 2}; const auto& e: l) {
         if (j1.containsKey(e)){
             j1[e] += 1;
         } else {
