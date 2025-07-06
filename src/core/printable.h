@@ -273,7 +273,7 @@ inline auto original::printable::formatString<char>(const char& t) -> std::strin
 template<>
 inline auto original::printable::formatString<bool>(const bool& t) -> std::string
 {
-    return t != 0 ? "true" : "false";
+    return t ? "true" : "false";
 }
 
 template <typename TYPE>

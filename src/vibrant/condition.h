@@ -91,7 +91,7 @@ inline void original::pCondition::wait(mutexBase& mutex)
         throw valueError();
     }
 
-    auto handle = static_cast<pMutex::native_handle*>(p_mutex->nativeHandle());
+    const auto handle = static_cast<pMutex::native_handle*>(p_mutex->nativeHandle());
     pthread_cond_wait(&this->cond_, handle);
 }
 
@@ -103,7 +103,7 @@ inline bool original::pCondition::waitFor(mutexBase& mutex, const time::duration
     }
 
     const auto ts = static_cast<timespec>(time::point::now() + d);
-    auto handle = static_cast<pMutex::native_handle*>(p_mutex->nativeHandle());
+    const auto handle = static_cast<pMutex::native_handle*>(p_mutex->nativeHandle());
     const int code = pthread_cond_timedwait(&this->cond_, handle, &ts);
     if (code == 0) return true;
     if (code == ETIMEDOUT) return false;
