@@ -13,9 +13,13 @@ namespace original {
             TYPE type_;
             none none_;
 
-            consteval storage() noexcept;
+            storage() noexcept;
 
-            constexpr ~storage();
+            storage(const storage& other) noexcept = default;
+
+            storage& operator=(const storage& other) noexcept = default;
+
+            ~storage();
         };
 
         bool non_none_type_;
@@ -64,11 +68,13 @@ namespace original {
 }
 
 template<typename TYPE>
-consteval original::alternative<TYPE>::storage::storage() noexcept
-    : none_() {}
+original::alternative<TYPE>::storage::storage() noexcept
+{
+    new(&this->none_) none{};
+}
 
 template<typename TYPE>
-constexpr original::alternative<TYPE>::storage::~storage() = default;
+original::alternative<TYPE>::storage::~storage() = default;
 
 template<typename TYPE>
 void original::alternative<TYPE>::destroy() noexcept {
@@ -83,25 +89,22 @@ void original::alternative<TYPE>::destroy() noexcept {
 
 template<typename TYPE>
 original::alternative<TYPE>::alternative()
-    : non_none_type_(false), val_() {
-    this->val_.none_ = none{};
-}
+    : non_none_type_(false), val_() {}
 
 template<typename TYPE>
 template<typename... Args>
 original::alternative<TYPE>::alternative(Args &&... args)
     : non_none_type_(true), val_() {
-    this->val_.type_ = TYPE{ std::forward<Args>(args)... };
+    new (&this->val_.type_) TYPE{ std::forward<Args>(args)... };
 }
 
 template<typename TYPE>
 original::alternative<TYPE>::alternative(const alternative& other) {
     this->non_none_type_ = other.non_none_type_;
-    this->val_ = {};
-    if (this->non_none_type_){
-        this->val_.type_ = other.val_.type_;
-    } else{
-        this->val_.none_ = {};
+    if (other.non_none_type_) {
+        new (&val_.type_) TYPE{ other.val_.type_ };
+    } else {
+        new (&val_.none_) none{};
     }
 }
 
@@ -113,22 +116,21 @@ original::alternative<TYPE>::operator=(const alternative& other) {
 
     this->destroy();
     this->non_none_type_ = other.non_none_type_;
-    if (this->non_none_type_){
-        this->val_.type_ = other.val_.type_;
-    } else{
-        this->val_.none_ = {};
+    if (other.non_none_type_) {
+        new (&val_.type_) TYPE{ other.val_.type_ };
+    } else {
+        new (&val_.none_) none{};
     }
     return *this;
 }
 
 template<typename TYPE>
-original::alternative<TYPE>::alternative(alternative&& other)  noexcept {
+original::alternative<TYPE>::alternative(alternative&& other) noexcept {
     this->non_none_type_ = other.non_none_type_;
-    this->val_ = {};
     if (this->non_none_type_){
-        this->val_.type_ = std::move(other.val_.type_);
+        new (&val_.type_) TYPE{ std::move(other.val_.type_) };
     } else{
-        this->val_.none_ = {};
+        new (&val_.none_) none{};
     }
 }
 
@@ -141,9 +143,9 @@ original::alternative<TYPE>::operator=(alternative&& other)  noexcept {
     this->destroy();
     this->non_none_type_ = other.non_none_type_;
     if (this->non_none_type_){
-        this->val_.type_ = std::move(other.val_.type_);
+        new (&val_.type_) TYPE{ std::move(other.val_.type_) };
     } else{
-        this->val_.none_ = {};
+        new (&val_.none_) none{};
     }
     return *this;
 }
@@ -186,12 +188,12 @@ original::alternative<TYPE>::operator->() {
 
 template<typename TYPE>
 const TYPE* original::alternative<TYPE>::get() const {
-    return this->non_none_type_ ? this->val_.type_ : nullptr;
+    return this->non_none_type_ ? &this->val_.type_ : nullptr;
 }
 
 template<typename TYPE>
 TYPE* original::alternative<TYPE>::get() {
-    return this->non_none_type_ ? this->val_.type_ : nullptr;
+    return this->non_none_type_ ? &this->val_.type_ : nullptr;
 }
 
 template<typename TYPE>
@@ -203,12 +205,14 @@ template<typename TYPE>
 template<typename... Args>
 void original::alternative<TYPE>::emplace(Args &&... args) {
     this->destroy();
+    this->non_none_type_ = true;
     new (&val_.type_) TYPE{ std::forward<Args>(args)... };
 }
 
 template<typename TYPE>
 void original::alternative<TYPE>::set(const TYPE &t) {
     this->destroy();
+    this->non_none_type_ = true;
     this->val_.type_ = t;
 }
 
