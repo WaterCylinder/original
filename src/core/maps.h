@@ -1660,6 +1660,7 @@ template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
 typename original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator&
 original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::operator=(const Iterator& other) {
     skipListType::Iterator::operator=(other);
+    return *this;
 }
 
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
