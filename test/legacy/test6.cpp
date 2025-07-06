@@ -5,6 +5,7 @@
 #include "mutex.h"
 #include "zeit.h"
 #include "condition.h"
+#include "optional.h"
 
 
 using namespace original::literals;
@@ -111,6 +112,13 @@ int main()
 
     auto d1 = original::time::duration(100, original::time::MILLISECOND);
     std::cout << d1 << std::endl;
+
+    original::alternative<bool> res;
+    std::cout << "res.get(): " << original::printable::formatString(res.get()) << std::endl;
+    res.emplace(true);
+    std::cout << "res.get(): " << original::printable::formatString(res.get()) << std::endl;
+    std::cout << "value res: " << original::printable::formatString(*res) << std::endl;
+    std::cout << "value res: " << original::printable::formatString(*res.get()) << std::endl; // NOLINT: Test alternative::get
 
     const auto now_utc = original::time::UTCTime::now();
     std::cout << "London now: " << now_utc << std::endl;
