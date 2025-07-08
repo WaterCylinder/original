@@ -5,7 +5,6 @@
 #include <concepts>
 #include "config.h"
 
-
 /**
  * @file types.h
  * @brief Core type system foundations and concept definitions.
@@ -13,212 +12,267 @@
  *          template metaprogramming and interface constraints throughout the
  *          library. These concepts enforce compile-time interface requirements
  *          and enable type-safe template programming.
+ *
+ * @namespace original
+ * @brief The main namespace containing all core type system components
  */
 
 namespace original {
 
+    /**
+     * @class none
+     * @brief A placeholder type representing the absence of a value.
+     * @details This class provides consteval operations and can be converted to bool,
+     *          always returning false. Useful for template metaprogramming and
+     *          representing empty states.
+     */
     class none {
     public:
+        /// @brief Default constructor (consteval)
         consteval explicit none() = default;
 
+        /// @brief Default destructor (constexpr)
         constexpr ~none() = default;
 
+        /**
+         * @brief Bool conversion operator
+         * @return Always returns false
+         */
         consteval explicit operator bool() const;
 
+        /**
+         * @brief Logical NOT operator
+         * @return Always returns true
+         */
         consteval bool operator!() const;
     };
 
-/**
- * @concept NotNull
- * @brief Ensures the parameter pack is not empty.
- * @tparam ARGS Variadic template parameter pack to check
- * @details This concept checks that at least one type is provided in the
- *          parameter pack. Useful for enforcing non-empty template parameter lists.
- *
- * @code{.cpp}
- * static_assert(NotNull<int>);         // Succeeds
- * static_assert(!NotNull<>);           // Fails
- * @endcode
- */
-template<typename... ARGS>
-concept NotNull = sizeof...(ARGS) > 0;
-    
-/**
- * @concept Comparable
- * @brief Requires type to support all comparison operators.
- * @tparam TYPE The type to check.
- * @details Enforces that the type provides all standard comparison operators
- *          (==, !=, <, <=, >, >=) returning boolean results.
- *
- * @code{.cpp}
- * static_assert(Comparable<int>);  // Succeeds
- * @endcode
- */
-template <typename TYPE>
-concept Comparable = requires(const TYPE& t1, const TYPE& t2) {
-    { t1 == t2 } -> std::same_as<bool>;
-    { t1 != t2 } -> std::same_as<bool>;
-    { t1 < t2 } -> std::same_as<bool>;
-    { t1 <= t2 } -> std::same_as<bool>;
-    { t1 > t2 } -> std::same_as<bool>;
-    { t1 >= t2 } -> std::same_as<bool>;
-};
+    /**
+     * @concept NotNull
+     * @brief Ensures the parameter pack is not empty.
+     * @tparam ARGS Variadic template parameter pack to check
+     * @details This concept checks that at least one type is provided in the
+     *          parameter pack. Useful for enforcing non-empty template parameter lists.
+     *
+     * @code{.cpp}
+     * static_assert(NotNull<int>);         // Succeeds
+     * static_assert(!NotNull<>);           // Fails
+     * @endcode
+     */
+    template<typename... ARGS>
+    concept NotNull = sizeof...(ARGS) > 0;
 
-/**
- * @concept CallbackOf
- * @brief Validates callback signature compatibility.
- * @tparam Callback Callable type to check
- * @tparam ReturnType Expected return type
- * @tparam Args Expected argument types
- * @details Ensures the callback can be invoked with specified arguments
- *          and returns the specified type.
- *
- * @code{.cpp}
- * auto lambda = [](int x) { return x * 2; };
- * static_assert(CallbackOf<decltype(lambda), double, int>);  // Fails (return type mismatch)
- * @endcode
- */
-template <typename Callback, typename ReturnType, typename... Args>
-concept CallbackOf = requires(Callback callback, Args&&... args){
-    { callback(std::forward<Args>(args)...) } -> std::same_as<ReturnType>;
-};
+    /**
+     * @concept Comparable
+     * @brief Requires type to support all comparison operators.
+     * @tparam TYPE The type to check.
+     * @details Enforces that the type provides all standard comparison operators
+     *          (==, !=, <, <=, >, >=) returning boolean results.
+     *
+     * @code{.cpp}
+     * static_assert(Comparable<int>);  // Succeeds
+     * struct NoCompare {};
+     * static_assert(!Comparable<NoCompare>); // Fails
+     * @endcode
+     */
+    template <typename TYPE>
+    concept Comparable = requires(const TYPE& t1, const TYPE& t2) {
+        { t1 == t2 } -> std::same_as<bool>;
+        { t1 != t2 } -> std::same_as<bool>;
+        { t1 < t2 } -> std::same_as<bool>;
+        { t1 <= t2 } -> std::same_as<bool>;
+        { t1 > t2 } -> std::same_as<bool>;
+        { t1 >= t2 } -> std::same_as<bool>;
+    };
 
-/**
- * @concept Compare
- * @brief Combines Comparable and CallbackOf for comparison callbacks.
- * @tparam Callback Comparison function type
- * @tparam TYPE Type being compared
- * @details Requires a callback that takes two TYPE references and returns bool,
- *          while TYPE itself must satisfy Comparable.
- *
- * @code{.cpp}
- * // Validates custom comparator
- * auto int_comparator = [](const int& a, const int& b) { return a < b; };
- * static_assert(Compare<decltype(int_comparator), int>);  // Passes
- *
- * // Invalid example (wrong return type)
- * auto bad_comp = [](const int& a, const int& b) { return a - b; };
- * static_assert(!Compare<decltype(bad_comp), int>);  // Fails: returns int instead of bool
- * @endcode
- */
-template <typename Callback, typename TYPE>
-concept Compare =
+    /**
+     * @concept CallbackOf
+     * @brief Validates callback signature compatibility.
+     * @tparam Callback Callable type to check
+     * @tparam ReturnType Expected return type
+     * @tparam Args Expected argument types
+     * @details Ensures the callback can be invoked with specified arguments
+     *          and returns the specified type. Supports perfect forwarding of arguments.
+     *
+     * @code{.cpp}
+     * auto lambda = [](int x) { return x * 2; };
+     * static_assert(CallbackOf<decltype(lambda), int, int>);    // Succeeds
+     * static_assert(CallbackOf<decltype(lambda), double, int>); // Fails (return type mismatch)
+     * @endcode
+     */
+    template <typename Callback, typename ReturnType, typename... Args>
+    concept CallbackOf = requires(Callback callback, Args&&... args){
+        { callback(std::forward<Args>(args)...) } -> std::same_as<ReturnType>;
+    };
+
+    /**
+     * @concept Compare
+     * @brief Combines Comparable and CallbackOf for comparison callbacks.
+     * @tparam Callback Comparison function type
+     * @tparam TYPE Type being compared
+     * @details Requires a callback that takes two TYPE references and returns bool,
+     *          while TYPE itself must satisfy Comparable.
+     *
+     * @code{.cpp}
+     * // Validates custom comparator
+     * auto int_comparator = [](const int& a, const int& b) { return a < b; };
+     * static_assert(Compare<decltype(int_comparator), int>);  // Passes
+     *
+     * // Invalid example (wrong return type)
+     * auto bad_comp = [](const int& a, const int& b) { return a - b; };
+     * static_assert(!Compare<decltype(bad_comp), int>);  // Fails: returns int instead of bool
+     * @endcode
+     */
+    template <typename Callback, typename TYPE>
+    concept Compare =
     Comparable<TYPE> && CallbackOf<Callback, bool, const TYPE&, const TYPE&>;
 
-/**
- * @concept Condition
- * @brief Constraint for predicate callbacks.
- * @tparam Callback Predicate function type
- * @tparam TYPE Input type for predicate
- * @details Requires a callback that takes a TYPE reference and returns bool.
- *
- * @code{.cpp}
- * // Validates positive number checker
- * auto is_positive = [](const auto& x) { return x > 0; };
- * static_assert(Condition<decltype(is_positive), double>);  // Passes
- *
- * // Invalid example (parameter type mismatch)
- * auto string_check = [](std::string s) { return !s.empty(); };
- * static_assert(!Condition<decltype(string_check), const std::string&>);  // Fails: requires const reference
- * @endcode
- */
-template <typename Callback, typename TYPE>
-concept Condition = CallbackOf<Callback, bool, const TYPE&>;
+    /**
+     * @concept Condition
+     * @brief Constraint for predicate callbacks.
+     * @tparam Callback Predicate function type
+     * @tparam TYPE Input type for predicate
+     * @details Requires a callback that takes a TYPE reference and returns bool.
+     *          Useful for filtering and conditional operations.
+     *
+     * @code{.cpp}
+     * // Validates positive number checker
+     * auto is_positive = [](const auto& x) { return x > 0; };
+     * static_assert(Condition<decltype(is_positive), double>);  // Passes
+     *
+     * // Invalid example (parameter type mismatch)
+     * auto string_check = [](std::string s) { return !s.empty(); };
+     * static_assert(!Condition<decltype(string_check), const std::string&>);  // Fails
+     * @endcode
+     */
+    template <typename Callback, typename TYPE>
+    concept Condition = CallbackOf<Callback, bool, const TYPE&>;
 
-/**
- * @concept Operation
- * @brief Constraint for mutating operations.
- * @tparam Callback Mutation function type
- * @tparam TYPE Type being modified
- * @details Requires a callback that takes a mutable TYPE reference and returns void.
- *
- * @code{.cpp}
- * // Validates increment operation
- * auto increment = [](auto& x) { x += 1; };
- * static_assert(Operation<decltype(increment), int>);  // Passes
- *
- * // Invalid example (wrong return type)
- * auto bad_op = [](int& x) { return x++; };
- * static_assert(!Operation<decltype(bad_op), int>);  // Fails: returns int instead of void
- * @endcode
- */
-template <typename Callback, typename TYPE>
-concept Operation = CallbackOf<Callback, void, TYPE&>;
+    /**
+     * @concept Operation
+     * @brief Constraint for mutating operations.
+     * @tparam Callback Mutation function type
+     * @tparam TYPE Type being modified
+     * @details Requires a callback that takes a mutable TYPE reference and returns void.
+     *          Used for in-place modifications.
+     *
+     * @code{.cpp}
+     * // Validates increment operation
+     * auto increment = [](auto& x) { x += 1; };
+     * static_assert(Operation<decltype(increment), int>);  // Passes
+     *
+     * // Invalid example (wrong return type)
+     * auto bad_op = [](int& x) { return x++; };
+     * static_assert(!Operation<decltype(bad_op), int>);  // Fails: returns int instead of void
+     * @endcode
+     */
+    template <typename Callback, typename TYPE>
+    concept Operation = CallbackOf<Callback, void, TYPE&>;
 
-/**
- * @concept SuperOf
- * @brief Checks inheritance or type equality.
- * @tparam Base Base class or type
- * @tparam Derive Derived class or same type
- * @details Combines std::is_base_of_v and std::is_same_v to validate
- *          "is-a" relationships.
- *
- * @code{.cpp}
- * struct Base {};
- * struct Derived : Base {};
- *
- * static_assert(SuperOf<Base, Derived>);    // Passes: inheritance
- * static_assert(SuperOf<int, int>);         // Passes: same type
- * static_assert(!SuperOf<Derived, Base>);   // Fails: reverse inheritance
- * @endcode
- */
-template <typename Base, typename Derive>
-concept SuperOf = std::is_base_of_v<Base, Derive> || std::is_same_v<Base, Derive>;
+    /**
+     * @concept SuperOf
+     * @brief Checks inheritance or type equality.
+     * @tparam Base Base class or type
+     * @tparam Derive Derived class or same type
+     * @details Combines std::is_base_of_v and std::is_same_v to validate
+     *          "is-a" relationships. More permissive than ExtendsOf.
+     *
+     * @code{.cpp}
+     * struct Base {};
+     * struct Derived : Base {};
+     *
+     * static_assert(SuperOf<Base, Derived>);    // Passes: inheritance
+     * static_assert(SuperOf<int, int>);         // Passes: same type
+     * static_assert(!SuperOf<Derived, Base>);   // Fails: reverse inheritance
+     * @endcode
+     */
+    template <typename Base, typename Derive>
+    concept SuperOf = std::is_base_of_v<Base, Derive> || std::is_same_v<Base, Derive>;
 
-/**
- * @concept ExtendsOf
- * @brief Checks derivation or type identity.
- * @tparam Base Base class or same type
- * @tparam Derive Derived class or same type
- * @details Uses std::derived_from for explicit inheritance checking,
- *          allowing for clearer intent than SuperOf in some contexts.
- *
- * @code{.cpp}
- * struct Animal {};
- * struct Cat : Animal {};
- *
- * static_assert(ExtendsOf<Animal, Cat>);    // Passes: valid inheritance
- * static_assert(ExtendsOf<int, int>);       // Passes: same type
- * static_assert(ExtendsOf<Cat, int>);   // Fails: invalid inheritance
- * @endcode
- */
-template <typename Base, typename Derive>
-concept ExtendsOf = std::derived_from<Derive, Base> || std::is_same_v<Base, Derive>;
+    /**
+     * @concept ExtendsOf
+     * @brief Checks derivation or type identity using std::derived_from.
+     * @tparam Base Base class or same type
+     * @tparam Derive Derived class or same type
+     * @details Uses std::derived_from for explicit inheritance checking,
+     *          which is stricter than is_base_of_v in some cases.
+     *
+     * @code{.cpp}
+     * struct Animal {};
+     * struct Cat : Animal {};
+     *
+     * static_assert(ExtendsOf<Animal, Cat>);    // Passes: valid inheritance
+     * static_assert(ExtendsOf<int, int>);       // Passes: same type
+     * static_assert(!ExtendsOf<Cat, Animal>);   // Fails: invalid inheritance
+     * @endcode
+     */
+    template <typename Base, typename Derive>
+    concept ExtendsOf = std::derived_from<Derive, Base> || std::is_same_v<Base, Derive>;
 
-
-template <u_integer...>
-class indexSequence {
-public:
-    static consteval u_integer size() noexcept;
-};
-
-class makeIndexSequence {
-    template <u_integer NUM, u_integer... INTS>
-    class indexSequenceImpl;
-
+    /**
+     * @class indexSequence
+     * @brief Compile-time sequence of unsigned integers.
+     * @tparam INTS... Sequence of unsigned integer values
+     * @details Used for template metaprogramming and compile-time index operations.
+     */
     template <u_integer... INTS>
-    class indexSequenceImpl<0, INTS...> {
+    class indexSequence {
     public:
-        using type = indexSequence<INTS...>;
+        /**
+         * @brief Gets the size of the sequence
+         * @return Number of elements in the sequence
+         */
+        static consteval u_integer size() noexcept;
     };
 
-    template <u_integer NUM, u_integer... INTS>
-    class indexSequenceImpl : public indexSequenceImpl<NUM - 1, NUM - 1, INTS...>{
-    public:
-        using type = typename indexSequenceImpl<NUM - 1, NUM - 1, INTS...>::type;
-    };
-public:
-    template <u_integer NUM>
-    friend consteval auto makeSequence() noexcept;
-};
+    /**
+     * @class makeIndexSequence
+     * @brief Utility for generating index sequences.
+     * @details Contains implementation details for creating index sequences.
+     */
+    class makeIndexSequence {
+        template <u_integer NUM, u_integer... INTS>
+        class indexSequenceImpl;
 
+        template <u_integer... INTS>
+        class indexSequenceImpl<0, INTS...> {
+        public:
+            using type = indexSequence<INTS...>;
+        };
+
+        template <u_integer NUM, u_integer... INTS>
+        class indexSequenceImpl : public indexSequenceImpl<NUM - 1, NUM - 1, INTS...>{
+        public:
+            using type = typename indexSequenceImpl<NUM - 1, NUM - 1, INTS...>::type;
+        };
+    public:
+        template <u_integer NUM>
+        friend consteval auto makeSequence() noexcept;
+    };
+
+    /**
+     * @brief Creates an index sequence of given length
+     * @tparam NUM Length of the sequence to create
+     * @return indexSequence instance with values 0..NUM-1
+     */
     template <u_integer NUM>
     consteval auto makeSequence() noexcept; //NOLINT: Forward declaration for 'makeReverseSequence'
 
+    /**
+     * @brief Implementation detail for reversing an index sequence
+     * @tparam Indices... Sequence indices to reverse
+     * @param seq The index sequence to reverse
+     * @return Reversed index sequence
+     */
     template<u_integer... Indices>
     constexpr auto reverseIndexSequenceImpl(indexSequence<Indices...>)
     -> indexSequence<sizeof...(Indices) - 1 - Indices...>;
 
+    /**
+     * @brief Creates a reversed index sequence
+     * @tparam N Length of the sequence to create
+     * @return indexSequence instance with values N-1..0
+     */
     template<u_integer N>
     using makeReverseSequence = decltype(
     reverseIndexSequenceImpl(makeSequence<N>())
