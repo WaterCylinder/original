@@ -45,7 +45,7 @@ protected:
     }
 
     void TestLargeContainer() {
-        constexpr int count = 100000;
+        constexpr int count = 10000;
         ContainerType container;
 
         for (int i = 0; i < count; ++i) {

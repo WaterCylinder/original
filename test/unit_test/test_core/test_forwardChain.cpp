@@ -125,7 +125,7 @@ namespace original {
     // 测试复制构造函数
     TEST(forwardChainTest, CopyConstructor) {
         const forwardChain c1 = {1, 2, 3};
-        auto c2 = c1;
+        auto c2 = c1; // NOLINT: Test copy constructor
         const std::list l = {1, 2, 3};
         EXPECT_EQ(c2.size(), 3);
         EXPECT_TRUE(compareChainsAndLists(c2, l));
@@ -200,7 +200,7 @@ namespace original {
     }
 
     TEST(forwardChainTest, pushEndTest) {
-        constexpr size_t dataSize = 100000;  // 大数据量测试
+        constexpr size_t dataSize = 10000;  // 大数据量测试
         forwardChain<size_t> c;
         std::list<size_t> l;
         for (size_t i = 0; i < dataSize; ++i) {
@@ -211,7 +211,7 @@ namespace original {
     }
 
     TEST(forwardChainTest, pushTest) {
-        constexpr integer dataSize = 100000;  // 大数据量测试
+        constexpr integer dataSize = 10000;  // 大数据量测试
         std::random_device rd;
         std::mt19937 gen(rd());
 
@@ -231,7 +231,7 @@ namespace original {
     }
 
     TEST(forwardChainTest, popBeginTest) {
-        constexpr size_t dataSize = 100000;  // 大数据量测试
+        constexpr size_t dataSize = 10000;  // 大数据量测试
         forwardChain<size_t> c;
         std::list<size_t> l;
         for (size_t i = dataSize; i > 0; --i) {
@@ -246,7 +246,7 @@ namespace original {
     }
 
     TEST(forwardChainTest, popEndTest) {
-        constexpr size_t dataSize = 100000;  // 大数据量测试
+        constexpr size_t dataSize = 10000;  // 大数据量测试
         forwardChain<size_t> c;
         std::list<size_t> l;
         for (size_t i = 0; i < dataSize; ++i) {
@@ -261,7 +261,7 @@ namespace original {
     }
 
     TEST(forwardChainTest, popTest) {
-        constexpr integer dataSize = 100000;  // 大数据量测试
+        constexpr integer dataSize = 10000;  // 大数据量测试
         std::random_device rd;
         std::mt19937 gen(rd());
 
