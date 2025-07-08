@@ -134,18 +134,19 @@ TEST(AllocatorsTest, MallocFree) {
 
 TEST(AllocatorTest, BasicOperations) {
     original::allocator<int> alloc;
+    constexpr int size = 15;
 
-    int* arr = alloc.allocate(5);
+    int* arr = alloc.allocate(size);
     ASSERT_NE(arr, nullptr);
 
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < size; ++i) {
         alloc.construct(&arr[i], i);
         EXPECT_EQ(arr[i], i);
     }
 
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < size; ++i) {
         original::allocator<int>::destroy(&arr[i]);
     }
 
-    alloc.deallocate(arr, 5);
+    alloc.deallocate(arr, size);
 }
