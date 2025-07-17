@@ -716,28 +716,54 @@ namespace original {
             [[nodiscard]] weekdays weekday() const;
 
             /**
-             * @brief Constructs UTC time at epoch (1970-01-01 00:00:00)
+             * @brief Constructs a UTCTime object representing the epoch (1970-01-01 00:00:00 UTC)
+             * @details Initializes all time components to zero, representing the Unix epoch.
+             * @see UTCTime::EPOCH
+             * @code
+             * UTCTime t;  // Creates epoch time (1970-01-01 00:00:00)
+             * @endcode
              */
             explicit UTCTime();
 
             /**
-             * @brief Constructs UTC time with specified components
-             * @param year Year
-             * @param month Month (1-12)
-             * @param day Day (1-31)
-             * @param hour Hour (0-23)
-             * @param minute Minute (0-59)
-             * @param second Second (0-59)
-             * @throws valueError if any component is invalid
+             * @brief Constructs a UTCTime object with specified date components (time set to 00:00:00)
+             * @param year The year component
+             * @param month The month component (1-12)
+             * @param day The day component (1-31, must be valid for month/year)
+             * @throws valueError if any component is invalid or date is impossible
+             * @see isValidYMD(), daysOfMonth()
+             * @code
+             * UTCTime t(2025, 6, 28);  // Creates 2025-06-28 00:00:00
+             * @endcode
+             */
+            explicit UTCTime(integer year, integer month, integer day);
+
+            /**
+             * @brief Constructs a UTCTime object with all date and time components
+             * @param year The year component (must be >= 1970)
+             * @param month The month component (1-12)
+             * @param day The day component (1-31, must be valid for month/year)
+             * @param hour The hour component (0-23)
+             * @param minute The minute component (0-59)
+             * @param second The second component (0-59)
+             * @throws valueError if any component is invalid or datetime is impossible
+             * @see isValid(), isValidYMD(), isValidHMS()
+             * @code
+             * UTCTime t(2025, 6, 28, 14, 30, 0);  // Creates 2025-06-28 14:30:00
+             * @endcode
              */
             explicit UTCTime(integer year, integer month, integer day,
                              integer hour, integer minute, integer second);
 
             /**
-             * @brief Constructs UTC time from time::point
-             * @param p Time point to convert
-             * @warning Construction from time::point to UTCTime may lose precision
-             * since UTCTime only stores whole seconds
+             * @brief Constructs a UTCTime object from a time point
+             * @param p The time point to convert from
+             * @warning Conversion from time::point to UTCTime may lose precision
+             * since UTCTime only stores whole seconds (sub-second components are truncated)
+             * @code
+             * time::point p = time::point::now();
+             * UTCTime t(p);  // Creates UTCTime from current time (seconds precision)
+             * @endcode
              */
             explicit UTCTime(const point& p);
 
@@ -828,6 +854,12 @@ namespace original {
              */
             friend UTCTime operator+(const UTCTime& t, const duration& d);
 
+            /**
+             * @brief Adds duration to UTCTime (Reversed version)
+             * @param d Duration to add
+             * @param t UTCTime
+             * @return New UTCTime after addition
+             */
             friend UTCTime operator+(const duration& d, const UTCTime& t);
 
             /**
