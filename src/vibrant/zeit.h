@@ -1560,6 +1560,9 @@ original::time::UTCTime::weekday() const {
 inline original::time::UTCTime::UTCTime()
     : UTCTime(EPOCH_YEAR, EPOCH_MONTH, EPOCH_DAY, 0, 0, 0) {}
 
+inline original::time::UTCTime::UTCTime(const integer year, const integer month, const integer day)
+    : UTCTime(year, month, day, 0, 0, 0) {}
+
 inline original::time::UTCTime::UTCTime(const integer year, const integer month, const integer day,
                                         const integer hour, const integer minute, const integer second) {
     if (!isValid(year, month, day, hour, minute, second))
@@ -1626,7 +1629,7 @@ original::time::UTCTime::operator=(UTCTime&& other) noexcept {
 
 inline original::time::UTCTime original::time::UTCTime::date() const
 {
-    return UTCTime{this->year_, this->month_, this->day_, 0, 0, 0};
+    return UTCTime{this->year_, this->month_, this->day_};
 }
 
 inline original::integer
