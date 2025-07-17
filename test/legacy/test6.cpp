@@ -127,8 +127,11 @@ int main()
     const auto now_utc = original::time::UTCTime::now();
     std::cout << "London now: " << now_utc << std::endl;
     std::cout << "Beijing now: " << now_utc + 8_h << std::endl;
-    std::cout << "test convert: " << original::time::UTCTime{static_cast<original::time::point>(now_utc)} << std::endl;
     std::cout << "now_utc.weekday(): " << static_cast<original::integer>(now_utc.weekday()) << std::endl;
+
+    const auto local_now = original::time::UTCTime::localNow();
+    std::cout << (original::time::UTCTime{2025, 8, 7} - local_now.date()).value(original::time::DAY) << std::endl;
+    std::cout << (local_now.date() - original::time::UTCTime{2025, 7, 27}).value(original::time::DAY) << std::endl;
 
     constexpr original::integer sec = 5;
     std::cout << "Sleep before: " << original::time::UTCTime::localNow() << std::endl;
