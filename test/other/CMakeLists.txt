@@ -1,6 +1,6 @@
-# test/legacy/CMakeLists.txt
+# test/other/CMakeLists.txt
 
-file(GLOB TEST_LEGACY "${CMAKE_SOURCE_DIR}/test/legacy/*.cpp")
+file(GLOB TEST_LEGACY "${CMAKE_SOURCE_DIR}/test/other/*.cpp")
 
 foreach(TEST_FILE ${TEST_LEGACY})
     get_filename_component(TEST_NAME ${TEST_FILE} NAME_WE)
