@@ -888,6 +888,20 @@ namespace original {
     /// Zero duration constant
     inline const time::duration time::duration::ZERO = duration{};
 
+    time::duration nanoseconds(time::time_val_type val);
+
+    time::duration microseconds(time::time_val_type val);
+
+    time::duration milliseconds(time::time_val_type val);
+
+    time::duration seconds(time::time_val_type val);
+
+    time::duration minutes(time::time_val_type val);
+
+    time::duration hours(time::time_val_type val);
+
+    time::duration days(time::time_val_type val);
+
     time::duration operator-(const time::duration& d);
 
     time::duration operator+(const time::duration& lhs, const time::duration& rhs);
@@ -1232,6 +1246,41 @@ original::time::duration::div(const time_val_type factor, const unit unit) const
 inline original::floating
 original::time::duration::div(const duration& other) const {
     return static_cast<floating>(this->nano_seconds_) / static_cast<floating>(other.nano_seconds_);
+}
+
+inline original::time::duration
+original::nanoseconds(const time::time_val_type val) {
+    return time::duration{val, time::NANOSECOND};
+}
+
+inline original::time::duration
+original::microseconds(const time::time_val_type val) {
+    return time::duration{val, time::MICROSECOND};
+}
+
+inline original::time::duration
+original::milliseconds(const time::time_val_type val) {
+    return time::duration{val, time::MILLISECOND};
+}
+
+inline original::time::duration
+original::seconds(const time::time_val_type val) {
+    return time::duration{val, time::SECOND};
+}
+
+inline original::time::duration
+original::minutes(const time::time_val_type val) {
+    return time::duration{val, time::MINUTE};
+}
+
+inline original::time::duration
+original::hours(const time::time_val_type val) {
+    return time::duration{val, time::HOUR};
+}
+
+inline original::time::duration
+original::days(const time::time_val_type val) {
+    return time::duration{val, time::DAY};
 }
 
 inline original::time::duration
