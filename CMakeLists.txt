@@ -1,9 +1,9 @@
 # CMakeLists.txt Main
 
-cmake_minimum_required(VERSION 3.30)
+cmake_minimum_required(VERSION 3.31)
 project(original LANGUAGES CXX)
 set(ORIGINAL_VERSION 0.1.1)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_BUILD_TYPE Debug)
 
@@ -78,6 +78,6 @@ if (BUILD_TESTING)
     endif()
 
     # test cases
-    add_subdirectory(test/legacy)
+    add_subdirectory(test/other)
     add_subdirectory(test/unit_test)
 endif ()
