@@ -136,7 +136,7 @@ int main()
     constexpr original::integer sec = 5;
     std::cout << "Sleep before: " << original::time::UTCTime::localNow() << std::endl;
     std::cout << "Sleep for: " << sec << " second(s)." << std::endl;
-    original::thread::sleep(original::time::duration{sec, original::time::SECOND});
+    original::thread::sleep(original::seconds(sec));
     std::cout << "Sleep after: " << original::time::UTCTime::localNow() << std::endl;
     return 0;
 }
