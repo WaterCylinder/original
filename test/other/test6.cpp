@@ -133,6 +133,8 @@ int main()
     std::cout << (original::time::UTCTime{2025, 8, 7} - local_now.date()).value(original::time::DAY) << std::endl;
     std::cout << (local_now.date() - original::time::UTCTime{2025, 7, 27}).value(original::time::DAY) << std::endl;
 
+    std::cout << "two days after today: " << now_utc.date() + 1_d + original::days() << std::endl;
+
     constexpr original::integer sec = 5;
     std::cout << "Sleep before: " << original::time::UTCTime::localNow() << std::endl;
     std::cout << "Sleep for: " << sec << " second(s)." << std::endl;
