@@ -888,19 +888,19 @@ namespace original {
     /// Zero duration constant
     inline const time::duration time::duration::ZERO = duration{};
 
-    time::duration nanoseconds(time::time_val_type val);
+    time::duration nanoseconds(time::time_val_type val = 1);
 
-    time::duration microseconds(time::time_val_type val);
+    time::duration microseconds(time::time_val_type val = 1);
 
-    time::duration milliseconds(time::time_val_type val);
+    time::duration milliseconds(time::time_val_type val = 1);
 
-    time::duration seconds(time::time_val_type val);
+    time::duration seconds(time::time_val_type val = 1);
 
-    time::duration minutes(time::time_val_type val);
+    time::duration minutes(time::time_val_type val = 1);
 
-    time::duration hours(time::time_val_type val);
+    time::duration hours(time::time_val_type val = 1);
 
-    time::duration days(time::time_val_type val);
+    time::duration days(time::time_val_type val = 1);
 
     time::duration operator-(const time::duration& d);
 
