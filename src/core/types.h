@@ -212,11 +212,12 @@ namespace original {
     /**
      * @class indexSequence
      * @brief Compile-time sequence of unsigned integers.
-     * @tparam INTS... Sequence of unsigned integer values
+     * @tparam INTS Sequence of unsigned integer values
      * @details Used for template metaprogramming and compile-time index operations.
      */
     template <u_integer... INTS>
     class indexSequence {
+        static constexpr u_integer SIZE = sizeof...(INTS);
     public:
         /**
          * @brief Gets the size of the sequence
@@ -260,13 +261,12 @@ namespace original {
 
     /**
      * @brief Implementation detail for reversing an index sequence
-     * @tparam Indices... Sequence indices to reverse
+     * @tparam Indices Sequence indices to reverse
      * @param seq The index sequence to reverse
      * @return Reversed index sequence
      */
     template<u_integer... Indices>
-    constexpr auto reverseIndexSequenceImpl(indexSequence<Indices...>)
-    -> indexSequence<sizeof...(Indices) - 1 - Indices...>;
+    consteval auto reverseIndexSequenceImpl(indexSequence<Indices...> seq);
 
     /**
      * @brief Creates a reversed index sequence
@@ -290,13 +290,19 @@ consteval bool original::none::operator!() const {
 
 template<original::u_integer... INTS>
 consteval original::u_integer original::indexSequence<INTS...>::size() noexcept {
-    return sizeof...(INTS);
+    return SIZE;
 }
 
 template<original::u_integer NUM>
 consteval auto original::makeSequence() noexcept {
     using sequence = typename makeIndexSequence::indexSequenceImpl<NUM>::type;
     return sequence{};
+}
+
+template <original::u_integer... Indices>
+consteval auto original::reverseIndexSequenceImpl(indexSequence<Indices...>)
+{
+    return indexSequence<sizeof...(Indices) - 1 - Indices...>{};
 }
 
 #endif // TYPES_H
