@@ -211,7 +211,8 @@ inline bool original::pCondition::waitFor(mutexBase& mutex, const time::duration
         throw valueError();
     }
 
-    const auto ts = static_cast<timespec>(time::point::now() + d);
+    const auto deadline = time::point::now() + d;
+    const auto ts = deadline.toTimespec();
     const auto handle = static_cast<pMutex::native_handle*>(p_mutex->nativeHandle());
     const int code = pthread_cond_timedwait(&this->cond_, handle, &ts);
     if (code == 0) return true;

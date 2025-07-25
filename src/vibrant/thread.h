@@ -584,7 +584,7 @@ inline void original::thread::sleep(const time::duration& d)
 
 #ifdef ORIGINAL_COMPILER_GCC
     const auto deadline = time::point::now() + d;
-    const auto ts = static_cast<timespec>(deadline);
+    const auto ts = deadline.toTimespec();
 
     while (true) {
         if (const int ret = clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &ts, nullptr)
