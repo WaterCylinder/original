@@ -217,6 +217,8 @@ namespace original {
              * @note Only available when compiled with GCC
              */
             explicit operator timespec() const;
+
+            timespec toTimespec() const;
 #endif
 
             /**
@@ -443,6 +445,8 @@ namespace original {
              * @note Nanoseconds are truncated if the internal value is not aligned to nanosecond precision.
              */
             explicit operator timespec() const;
+
+            timespec toTimespec() const;
 #endif
 
             /**
@@ -820,6 +824,8 @@ namespace original {
              */
             explicit operator point() const;
 
+            point toPoint() const;
+
             /**
              * @brief Compares this UTCTime to another
              * @param other UTCTime to compare with
@@ -1180,6 +1186,11 @@ inline original::time::duration::operator timespec() const
     nanoseconds %= FACTOR_SECOND;
     return timespec{seconds, static_cast<long>(nanoseconds)};  //NOLINT: The remaining nanosecond value is within the range of type long.
 }
+
+inline timespec original::time::duration::toTimespec() const
+{
+    return static_cast<timespec>(*this);
+}
 #endif
 
 inline original::time::duration&
@@ -1399,6 +1410,11 @@ original::time::point::toString(const bool enter) const {
 inline original::time::point::operator timespec() const
 {
     return static_cast<timespec>(this->nano_since_epoch_);
+}
+
+inline timespec original::time::point::toTimespec() const
+{
+    return static_cast<timespec>(*this);
 }
 #endif
 
@@ -1728,6 +1744,11 @@ inline original::time::UTCTime::operator point() const {
     total_seconds += this->second_;
 
     return point{total_seconds, SECOND};
+}
+
+inline original::time::point original::time::UTCTime::toPoint() const
+{
+    return static_cast<point>(*this);
 }
 
 inline original::integer
