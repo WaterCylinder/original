@@ -1726,12 +1726,12 @@ original::time::UTCTime::value(const calendar calendar) const {
 inline original::time::UTCTime::operator point() const {
     time_val_type total_days = 0;
 
-    for (integer y = EPOCH_YEAR; y < this->year_; ++y) {
-        total_days += isLeapYear(y) ? DAYS_LEAP_YEAR : DAYS_COMMON_YEAR;
+    for (integer year = EPOCH_YEAR; year < this->year_; ++year) {
+        total_days += isLeapYear(year) ? DAYS_LEAP_YEAR : DAYS_COMMON_YEAR;
     }
 
-    for (integer m = 1; m < this->month_; ++m) {
-        total_days += daysOfMonth(this->year_, m);
+    for (integer month = 1; month < this->month_; ++month) {
+        total_days += daysOfMonth(this->year_, month);
     }
 
     total_days += this->day_ - 1;
