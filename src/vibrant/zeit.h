@@ -1324,9 +1324,7 @@ original::operator*(const time::duration &d, const time::time_val_type factor) {
 
 inline original::time::duration
 original::operator*(const time::time_val_type factor, const time::duration& d) {
-    time::duration res{d};
-    res *= factor;
-    return res;
+    return d * factor;
 }
 
 inline original::time::duration
