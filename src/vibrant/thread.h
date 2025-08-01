@@ -205,7 +205,7 @@ namespace original {
          */
         [[nodiscard]] bool joinable() const override;
 
-        integer compareTo(const original::pThread &other) const override;
+        integer compareTo(const pThread &other) const override;
 
         u_integer toHash() const noexcept override;
 
@@ -382,7 +382,7 @@ namespace original {
          */
         [[nodiscard]] bool joinable() const override;
 
-        integer compareTo(const original::thread &other) const override;
+        integer compareTo(const thread &other) const override;
 
         u_integer toHash() const noexcept override;
 
@@ -431,13 +431,13 @@ void* original::threadBase<DERIVED>::threadData<Callback>::run(void* arg)
 }
 
 template <typename DERIVED>
-inline original::threadBase<DERIVED>::operator bool() const
+original::threadBase<DERIVED>::operator bool() const
 {
     return this->valid();
 }
 
 template <typename DERIVED>
-inline bool original::threadBase<DERIVED>::operator!() const
+bool original::threadBase<DERIVED>::operator!() const
 {
     return !this->valid();
 }
