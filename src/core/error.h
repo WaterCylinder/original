@@ -53,7 +53,7 @@ namespace original {
               public printable {
     #define ORIGINAL_ERROR_MSG "An error thrown"
     protected:
-        const std::string msg_;
+        mutable std::string msg_;
 
         /**
          * @brief Provides default message when no custom message is supplied.
@@ -90,7 +90,8 @@ namespace original {
          * @brief Returns the full error message.
          */
         const char* what() const noexcept override {
-            return this->message().c_str();
+            this->msg_ = this->message();
+            return this->msg_.c_str();
         }
     };
 
