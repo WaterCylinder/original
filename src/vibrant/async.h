@@ -154,12 +154,12 @@ template <typename Callback, typename... Args>
 auto original::async::get(Callback&& c, Args&&... args)
     -> std::invoke_result_t<std::decay_t<Callback>, std::decay_t<Args>...>
 {
-    using TYPE = std::invoke_result_t<std::decay_t<Callback>, std::decay_t<Args>...>;
-    using FUNC_TYPE = TYPE(Args...);
+    using TYPE = std::invoke_result_t<std::decay_t<Callback>, Args...>;
+    using FUNC_PTR = decltype(+std::declval<std::decay_t<Callback>>());
+    using FUNC_SIG = std::remove_pointer_t<FUNC_PTR>;
 
-    auto p = promise<TYPE, FUNC_TYPE>(std::forward<Callback>(c));
-    auto f = p.getFuture(std::forward<Args>(args)...);
-    return f.result();
+    auto p = promise<TYPE, FUNC_SIG>(std::forward<Callback>(c));
+    return p.getFuture(std::forward<Args>(args)...).result();
 }
 
 #endif // ORIGINAL_ASYNC_H
