@@ -60,8 +60,8 @@ namespace original {
             future<P_TYPE> getFuture(Args... args) const;
         };
 
-        template<typename TYPE, typename Callback, typename ... Args>
-        static TYPE get(Callback c, Args... args);
+        template <typename Callback, typename... Args>
+        static auto get(Callback&& c, Args&&... args) -> std::invoke_result_t<std::decay_t<Callback>, std::decay_t<Args>...>;
     };
 }
 
@@ -150,10 +150,14 @@ original::async::promise<P_TYPE, Callback>::getFuture(Args... args) const
     return future<P_TYPE>{c, std::forward<Args>(args)...};
 }
 
-template <typename TYPE, typename Callback, typename ... Args>
-TYPE original::async::get(Callback c, Args... args)
+template <typename Callback, typename... Args>
+auto original::async::get(Callback&& c, Args&&... args)
+    -> std::invoke_result_t<std::decay_t<Callback>, std::decay_t<Args>...>
 {
-    auto p = promise<TYPE, Callback>{c};
+    using TYPE = std::invoke_result_t<std::decay_t<Callback>, std::decay_t<Args>...>;
+    using FUNC_TYPE = TYPE(Args...);
+
+    auto p = promise<TYPE, FUNC_TYPE>(std::forward<Callback>(c));
     auto f = p.getFuture(std::forward<Args>(args)...);
     return f.result();
 }
