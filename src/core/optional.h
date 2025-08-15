@@ -351,7 +351,7 @@ template<typename TYPE>
 void original::alternative<TYPE>::set(const TYPE &t) {
     this->destroy();
     this->non_none_type_ = true;
-    this->val_.type_ = t;
+    new (&val_.type_) TYPE{ t };
 }
 
 template<typename TYPE>
