@@ -17,7 +17,7 @@ int main() {
     const auto f = p.getFuture();
     std::cout << f.result() << std::endl;
 
-    std::cout << original::async::get<int, int()>(simple_func) << std::endl;
-    std::cout << original::async::get<int, int(int, int)>(add_func, 1, 5) << std::endl;
+    std::cout << original::async::get(simple_func) << std::endl;
+    std::cout << original::async::get(add_func, 1, 5) << std::endl;
     return 0;
 }
