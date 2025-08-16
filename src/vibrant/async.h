@@ -28,6 +28,8 @@ namespace original {
 
             [[nodiscard]] bool available() const;
 
+            void rethrowIfException() const;
+
             void wait();
 
             TYPE get();
@@ -83,10 +85,6 @@ original::async::asyncWrapper<TYPE>::asyncWrapper(Callback c, Args... args)
             this->cond_.notify();
         }, thread::AUTO_DETACH
     };
-
-    if (this->e_) {
-        std::rethrow_exception(this->e_);
-    }
 }
 
 template <typename TYPE>
@@ -99,6 +97,14 @@ template <typename TYPE>
 bool original::async::asyncWrapper<TYPE>::available() const
 {
     return this->ready() && this->alter_.hasValue();
+}
+
+template <typename TYPE>
+void original::async::asyncWrapper<TYPE>::rethrowIfException() const
+{
+    if (this->e_) {
+        std::rethrow_exception(this->e_);
+    }
 }
 
 template <typename TYPE>
