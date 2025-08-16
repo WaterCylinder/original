@@ -65,6 +65,31 @@ namespace original {
         template <typename Callback, typename... Args>
         static auto get(Callback&& c, Args&&... args) -> std::invoke_result_t<std::decay_t<Callback>, std::decay_t<Args>...>;
     };
+
+    template<>
+    class async::asyncWrapper<void> {
+        bool ready_ = false;
+        alternative<void> alter_;
+        pCondition cond_;
+        pMutex mutex_;
+        std::exception_ptr e_;
+
+    public:
+        explicit asyncWrapper() = default;
+
+        template<typename Callback, typename... Args>
+        explicit asyncWrapper(Callback c, Args... args);
+
+        [[nodiscard]] bool ready() const;
+
+        [[nodiscard]] bool available() const;
+
+        void rethrowIfException() const;
+
+        void wait();
+
+        void get();
+    };
 }
 
 
@@ -166,6 +191,58 @@ auto original::async::get(Callback&& c, Args&&... args)
 
     auto p = promise<TYPE, FUNC_SIG>(std::forward<Callback>(c));
     return p.getFuture(std::forward<Args>(args)...).result();
+}
+
+template <typename Callback, typename ... Args>
+original::async::asyncWrapper<void>::asyncWrapper(Callback c, Args... args)
+{
+    thread t{
+        [this, c = std::move(c), ...args = std::move(args)]() mutable {
+            uniqueLock lock{this->mutex_};
+            try {
+                c(std::move(args)...);
+                this->alter_.set();
+            }
+            catch (...) {
+                this->e_ = std::current_exception();
+            }
+            this->ready_ = true;
+            this->cond_.notify();
+        }, thread::AUTO_DETACH
+    };
+}
+
+inline bool original::async::asyncWrapper<void>::ready() const
+{
+    return this->ready_;
+}
+
+inline bool original::async::asyncWrapper<void>::available() const
+{
+    return this->ready() && this->alter_.hasValue();
+}
+
+inline void original::async::asyncWrapper<void>::rethrowIfException() const
+{
+    if (this->e_) {
+        std::rethrow_exception(this->e_);
+    }
+}
+
+inline void original::async::asyncWrapper<void>::wait()
+{
+    this->cond_.wait(this->mutex_);
+}
+
+inline void original::async::asyncWrapper<void>::get()
+{
+    if (this->e_) {
+        std::rethrow_exception(this->e_);
+    }
+    if (!this->alter_.hasValue()) {
+        throw valueError("Get an unavailable void value");
+    }
+    this->alter_.reset();
 }
 
 #endif // ORIGINAL_ASYNC_H
