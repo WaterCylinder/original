@@ -4,6 +4,7 @@
 #include "condition.h"
 #include "optional.h"
 #include "thread.h"
+#include "refCntPtr.h"
 #include <exception>
 #include <functional>
 #include <utility>
@@ -38,7 +39,7 @@ namespace original {
     public:
         template<typename F_TYPE>
         class future {
-            mutable asyncWrapper<F_TYPE> awr_;
+            mutable strongPtr<asyncWrapper<F_TYPE>> awr_;
 
             friend class async;
 
@@ -149,17 +150,19 @@ TYPE original::async::asyncWrapper<TYPE>::get()
 template <typename F_TYPE>
 template <typename Callback, typename ... Args>
 original::async::future<F_TYPE>::future(Callback c, Args... args)
-    : awr_(std::move(c), std::forward<Args>(args)...) {}
+    : awr_(makeStrongPtr<asyncWrapper<F_TYPE>>(std::move(c), std::forward<Args>(args)...)) {}
 
 template <typename F_TYPE>
 F_TYPE original::async::future<F_TYPE>::result() const
 {
-    if (!this->awr_.ready()) {
-        this->awr_.wait();
+    if (!this->awr_->ready()) {
+        this->awr_->wait();
     }
 
-    if (this->awr_.available()) {
-        return this->awr_.get();
+    this->awr_->rethrowIfException();
+
+    if (this->awr_->available()) {
+        return this->awr_->get();
     }
 
     throw valueError("Get an unavailable value");
