@@ -203,6 +203,36 @@ namespace original {
          */
         ~alternative();
     };
+
+    template<>
+    class alternative<void> {
+        bool has_value_ = false;
+
+    public:
+        explicit alternative();
+
+        explicit alternative(none n);
+
+        explicit alternative(std::in_place_t t);
+
+        void set();
+
+        void reset() noexcept;
+
+        [[nodiscard]] bool hasValue() const;
+
+        explicit operator bool() const;
+
+        alternative(const alternative& other) = default;
+
+        alternative& operator=(const alternative& other) = default;
+
+        alternative(alternative&& other) noexcept = default;
+
+        alternative& operator=(alternative&& other) noexcept = default;
+
+        ~alternative() = default;
+    };
 }
 
 template<typename TYPE>
@@ -368,6 +398,32 @@ bool original::alternative<TYPE>::hasValue() const
 template<typename TYPE>
 original::alternative<TYPE>::~alternative() {
     this->destroy();
+}
+
+inline original::alternative<void>::alternative() {}
+
+inline original::alternative<void>::alternative(none) {}
+
+inline original::alternative<void>::alternative(std::in_place_t) : has_value_(true) {}
+
+inline void original::alternative<void>::set()
+{
+    this->has_value_ = true;
+}
+
+inline void original::alternative<void>::reset() noexcept
+{
+    this->has_value_ = false;
+}
+
+inline bool original::alternative<void>::hasValue() const
+{
+    return this->has_value_;
+}
+
+inline original::alternative<void>::operator bool() const
+{
+    return this->has_value_;
 }
 
 #endif //ORIGINAL_OPTIONAL_H
