@@ -251,12 +251,6 @@ inline void original::async::asyncWrapper<void>::wait()
 
 inline void original::async::asyncWrapper<void>::get()
 {
-    if (this->e_) {
-        std::rethrow_exception(this->e_);
-    }
-    if (!this->alter_.hasValue()) {
-        throw valueError("Get an unavailable void value");
-    }
     this->alter_.reset();
 }
 
