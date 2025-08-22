@@ -62,6 +62,9 @@ namespace original {
 
             template<typename... Args>
             future<P_TYPE> getFuture(Args... args) const;
+
+            template<typename... Args>
+            P_TYPE operator()(Args... args) const;
         };
 
         template <typename Callback, typename... Args>
@@ -184,6 +187,13 @@ original::async::future<P_TYPE>
 original::async::promise<P_TYPE, Callback>::getFuture(Args... args) const
 {
     return future<P_TYPE>{c, std::forward<Args>(args)...};
+}
+
+template <typename P_TYPE, typename Callback>
+template <typename ... Args>
+P_TYPE original::async::promise<P_TYPE, Callback>::operator()(Args... args) const
+{
+    return this->getFuture(std::forward<Args>(args)...).result();
 }
 
 template <typename Callback, typename... Args>
