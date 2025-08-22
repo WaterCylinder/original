@@ -142,3 +142,78 @@ TEST(AsyncTest, StressTestMultipleTasks) {
         EXPECT_EQ(futures[i].result(), i * i);
     }
 }
+
+// 测试 promise 的 operator() 方法 - 无参数版本
+TEST(AsyncTest, PromiseOperatorNoArgs) {
+    const async::promise<int, int()> p([] {
+        thread::sleep(milliseconds(50));
+        return 123;
+    });
+
+    // 直接调用 promise 对象获取结果
+    EXPECT_EQ(p(), 123);
+}
+
+// 测试 promise 的 operator() 方法 - 带参数版本
+TEST(AsyncTest, PromiseOperatorWithArgs) {
+    const async::promise<int, int(int, int)> p([](int a, int b) {
+        return a + b;
+    });
+
+    // 直接调用 promise 对象并传递参数
+    EXPECT_EQ(p(10, 32), 42);
+}
+
+// 测试 promise 的 operator() 方法 - void 返回类型
+TEST(AsyncTest, PromiseOperatorVoidReturn) {
+    bool executed = false;
+    const async::promise<void, void()> p([&executed] {
+        thread::sleep(milliseconds(30));
+        executed = true;
+    });
+
+    // 直接调用 promise 对象
+    EXPECT_NO_THROW(p());
+    EXPECT_TRUE(executed);
+}
+
+// 测试 promise 的 operator() 方法 - 异常处理
+TEST(AsyncTest, PromiseOperatorExceptionHandling) {
+    const async::promise<int, int()> p([]() -> int {
+        throw runTimeTestError("operator() boom");
+    });
+
+    // 直接调用 promise 对象应该抛出异常
+    EXPECT_THROW(p(), runTimeTestError);
+}
+
+// 测试 promise 的 operator() 方法 - 多次调用创建独立 future
+TEST(AsyncTest, PromiseOperatorMultipleCalls) {
+    int counter = 0;
+    const async::promise<int, int()> p([&counter] {
+        return ++counter;
+    });
+
+    // 每次调用 operator() 应该创建新的 future，得到独立的结果
+    EXPECT_EQ(p(), 1);
+    EXPECT_EQ(p(), 2);
+    EXPECT_EQ(p(), 3);
+}
+
+// 测试 promise 的 operator() 方法 - 异步执行验证
+TEST(AsyncTest, PromiseOperatorAsynchronous) {
+    constexpr int val = 999;
+
+    const async::promise<int, int()> p([&] {
+        thread::sleep(milliseconds(100));
+        return val;
+    });
+
+    const auto start = time::point::now();
+    const int result = p();  // 直接调用应该等待异步任务完成
+    const auto end = time::point::now();
+
+    const auto duration = end - start;
+    EXPECT_GE(duration.value(), 90);  // 至少等待了100ms（允许误差）
+    EXPECT_EQ(result, val);
+}
