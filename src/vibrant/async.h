@@ -57,7 +57,8 @@ namespace original {
         public:
             explicit promise();
 
-            explicit promise(Callback c);
+            template<typename F>
+            explicit promise(F f);
 
             template<typename... Args>
             future<P_TYPE> getFuture(Args... args) const;
@@ -173,8 +174,9 @@ original::async::promise<P_TYPE, Callback>::promise()
     : c([] {}) {}
 
 template <typename P_TYPE, typename Callback>
-original::async::promise<P_TYPE, Callback>::promise(Callback c)
-    : c(std::move(c)) {}
+template <typename F>
+original::async::promise<P_TYPE, Callback>::promise(F f)
+    : c(std::move(f)) {}
 
 template <typename P_TYPE, typename Callback>
 template <typename... Args>
