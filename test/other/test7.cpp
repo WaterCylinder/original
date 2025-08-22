@@ -26,6 +26,11 @@ int main() {
         return a + b;
     };
 
+    auto sub_func = [](const int a, const int b) {
+        original::thread::sleep(original::seconds(1));
+        return a - b;
+    };
+
     const original::async::promise<int, int()> p {simple_func};
     const auto f = p.getFuture();
     std::cout << f.result() << std::endl;
@@ -34,5 +39,8 @@ int main() {
     std::cout << original::async::get(add_func, 1, 5) << std::endl;
 
     std::cout << original::async::get(matrixAdd, original::array{1, 2, 3, 4}, original::array{2, 4, 5, 7, 12}) << std::endl;
+
+    const auto task = original::async::promise<int, int(int, int)>{sub_func};
+    std::cout << task(10, 5) << std::endl;
     return 0;
 }
