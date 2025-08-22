@@ -47,6 +47,14 @@ namespace original {
             explicit future(Callback c, Args... args);
 
         public:
+            future(const future&) = delete;
+
+            future& operator=(const future&) = delete;
+
+            future(future&&) = default;
+
+            future& operator=(future&&) = default;
+
             F_TYPE result() const;
         };
 
