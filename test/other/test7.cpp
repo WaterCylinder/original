@@ -35,6 +35,10 @@ int main() {
     const auto f = p.getFuture();
     std::cout << f.result() << std::endl;
 
+    const auto pp = original::async::makePromise(simple_func);
+    const auto ff = pp.getFuture();
+    std::cout << ff.result() << std::endl;
+
     std::cout << original::async::get(simple_func) << std::endl;
     std::cout << original::async::get(add_func, 1, 5) << std::endl;
 
