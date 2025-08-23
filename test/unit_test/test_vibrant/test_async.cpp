@@ -217,3 +217,144 @@ TEST(AsyncTest, PromiseOperatorAsynchronous) {
     EXPECT_GE(duration.value(), 90);  // 至少等待了100ms（允许误差）
     EXPECT_EQ(result, val);
 }
+
+// 测试 then 方法 - 基本链式调用
+TEST(AsyncTest, ThenBasicChaining) {
+    const async::promise<int, int()> p([] {
+        return 10;
+    });
+
+    auto f = p.getFuture();
+    auto chained = f.then([](int value) {
+        return value * 2;
+    });
+
+    EXPECT_EQ(chained.result(), 20);
+}
+
+// 测试 then 方法 - 多级链式调用
+TEST(AsyncTest, ThenMultiLevelChaining) {
+    const async::promise<int, int()> p([] {
+        return 5;
+    });
+
+    auto result = p.getFuture()
+        .then([](int x) { return x + 3; })
+        .then([](int x) { return x * 2; })
+        .then([](int x) { return x - 1; })
+        .result();
+
+    EXPECT_EQ(result, 15);  // ((5 + 3) * 2) - 1 = 15
+}
+
+// 测试 then 方法 - 异步链式调用
+TEST(AsyncTest, ThenAsynchronousChaining) {
+    const async::promise<int, int()> p([] {
+        thread::sleep(milliseconds(50));
+        return 100;
+    });
+
+    auto start = time::point::now();
+    auto result = p.getFuture()
+        .then([](int x) {
+            thread::sleep(milliseconds(50));
+            return x + 50;
+        })
+        .then([](int x) {
+            thread::sleep(milliseconds(50));
+            return x * 2;
+        })
+        .result();
+    auto end = time::point::now();
+
+    auto duration = end - start;
+    EXPECT_GE(duration.value(), 140);  // 至少等待了150ms（允许误差）
+    EXPECT_EQ(result, 300);  // (100 + 50) * 2 = 300
+}
+
+// 测试 then 方法 - 异常传播
+TEST(AsyncTest, ThenExceptionPropagation) {
+    const async::promise<int, int()> p([]() -> int {
+        throw runTimeTestError("original error");
+    });
+
+    auto f = p.getFuture();
+    auto chained = f.then([](int value) {
+        return value + 10;  // 这里不应该执行
+    });
+
+    EXPECT_THROW(chained.result(), runTimeTestError);
+}
+
+// 测试 then 方法 - void 返回类型
+TEST(AsyncTest, ThenVoidReturnType) {
+    bool executed1 = false;
+    bool executed2 = false;
+
+    const async::promise<void, void()> p([&executed1] {
+        thread::sleep(milliseconds(30));
+        executed1 = true;
+    });
+
+    auto f = p.getFuture();
+    auto chained = f.then([&executed2] {
+        executed2 = true;
+    });
+
+    EXPECT_NO_THROW(chained.result());
+    EXPECT_TRUE(executed1);
+    EXPECT_TRUE(executed2);
+}
+
+// 测试 then 方法 - 不同类型转换
+TEST(AsyncTest, ThenTypeConversion) {
+    const async::promise<int, int()> p([] {
+        return 42;
+    });
+
+    auto result = p.getFuture()
+        .then([](int x) -> std::string {
+            return "Answer: " + std::to_string(x);
+        })
+        .result();
+
+    EXPECT_EQ(result, "Answer: 42");
+}
+
+// 测试 then 方法 - 空 then 调用（void 到非 void）
+TEST(AsyncTest, ThenVoidToNonVoid) {
+    const async::promise<void, void()> p([] {
+        thread::sleep(milliseconds(20));
+    });
+
+    auto result = p.getFuture()
+        .then([] {
+            return "completed";
+        })
+        .result();
+
+    EXPECT_EQ(result, "completed");
+}
+
+// 测试 then 方法 - 非 void 到 void
+TEST(AsyncTest, ThenNonVoidToVoid) {
+    const async::promise<int, int()> p([] {
+        return 123;
+    });
+
+    bool callback_executed = false;
+
+    const auto test_func = [p, &callback_executed]
+    {
+        p.getFuture()
+        .then([&callback_executed](int value) {
+            callback_executed = true;
+            EXPECT_EQ(value, 123);
+        })
+        .result();
+    };
+
+    EXPECT_NO_THROW(test_func());
+
+    EXPECT_TRUE(callback_executed);
+}
