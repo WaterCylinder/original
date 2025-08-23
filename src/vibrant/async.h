@@ -5,6 +5,7 @@
 #include "optional.h"
 #include "thread.h"
 #include "refCntPtr.h"
+#include "types.h"
 #include <exception>
 #include <functional>
 #include <utility>
@@ -87,6 +88,9 @@ namespace original {
             template<typename... Args>
             P_TYPE operator()(Args... args) const;
         };
+
+        template<typename Callback>
+        static auto makePromise(Callback c);
 
         template <typename Callback, typename... Args>
         static auto get(Callback&& c, Args&&... args) -> std::invoke_result_t<std::decay_t<Callback>, std::decay_t<Args>...>;
@@ -302,6 +306,15 @@ template <typename ... Args>
 P_TYPE original::async::promise<P_TYPE, Callback>::operator()(Args... args) const
 {
     return this->getFuture(std::forward<Args>(args)...).result();
+}
+
+template <typename Callback>
+auto original::async::makePromise(Callback c)
+{
+    using Traits = functionTraits<std::decay_t<Callback>>;
+    using Return = Traits::ReturnType;
+    using Sig = Traits::Signature;
+    return promise<Return, Sig>(std::forward<Callback>(c));
 }
 
 template <typename Callback, typename... Args>
