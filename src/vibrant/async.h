@@ -46,7 +46,17 @@ namespace original {
             template<typename Callback, typename... Args>
             explicit future(Callback c, Args... args);
 
+            template<typename ParentReturn, typename Callback>
+            explicit future(strongPtr<asyncWrapper<ParentReturn>>& parent, Callback&& next);
+
+            bool ready() const;
+
+            void wait() const;
+
+            void rethrowIfException() const;
         public:
+            using ReturnType = F_TYPE;
+
             future(const future&) = delete;
 
             future& operator=(const future&) = delete;
@@ -56,6 +66,9 @@ namespace original {
             future& operator=(future&&) = default;
 
             F_TYPE result() const;
+
+            template <typename Callback>
+            auto then(Callback&& next);
         };
 
         template<typename P_TYPE, typename Callback>
@@ -102,6 +115,38 @@ namespace original {
         void wait();
 
         void get();
+    };
+
+    template<>
+    class async::future<void> {
+        mutable strongPtr<asyncWrapper<void>> awr_;
+
+        friend class async;
+
+        template<typename Callback, typename... Args>
+        explicit future(Callback c, Args... args);
+
+        template<typename ParentType, typename Callback>
+        explicit future(strongPtr<asyncWrapper<ParentType>>& parent, Callback&& next);
+
+        bool ready() const;
+
+        void wait() const;
+
+        void rethrowIfException() const;
+    public:
+        future(const future&) = delete;
+
+        future& operator=(const future&) = delete;
+
+        future(future&&) = default;
+
+        future& operator=(future&&) = default;
+
+        void result() const;
+
+        template <typename Callback>
+        auto then(Callback&& next);
     };
 }
 
@@ -165,6 +210,53 @@ original::async::future<F_TYPE>::future(Callback c, Args... args)
     : awr_(makeStrongPtr<asyncWrapper<F_TYPE>>(std::move(c), std::forward<Args>(args)...)) {}
 
 template <typename F_TYPE>
+template<typename ParentReturn, typename Callback>
+original::async::future<F_TYPE>::future(strongPtr<asyncWrapper<ParentReturn>>& parent, Callback&& next) {
+    this->awr_ = makeStrongPtr<asyncWrapper<F_TYPE>>(
+        [parent, next = std::forward<Callback>(next)]() mutable -> F_TYPE {
+            if (!parent->ready()) {
+                parent->wait();
+            }
+            parent->rethrowIfException();
+
+            if constexpr (!std::is_void_v<ParentReturn>) {
+                if (parent->available()) {
+                    auto v = parent->get();
+                    return next(std::move(v));
+                }
+                throw valueError("Original value not available");
+            } else {
+                parent->get();
+                if constexpr (std::is_void_v<F_TYPE>) {
+                    next();
+                    return;
+                } else {
+                    return next();
+                }
+            }
+        }
+    );
+}
+
+template <typename F_TYPE>
+bool original::async::future<F_TYPE>::ready() const
+{
+    return this->awr_->ready();
+}
+
+template <typename F_TYPE>
+void original::async::future<F_TYPE>::wait() const
+{
+    this->awr_->wait();
+}
+
+template <typename F_TYPE>
+void original::async::future<F_TYPE>::rethrowIfException() const
+{
+    this->awr_->rethrowIfException();
+}
+
+template <typename F_TYPE>
 F_TYPE original::async::future<F_TYPE>::result() const
 {
     if (!this->awr_->ready()) {
@@ -178,6 +270,14 @@ F_TYPE original::async::future<F_TYPE>::result() const
     }
 
     throw valueError("Get an unavailable value");
+}
+
+template <typename F_TYPE>
+template <typename Callback>
+auto original::async::future<F_TYPE>::then(Callback&& next)
+{
+    using RETURN = std::invoke_result_t<Callback, F_TYPE>;
+    return future<RETURN>(this->awr_, std::forward<Callback>(next));
 }
 
 template <typename P_TYPE, typename Callback>
@@ -208,11 +308,9 @@ template <typename Callback, typename... Args>
 auto original::async::get(Callback&& c, Args&&... args)
     -> std::invoke_result_t<std::decay_t<Callback>, std::decay_t<Args>...>
 {
-    using TYPE = std::invoke_result_t<std::decay_t<Callback>, Args...>;
-    using FUNC_PTR = decltype(+std::declval<std::decay_t<Callback>>());
-    using FUNC_SIG = std::remove_pointer_t<FUNC_PTR>;
+    using ResultType = std::invoke_result_t<std::decay_t<Callback>, std::decay_t<Args>...>;
 
-    auto p = promise<TYPE, FUNC_SIG>(std::forward<Callback>(c));
+    auto p = promise<ResultType, ResultType(Args...)>{std::forward<Callback>(c)};
     return p.getFuture(std::forward<Args>(args)...).result();
 }
 
@@ -260,6 +358,78 @@ inline void original::async::asyncWrapper<void>::wait()
 inline void original::async::asyncWrapper<void>::get()
 {
     this->alter_.reset();
+}
+
+template <typename Callback, typename ... Args>
+original::async::future<void>::future(Callback c, Args... args)
+    : awr_(makeStrongPtr<asyncWrapper<void>>(std::move(c), std::forward<Args>(args)...)) {}
+
+template<typename ParentType, typename Callback>
+original::async::future<void>::future(strongPtr<asyncWrapper<ParentType>>& parent, Callback&& next)
+{
+    this->awr_ = makeStrongPtr<asyncWrapper<void>>(
+        [parent, next = std::forward<Callback>(next)]() mutable {
+            if constexpr (!std::is_void_v<ParentType>) {
+                if (!parent->ready()) {
+                    parent->wait();
+                }
+                parent->rethrowIfException();
+
+                if (parent->available()) {
+                    auto v = parent->get();
+                    next(std::move(v));
+                } else {
+                    throw valueError("Parent future returned no value");
+                }
+            } else {
+                if (!parent->ready()) {
+                    parent->wait();
+                }
+                parent->rethrowIfException();
+                parent->get();
+
+                next();
+            }
+        }
+    );
+}
+
+inline bool original::async::future<void>::ready() const
+{
+    return this->awr_->ready();
+}
+
+inline void original::async::future<void>::wait() const
+{
+    this->awr_->wait();
+}
+
+inline void original::async::future<void>::rethrowIfException() const
+{
+    this->awr_->rethrowIfException();
+}
+
+inline void original::async::future<void>::result() const
+{
+    if (!this->awr_->ready()) {
+        this->awr_->wait();
+    }
+
+    this->awr_->rethrowIfException();
+
+    if (this->awr_->available()) {
+        this->awr_->get();
+        return;
+    }
+
+    throw valueError("Not available");
+}
+
+template <typename Callback>
+auto original::async::future<void>::then(Callback&& next)
+{
+    using RETURN = std::invoke_result_t<Callback>;
+    return future<RETURN>(this->awr_, std::forward<Callback>(next));
 }
 
 #endif // ORIGINAL_ASYNC_H
