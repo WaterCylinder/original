@@ -278,6 +278,42 @@ namespace original {
     reverseIndexSequenceImpl(makeSequence<N>())
     );
 
+    template <typename Callback>
+    struct functionTraits;
+
+    template <typename R, typename... Args>
+    struct functionTraits<R(*)(Args...)> {
+        using ReturnType = R;
+        using Signature = R(Args...);
+    };
+
+    template <typename R, typename... Args>
+    struct functionTraits<R(Args...)> {
+        using ReturnType = R;
+        using Signature = R(Args...);
+    };
+
+    template <typename C>
+    struct functionTraits {
+    private:
+        using CallType = functionTraits<decltype(&C::operator())>;
+    public:
+        using ReturnType = CallType::ReturnType;
+        using Signature  = CallType::Signature;
+    };
+
+    template <typename C, typename R, typename... Args>
+    struct functionTraits<R(C::*)(Args...) const> {
+        using ReturnType = R;
+        using Signature  = R(Args...);
+    };
+
+    template <typename C, typename R, typename... Args>
+    struct functionTraits<R(C::*)(Args...)> {
+        using ReturnType = R;
+        using Signature  = R(Args...);
+    };
+
 } // namespace original
 
 consteval original::none::operator bool() const {
