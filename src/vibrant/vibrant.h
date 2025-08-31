@@ -2,6 +2,7 @@
 #define VIBRANT_H
 
 #include "async.h"
+#include "atomic.h"
 #include "condition.h"
 #include "mutex.h"
 #include "thread.h"
