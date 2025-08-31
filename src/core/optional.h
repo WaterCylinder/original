@@ -400,7 +400,7 @@ original::alternative<TYPE>::~alternative() {
     this->destroy();
 }
 
-inline original::alternative<void>::alternative() {}
+inline original::alternative<void>::alternative() = default;
 
 inline original::alternative<void>::alternative(none) {}
 
