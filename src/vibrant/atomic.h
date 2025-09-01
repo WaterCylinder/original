@@ -102,7 +102,7 @@ original::atomicImpl<TYPE, false>::atomicImpl() {
 
 template <typename TYPE>
 original::atomicImpl<TYPE, false>::atomicImpl(TYPE value, memOrder order) {
-    __atomic_store(reinterpret_cast<TYPE*>(this->data_), &value, static_cast<int>(order));
+    __atomic_store(reinterpret_cast<TYPE*>(this->data_), &value, static_cast<integer>(order));
 }
 
 template <typename TYPE>
@@ -112,13 +112,13 @@ constexpr bool original::atomicImpl<TYPE, false>::isLockFree() noexcept {
 
 template <typename TYPE>
 void original::atomicImpl<TYPE, false>::store(TYPE value, memOrder order) {
-    __atomic_store(reinterpret_cast<TYPE*>(this->data_), &value, static_cast<int>(order));
+    __atomic_store(reinterpret_cast<TYPE*>(this->data_), &value, static_cast<integer>(order));
 }
 
 template <typename TYPE>
 TYPE original::atomicImpl<TYPE, false>::load(memOrder order) const noexcept {
     TYPE result;
-    __atomic_load(reinterpret_cast<const TYPE*>(this->data_), &result, static_cast<int>(order));
+    __atomic_load(reinterpret_cast<const TYPE*>(this->data_), &result, static_cast<integer>(order));
     return result;
 }
 
@@ -126,7 +126,7 @@ template <typename TYPE>
 TYPE original::atomicImpl<TYPE, false>::exchange(TYPE value, memOrder order) noexcept {
     TYPE result;
     __atomic_exchange(reinterpret_cast<TYPE*>(this->data_), &value,
-                      &result, static_cast<int>(order));
+                      &result, static_cast<integer>(order));
     return result;
 }
 
