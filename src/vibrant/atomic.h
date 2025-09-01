@@ -42,6 +42,7 @@ namespace original {
         TYPE load(memOrder order = ACQUIRE) const noexcept;
 
         TYPE exchange(const TYPE& value, memOrder order = ACQ_REL) noexcept;
+        bool exchangeCmp(TYPE& expected, const TYPE& desired, memOrder order = SEQ_CST) noexcept;
 
         ~atomicImpl() = default;
 
@@ -74,6 +75,7 @@ namespace original {
         TYPE load(memOrder = ACQUIRE) const noexcept;
 
         TYPE exchange(const TYPE& value, memOrder = ACQ_REL) noexcept;
+        bool exchangeCmp(TYPE& expected, const TYPE& desired, memOrder order = SEQ_CST) noexcept;
 
         ~atomicImpl() = default;
 
@@ -127,6 +129,14 @@ TYPE original::atomicImpl<TYPE, false>::exchange(const TYPE& value, memOrder ord
 }
 
 template <typename TYPE>
+bool original::atomicImpl<TYPE, false>::exchangeCmp(TYPE& expected, const TYPE& desired, memOrder order) noexcept
+{
+    return __atomic_compare_exchange_n(reinterpret_cast<TYPE*>(this->data_),
+                                       &expected, desired, false,
+                     static_cast<integer>(order), static_cast<integer>(order));
+}
+
+template <typename TYPE>
 original::atomicImpl<TYPE, true>::atomicImpl(TYPE value, memOrder) {
     uniqueLock lock{this->mutex_};
     this->data_.set(value);
@@ -158,6 +168,17 @@ TYPE original::atomicImpl<TYPE, true>::exchange(const TYPE& value, memOrder) noe
 }
 
 template <typename TYPE>
+bool original::atomicImpl<TYPE, true>::exchangeCmp(TYPE& expected, const TYPE& desired, memOrder) noexcept {
+    uniqueLock lock{this->mutex_};
+    if (*this->data_ == expected) {
+        this->data_.set(desired);
+        return true;
+    }
+    expected = *this->data_;
+    return false;
+}
+
+template<typename TYPE>
 auto original::atomic()
 {
     return atomicImpl<
