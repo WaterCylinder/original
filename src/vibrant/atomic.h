@@ -41,9 +41,9 @@ namespace original {
 
         TYPE load(memOrder order = SEQ_CST) const noexcept;
 
-        TYPE exchange(const TYPE& value, memOrder order = SEQ_CST) noexcept;
+        TYPE exchange(TYPE value, memOrder order = SEQ_CST) noexcept;
 
-        bool exchangeCmp(TYPE& expected, const TYPE& desired, memOrder order = SEQ_CST) noexcept;
+        bool exchangeCmp(TYPE& expected, TYPE desired, memOrder order = SEQ_CST) noexcept;
 
         ~atomicImpl() = default;
 
@@ -123,18 +123,18 @@ TYPE original::atomicImpl<TYPE, false>::load(memOrder order) const noexcept {
 }
 
 template <typename TYPE>
-TYPE original::atomicImpl<TYPE, false>::exchange(const TYPE& value, memOrder order) noexcept {
+TYPE original::atomicImpl<TYPE, false>::exchange(TYPE value, memOrder order) noexcept {
     TYPE result;
-    __atomic_exchange(reinterpret_cast<TYPE*>(this->data_), const_cast<TYPE*>(&value),
+    __atomic_exchange(reinterpret_cast<TYPE*>(this->data_), &value,
                       &result, static_cast<int>(order));
     return result;
 }
 
 template <typename TYPE>
-bool original::atomicImpl<TYPE, false>::exchangeCmp(TYPE& expected, const TYPE& desired, memOrder order) noexcept
+bool original::atomicImpl<TYPE, false>::exchangeCmp(TYPE& expected, TYPE desired, memOrder order) noexcept
 {
     return __atomic_compare_exchange_n(reinterpret_cast<TYPE*>(this->data_),
-                                       &expected, desired, false,
+                                       &expected, std::move(desired), false,
                      static_cast<integer>(order), static_cast<integer>(order));
 }
 
