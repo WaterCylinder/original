@@ -146,7 +146,7 @@ original::atomicImpl<TYPE, true>::atomicImpl(TYPE value, memOrder) {
 
 template <typename TYPE>
 constexpr bool original::atomicImpl<TYPE, true>::isLockFree() noexcept {
-    return true;
+    return false;
 }
 
 template <typename TYPE>
