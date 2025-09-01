@@ -44,6 +44,12 @@ namespace original {
         TYPE exchange(const TYPE& value, memOrder order = ACQ_REL) noexcept;
 
         ~atomicImpl() = default;
+
+        template<typename T>
+        friend auto atomic();
+
+        template<typename T>
+        friend auto atomic(T value);
     };
 
     template<typename TYPE>
@@ -70,6 +76,12 @@ namespace original {
         TYPE exchange(const TYPE& value, memOrder = ACQ_REL) noexcept;
 
         ~atomicImpl() = default;
+
+        template<typename T>
+        friend auto atomic();
+
+        template<typename T>
+        friend auto atomic(T value);
     };
 
     template<typename TYPE>
@@ -156,7 +168,7 @@ auto original::atomic()
     >{};
 }
 
-template <typename TYPE>
+template<typename TYPE>
 auto original::atomic(TYPE value)
 {
     return atomicImpl<
