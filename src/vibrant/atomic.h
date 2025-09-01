@@ -25,16 +25,15 @@ namespace original {
     class atomicImpl<TYPE, false> {
         alignas(TYPE) byte data_[sizeof(TYPE)];
 
+        atomicImpl();
+
+        explicit atomicImpl(TYPE value, memOrder order = SEQ_CST);
     public:
         static constexpr auto RELAXED = memOrder::RELAXED;
         static constexpr auto ACQUIRE = memOrder::ACQUIRE;
         static constexpr auto RELEASE = memOrder::RELEASE;
         static constexpr auto ACQ_REL = memOrder::ACQ_REL;
         static constexpr auto SEQ_CST = memOrder::SEQ_CST;
-
-        atomicImpl();
-
-        explicit atomicImpl(TYPE value, memOrder order = RELEASE);
 
         static constexpr bool isLockFree() noexcept;
 
@@ -52,16 +51,15 @@ namespace original {
         mutable pMutex mutex_;
         alternative<TYPE> data_;
 
+        atomicImpl() = default;
+
+        explicit atomicImpl(TYPE value, memOrder = RELEASE);
     public:
         static constexpr auto RELAXED = memOrder::RELAXED;
         static constexpr auto ACQUIRE = memOrder::ACQUIRE;
         static constexpr auto RELEASE = memOrder::RELEASE;
         static constexpr auto ACQ_REL = memOrder::ACQ_REL;
         static constexpr auto SEQ_CST = memOrder::SEQ_CST;
-
-        atomicImpl() = default;
-
-        explicit atomicImpl(TYPE value, memOrder = RELEASE);
 
         static constexpr bool isLockFree() noexcept;
 
