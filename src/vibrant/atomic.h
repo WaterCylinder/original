@@ -23,7 +23,7 @@ namespace original {
 
     template<typename TYPE>
     class atomicImpl<TYPE, false> {
-        alignas(TYPE) unsigned char data_[sizeof(TYPE)];
+        alignas(TYPE) byte data_[sizeof(TYPE)];
 
     public:
         static constexpr auto RELAXED = memOrder::RELAXED;
@@ -83,7 +83,7 @@ namespace original {
 
 template <typename TYPE>
 original::atomicImpl<TYPE, false>::atomicImpl() {
-    std::memset(this->data_, 0, sizeof(TYPE));
+    std::memset(this->data_, byte{}, sizeof(TYPE));
 }
 
 template <typename TYPE>
