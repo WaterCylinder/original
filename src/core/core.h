@@ -82,6 +82,7 @@
 #include "serial.h"
 #include "set.h"
 #include "singleDirectionIterator.h"
+#include "singleton.h"
 #include "skipList.h"
 #include "stack.h"
 #include "stepIterator.h"
