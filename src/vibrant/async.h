@@ -38,8 +38,16 @@ namespace original {
         };
 
     public:
+        class futureBase {
+        public:
+            virtual ~futureBase() = default;
+            [[nodiscard]] virtual bool ready() const = 0;
+            virtual void wait() const = 0;
+            virtual void rethrowIfException() const = 0;
+        };
+
         template<typename F_TYPE>
-        class future {
+        class future final : futureBase {
             mutable strongPtr<asyncWrapper<F_TYPE>> awr_;
 
             friend class async;
@@ -50,11 +58,11 @@ namespace original {
             template<typename ParentReturn, typename Callback>
             explicit future(strongPtr<asyncWrapper<ParentReturn>>& parent, Callback&& next);
 
-            bool ready() const;
+            bool ready() const override;
 
-            void wait() const;
+            void wait() const override;
 
-            void rethrowIfException() const;
+            void rethrowIfException() const override;
         public:
             using ReturnType = F_TYPE;
 
