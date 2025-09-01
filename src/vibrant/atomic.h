@@ -37,11 +37,12 @@ namespace original {
 
         static constexpr bool isLockFree() noexcept;
 
-        void store(TYPE value, memOrder order = RELEASE);
+        void store(TYPE value, memOrder order = SEQ_CST);
 
-        TYPE load(memOrder order = ACQUIRE) const noexcept;
+        TYPE load(memOrder order = SEQ_CST) const noexcept;
 
-        TYPE exchange(const TYPE& value, memOrder order = ACQ_REL) noexcept;
+        TYPE exchange(const TYPE& value, memOrder order = SEQ_CST) noexcept;
+
         bool exchangeCmp(TYPE& expected, const TYPE& desired, memOrder order = SEQ_CST) noexcept;
 
         ~atomicImpl() = default;
@@ -70,11 +71,12 @@ namespace original {
 
         static constexpr bool isLockFree() noexcept;
 
-        void store(TYPE value, memOrder = RELEASE);
+        void store(TYPE value, memOrder = SEQ_CST);
 
-        TYPE load(memOrder = ACQUIRE) const noexcept;
+        TYPE load(memOrder = SEQ_CST) const noexcept;
 
-        TYPE exchange(const TYPE& value, memOrder = ACQ_REL) noexcept;
+        TYPE exchange(const TYPE& value, memOrder = SEQ_CST) noexcept;
+
         bool exchangeCmp(TYPE& expected, const TYPE& desired, memOrder order = SEQ_CST) noexcept;
 
         ~atomicImpl() = default;
