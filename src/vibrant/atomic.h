@@ -56,10 +56,10 @@ namespace original {
         ~atomicImpl() = default;
 
         template<typename T>
-        friend auto atomic();
+        friend auto makeAtomic();
 
         template<typename T>
-        friend auto atomic(T value);
+        friend auto makeAtomic(T value);
     };
 
     template<typename TYPE>
@@ -90,17 +90,17 @@ namespace original {
         ~atomicImpl() = default;
 
         template<typename T>
-        friend auto atomic();
+        friend auto makeAtomic();
 
         template<typename T>
-        friend auto atomic(T value);
+        friend auto makeAtomic(T value);
     };
 
     template<typename TYPE>
-    auto atomic();
+    auto makeAtomic();
 
     template<typename TYPE>
-    auto atomic(TYPE value);
+    auto makeAtomic(TYPE value);
 }
 
 template <typename TYPE>
@@ -189,7 +189,7 @@ bool original::atomicImpl<TYPE, true>::exchangeCmp(TYPE& expected, const TYPE& d
 }
 
 template<typename TYPE>
-auto original::atomic()
+auto original::makeAtomic()
 {
     return atomicImpl<
         TYPE,
@@ -200,7 +200,7 @@ auto original::atomic()
 }
 
 template<typename TYPE>
-auto original::atomic(TYPE value)
+auto original::makeAtomic(TYPE value)
 {
     return atomicImpl<
         TYPE,
