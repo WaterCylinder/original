@@ -7,14 +7,14 @@ using namespace original;
 
 // ========== 基础测试 ==========
 TEST(AtomicTest, IsLockFreeTest) {
-    auto a = atomic(0);
-    auto b = atomic(std::string{});
+    auto a = makeAtomic(0);
+    auto b = makeAtomic(std::string{});
     EXPECT_TRUE(a.isLockFree());
     EXPECT_FALSE(b.isLockFree());
 }
 
 TEST(AtomicTest, StoreAndLoadInt) {
-    auto a = atomic(0);
+    auto a = makeAtomic(0);
     EXPECT_EQ(a.load(), 0);
 
     a.store(42);
@@ -22,14 +22,14 @@ TEST(AtomicTest, StoreAndLoadInt) {
 }
 
 TEST(AtomicTest, ExchangeInt) {
-    auto a = atomic(1);
+    auto a = makeAtomic(1);
     const int old = a.exchange(99);
     EXPECT_EQ(old, 1);
     EXPECT_EQ(a.load(), 99);
 }
 
 TEST(AtomicTest, StoreAndLoadBool) {
-    auto a = atomic(false);
+    auto a = makeAtomic(false);
     EXPECT_FALSE(a.load());
 
     a.store(true);
@@ -38,7 +38,7 @@ TEST(AtomicTest, StoreAndLoadBool) {
 
 // ========== CAS 测试 ==========
 TEST(AtomicTest, CompareExchangeInt_Success) {
-    auto a = atomic(10);
+    auto a = makeAtomic(10);
     int expected = 10;
     constexpr int desired = 20;
     EXPECT_TRUE(a.exchangeCmp(expected, desired));
@@ -47,7 +47,7 @@ TEST(AtomicTest, CompareExchangeInt_Success) {
 }
 
 TEST(AtomicTest, CompareExchangeInt_Fail) {
-    auto a = atomic(10);
+    auto a = makeAtomic(10);
     int expected = 5; // 错误预期
     constexpr int desired = 20;
     EXPECT_FALSE(a.exchangeCmp(expected, desired));
@@ -57,7 +57,7 @@ TEST(AtomicTest, CompareExchangeInt_Fail) {
 
 // ========== 非平凡类型测试（走锁模式） ==========
 TEST(AtomicTest, StoreAndLoadString) {
-    auto a = atomic(std::string("hello"));
+    auto a = makeAtomic(std::string("hello"));
     EXPECT_EQ(a.load(), "hello");
 
     a.store(std::string("world"));
@@ -65,14 +65,14 @@ TEST(AtomicTest, StoreAndLoadString) {
 }
 
 TEST(AtomicTest, ExchangeString) {
-    auto a = atomic(std::string("first"));
+    auto a = makeAtomic(std::string("first"));
     const auto old = a.exchange(std::string("second"));
     EXPECT_EQ(old, "first");
     EXPECT_EQ(a.load(), "second");
 }
 
 TEST(AtomicTest, CompareExchangeString_Success) {
-    auto a = atomic(std::string("apple"));
+    auto a = makeAtomic(std::string("apple"));
     std::string expected = "apple";
     const std::string desired = "banana";
     EXPECT_TRUE(a.exchangeCmp(expected, desired));
@@ -81,7 +81,7 @@ TEST(AtomicTest, CompareExchangeString_Success) {
 }
 
 TEST(AtomicTest, CompareExchangeString_Fail) {
-    auto a = atomic(std::string("apple"));
+    auto a = makeAtomic(std::string("apple"));
     std::string expected = "orange";
     const std::string desired = "banana";
     EXPECT_FALSE(a.exchangeCmp(expected, desired));
@@ -91,7 +91,7 @@ TEST(AtomicTest, CompareExchangeString_Fail) {
 
 // ========== 多线程并发测试（CAS 保证正确性） ==========
 TEST(AtomicTest, ConcurrentIncrementCAS) {
-    auto counter = atomic(0);
+    auto counter = makeAtomic(0);
 
     auto task = [&counter] {
         for (int i = 0; i < 1000; ++i) {
