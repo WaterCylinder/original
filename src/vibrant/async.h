@@ -131,7 +131,7 @@ namespace original {
     };
 
     template<>
-    class async::future<void> {
+    class async::future<void> final : futureBase {
         mutable strongPtr<asyncWrapper<void>> awr_;
 
         friend class async;
@@ -142,11 +142,11 @@ namespace original {
         template<typename ParentType, typename Callback>
         explicit future(strongPtr<asyncWrapper<ParentType>>& parent, Callback&& next);
 
-        bool ready() const;
+        bool ready() const override;
 
-        void wait() const;
+        void wait() const override;
 
-        void rethrowIfException() const;
+        void rethrowIfException() const override;
     public:
         future(const future&) = delete;
 
