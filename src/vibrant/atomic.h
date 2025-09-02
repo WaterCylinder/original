@@ -191,23 +191,13 @@ bool original::atomicImpl<TYPE, true>::exchangeCmp(TYPE& expected, const TYPE& d
 template<typename TYPE>
 auto original::makeAtomic()
 {
-    return atomicImpl<
-        TYPE,
-        !( std::is_trivially_copyable_v<TYPE> &&
-           std::is_trivially_destructible_v<TYPE> &&
-           __atomic_always_lock_free(sizeof(TYPE), nullptr) )
-    >{};
+    return atomic<TYPE>{};
 }
 
 template<typename TYPE>
 auto original::makeAtomic(TYPE value)
 {
-    return atomicImpl<
-        TYPE,
-        !( std::is_trivially_copyable_v<TYPE> &&
-           std::is_trivially_destructible_v<TYPE> &&
-           __atomic_always_lock_free(sizeof(TYPE), nullptr) )
-    >{std::move(value)};
+    return atomic<TYPE>{std::move(value)};
 }
 #endif
 #endif
