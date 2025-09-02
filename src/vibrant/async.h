@@ -25,7 +25,7 @@ namespace original {
             explicit asyncWrapper() = default;
 
             template<typename Callback, typename... Args>
-            explicit asyncWrapper(Callback c, Args... args);
+            explicit asyncWrapper(Callback&& c, Args&&... args);
 
             [[nodiscard]] bool ready() const;
 
@@ -54,7 +54,7 @@ namespace original {
             friend class async;
 
             template<typename Callback, typename... Args>
-            explicit future(Callback c, Args... args);
+            explicit future(Callback&& c, Args&&... args);
 
             template<typename ParentReturn, typename Callback>
             explicit future(strongPtr<asyncWrapper<ParentReturn>>& parent, Callback&& next);
@@ -92,14 +92,14 @@ namespace original {
             explicit promise(F f);
 
             template<typename... Args>
-            future<P_TYPE> getFuture(Args... args) const;
+            future<P_TYPE> getFuture(Args&&... args) const;
 
             template<typename... Args>
-            P_TYPE operator()(Args... args) const;
+            P_TYPE operator()(Args&&... args) const;
         };
 
         template<typename Callback>
-        static auto makePromise(Callback c);
+        static auto makePromise(Callback&& c);
 
         template <typename Callback, typename... Args>
         static auto get(Callback&& c, Args&&... args) -> std::invoke_result_t<std::decay_t<Callback>, std::decay_t<Args>...>;
@@ -117,7 +117,7 @@ namespace original {
         explicit asyncWrapper();
 
         template<typename Callback, typename... Args>
-        explicit asyncWrapper(Callback c, Args... args);
+        explicit asyncWrapper(Callback&& c, Args&&... args);
 
         [[nodiscard]] bool ready() const;
 
@@ -169,17 +169,21 @@ template <typename Callback, typename ... Args>
 original::async::asyncWrapper<TYPE>::asyncWrapper(Callback&& c, Args&&... args) : ready_(makeAtomic(false))
 {
     thread t{
-        [this, c = std::move(c), ...args = std::move(args)]() mutable {
+        [this, c = std::forward<Callback>(c), ...args = std::forward<Args>(args)]() mutable
+        {
             uniqueLock lock{this->mutex_};
-            try {
-                this->alter_.set(c(std::move(args)...));
+            try
+            {
+                this->alter_.set(c(std::forward<Args>(args)...));
             }
-            catch (...) {
+            catch (...)
+            {
                 this->e_ = std::current_exception();
             }
             this->ready_.store(true);
             this->cond_.notify();
-        }, thread::AUTO_DETACH
+        },
+        thread::AUTO_DETACH
     };
 }
 
@@ -219,8 +223,8 @@ TYPE original::async::asyncWrapper<TYPE>::get()
 
 template <typename F_TYPE>
 template <typename Callback, typename ... Args>
-original::async::future<F_TYPE>::future(Callback c, Args... args)
-    : awr_(makeStrongPtr<asyncWrapper<F_TYPE>>(std::move(c), std::forward<Args>(args)...)) {}
+original::async::future<F_TYPE>::future(Callback&& c, Args&&... args)
+    : awr_(makeStrongPtr<asyncWrapper<F_TYPE>>(std::forward<Callback>(c), std::forward<Args>(args)...)) {}
 
 template <typename F_TYPE>
 template<typename ParentReturn, typename Callback>
@@ -305,20 +309,20 @@ original::async::promise<P_TYPE, Callback>::promise(F f)
 template <typename P_TYPE, typename Callback>
 template <typename... Args>
 original::async::future<P_TYPE>
-original::async::promise<P_TYPE, Callback>::getFuture(Args... args) const
+original::async::promise<P_TYPE, Callback>::getFuture(Args&&... args) const
 {
     return future<P_TYPE>{c, std::forward<Args>(args)...};
 }
 
 template <typename P_TYPE, typename Callback>
 template <typename ... Args>
-P_TYPE original::async::promise<P_TYPE, Callback>::operator()(Args... args) const
+P_TYPE original::async::promise<P_TYPE, Callback>::operator()(Args&&... args) const
 {
     return this->getFuture(std::forward<Args>(args)...).result();
 }
 
 template <typename Callback>
-auto original::async::makePromise(Callback c)
+auto original::async::makePromise(Callback&& c)
 {
     using Traits = functionTraits<std::decay_t<Callback>>;
     using Return = Traits::ReturnType;
@@ -343,18 +347,22 @@ template <typename Callback, typename ... Args>
 original::async::asyncWrapper<void>::asyncWrapper(Callback&& c, Args&&... args) : ready_(makeAtomic(false))
 {
     thread t{
-        [this, c = std::move(c), ...args = std::move(args)]() mutable {
+        [this, c = std::forward<Callback>(c), ...args = std::forward<Args>(args)]() mutable
+        {
             uniqueLock lock{this->mutex_};
-            try {
-                c(std::move(args)...);
+            try
+            {
+                c(std::forward<Args>(args)...);
                 this->alter_.set();
             }
-            catch (...) {
+            catch (...)
+            {
                 this->e_ = std::current_exception();
             }
             this->ready_.store(true);
             this->cond_.notify();
-        }, thread::AUTO_DETACH
+        },
+        thread::AUTO_DETACH
     };
 }
 
