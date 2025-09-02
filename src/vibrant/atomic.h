@@ -22,6 +22,14 @@ namespace original {
     class atomicImpl;
 
     template<typename TYPE>
+    using atomic = atomicImpl<
+        TYPE,
+        !( std::is_trivially_copyable_v<TYPE> &&
+           std::is_trivially_destructible_v<TYPE> &&
+           __atomic_always_lock_free(sizeof(TYPE), nullptr) )
+    >;
+
+    template<typename TYPE>
     class atomicImpl<TYPE, false> {
         alignas(TYPE) byte data_[sizeof(TYPE)];
 
