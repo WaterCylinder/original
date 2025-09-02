@@ -1,6 +1,7 @@
 #ifndef ORIGINAL_ASYNC_H
 #define ORIGINAL_ASYNC_H
 
+#include "atomic.h"
 #include "condition.h"
 #include "optional.h"
 #include "thread.h"
@@ -14,7 +15,7 @@ namespace original {
     class async {
         template<typename TYPE>
         class asyncWrapper {
-            bool ready_ = false;
+            atomic<bool> ready_;
             alternative<TYPE> alter_;
             pCondition cond_;
             pMutex mutex_;
@@ -106,14 +107,14 @@ namespace original {
 
     template<>
     class async::asyncWrapper<void> {
-        bool ready_ = false;
+        atomic<bool> ready_;
         alternative<void> alter_;
         pCondition cond_;
         pMutex mutex_;
         std::exception_ptr e_;
 
     public:
-        explicit asyncWrapper() = default;
+        explicit asyncWrapper();
 
         template<typename Callback, typename... Args>
         explicit asyncWrapper(Callback c, Args... args);
@@ -165,7 +166,7 @@ namespace original {
 
 template <typename TYPE>
 template <typename Callback, typename ... Args>
-original::async::asyncWrapper<TYPE>::asyncWrapper(Callback c, Args... args)
+original::async::asyncWrapper<TYPE>::asyncWrapper(Callback&& c, Args&&... args) : ready_(makeAtomic(false))
 {
     thread t{
         [this, c = std::move(c), ...args = std::move(args)]() mutable {
@@ -176,7 +177,7 @@ original::async::asyncWrapper<TYPE>::asyncWrapper(Callback c, Args... args)
             catch (...) {
                 this->e_ = std::current_exception();
             }
-            this->ready_ = true;
+            this->ready_.store(true);
             this->cond_.notify();
         }, thread::AUTO_DETACH
     };
@@ -185,7 +186,7 @@ original::async::asyncWrapper<TYPE>::asyncWrapper(Callback c, Args... args)
 template <typename TYPE>
 bool original::async::asyncWrapper<TYPE>::ready() const
 {
-    return this->ready_;
+    return this->ready_.load();
 }
 
 template <typename TYPE>
@@ -335,8 +336,11 @@ auto original::async::get(Callback&& c, Args&&... args)
     return p.getFuture(std::forward<Args>(args)...).result();
 }
 
+inline original::async::asyncWrapper<void>::asyncWrapper()
+    : ready_(makeAtomic(false)) {}
+
 template <typename Callback, typename ... Args>
-original::async::asyncWrapper<void>::asyncWrapper(Callback c, Args... args)
+original::async::asyncWrapper<void>::asyncWrapper(Callback&& c, Args&&... args) : ready_(makeAtomic(false))
 {
     thread t{
         [this, c = std::move(c), ...args = std::move(args)]() mutable {
@@ -348,7 +352,7 @@ original::async::asyncWrapper<void>::asyncWrapper(Callback c, Args... args)
             catch (...) {
                 this->e_ = std::current_exception();
             }
-            this->ready_ = true;
+            this->ready_.store(true);
             this->cond_.notify();
         }, thread::AUTO_DETACH
     };
@@ -356,7 +360,7 @@ original::async::asyncWrapper<void>::asyncWrapper(Callback c, Args... args)
 
 inline bool original::async::asyncWrapper<void>::ready() const
 {
-    return this->ready_;
+    return this->ready_.load();
 }
 
 inline bool original::async::asyncWrapper<void>::available() const
