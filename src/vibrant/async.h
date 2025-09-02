@@ -137,7 +137,7 @@ namespace original {
         friend class async;
 
         template<typename Callback, typename... Args>
-        explicit future(Callback c, Args... args);
+        explicit future(Callback&& c, Args&&... args);
 
         template<typename ParentType, typename Callback>
         explicit future(strongPtr<asyncWrapper<ParentType>>& parent, Callback&& next);
@@ -394,7 +394,7 @@ inline void original::async::asyncWrapper<void>::get()
 }
 
 template <typename Callback, typename ... Args>
-original::async::future<void>::future(Callback c, Args... args)
+original::async::future<void>::future(Callback&& c, Args&&... args)
     : awr_(makeStrongPtr<asyncWrapper<void>>(std::move(c), std::forward<Args>(args)...)) {}
 
 template<typename ParentType, typename Callback>
