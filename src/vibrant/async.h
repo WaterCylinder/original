@@ -395,7 +395,7 @@ inline void original::async::asyncWrapper<void>::get()
 
 template <typename Callback, typename ... Args>
 original::async::future<void>::future(Callback&& c, Args&&... args)
-    : awr_(makeStrongPtr<asyncWrapper<void>>(std::move(c), std::forward<Args>(args)...)) {}
+    : awr_(makeStrongPtr<asyncWrapper<void>>(std::forward<Callback>(c), std::forward<Args>(args)...)) {}
 
 template<typename ParentType, typename Callback>
 original::async::future<void>::future(strongPtr<asyncWrapper<ParentType>>& parent, Callback&& next)
