@@ -48,7 +48,7 @@ namespace original {
         };
 
         template<typename F_TYPE>
-        class future final : futureBase {
+        class future final : public futureBase {
             mutable strongPtr<asyncWrapper<F_TYPE>> awr_;
 
             friend class async;
@@ -131,7 +131,7 @@ namespace original {
     };
 
     template<>
-    class async::future<void> final : futureBase {
+    class async::future<void> final : public futureBase {
         mutable strongPtr<asyncWrapper<void>> awr_;
 
         friend class async;
