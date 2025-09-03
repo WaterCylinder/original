@@ -356,13 +356,13 @@ namespace original{
     template<typename TYPE, typename DERIVED, typename DELETER>
     template<typename O_DERIVED>
     bool refCntPtr<TYPE, DERIVED, DELETER>::operator==(const refCntPtr<TYPE, O_DERIVED, DELETER>& other) const {
-        return this->get() == other.get();
+        return this->ref_count == other.ref_count;
     }
 
     template<typename TYPE, typename DERIVED, typename DELETER>
     template<typename O_DERIVED>
     bool refCntPtr<TYPE, DERIVED, DELETER>::operator!=(const refCntPtr<TYPE, O_DERIVED, DELETER>& other) const {
-        return this->get() != other.get();
+        return this->ref_count != other.ref_count;
     }
 
     template<typename TYPE, typename DERIVED, typename DELETER>
