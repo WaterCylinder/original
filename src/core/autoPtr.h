@@ -28,7 +28,10 @@
 */
 
 namespace original {
-    // Forward declaration for friend class
+    // Forward declaration for refCountBase
+    class refCountBase;
+
+    // Forward declaration for refCount
     template<typename TYPE, typename DELETER>
     class refCount;
 
@@ -52,8 +55,9 @@ namespace original {
     class autoPtr : public printable,
                     public comparable<autoPtr<TYPE, DERIVED, DELETER>>,
                     public hashable<autoPtr<TYPE, DERIVED, DELETER>> {
+        template<typename, typename, typename> friend class autoPtr;
     protected:
-        refCount<TYPE, DELETER>* ref_count; ///< Reference counter object
+        refCountBase* ref_count; ///< Reference counter object
 
         /**
         * @brief Construct from raw pointer
@@ -63,35 +67,30 @@ namespace original {
         explicit autoPtr(TYPE* p);
 
         /**
-        * @brief Replace managed pointer
-        * @param p New pointer to manage
-        * @throws nullPointerError if no active references
-        */
-        void setPtr(TYPE* p);
-
-        /**
         * @brief Increment strong reference count
         * @internal Reference set method
         */
-        void addStrongRef();
+        void addStrongRef() const;
 
         /**
         * @brief Increment weak reference count
         * @internal Reference set method
         */
-        void addWeakRef();
+        void addWeakRef() const;
 
         /**
         * @brief Decrement strong reference count
         * @internal Reference set method
         */
-        void removeStrongRef();
+        void removeStrongRef() const;
 
         /**
         * @brief Decrement weak reference count
         * @internal Reference set method
         */
-        void removeWeakRef();
+        void removeWeakRef() const;
+
+        TYPE* releasePtr() noexcept;
 
         /**
         * @brief Destroy reference counter
@@ -325,6 +324,28 @@ namespace original {
     template<typename T, typename DER, typename DEL>
     bool operator!=(const std::nullptr_t& null, const autoPtr<T, DER, DEL>& ptr);
 
+    class refCountBase {
+        template <typename, typename, typename>
+        friend class autoPtr;
+
+        protected:
+        mutable u_integer strong_refs; ///< Strong reference counter
+        mutable u_integer weak_refs;   ///< Weak reference counter
+
+        refCountBase();
+
+        virtual void* getPtr() const noexcept = 0;
+
+        virtual void* releasePtr() noexcept = 0;
+
+        /**
+        * @brief Destroy managed pointer using deleter
+        */
+        virtual void destroyPtr() noexcept = 0;
+
+        virtual ~refCountBase() = default;
+    };
+
     /**
     * @class refCount
     * @tparam TYPE Managed object type
@@ -336,13 +357,11 @@ namespace original {
     * - Deleter policy instance
     */
     template<typename TYPE, typename DELETER>
-    class refCount {
+    class refCount final : public refCountBase {
         template <typename, typename, typename>
         friend class autoPtr;
 
         TYPE* ptr;             ///< Managed raw pointer
-        u_integer strong_refs; ///< Strong reference counter
-        u_integer weak_refs;   ///< Weak reference counter
         DELETER deleter;       ///< Deleter policy instance
 
         /**
@@ -351,15 +370,19 @@ namespace original {
         */
         explicit refCount(TYPE* p = nullptr);
 
+        void* getPtr() const noexcept override;
+
+        void* releasePtr() noexcept override;
+
         /**
         * @brief Destroy managed pointer using deleter
         */
-        void destroyPtr() noexcept;
+        void destroyPtr() noexcept override;
 
         /**
         * @brief Destructor ensures resource cleanup
         */
-        ~refCount();
+        ~refCount() override;
     };
 }
 
@@ -367,33 +390,34 @@ template<typename TYPE, typename DERIVED, typename DELETER>
 original::autoPtr<TYPE, DERIVED, DELETER>::autoPtr(TYPE* p)
     : ref_count(newRefCount(p)) {}
 
-
 template<typename TYPE, typename DERIVED, typename DELETER>
-void original::autoPtr<TYPE, DERIVED, DELETER>::setPtr(TYPE* p) {
-    if (!this->exist()){
-        throw nullPointerError();
-    }
-    this->ref_count->ptr = p;
-}
-
-template<typename TYPE, typename DERIVED, typename DELETER>
-void original::autoPtr<TYPE, DERIVED, DELETER>::addStrongRef() {
+void original::autoPtr<TYPE, DERIVED, DELETER>::addStrongRef() const
+{
     this->ref_count->strong_refs += 1;
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
-void original::autoPtr<TYPE, DERIVED, DELETER>::addWeakRef() {
+void original::autoPtr<TYPE, DERIVED, DELETER>::addWeakRef() const
+{
     this->ref_count->weak_refs += 1;
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
-void original::autoPtr<TYPE, DERIVED, DELETER>::removeStrongRef() {
+void original::autoPtr<TYPE, DERIVED, DELETER>::removeStrongRef() const
+{
     this->ref_count->strong_refs -= 1;
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
-void original::autoPtr<TYPE, DERIVED, DELETER>::removeWeakRef() {
+void original::autoPtr<TYPE, DERIVED, DELETER>::removeWeakRef() const
+{
     this->ref_count->weak_refs -= 1;
+}
+
+template <typename TYPE, typename DERIVED, typename DELETER>
+TYPE* original::autoPtr<TYPE, DERIVED, DELETER>::releasePtr() noexcept
+{
+    return static_cast<TYPE*>(this->ref_count->releasePtr());
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
@@ -453,7 +477,7 @@ const TYPE* original::autoPtr<TYPE, DERIVED, DELETER>::get() const {
     if (!this->exist()){
         throw nullPointerError();
     }
-    return this->ref_count->ptr;
+    return static_cast<TYPE*>(this->ref_count->getPtr());
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
@@ -461,7 +485,7 @@ TYPE* original::autoPtr<TYPE, DERIVED, DELETER>::get() {
     if (!this->exist()){
         throw nullPointerError();
     }
-    return this->ref_count->ptr;
+    return static_cast<TYPE*>(this->ref_count->getPtr());
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
@@ -577,9 +601,25 @@ bool original::operator!=(const std::nullptr_t&, const autoPtr<T, DER, DEL>& ptr
     return ptr.operator bool();
 }
 
+inline original::refCountBase::refCountBase() : strong_refs(0), weak_refs(0) {}
+
 template<typename TYPE, typename DELETER>
 original::refCount<TYPE, DELETER>::refCount(TYPE *p)
-    : ptr(p), strong_refs(0), weak_refs(0) {}
+    : ptr(p) {}
+
+template <typename TYPE, typename DELETER>
+void* original::refCount<TYPE, DELETER>::getPtr() const noexcept
+{
+    return ptr;
+}
+
+template <typename TYPE, typename DELETER>
+void* original::refCount<TYPE, DELETER>::releasePtr() noexcept
+{
+    void* p = ptr;
+    ptr = nullptr;
+    return p;
+}
 
 template<typename TYPE, typename DELETER>
 void original::refCount<TYPE, DELETER>::destroyPtr() noexcept {
