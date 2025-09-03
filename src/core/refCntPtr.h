@@ -3,6 +3,7 @@
 
 #include "autoPtr.h"
 #include "deleter.h"
+#include "refCntPtr.h"
 
 /**
 * @file refCntPtr.h
@@ -29,6 +30,7 @@ namespace original{
     */
     template<typename TYPE, typename DERIVED, typename DELETER>
     class refCntPtr : public autoPtr<TYPE, DERIVED, DELETER>{
+        template<typename, typename, typename> friend class refCntPtr;
     protected:
         /**
         * @brief Construct from raw pointer
@@ -98,7 +100,8 @@ namespace original{
     */
     template<typename TYPE, typename DELETER>
     class strongPtr final : public refCntPtr<TYPE, strongPtr<TYPE, DELETER>, DELETER>{
-        friend class weakPtr<TYPE, DELETER>;
+        template<typename, typename> friend class strongPtr;
+        template<typename, typename> friend class weakPtr;
 
     public:
         /**
@@ -177,7 +180,8 @@ namespace original{
     */
     template<typename TYPE, typename DELETER>
     class weakPtr final : public refCntPtr<TYPE, weakPtr<TYPE, DELETER>, DELETER>{
-        friend class strongPtr<TYPE, DELETER>;
+        template<typename, typename> friend class weakPtr;
+        template<typename, typename> friend class strongPtr;
 
     public:
 
