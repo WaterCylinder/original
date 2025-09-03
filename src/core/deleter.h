@@ -1,6 +1,5 @@
 #ifndef DELETER_H
 #define DELETER_H
-#include "config.h"
 
 
 /**
@@ -14,14 +13,18 @@ namespace original {
     /**
       * @class deleterBase
       * @tparam TYPE Type of the resource.
+      * @tparam DERIVED CRTP Derived deleter type.
       * @brief Base class for deleters defining the deletion policy interface.
       * @details This class serves as the base for all specific deleters and provides
       * a pure virtual function `operator()` to handle resource deletion.
       * Since this is an abstract class, it cannot be instantiated directly.
       */
-    template<typename TYPE>
+    template<typename TYPE, template<typename> class DERIVED>
     class deleterBase {
     public:
+        template<typename T>
+        using rebound_deleter = DERIVED<T>;
+
         /**
          * @brief Default constructor.
          * @details The constexpr specifier allows compile-time constant initialization.
@@ -43,14 +46,18 @@ namespace original {
     };
 
     /**
-     * @class deleterBase<TYPE[]>
+     * @class deleterBase
      * @tparam TYPE[] Element type of the array.
+     * @tparam DERIVED CRTP Derived deleter type.
      * @brief Base class for array deleters.
      * @details A specialization of `deleterBase` designed specifically for deleting arrays.
      */
-    template<typename TYPE>
-    class deleterBase<TYPE[]> {
+    template<typename TYPE, template<typename> class DERIVED>
+    class deleterBase<TYPE[], DERIVED> {
     public:
+        template<typename T>
+        using rebound_deleter = DERIVED<T>;
+
         /**
          * @brief Default constructor.
          */
@@ -78,7 +85,7 @@ namespace original {
     * Suitable for use with non-array types allocated with new.
     */
     template<typename TYPE>
-    class deleter final : public deleterBase<TYPE>{
+    class deleter final : public deleterBase<TYPE, deleter>{
     public:
         constexpr deleter() noexcept = default;
         ~deleter() override = default;
@@ -99,7 +106,7 @@ namespace original {
     * Must be used with array types allocated with new[].
     */
     template<typename TYPE>
-    class deleter<TYPE[]> final : public deleterBase<TYPE[]>{
+    class deleter<TYPE[]> final : public deleterBase<TYPE[], deleter>{
     public:
         constexpr deleter() noexcept = default;
         ~deleter() override = default;
@@ -113,11 +120,11 @@ namespace original {
     };
 }
 
-template<typename TYPE>
-original::deleterBase<TYPE>::~deleterBase() = default;
+template<typename TYPE, template<typename> class DERIVED>
+original::deleterBase<TYPE, DERIVED>::~deleterBase() = default;
 
-template<typename TYPE>
-original::deleterBase<TYPE[]>::~deleterBase() = default;
+template<typename TYPE, template<typename> class DERIVED>
+original::deleterBase<TYPE[], DERIVED>::~deleterBase() = default;
 
 template<typename TYPE>
 void original::deleter<TYPE>::operator()(const TYPE* ptr) const noexcept {
