@@ -105,5 +105,14 @@ int main(){
     std::cout << *w2 << std::endl;
     auto [int1, int2] = original::couple(3, 4);
     std::cout << int1 << ", " << int2 << std::endl;
+
+    auto d = original::makeOwnerPtr<original::vector<int>>();
+    auto b = d.dynamicCastMoveTo<original::container<int, original::allocator<int>>>();
+    std::cout << "b: " << b << ", d: " << d << std::endl;
+    auto dd = b.dynamicCastMoveTo<original::vector<int>>();
+    std::cout << "dd: " << dd << ", b: " << b << std::endl;
+    auto ddd = std::move(dd);
+    const auto cd = ddd.constCastMoveTo<original::vector<int>>();
+    std::cout << "cd: " << cd << " ddd: " << dd << std::endl;
     return 0;
 }
