@@ -12,6 +12,7 @@ original::array<int> matrixAdd(const original::array<int>& a, const original::ar
         if (i < b.size())
             result[i] += b[i];
     }
+    original::thread::sleep(original::seconds(1));
     return result;
 }
 
@@ -19,6 +20,10 @@ int main() {
     auto simple_func = []{
         original::thread::sleep(original::seconds(1));
         return 0;
+    };
+    auto simple_func2 = [](const int a){
+        original::thread::sleep(original::seconds(1));
+        return a;
     };
 
     auto add_func = [](const int a, const int b){
@@ -31,20 +36,19 @@ int main() {
         return a - b;
     };
 
-    const original::async::promise<int, int()> p {simple_func};
-    const auto f = p.getFuture();
-    std::cout << f.result() << std::endl;
-
-    const auto pp = original::async::makePromise(simple_func);
-    const auto ff = pp.getFuture();
+    auto pp = original::async::makePromise(simple_func2, 5);
+    auto ff = pp.getFuture();
+    original::thread  t{
+        [pp = original::makeStrongPtr<decltype(pp)>(pp)] mutable
+        {
+            pp->run();
+        }
+    };
     std::cout << ff.result() << std::endl;
 
     std::cout << original::async::get(simple_func) << std::endl;
     std::cout << original::async::get(add_func, 1, 5) << std::endl;
-
     std::cout << original::async::get(matrixAdd, original::array{1, 2, 3, 4}, original::array{2, 4, 5, 7, 12}) << std::endl;
-
-    const auto task = original::async::promise<int, int(int, int)>{sub_func};
-    std::cout << task(10, 5) << std::endl;
+    std::cout << original::async::get(sub_func, 5, 1) << std::endl;
     return 0;
 }
