@@ -280,6 +280,8 @@ namespace original{
          */
         [[nodiscard]] u_integer size() const override;
 
+        [[nodiscard]] u_integer capacity() const noexcept;
+
         /**
          * @brief Gets a reference to the first element in the vector.
          * @return A reference to the first element.
@@ -640,6 +642,12 @@ template<typename TYPE, typename ALLOC>
     auto original::vector<TYPE, ALLOC>::size() const -> u_integer
     {
         return this->size_;
+    }
+
+    template <typename TYPE, typename ALLOC>
+    original::u_integer original::vector<TYPE, ALLOC>::capacity() const noexcept
+    {
+        return this->max_size;
     }
 
     template <typename TYPE, typename ALLOC>
