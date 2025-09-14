@@ -22,7 +22,7 @@ namespace original {
         static bool exist();
 
         template<typename... Args>
-        static void init(Args... args);
+        static void init(Args&&... args);
 
         static TYPE& instance();
 
@@ -43,7 +43,7 @@ bool original::singleton<TYPE>::exist() {
 
 template <typename TYPE>
 template <typename ... Args>
-void original::singleton<TYPE>::init(Args... args) {
+void original::singleton<TYPE>::init(Args&&... args) {
     if (instance_ == nullptr) {
         instance_ = std::move(makeOwnerPtr<TYPE>(std::forward<Args>(args)...));
     } else {
