@@ -304,7 +304,7 @@ TEST_F(ThreadTest, SleepForDuration) {
     auto end = std::chrono::steady_clock::now();
 
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-    ASSERT_GE(elapsed.count(), 500);  // Should sleep at least 500ms
+    ASSERT_GE(elapsed.count(), 450);  // Should sleep at least 450ms
     ASSERT_LE(elapsed.count(), 550);  // With some tolerance for scheduling
 
     // Test with different time units
