@@ -1,6 +1,8 @@
 #include <iostream>
 #include "array.h"
 #include "async.h"
+#include "singleton.h"
+#include "tasks.h"
 
 original::array<int> matrixAdd(const original::array<int>& a, const original::array<int>& b)
 {
@@ -23,6 +25,7 @@ int main() {
     };
     auto simple_func2 = [](const int a){
         original::thread::sleep(original::seconds(1));
+        std::cout << "res = " << a << std::endl;
         return a;
     };
 
@@ -50,5 +53,15 @@ int main() {
     std::cout << original::async::get(add_func, 1, 5) << std::endl;
     std::cout << original::async::get(matrixAdd, original::array{1, 2, 3, 4}, original::array{2, 4, 5, 7, 12}) << std::endl;
     std::cout << original::async::get(sub_func, 5, 1) << std::endl;
+
+    original::singleton<original::taskDelegator>::init();
+    auto& delegator = original::singleton<original::taskDelegator>::instance();
+    auto futures = original::vector<original::async::future<int>>{};
+    for (original::integer i = 0; i < 12; i++) {
+        futures.pushEnd(delegator.submit(simple_func2, i));
+    }
+    for (auto& future : futures) {
+        std::cout << future.result() << std::endl;
+    }
     return 0;
 }
