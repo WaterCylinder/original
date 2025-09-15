@@ -116,7 +116,7 @@ namespace original {
         strongPtr<asyncWrapper<void>> awr_;
 
         friend class async;
-        explicit future(strongPtr<asyncWrapper<void>> awr) : awr_(std::move(awr)) {}
+        explicit future(const strongPtr<asyncWrapper<void>>& awr) : awr_(std::move(awr)) {}
 
     public:
         future() = default;
@@ -143,7 +143,7 @@ namespace original {
 
         explicit promise(Callback&& c);
 
-        future<void> getFuture() const;
+        [[nodiscard]] future<void> getFuture() const;
 
         void run();
     };

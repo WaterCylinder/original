@@ -7,7 +7,6 @@
 #include "array.h"
 
 
-// todo
 namespace original {
     class taskBase {
         public:
