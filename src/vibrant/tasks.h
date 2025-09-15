@@ -25,6 +25,8 @@ namespace original {
         task(task&&) = default;
         task& operator=(task&&) = default;
 
+        task() = default;
+
         template<typename Callback, typename... Args>
         explicit task(Callback&& c, Args&&... args);
 

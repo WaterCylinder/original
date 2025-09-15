@@ -46,6 +46,8 @@ namespace original {
             friend class async;
             explicit future(strongPtr<asyncWrapper<TYPE>> awr);
         public:
+            future() = default;
+
             future(const future&) = delete;
 
             future& operator=(const future&) = delete;
@@ -67,6 +69,8 @@ namespace original {
             strongPtr<asyncWrapper<TYPE>> awr_;
 
         public:
+            promise() = default;
+
             explicit promise(Callback&& c);
 
             future<TYPE> getFuture();
@@ -115,6 +119,8 @@ namespace original {
         explicit future(strongPtr<asyncWrapper<void>> awr) : awr_(std::move(awr)) {}
 
     public:
+        future() = default;
+
         future(const future&) = delete;
         future& operator=(const future&) = delete;
         future(future&&) = default;
@@ -133,6 +139,8 @@ namespace original {
         strongPtr<asyncWrapper<void>> awr_;
 
     public:
+        promise() = default;
+
         explicit promise(Callback&& c);
 
         future<void> getFuture() const;
