@@ -102,6 +102,10 @@ public:
     template<typename TYPE>
     static std::string formatString(const TYPE& t);
 
+    template<typename TYPE>
+    requires Printable<TYPE>
+    static std::string formatString(const TYPE& t);
+
     /**
      * @brief Pointer-specific formatting.
      * @tparam TYPE Pointer type
@@ -226,6 +230,14 @@ inline auto original::printable::toCString(const bool enter) const -> const char
 
 template<typename TYPE>
 auto original::printable::formatString(const TYPE& t) -> std::string
+{
+    std::stringstream ss;
+    ss << typeid(t).name() << "("  << formatString(&t) << ")";
+    return ss.str();
+}
+
+template <typename TYPE> requires original::Printable<TYPE>
+std::string original::printable::formatString(const TYPE& t)
 {
     if constexpr (std::is_enum_v<TYPE>) {
         return formatEnum(t);
