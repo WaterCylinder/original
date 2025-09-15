@@ -115,7 +115,7 @@ auto original::taskDelegator::submit(Callback&& c, Args&&... args)
         if (this->stopped_) {
             throw sysError("taskDelegator already stopped");
         }
-        this->tasks_.push(std::move(new_task)); // todo: impl strongPtr::staticCastTo<T>
+        this->tasks_.push(new_task.template dynamicCastTo<taskBase>());
     }
 
     this->condition_.notify();
