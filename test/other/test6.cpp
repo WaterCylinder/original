@@ -1,4 +1,6 @@
 #include <iostream>
+
+#include "atomic.h"
 #include "thread.h"
 #include "maps.h"
 #include "mutex.h"
@@ -140,5 +142,8 @@ int main()
     std::cout << "Sleep for: " << sec << " second(s)." << std::endl;
     original::thread::sleep(original::seconds(sec));
     std::cout << "Sleep after: " << original::time::UTCTime::localNow() << std::endl;
+
+    original::atomic<bool> flag = original::makeAtomic(true);
+    std::cout << original::printable::formatString(*flag) << std::endl;
     return 0;
 }
