@@ -263,9 +263,9 @@ auto original::printable::formatCString(const TYPE& t) -> const char*
 template <typename TYPE>
 auto original::printable::formatEnum(const TYPE& t) -> std::string
 {
-    const std::string enumName = typeid(t).name();
-    const int enumValue = static_cast<std::underlying_type_t<TYPE>>(t);
-    return enumName + "(" + std::to_string(enumValue) + ")";
+    const std::string enum_name = typeid(t).name();
+    const int enum_value = static_cast<std::underlying_type_t<TYPE>>(t);
+    return enum_name + "(" + std::to_string(enum_value) + ")";
 }
 
 template<>
