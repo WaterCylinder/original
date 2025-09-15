@@ -55,13 +55,13 @@ namespace original {
         */
         ownerPtr& operator=(ownerPtr&& other) noexcept;
 
-        template<typename U, typename DEL = DELETER::template rebound_deleter<U>>
+        template<typename U, typename DEL = typename DELETER::template rebound_deleter<U>>
         ownerPtr<U, DEL> staticCastMoveTo();
 
-        template<typename U, typename DEL = DELETER::template rebound_deleter<U>>
+        template<typename U, typename DEL = typename DELETER::template rebound_deleter<U>>
         ownerPtr<U, DEL> dynamicCastMoveTo();
 
-        template<typename U, typename DEL = DELETER::template rebound_deleter<U>>
+        template<typename U, typename DEL = typename DELETER::template rebound_deleter<U>>
         ownerPtr<U, DEL> constCastMoveTo();
 
         /**
