@@ -43,6 +43,11 @@ namespace original {
         static constexpr auto ACQ_REL = memOrder::ACQ_REL;
         static constexpr auto SEQ_CST = memOrder::SEQ_CST;
 
+        atomicImpl(const atomicImpl&) = delete;
+        atomicImpl(atomicImpl&&) = delete;
+        atomicImpl& operator=(const atomicImpl&) = delete;
+        atomicImpl& operator=(atomicImpl&&) = delete;
+
         static constexpr bool isLockFree() noexcept;
 
         void store(TYPE value, memOrder order = SEQ_CST);
@@ -76,6 +81,11 @@ namespace original {
         static constexpr auto RELEASE = memOrder::RELEASE;
         static constexpr auto ACQ_REL = memOrder::ACQ_REL;
         static constexpr auto SEQ_CST = memOrder::SEQ_CST;
+
+        atomicImpl(const atomicImpl&) = delete;
+        atomicImpl(atomicImpl&&) = delete;
+        atomicImpl& operator=(const atomicImpl&) = delete;
+        atomicImpl& operator=(atomicImpl&&) = delete;
 
         static constexpr bool isLockFree() noexcept;
 
