@@ -102,8 +102,10 @@ public:
     template<typename TYPE>
     static std::string formatString(const TYPE& t);
 
-    template<typename TYPE>
-    requires Printable<TYPE>
+    template<Printable TYPE>
+    static std::string formatString(const TYPE& t);
+
+    template<EnumType TYPE>
     static std::string formatString(const TYPE& t);
 
     /**
@@ -236,16 +238,18 @@ auto original::printable::formatString(const TYPE& t) -> std::string
     return ss.str();
 }
 
-template <typename TYPE> requires original::Printable<TYPE>
+template<original::Printable TYPE>
 std::string original::printable::formatString(const TYPE& t)
 {
-    if constexpr (std::is_enum_v<TYPE>) {
-        return formatEnum(t);
-    } else {
-        std::stringstream ss;
-        ss << t;
-        return ss.str();
-    }
+    std::stringstream ss;
+    ss << t;
+    return ss.str();
+}
+
+template <original::EnumType TYPE>
+std::string original::printable::formatString(const TYPE& t)
+{
+    return formatEnum(t);
 }
 
 template <typename TYPE>
