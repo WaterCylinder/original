@@ -39,8 +39,7 @@ namespace original {
         queue<strongPtr<taskBase>, vector> tasks_;
         mutable pCondition condition_;
         mutable pMutex mutex_;
-        bool stopped_;
-        u_integer started_;
+        atomic<bool> stopped_;
     public:
         explicit taskDelegator(u_integer thread_cnt);
 
@@ -65,8 +64,8 @@ original::async::future<TYPE> original::task<TYPE>::getFuture()
     return this->p.getFuture();
 }
 
-inline original::taskDelegator::taskDelegator(const u_integer thread_cnt)
-    : threads_(thread_cnt), stopped_(false), started_(0) {
+inline original::taskDelegator::taskDelegator(const u_integer thread_cnt = 8)
+    : threads_(thread_cnt), stopped_(makeAtomic(false)) {
     for (auto& thread_ : this->threads_) {
         thread new_thread {
             [this]{
@@ -74,16 +73,14 @@ inline original::taskDelegator::taskDelegator(const u_integer thread_cnt)
                     strongPtr<taskBase> task;
                     {
                         uniqueLock lock(this->mutex_);
-                        this->condition_.wait(this->mutex_, [this]
-                        {
-                            return this->started_ != 0 || this->stopped_;
+                        this->condition_.wait(this->mutex_, [this] {
+                            return *this->stopped_ || !this->tasks_.empty();
                         });
                         if (this->stopped_ && this->started_ == 0 && this->tasks_.empty()) {
                             return;
                         }
                         task = std::move(this->tasks_.pop());
                     }
-                    this->started_ += 1;
                     task->run();
                 }
             }
