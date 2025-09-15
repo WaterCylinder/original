@@ -454,14 +454,19 @@ namespace original {
     template<typename TYPE, typename ALLOC>
     auto original::array<TYPE, ALLOC>::indexOf(const TYPE &e) const -> u_integer
     {
-        for (u_integer i = 0; i < this->size(); i += 1)
+        if constexpr (Comparable<TYPE>)
         {
-            if (this->get(i) == e)
+            for (u_integer i = 0; i < this->size(); i += 1)
             {
-                return i;
+                if (this->get(i) == e)
+                {
+                    return i;
+                }
             }
+            return this->size();
+        } else {
+            throw unSupportedMethodError("Comparison unsupported type");
         }
-        return this->size();
     }
 
     template<typename TYPE, typename ALLOC>

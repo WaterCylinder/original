@@ -459,7 +459,7 @@ namespace original{
     template <typename TYPE, typename ALLOC>
     void original::vector<TYPE, ALLOC>::setElem(const integer pos, const TYPE& e)
     {
-        this->setBufElem(this->body, pos, e);
+        setBufElem(this->body, pos, e);
     }
 
     template <typename TYPE, typename ALLOC>
@@ -731,14 +731,18 @@ template<typename TYPE, typename ALLOC>
     template <typename TYPE, typename ALLOC>
     auto original::vector<TYPE, ALLOC>::indexOf(const TYPE &e) const -> u_integer
     {
-        for (u_integer i = 0; i < this->size(); i += 1)
-        {
-            if (this->get(i) == e)
+        if constexpr (Comparable<TYPE>) {
+            for (u_integer i = 0; i < this->size(); i += 1)
             {
-                return i;
+                if (this->get(i) == e)
+                {
+                    return i;
+                }
             }
+            return this->size();
+        } else {
+            throw unSupportedMethodError("Comparison unsupported type");
         }
-        return this->size();
     }
 
     template <typename TYPE, typename ALLOC>
