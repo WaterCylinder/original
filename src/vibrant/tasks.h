@@ -3,8 +3,8 @@
 
 #include "async.h"
 #include "queue.h"
-#include "ownerPtr.h"
 #include "refCntPtr.h"
+#include "array.h"
 
 
 // todo
@@ -34,21 +34,14 @@ namespace original {
     };
 
     class taskDelegator {
-        enum class shutdownMode {
-            NORMAL,
-            IMMEDIATE,
-        };
-
-        ownerPtr<thread, deleter<thread[]>> threads_;
+        array<thread> threads_;
         queue<strongPtr<taskBase>, vector> tasks_;
         mutable pCondition condition_;
         mutable pMutex mutex_;
-        shutdownMode mode_;
+        bool stopped_;
         u_integer started_;
     public:
         explicit taskDelegator(u_integer thread_cnt);
-
-        taskDelegator(u_integer thread_cnt, const std::initializer_list<strongPtr<taskBase>>& tasks);
 
         u_integer tasksCount() const noexcept;
     };
@@ -72,15 +65,30 @@ original::async::future<TYPE> original::task<TYPE>::getFuture()
 }
 
 inline original::taskDelegator::taskDelegator(const u_integer thread_cnt)
-    : threads_(makeOwnerPtrArray<thread>(thread_cnt)), mode_(shutdownMode::NORMAL), started_(0)
-{
-    // todo
-}
-
-inline original::taskDelegator::taskDelegator(const u_integer thread_cnt, const std::initializer_list<strongPtr<taskBase>>& tasks)
-    : taskDelegator(thread_cnt)
-{
-    this->tasks_ = tasks;
+    : threads_(thread_cnt), stopped_(false), started_(0) {
+    for (auto& thread_ : this->threads_) {
+        thread new_thread {
+            [this]{
+                while (true) {
+                    strongPtr<taskBase> task;
+                    {
+                        uniqueLock lock(this->mutex_);
+                        this->condition_.wait(this->mutex_, [this]
+                        {
+                            return this->started_ != 0 || this->stopped_;
+                        });
+                        if (this->stopped_ && this->started_ == 0 && this->tasks_.empty()) {
+                            return;
+                        }
+                        task = std::move(this->tasks_.pop());
+                    }
+                    this->started_ += 1;
+                    task->run();
+                }
+            }
+        };
+        thread_ = std::move(new_thread);
+    }
 }
 
 inline original::u_integer
