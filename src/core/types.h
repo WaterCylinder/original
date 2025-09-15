@@ -63,6 +63,9 @@ namespace original {
     template<typename... ARGS>
     concept NotNull = sizeof...(ARGS) > 0;
 
+    template<typename TYPE>
+    concept EnumType = std::is_enum_v<TYPE>;
+
     /**
      * @concept Comparable
      * @brief Requires type to support all comparison operators.
