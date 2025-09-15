@@ -294,14 +294,27 @@ namespace original {
     template<typename TYPE, typename ALLOC>
     auto original::randomAccessIterator<TYPE, ALLOC>::set(const TYPE& data) -> void {
         if (!this->isValid()) throw outOfBoundError();
-        *this->_ptr = data;
+        if constexpr (std::is_copy_assignable_v<TYPE>) {
+            *this->_ptr = data;
+        } else if constexpr (std::is_move_assignable_v<TYPE>) {
+            *this->_ptr = std::move(const_cast<TYPE&>(data));
+        } else {
+            staticError<unSupportedMethodError, !std::is_copy_constructible_v<TYPE> && !std::is_move_constructible_v<TYPE>>::asserts();
+        }
     }
 
     template<typename TYPE, typename ALLOC>
     auto original::randomAccessIterator<TYPE, ALLOC>::get() const -> TYPE
     {
         if (!this->isValid()) throw outOfBoundError();
-        return *this->_ptr;
+        if constexpr (std::is_copy_constructible_v<TYPE>) {
+            return *this->_ptr;
+        } else if constexpr (std::is_move_constructible_v<TYPE>) {
+            return std::move(*this->_ptr);
+        } else {
+            staticError<unSupportedMethodError, !std::is_copy_constructible_v<TYPE> && !std::is_move_constructible_v<TYPE>>::asserts();
+            return TYPE{};
+        }
     }
 
     template<typename TYPE, typename ALLOC>

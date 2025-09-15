@@ -57,6 +57,9 @@ namespace original {
          */
         void arrDestroy() noexcept;
 
+        TYPE getElem(integer pos) const;
+
+        void setElem(integer pos, const TYPE &e);
     public:
 
     /**
@@ -273,6 +276,31 @@ namespace original {
         }
     }
 
+    template <typename TYPE, typename ALLOC>
+    TYPE original::array<TYPE, ALLOC>::getElem(integer pos) const
+    {
+        if constexpr (std::is_copy_constructible_v<TYPE>) {
+            return this->body[pos];
+        } else if constexpr (std::is_move_constructible_v<TYPE>) {
+            return std::move(this->body[pos]);
+        } else {
+            staticError<unSupportedMethodError, !std::is_copy_constructible_v<TYPE> && !std::is_move_constructible_v<TYPE>>::asserts();
+            return TYPE{};
+        }
+    }
+
+    template <typename TYPE, typename ALLOC>
+    void original::array<TYPE, ALLOC>::setElem(integer pos, const TYPE& e)
+    {
+        if constexpr (std::is_copy_assignable_v<TYPE>) {
+            this->body[pos] = e;
+        } else if constexpr (std::is_move_assignable_v<TYPE>) {
+            this->body[pos] = std::move(const_cast<TYPE&>(e));
+        } else {
+            staticError<unSupportedMethodError, !std::is_copy_constructible_v<TYPE> && !std::is_move_constructible_v<TYPE>>::asserts();
+        }
+    }
+
     template<typename TYPE, typename ALLOC>
     original::array<TYPE, ALLOC>::Iterator::Iterator(TYPE* ptr, const array* container, integer pos)
         : randomAccessIterator<TYPE, ALLOC>(ptr, container, pos) {}
@@ -400,7 +428,7 @@ namespace original {
             throw outOfBoundError("Index " + std::to_string(this->parseNegIndex(index)) +
                                   " out of bound max index " + std::to_string(this->size() - 1) + ".");
         }
-        return this->body[this->parseNegIndex(index)];
+        return this->getElem(this->parseNegIndex(index));
     }
 
     template<typename TYPE, typename ALLOC>
@@ -420,7 +448,7 @@ namespace original {
             throw outOfBoundError("Index " + std::to_string(this->parseNegIndex(index)) +
                                   " out of bound max index " + std::to_string(this->size() - 1) + ".");
         }
-        this->body[this->parseNegIndex(index)] = e;
+        this->setElem(this->parseNegIndex(index), e);
     }
 
     template<typename TYPE, typename ALLOC>

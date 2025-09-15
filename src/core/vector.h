@@ -86,6 +86,12 @@ namespace original{
          */
         TYPE* vectorArrayInit(u_integer size);
 
+        TYPE getElem(integer pos) const;
+
+        void setElem(integer pos, const TYPE &e);
+
+        static void setBufElem(TYPE* buf, integer pos, const TYPE& e);
+
         /**
          * @brief Moves elements from the old buffer to the new buffer.
          * @param old_body The original array to move elements from.
@@ -438,19 +444,50 @@ namespace original{
     }
 
     template <typename TYPE, typename ALLOC>
+    TYPE original::vector<TYPE, ALLOC>::getElem(integer pos) const
+    {
+        if constexpr (std::is_copy_constructible_v<TYPE>) {
+            return this->body[pos];
+        } else if constexpr (std::is_move_constructible_v<TYPE>) {
+            return std::move(this->body[pos]);
+        } else {
+            staticError<unSupportedMethodError, !std::is_copy_constructible_v<TYPE> && !std::is_move_constructible_v<TYPE>>::asserts();
+            return TYPE{};
+        }
+    }
+
+    template <typename TYPE, typename ALLOC>
+    void original::vector<TYPE, ALLOC>::setElem(const integer pos, const TYPE& e)
+    {
+        this->setBufElem(this->body, pos, e);
+    }
+
+    template <typename TYPE, typename ALLOC>
+    void original::vector<TYPE, ALLOC>::setBufElem(TYPE* buf, integer pos, const TYPE& e)
+    {
+        if constexpr (std::is_copy_assignable_v<TYPE>) {
+            buf[pos] = e;
+        } else if constexpr (std::is_move_assignable_v<TYPE>) {
+            buf[pos] = std::move(const_cast<TYPE&>(e));
+        } else {
+            staticError<unSupportedMethodError, !std::is_copy_constructible_v<TYPE> && !std::is_move_constructible_v<TYPE>>::asserts();
+        }
+    }
+
+    template <typename TYPE, typename ALLOC>
     auto original::vector<TYPE, ALLOC>::moveElements(TYPE* old_body, const u_integer inner_idx,
                                               const u_integer len, TYPE* new_body, const integer offset) -> void{
         if (offset > 0)
         {
             for (u_integer i = 0; i < len; i += 1)
             {
-                new_body[inner_idx + offset + len - 1 - i] = old_body[inner_idx + len - 1 - i];
+                setBufElem(new_body, inner_idx + offset + len - 1 - i, old_body[inner_idx + len - 1 - i]);
             }
         }else
         {
             for (u_integer i = 0; i < len; i += 1)
             {
-                new_body[inner_idx + offset + i] = old_body[inner_idx + i];
+                setBufElem(new_body, inner_idx + offset + i, old_body[inner_idx + i]);
             }
         }
     }
@@ -664,7 +701,7 @@ template<typename TYPE, typename ALLOC>
                                   " out of bound max index " + std::to_string(this->size() - 1) + ".");
         }
         index = this->toInnerIdx(this->parseNegIndex(index));
-        return this->body[index];
+        return this->getElem(index);
     }
 
     template <typename TYPE, typename ALLOC>
@@ -688,7 +725,7 @@ template<typename TYPE, typename ALLOC>
                                   " out of bound max index " + std::to_string(this->size() - 1) + ".");
         }
         index = this->toInnerIdx(this->parseNegIndex(index));
-        this->body[index] = e;
+        this->setElem(index, e);
     }
 
     template <typename TYPE, typename ALLOC>
@@ -709,7 +746,7 @@ template<typename TYPE, typename ALLOC>
     {
         this->adjust(1);
         this->inner_begin -= 1;
-        this->body[this->toInnerIdx(0)] = e;
+        this->setElem(this->toInnerIdx(0), e);
         this->size_ += 1;
     }
 
@@ -742,7 +779,7 @@ template<typename TYPE, typename ALLOC>
                 vector::moveElements(this->body, index,
                                      this->size() - rel_idx, this->body, 1);
             }
-            this->body[this->toInnerIdx(rel_idx)] = e;
+            this->setElem(this->toInnerIdx(rel_idx), e);
             this->size_ += 1;
         }
     }
@@ -751,7 +788,7 @@ template<typename TYPE, typename ALLOC>
     auto original::vector<TYPE, ALLOC>::pushEnd(const TYPE &e) -> void
     {
         this->adjust(1);
-        this->body[this->toInnerIdx(this->size())] = e;
+        this->setElem(this->toInnerIdx(this->size()), e);
         this->size_ += 1;
     }
 
