@@ -23,11 +23,6 @@ int main() {
         original::thread::sleep(original::seconds(1));
         return 0;
     };
-    auto simple_func2 = [](const int a){
-        original::thread::sleep(original::seconds(1));
-        std::cout << "res = " << a << std::endl;
-        return a;
-    };
 
     auto add_func = [](const int a, const int b){
         original::thread::sleep(original::seconds(1));
@@ -37,6 +32,12 @@ int main() {
     auto sub_func = [](const int a, const int b) {
         original::thread::sleep(original::seconds(1));
         return a - b;
+    };
+
+    auto simple_func2 = [](const int a){
+        original::thread::sleep(original::seconds(1));
+        std::cout << "res = " << a << std::endl;
+        return a;
     };
 
     auto pp = original::async::makePromise(simple_func2, 5);
