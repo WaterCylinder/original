@@ -54,6 +54,10 @@ namespace original {
 
         TYPE load(memOrder order = SEQ_CST) const noexcept;
 
+        TYPE operator*() const noexcept;
+
+        explicit operator TYPE() const noexcept;
+
         TYPE exchange(TYPE value, memOrder order = SEQ_CST) noexcept;
 
         bool exchangeCmp(TYPE& expected, TYPE desired, memOrder order = SEQ_CST) noexcept;
@@ -92,6 +96,10 @@ namespace original {
         void store(TYPE value, memOrder = SEQ_CST);
 
         TYPE load(memOrder = SEQ_CST) const noexcept;
+
+        TYPE operator*() const noexcept;
+
+        explicit operator TYPE() const noexcept;
 
         TYPE exchange(const TYPE& value, memOrder = SEQ_CST) noexcept;
 
@@ -141,6 +149,18 @@ TYPE original::atomicImpl<TYPE, false>::load(memOrder order) const noexcept {
 }
 
 template <typename TYPE>
+TYPE original::atomicImpl<TYPE, false>::operator*() const noexcept
+{
+    return this->load();
+}
+
+template <typename TYPE>
+original::atomicImpl<TYPE, false>::operator TYPE() const noexcept
+{
+    return this->load();
+}
+
+template <typename TYPE>
 TYPE original::atomicImpl<TYPE, false>::exchange(TYPE value, memOrder order) noexcept {
     TYPE result;
     __atomic_exchange(reinterpret_cast<TYPE*>(this->data_), &value,
@@ -177,6 +197,18 @@ template <typename TYPE>
 TYPE original::atomicImpl<TYPE, true>::load(memOrder) const noexcept {
     uniqueLock lock{this->mutex_};
     return *this->data_;
+}
+
+template <typename TYPE>
+TYPE original::atomicImpl<TYPE, true>::operator*() const noexcept
+{
+    return this->load();
+}
+
+template <typename TYPE>
+original::atomicImpl<TYPE, true>::operator TYPE() const noexcept
+{
+    return this->load();
 }
 
 template <typename TYPE>
