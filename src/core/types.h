@@ -85,6 +85,11 @@ namespace original {
         { t1 >= t2 } -> std::same_as<bool>;
     };
 
+    template <typename TYPE>
+    concept Printable = requires(std::ostream& os, const TYPE& t) {
+        { os << t } -> std::same_as<std::ostream&>;
+    };
+
     /**
      * @concept CallbackOf
      * @brief Validates callback signature compatibility.
