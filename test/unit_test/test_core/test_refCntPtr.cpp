@@ -189,3 +189,68 @@ TEST(RefCntPtrTest, BreakCyclicReference) {
         node2->next = node1;
     }
 }
+
+// 基类和派生类用于测试类型转换
+struct Base {
+    virtual ~Base() = default; // 必须虚析构以支持 dynamic_cast
+    int base_val = 0;
+};
+struct Derived final : Base {
+    int derived_val = 0;
+};
+
+TEST(RefCntPtrTest, StaticCastTo) {
+    auto d = original::makeStrongPtr<Derived>();
+    d->base_val = 42;
+    d->derived_val = 100;
+
+    // Derived -> Base
+    auto b = d.staticCastTo<Base>();
+    EXPECT_EQ(b->base_val, 42);
+
+    // 修改 base，两个指针共享同一对象
+    b->base_val = 99;
+    EXPECT_EQ(d->base_val, 99);
+
+    // 引用计数一致
+    EXPECT_EQ(d.strongRefs(), b.strongRefs());
+}
+
+TEST(RefCntPtrTest, DynamicCastToSuccess) {
+    auto d = original::makeStrongPtr<Derived>();
+    d->derived_val = 123;
+
+    // Base -> Derived（成功）
+    const auto b = d.staticCastTo<Base>();
+    auto d2 = b.dynamicCastTo<Derived>();
+    EXPECT_TRUE(static_cast<bool>(d2));
+    EXPECT_EQ(d2->derived_val, 123);
+
+    // 共享同一控制块
+    EXPECT_EQ(d.strongRefs(), d2.strongRefs());
+}
+
+TEST(RefCntPtrTest, DynamicCastToFail) {
+    auto b = original::makeStrongPtr<Base>();
+    b->base_val = 55;
+
+    // Base -> Derived（失败，应返回空 strongPtr）
+    const auto d = b.dynamicCastTo<Derived>();
+    EXPECT_FALSE(static_cast<bool>(d));
+}
+
+TEST(RefCntPtrTest, ConstCastTo) {
+    auto d = original::makeStrongPtr<Derived>();
+    d->derived_val = 10;
+
+    // const Derived -> Derived
+    const auto cd = d.staticCastTo<const Derived>();
+    auto d2 = cd.constCastTo<Derived>();
+
+    // 修改 d2，会反映到原始 d
+    d2->derived_val = 20;
+    EXPECT_EQ(d->derived_val, 20);
+
+    // 确认引用计数保持一致
+    EXPECT_EQ(d.strongRefs(), d2.strongRefs());
+}
