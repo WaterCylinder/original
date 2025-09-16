@@ -199,6 +199,8 @@ struct Derived final : Base {
     int derived_val = 0;
 };
 
+struct NotDerived {};
+
 TEST(RefCntPtrTest, StaticCastTo) {
     auto d = original::makeStrongPtr<Derived>();
     d->base_val = 42;
@@ -214,6 +216,15 @@ TEST(RefCntPtrTest, StaticCastTo) {
 
     // 引用计数一致
     EXPECT_EQ(d.strongRefs(), b.strongRefs());
+
+    auto wd = original::weakPtr(d);
+    const auto wb = wd.staticCastTo<Base>();
+    EXPECT_EQ(wb.lock()->base_val, 99);
+
+    wb.lock()->base_val = 42;
+    EXPECT_EQ(d->base_val, 42);
+
+    EXPECT_EQ(d.weakRefs(), wb.weakRefs());
 }
 
 TEST(RefCntPtrTest, DynamicCastToSuccess) {
@@ -223,7 +234,7 @@ TEST(RefCntPtrTest, DynamicCastToSuccess) {
     // Base -> Derived（成功）
     const auto b = d.staticCastTo<Base>();
     auto d2 = b.dynamicCastTo<Derived>();
-    EXPECT_TRUE(static_cast<bool>(d2));
+    EXPECT_TRUE(d2);
     EXPECT_EQ(d2->derived_val, 123);
 
     // 共享同一控制块
@@ -236,7 +247,12 @@ TEST(RefCntPtrTest, DynamicCastToFail) {
 
     // Base -> Derived（失败，应返回空 strongPtr）
     const auto d = b.dynamicCastTo<Derived>();
-    EXPECT_FALSE(static_cast<bool>(d));
+    EXPECT_EQ(b.strongRefs(), 1);
+    EXPECT_FALSE(d);
+
+    const auto d2 = b.dynamicCastTo<NotDerived>();
+    EXPECT_EQ(b.strongRefs(), 1);
+    EXPECT_FALSE(d2);
 }
 
 TEST(RefCntPtrTest, ConstCastTo) {
