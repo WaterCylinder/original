@@ -35,6 +35,8 @@ namespace original {
 
             void rethrowIfException() const;
 
+            [[nodiscard]] std::exception_ptr exception() const;
+
             [[nodiscard]] bool available() const;
         };
 
@@ -59,6 +61,8 @@ namespace original {
             TYPE result();
 
             [[nodiscard]] bool ready() const;
+
+            [[nodiscard]] std::exception_ptr exception() const noexcept;
 
             void wait();
         };
@@ -108,6 +112,8 @@ namespace original {
 
         void rethrowIfException() const;
 
+        [[nodiscard]] std::exception_ptr exception() const noexcept;
+
         [[nodiscard]] bool available() const;
     };
 
@@ -129,6 +135,8 @@ namespace original {
         void result();
 
         [[nodiscard]] bool ready() const;
+
+        [[nodiscard]] std::exception_ptr exception() const noexcept;
 
         void wait();
     };
@@ -202,6 +210,13 @@ void original::async::asyncWrapper<TYPE>::rethrowIfException() const
 }
 
 template <typename TYPE>
+std::exception_ptr
+original::async::asyncWrapper<TYPE>::exception() const
+{
+    return this->e_;
+}
+
+template <typename TYPE>
 bool original::async::asyncWrapper<TYPE>::available() const
 {
     return this->ready() && this->alter_.hasValue();
@@ -221,6 +236,12 @@ template <typename TYPE>
 bool original::async::future<TYPE>::ready() const
 {
     return this->awr_->ready();
+}
+
+template <typename TYPE>
+std::exception_ptr original::async::future<TYPE>::exception() const noexcept
+{
+    return this->awr_->exception();
 }
 
 template <typename TYPE>
@@ -329,6 +350,12 @@ inline void original::async::asyncWrapper<void>::rethrowIfException() const
         std::rethrow_exception(this->e_);
 }
 
+inline std::exception_ptr
+original::async::asyncWrapper<void>::exception() const noexcept
+{
+    return this->e_;
+}
+
 inline bool original::async::asyncWrapper<void>::available() const
 {
     return this->ready() && this->alter_.hasValue();
@@ -342,6 +369,11 @@ inline void original::async::future<void>::result()
 inline bool original::async::future<void>::ready() const
 {
     return this->awr_->ready();
+}
+
+inline std::exception_ptr original::async::future<void>::exception() const noexcept
+{
+    return this->awr_->exception();
 }
 
 inline void original::async::future<void>::wait()
