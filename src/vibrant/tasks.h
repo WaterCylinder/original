@@ -6,6 +6,7 @@
 #include "queue.h"
 #include "refCntPtr.h"
 #include "array.h"
+#include "prique.h"
 #include "vector.h"
 
 
@@ -37,21 +38,26 @@ namespace original {
     };
 
     class taskDelegator {
-        array<thread> threads_;
-        queue<strongPtr<taskBase>, vector> tasks_high;
-        queue<strongPtr<taskBase>, vector> tasks_normal;
-        queue<strongPtr<taskBase>, vector> tasks_deferred;
-        mutable pCondition condition_;
-        mutable pMutex mutex_;
-        atomic<bool> stopped_;
-        u_integer active_threads_;
-        u_integer idle_threads_;
     public:
         enum class priority : u_integer {
             HIGH = 0,
             NORMAL = 1,
-            DEFERRED = 2,
+            LOW = 2,
         };
+    private:
+        using priorityTask = couple<strongPtr<taskBase>, priority>;
+        template<typename COUPLE>
+        struct taskComparator {
+            bool operator()(const COUPLE& lhs, const COUPLE& rhs) const;
+        };
+        using priorityTaskQueue = prique<priorityTask, taskComparator, vector>;
+
+        array<thread> threads_;
+        priorityTaskQueue tasks_waiting_;
+        mutable pCondition condition_;
+        mutable pMutex mutex_;
+        atomic<bool> stopped_;
+    public:
         explicit taskDelegator(u_integer thread_cnt = 8);
 
         template<typename Callback, typename... Args>
@@ -61,19 +67,9 @@ namespace original {
         auto submit(priority priority, Callback&& c, Args&&... args);
 
         template<typename TYPE>
-        async::future<TYPE> submit(const strongPtr<task<TYPE>>& t);
-
-        void runDeferred();
-
-        void runAllDeferred();
+        async::future<TYPE> submit(priority priority, strongPtr<task<TYPE>>& t);
 
         void stop();
-
-        u_integer tasksInQueue() const noexcept;
-
-        u_integer activeThreads() const noexcept;
-
-        u_integer idleThreads() const noexcept;
 
         ~taskDelegator();
     };
@@ -98,8 +94,14 @@ original::async::future<TYPE> original::task<TYPE>::getFuture()
     return this->p.getFuture();
 }
 
+template <typename COUPLE>
+bool original::taskDelegator::taskComparator<COUPLE>::operator()(const COUPLE& lhs, const COUPLE& rhs) const
+{
+    return static_cast<u_integer>(lhs.second()) < static_cast<u_integer>(rhs.second());
+}
+
 inline original::taskDelegator::taskDelegator(const u_integer thread_cnt)
-    : threads_(thread_cnt), stopped_(makeAtomic(false)), active_threads_(0), idle_threads_(thread_cnt) {
+    : threads_(thread_cnt), stopped_(makeAtomic(false)) {
     for (auto& thread_ : this->threads_) {
         thread_ = thread {
             [this]{
@@ -108,36 +110,17 @@ inline original::taskDelegator::taskDelegator(const u_integer thread_cnt)
                     {
                         uniqueLock lock(this->mutex_);
                         this->condition_.wait(this->mutex_, [this] {
-                            return *this->stopped_ || this->tasksInQueue() != 0;
+                            return this->stopped_.load() || !this->tasks_waiting_.empty();
                         });
 
-                        if (*this->stopped_ && this->tasksInQueue() == 0) {
-                            this->idle_threads_ -= 1;
+                        if (this->stopped_.load() && this->tasks_waiting_.empty()) {
                             return;
                         }
 
-                        if (!this->tasks_high.empty()) {
-                            task = std::move(this->tasks_high.pop());
-                        } else if (!this->tasks_normal.empty()) {
-                            task = std::move(this->tasks_normal.pop());
-                        } else if (!this->tasks_deferred.empty()) {
-                            task = std::move(this->tasks_deferred.pop());
-                        }
-
-                        if (task) {
-                            this->active_threads_ += 1;
-                            this->idle_threads_ -= 1;
-                        } else {
-                            continue;
-                        }
+                        task = std::move(this->tasks_waiting_.pop().first());
                     }
 
                     task->run();
-                    {
-                        uniqueLock lock(this->mutex_);
-                        this->active_threads_ -= 1;
-                        this->idle_threads_ += 1;
-                    }
                 }
             }
         };
@@ -158,67 +141,28 @@ auto original::taskDelegator::submit(const priority priority, Callback&& c, Args
         std::forward<Callback>(c),
         std::forward<Args>(args)...
     );
-    auto f = new_task->getFuture();
-    {
-        uniqueLock lock(this->mutex_);
-        if (this->stopped_) {
-            throw sysError("taskDelegator already stopped");
-        }
-        switch (priority) {
-            case priority::HIGH:
-                this->tasks_high.push(new_task.template dynamicCastTo<taskBase>());
-                this->condition_.notify();
-                break;
-            case priority::NORMAL:
-                this->tasks_normal.push(new_task.template dynamicCastTo<taskBase>());
-                this->condition_.notify();
-                break;
-            case priority::DEFERRED:
-                this->tasks_deferred.push(new_task.template dynamicCastTo<taskBase>());
-                break;
-        }
-    }
-    return f;
+    return this->submit<ReturnType>(priority, new_task);
 }
 
 template <typename TYPE>
 original::async::future<TYPE>
-original::taskDelegator::submit(const strongPtr<task<TYPE>>& t)
+original::taskDelegator::submit(const priority priority, strongPtr<task<TYPE>>& t)
 {
     auto f = t->getFuture();
     {
         uniqueLock lock(this->mutex_);
-        if (this->stopped_) {
+        if (this->stopped_.load()) {
             throw sysError("taskDelegator already stopped");
         }
-        this->tasks_normal.push(t.template dynamicCastTo<taskBase>());
+        this->tasks_waiting_.push(priorityTask{t.template dynamicCastTo<taskBase>(), priority});
     }
     this->condition_.notify();
     return f;
 }
 
-inline void original::taskDelegator::runDeferred()
-{
-    uniqueLock lock(this->mutex_);
-    if (!this->tasks_deferred.empty()) {
-        this->tasks_normal.push(this->tasks_deferred.pop());
-        this->condition_.notify();
-    }
-}
-
-inline void original::taskDelegator::runAllDeferred()
-{
-    while (!this->tasks_deferred.empty()) {
-        this->runDeferred();
-    }
-}
-
 inline void original::taskDelegator::stop()
 {
-    {
-        uniqueLock lock(this->mutex_);
-        this->stopped_.store(true);
-    }
+    this->stopped_.store(true);
     this->condition_.notifyAll();
 
     for (auto& thread_ : this->threads_) {
@@ -228,27 +172,9 @@ inline void original::taskDelegator::stop()
     }
 }
 
-inline original::u_integer
-original::taskDelegator::tasksInQueue() const noexcept
-{
-    return this->tasks_high.size() +
-           this->tasks_normal.size() +
-           this->tasks_deferred.size();
-}
-
-inline original::u_integer original::taskDelegator::activeThreads() const noexcept
-{
-    return this->active_threads_;
-}
-
-inline original::u_integer original::taskDelegator::idleThreads() const noexcept
-{
-    return this->idle_threads_;
-}
-
 inline original::taskDelegator::~taskDelegator()
 {
-    if (!*this->stopped_) {
+    if (!this->stopped_.load()) {
         this->stop();
     }
 }
