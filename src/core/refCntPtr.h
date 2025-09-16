@@ -132,19 +132,19 @@ namespace original{
         */
         strongPtr(strongPtr&& other) noexcept;
 
-        template<typename U, typename DEL = typename DELETER::template rebound_deleter<U>>
+        template<typename U, typename DEL = DELETER::template rebound_deleter<U>>
         strongPtr<U, DEL> staticCastTo();
 
-        template<typename U, typename DEL = typename DELETER::template rebound_deleter<const U>>
+        template<typename U, typename DEL = DELETER::template rebound_deleter<const U>>
         strongPtr<const U, DEL> staticCastTo() const;
 
-        template<typename U, typename DEL = typename DELETER::template rebound_deleter<U>>
+        template<typename U, typename DEL = DELETER::template rebound_deleter<U>>
         strongPtr<U, DEL> dynamicCastTo();
 
-        template<typename U, typename DEL = typename DELETER::template rebound_deleter<const U>>
+        template<typename U, typename DEL = DELETER::template rebound_deleter<const U>>
         strongPtr<const U, DEL> dynamicCastTo() const;
 
-        template<typename U, typename DEL = typename DELETER::template rebound_deleter<U>>
+        template<typename U, typename DEL = DELETER::template rebound_deleter<U>>
         strongPtr<U, DEL> constCastTo() const;
 
         /**
@@ -265,19 +265,19 @@ namespace original{
         */
         weakPtr& operator=(weakPtr&& other) noexcept;
 
-        template<typename U, typename DEL = typename DELETER::template rebound_deleter<U>>
+        template<typename U, typename DEL = DELETER::template rebound_deleter<U>>
         weakPtr<U, DEL> staticCastTo();
 
-        template<typename U, typename DEL = typename DELETER::template rebound_deleter<const U>>
+        template<typename U, typename DEL = DELETER::template rebound_deleter<const U>>
         weakPtr<const U, DEL> staticCastTo() const;
 
-        template<typename U, typename DEL = typename DELETER::template rebound_deleter<U>>
+        template<typename U, typename DEL = DELETER::template rebound_deleter<U>>
         weakPtr<U, DEL> dynamicCastTo();
 
-        template<typename U, typename DEL = typename DELETER::template rebound_deleter<const U>>
+        template<typename U, typename DEL = DELETER::template rebound_deleter<const U>>
         weakPtr<const U, DEL> dynamicCastTo() const;
 
-        template<typename U, typename DEL = typename DELETER::template rebound_deleter<U>>
+        template<typename U, typename DEL = DELETER::template rebound_deleter<U>>
         weakPtr<U, DEL> constCastTo() const;
 
         /**
