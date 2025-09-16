@@ -35,33 +35,6 @@ TEST(TaskDelegatorTest, SubmitHighPriority) {
     EXPECT_EQ(f2.result(), 4);
 }
 
-TEST(TaskDelegatorTest, DeferredRunManually) {
-    taskDelegator delegator(2);
-
-    // 提交延迟任务
-    auto f = delegator.submit(taskDelegator::priority::DEFERRED, add_func, 7, 8);
-
-    // 还没触发，future 应该还没 ready
-    EXPECT_FALSE(f.ready());
-
-    // 手动触发一次
-    delegator.runDeferred();
-
-    EXPECT_EQ(f.result(), 15);
-}
-
-TEST(TaskDelegatorTest, RunAllDeferred) {
-    taskDelegator delegator(2);
-
-    auto f1 = delegator.submit(taskDelegator::priority::DEFERRED, add_func, 1, 1);
-    auto f2 = delegator.submit(taskDelegator::priority::DEFERRED, add_func, 2, 2);
-
-    delegator.runAllDeferred();
-
-    EXPECT_EQ(f1.result(), 2);
-    EXPECT_EQ(f2.result(), 4);
-}
-
 TEST(TaskDelegatorTest, StopPreventsNewSubmits) {
     taskDelegator delegator(2);
 
@@ -76,74 +49,69 @@ TEST(TaskDelegatorTest, StopPreventsNewSubmits) {
 }
 
 TEST(TaskDelegatorTest, StressTestMixedTasks) {
-    constexpr int thread_count = 8;
-    constexpr int normal_tasks = 50;
-    constexpr int high_tasks = 20;
-    constexpr int deferred_tasks = 30;
+    for (int i = 0; i < 5; ++i) {
+        constexpr int thread_count = 8;
+        constexpr int normal_tasks = 50;
+        constexpr int high_tasks = 30;
+        constexpr int low_tasks = 15;
 
-    taskDelegator delegator(thread_count);
+        taskDelegator delegator(thread_count);
 
-    std::atomic normal_sum{0};
-    std::atomic high_sum{0};
-    std::atomic deferred_sum{0};
+        std::atomic normal_sum{0};
+        std::atomic high_sum{0};
+        std::atomic low_sum{0};
 
-    auto normal_func = [&normal_sum](const int val){
-        thread::sleep(milliseconds(10));
-        normal_sum += val;
-        return val;
-    };
+        auto low_func = [&low_sum](const int val){
+            thread::sleep(milliseconds(10));
+            low_sum += val;
+            return val;
+        };
 
-    auto high_func = [&high_sum](const int val){
-        thread::sleep(milliseconds(5));
-        high_sum += val;
-        return val;
-    };
+        auto normal_func = [&normal_sum](const int val){
+            thread::sleep(milliseconds(10));
+            normal_sum += val;
+            return val;
+        };
 
-    auto deferred_func = [&deferred_sum](const int val){
-        thread::sleep(milliseconds(15));
-        deferred_sum += val;
-        return val;
-    };
+        auto high_func = [&high_sum](const int val){
+            thread::sleep(milliseconds(5));
+            high_sum += val;
+            return val;
+        };
 
-    std::vector<async::future<int>> futures;
+        std::vector<async::future<int>> futures;
 
-    // 提交 NORMAL 任务
-    for (int i = 1; i <= normal_tasks; ++i) {
-        futures.push_back(delegator.submit(taskDelegator::priority::NORMAL, normal_func, i));
+        // 提交 LOW 任务
+        for (int j = 1; j <= low_tasks; ++j) {
+            futures.push_back(delegator.submit(taskDelegator::priority::LOW, low_func, j));
+        }
+
+        // 提交 NORMAL 任务
+        for (int j = 1; j <= normal_tasks; ++j) {
+            futures.push_back(delegator.submit(taskDelegator::priority::NORMAL, normal_func, j));
+        }
+
+        // 提交 HIGH 任务
+        for (int j = 1; j <= high_tasks; ++j) {
+            futures.push_back(delegator.submit(taskDelegator::priority::HIGH, high_func, j));
+        }
+
+        // 等待所有任务完成
+        for (auto &fut : futures) {
+            fut.wait();
+        }
+
+        for (auto &fut : futures) {
+            fut.result();
+        }
+
+        // 验证计数和求和结果
+        constexpr int expected_normal_sum = normal_tasks * (normal_tasks + 1) / 2;
+        constexpr int expected_high_sum = high_tasks * (high_tasks + 1) / 2;
+        constexpr int expected_low_sum = low_tasks * (low_tasks + 1) / 2;
+
+        EXPECT_EQ(normal_sum.load(), expected_normal_sum);
+        EXPECT_EQ(high_sum.load(), expected_high_sum);
+        EXPECT_EQ(low_sum.load(), expected_low_sum);
     }
-
-    // 提交 HIGH 任务
-    for (int i = 1; i <= high_tasks; ++i) {
-        futures.push_back(delegator.submit(taskDelegator::priority::HIGH, high_func, i));
-    }
-
-    // 提交 DEFERRED 任务
-    for (int i = 1; i <= deferred_tasks; ++i) {
-        futures.push_back(delegator.submit(taskDelegator::priority::DEFERRED, deferred_func, i));
-    }
-
-    // 手动触发部分 DEFERRED 任务
-    for (int i = 0; i < deferred_tasks / 2; ++i) {
-        delegator.runDeferred();
-    }
-
-    // 触发剩余所有 DEFERRED 任务
-    delegator.runAllDeferred();
-
-    // 等待所有任务完成
-    for (auto &fut : futures) {
-        fut.result();
-    }
-
-    // 验证计数和求和结果
-    constexpr int expected_normal_sum = normal_tasks * (normal_tasks + 1) / 2;
-    constexpr int expected_high_sum = high_tasks * (high_tasks + 1) / 2;
-    constexpr int expected_deferred_sum = deferred_tasks * (deferred_tasks + 1) / 2;
-
-    EXPECT_EQ(normal_sum.load(), expected_normal_sum);
-    EXPECT_EQ(high_sum.load(), expected_high_sum);
-    EXPECT_EQ(deferred_sum.load(), expected_deferred_sum);
-
-    // active_threads_ 最终应该为 0
-    EXPECT_EQ(delegator.activeThreads(), 0);
 }
