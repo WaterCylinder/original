@@ -55,7 +55,7 @@ namespace original {
             couple<const K_TYPE, V_TYPE> data_;  ///< Key-value pair storage
             vector<skipListNode*> next_;         ///< Vector of next pointers for each level
 
-            using rebind_alloc_pointer = typename ALLOC::template rebind_alloc<skipListNode*>;
+            using rebind_alloc_pointer = ALLOC::template rebind_alloc<skipListNode*>;
         public:
             friend class skipList;
 
@@ -146,8 +146,8 @@ namespace original {
             static void connect(u_integer levels, skipListNode* prev, skipListNode* next);
         };
 
-        using rebind_alloc_node = typename ALLOC::template rebind_alloc<skipListNode>;       ///< Rebound allocator for nodes
-        using rebind_alloc_pointer = typename ALLOC::template rebind_alloc<skipListNode*>;  ///< Rebound allocator for pointers
+        using rebind_alloc_node = ALLOC::template rebind_alloc<skipListNode>;       ///< Rebound allocator for nodes
+        using rebind_alloc_pointer = ALLOC::template rebind_alloc<skipListNode*>;  ///< Rebound allocator for pointers
 
         u_integer size_;                     ///< Number of elements
         skipListNode* head_;                 ///< Head node pointer
@@ -447,7 +447,7 @@ void original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode::setValue(
 }
 
 template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
-typename original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode*
+ original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode*
 original::skipList<K_TYPE, V_TYPE, ALLOC,Compare>::skipListNode::getPNext(const u_integer levels) const {
     return this->next_[levels - 1];
 }
@@ -476,7 +476,7 @@ original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::Iterator(const Ite
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
-typename original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator&
+original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator&
 original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::operator=(const Iterator& other) {
     if (this == &other){
         return *this;
@@ -497,7 +497,7 @@ void original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::next() const 
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
-typename original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator*
+original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator*
 original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::clone() const {
     return new Iterator(*this);
 }
@@ -570,7 +570,7 @@ original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::Iterator::ptrDistance(const 
 }
 
 template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
-typename original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode*
+original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode*
 original::skipList<K_TYPE, V_TYPE, ALLOC,Compare>::createNode(const K_TYPE& key, const V_TYPE& value, u_integer levels,
     std::initializer_list<skipListNode*> next) const {
     auto node = this->rebind_alloc.allocate(1);
@@ -640,7 +640,7 @@ void original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::shrinkCurLevels(u_integ
 }
 
 template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
-typename original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode*
+original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode*
 original::skipList<K_TYPE, V_TYPE, ALLOC,Compare>::listCopy() const {
     auto copied_head =
     this->createNode(this->head_->getKey(), this->head_->getValue(), this->getCurLevels());
@@ -661,7 +661,7 @@ original::skipList<K_TYPE, V_TYPE, ALLOC,Compare>::listCopy() const {
 }
 
 template<typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
-typename original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode*
+original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode*
 original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::findLastNode() const {
     auto cur = this->head_;
     while (cur->getPNext(1)){
@@ -675,7 +675,7 @@ original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipList(Compare compare)
     : size_(0), head_(this->createNode()), compare_(std::move(compare)) {}
 
 template <typename K_TYPE, typename V_TYPE, typename ALLOC, typename Compare>
-typename original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode*
+original::skipList<K_TYPE, V_TYPE, ALLOC, Compare>::skipListNode*
 original::skipList<K_TYPE, V_TYPE, ALLOC,Compare>::find(const K_TYPE& key) const
 {
     if (this->size_ == 0){

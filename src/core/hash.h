@@ -26,10 +26,6 @@
  * @brief Main namespace containing all hashing utilities
  */
 
-#include "config.h"
-#include <cstring>
-#include <string>
-
 namespace original {
 
     /**
@@ -145,7 +141,7 @@ namespace original {
          * @param rest Remaining values to combine
          */
         template <typename T, typename... Rest>
-        static inline void hashCombine(u_integer& seed, const T& value, const Rest&... rest) noexcept;
+        static void hashCombine(u_integer& seed, const T& value, const Rest&... rest) noexcept;
 
         /**
          * @brief Default hash function fallback
@@ -171,7 +167,7 @@ namespace original {
          * @brief Hash function specialization for integral types
          * @tparam T Integral type
          * @param t The value to hash
-         * @return The casted hash value
+         * @return The cast hash value
          */
         template<std::integral T>
         static u_integer hashFunc(const T& t) noexcept;
@@ -267,22 +263,20 @@ namespace original {
 }
 
 
-namespace std {
+/**
+ * @brief std::hash specialization for isHashable types
+ * @tparam T Type that satisfies isHashable concept
+ */
+template <typename T>
+requires original::isHashable<T>
+struct std::hash<T> { // NOLINT
     /**
-     * @brief std::hash specialization for isHashable types
-     * @tparam T Type that satisfies isHashable concept
+     * @brief Hash function operator for STL compatibility
+     * @param t The object to hash
+     * @return Hash value as std::size_t
      */
-    template <typename T>
-    requires original::isHashable<T>
-    struct hash<T> { // NOLINT
-        /**
-         * @brief Hash function operator for STL compatibility
-         * @param t The object to hash
-         * @return Hash value as std::size_t
-         */
-        std::size_t operator()(const T& t) const noexcept;
-    };
-}
+    std::size_t operator()(const T& t) const noexcept;
+};
 
 template<typename TYPE>
 template<typename T>

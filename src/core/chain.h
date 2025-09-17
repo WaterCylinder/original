@@ -128,7 +128,7 @@ namespace original {
          * @brief Rebound allocator type for chainNode allocation
          * @details Used internally to allocate and deallocate chainNode objects
          */
-        using rebind_alloc_node = typename ALLOC::template rebind_alloc<chainNode>;
+        using rebind_alloc_node = ALLOC::template rebind_alloc<chainNode>;
 
         u_integer size_;         ///< Current element count
         chainNode* begin_;      ///< Pointer to first element node

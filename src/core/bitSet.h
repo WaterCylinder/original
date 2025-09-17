@@ -37,7 +37,7 @@ namespace original {
              * @details This is the allocator type rebound to manage underlying_type (u_integer)
              *          instead of bool, since we store bits in blocks of unsigned integers.
              */
-            using rebind_alloc_underlying = typename ALLOC::template rebind_alloc<underlying_type>;
+            using rebind_alloc_underlying = ALLOC::template rebind_alloc<underlying_type>;
 
             static constexpr integer BLOCK_MAX_SIZE = sizeof(underlying_type) * 8; ///< Maximum number of bits in a block.
 
