@@ -136,12 +136,40 @@ array("hello world!")
 
 ##### 内存管理：
 
-自动指针 ownerPtr/strongPtr/weakPtr，分配器 allocatorBase/allocator/objPoolAllocator，删除器 deleterBase/deleter
+自动指针 ownerPtr/strongPtr/weakPtr，分配器 allocatorBase/allocator/objPoolAllocator，删除器 deleterBase/deleter，单例模式 singleton
 
 
-#### asyncIO
+#### Vibrant
 
-计划实现，包含多线程和网络通信功能。
+并发模块，正在实现。
+
+##### 线程：
+
+基类 threadBase，POSIX类线程 pThread，线程包装器 thread
+
+##### 临界区管理：
+
+互斥量包装类 mutexBase/pMutex，锁管理器 lockGuard/uniqueLock/multiLock
+
+##### 线程同步：
+
+条件变量包装类 conditionBase/pCondition
+
+#### 原子操作：
+
+原子变量 atomic
+
+#### 跨线程生产/消费:
+
+跨线程生产者 async::promise，跨线程消费者 async::future
+
+#### 时间表示：
+
+时间段 time::duration，时间戳 time::point，UTC时间 time::UTCTime
+
+#### 任务调度：
+
+任务包装类 taskBase/task，任务委派器 taskDelegator
 
 #### matrix
 
