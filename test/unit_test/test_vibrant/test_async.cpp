@@ -23,7 +23,7 @@ template<typename Promise>
 void runPromiseInThread(Promise& p) {
     thread t([p = std::move(p)]() mutable {
         p.run();
-    }, thread::AUTO_DETACH);
+    });
 }
 
 TEST(AsyncTest, SimpleAsyncReturnsValue) {
