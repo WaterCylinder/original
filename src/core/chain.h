@@ -128,7 +128,7 @@ namespace original {
          * @brief Rebound allocator type for chainNode allocation
          * @details Used internally to allocate and deallocate chainNode objects
          */
-        using rebind_alloc_node = typename ALLOC::template rebind_alloc<chainNode>;
+        using rebind_alloc_node = ALLOC::template rebind_alloc<chainNode>;
 
         u_integer size_;         ///< Current element count
         chainNode* begin_;      ///< Pointer to first element node
@@ -179,7 +179,7 @@ namespace original {
         /**
          * @brief Destroys the chain by deleting all nodes.
          */
-        void chainDestruction();
+        void chainDestroy();
     public:
 
         /**
@@ -519,7 +519,7 @@ namespace original {
     }
 
     template <typename TYPE, typename ALLOC>
-    auto original::chain<TYPE, ALLOC>::chainDestruction() -> void
+    auto original::chain<TYPE, ALLOC>::chainDestroy() -> void
     {
         auto current = this->end_;
         while (current) {
@@ -616,7 +616,7 @@ namespace original {
     template <typename TYPE, typename ALLOC>
     original::chain<TYPE, ALLOC>& original::chain<TYPE, ALLOC>::operator=(const chain& other){
         if (this == &other) return *this;
-        this->chainDestruction();
+        this->chainDestroy();
         this->size_ = other.size_;
         if (this->size() != 0){
             auto other_ = other.begin_->getPPrev();
@@ -653,7 +653,7 @@ namespace original {
         if (this == &other)
             return *this;
 
-        this->chainDestruction();
+        this->chainDestroy();
         this->begin_ = other.begin_;
         this->end_ = other.end_;
         this->size_ = other.size_;
@@ -866,7 +866,7 @@ namespace original {
 
     template <typename TYPE, typename ALLOC>
     original::chain<TYPE, ALLOC>::~chain() {
-        this->chainDestruction();
+        this->chainDestroy();
     }
 
 #endif //CHAIN_H

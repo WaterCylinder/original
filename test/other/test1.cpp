@@ -4,7 +4,6 @@
 #include "chain.h"
 #include "maths.h"
 #include "vector.h"
-#include "iterator.h"
 
 
 int main(){
@@ -184,5 +183,7 @@ int main(){
     std::cout << "arr9 after: " << arr9 << std::endl;
     // delete &arr9.data(); // ok
     std::cout << original::array({"hello, original!"}) << std::endl;
+    struct unprintable {};
+    std::cout << original::printable::formatString(unprintable{}) << std::endl;
     return 0;
 }

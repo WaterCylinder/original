@@ -1,6 +1,7 @@
 #ifndef COMPARATOR_H
 #define COMPARATOR_H
 
+
 /**
  * @file comparator.h
  * @brief Comparator base class and concrete comparator classes

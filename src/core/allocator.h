@@ -365,7 +365,7 @@ void original::allocators::free(TYPE* ptr) {
 template <typename TYPE, template <typename> typename DERIVED>
 constexpr original::allocatorBase<TYPE, DERIVED>::allocatorBase()
 {
-    staticError<allocateError, sizeof(TYPE) == 0 || std::is_void_v<TYPE>>{};
+    staticError<allocateError, sizeof(TYPE) == 0 || std::is_void_v<TYPE>>::asserts();
 }
 
 template<typename TYPE, template <typename> typename DERIVED>
@@ -394,7 +394,8 @@ void original::allocator<TYPE>::deallocate(TYPE* ptr, u_integer) {
 }
 
 template<typename TYPE>
-constexpr original::u_integer original::objPoolAllocator<TYPE>::getChunkIndex(const u_integer size) {
+constexpr original::u_integer
+original::objPoolAllocator<TYPE>::getChunkIndex(const u_integer size) {
     u_integer index = 0;
     while (static_cast<u_integer>(1) << index < size) {
         index += 1;

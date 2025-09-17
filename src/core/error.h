@@ -1,13 +1,14 @@
 #ifndef ERROR_H
 #define ERROR_H
 #include <exception>
+#include "printable.h"
 #include "types.h"
 
 /**
  * @file error.h
  * @brief Custom exception classes and callback validation utilities.
- * @details This header defines a collection of exception types for error handling
- *          and a template-based callback signature checker for interface validation.
+ * @details This header defines domain-specific exception types for the Original project,
+ *          along with compile-time and runtime validation utilities for callback signatures.
  */
 
 namespace original {
@@ -22,16 +23,16 @@ namespace original {
     public:
         /**
          * @brief Validates a callback's signature and return type.
-         * @tparam Callback Type of the callback to check
-         * @tparam Ret_TYPE Expected return type
-         * @tparam Args_TYPE Expected argument types
-         * @throw CallbackSignatureError If arguments don't match
-         * @throw CallbackReturnTypeError If return type doesn't match
+         * @tparam Callback Type of the callback to check.
+         * @tparam Ret_TYPE Expected return type.
+         * @tparam Args_TYPE Expected argument types.
+         * @throw callbackSignatureError If arguments don't match.
+         * @throw callbackReturnTypeError If return type doesn't match.
          *
-         * @code{.cpp}
-         * auto callback = [](int x) { return x * 1.5f; };
-         * callBackChecker::check<decltype(callback), float, int>();  // Valid
-         * callBackChecker::check<decltype(callback), int, int>();    // Throws callbackReturnTypeError
+         * @code
+         * auto cb = [](int x) { return x + 1.0f; };
+         * callBackChecker::check<decltype(cb), float, int>(); // OK
+         * callBackChecker::check<decltype(cb), int, int>();   // Throws callbackReturnTypeError
          * @endcode
          */
         template<typename Callback, typename Ret_TYPE, typename ...Args_TYPE>
@@ -40,38 +41,82 @@ namespace original {
 
     /**
      * @class error
-     * @brief Base interface for all exception types in Original
-     * @details Inherits from std::exception to provide standard exception handling integration.
-     * Serves as the root type for all domain-specific exceptions in Original.
+     * @brief Base class for all exceptions in the Original project.
+     * @details Inherits from std::exception and implements
+     * the printable interface for custom formatting.
      *
-     * @note All exceptions in Original should inherit from this class to maintain consistent
-     * error handling behavior across the codebase.
+     * @note All exceptions in Original should inherit from this class to
+     * maintain consistent error handling behavior across the codebase.
      */
-    class error : public std::exception{};
+    class error
+            : public std::exception,
+              public printable {
+    #define ORIGINAL_ERROR_MSG "An error thrown"
+    protected:
+        mutable std::string msg_;
+
+        /**
+         * @brief Provides default message when no custom message is supplied.
+         */
+        virtual std::string defaultMsg() const {
+            return ORIGINAL_ERROR_MSG;
+        }
+    public:
+        /**
+         * @brief Constructs an exception with an optional message.
+         * @param msg Optional custom error message.
+         */
+        explicit error(std::string msg) : msg_(std::move(msg)) {}
+
+        /**
+         * @brief Returns the class name as string.
+         */
+        std::string className() const override {
+            return "error";
+        }
+
+        std::string message() const noexcept {
+            std::stringstream ss;
+            ss << "Original::" << this->className() << ": ";
+            if (!this->msg_.empty()){
+                ss << this->msg_ << ".";
+            } else {
+                ss << this->defaultMsg() << ".";
+            }
+            return ss.str();
+        }
+
+        /**
+         * @brief Returns the full error message.
+         */
+        const char* what() const noexcept override {
+            this->msg_ = this->message();
+            return this->msg_.c_str();
+        }
+    };
 
     /**
      * @class staticError
-     * @tparam ERR Exception type to associate with the static assertion (must inherit from error)
-     * @tparam TRIGGERING_CONDITION Boolean condition triggering the assertion when true
-     * @brief Compile-time error assertion utility
-     * @details Enforces compile-time constraints by triggering static assertions with
-     * exception-specific error messages. The assertion fires when TRIGGERING_CONDITION evaluates to true.
+     * @brief Compile-time error triggering utility.
+     * @tparam ERR Exception class to represent the error.
+     * @tparam TRIGGERING_CONDITION Whether to trigger the static assertion.
+     * @requires ERR must inherit from error.
      *
-     * @requires ExtendsOf<error, ERR> (ERR must inherit from error)
-     *
-     * @code{.cpp}
-     * template<typename T>
-     * void validate() {
-     *     staticError<valueError, !std::is_arithmetic_v<T>>();
-     * }
-     * // Triggers "Wrong value given" static assertion if T isn't arithmetic
+     * @code
+     * staticError<valueError, !std::is_integral_v<integer>>::asserts();
      * @endcode
      */
     template<typename ERR, const bool TRIGGERING_CONDITION>
     requires ExtendsOf<error, ERR>
     class staticError
     {
-        static_assert(!TRIGGERING_CONDITION);
+    public:
+        /**
+         * @brief Triggers static assertion if the condition is true.
+         */
+        static void asserts(){
+            static_assert(!TRIGGERING_CONDITION);
+        }
     };
 
 // ----------------- Exception Classes -----------------
@@ -83,9 +128,17 @@ namespace original {
  */
 class outOfBoundError final : public error {
 public:
-    [[nodiscard]] auto what() const noexcept -> const char* override
-    {
-        return "Out of the bound of the object.";
+    #define ORIGINAL_OUT_OF_BOUND_ERROR_MSG "Wrong value given"
+
+    explicit outOfBoundError(std::string msg = "")
+        : error(std::move(msg)) {}
+
+    std::string className() const override{
+        return "outOfBoundError";
+    }
+
+    std::string defaultMsg() const override {
+        return ORIGINAL_OUT_OF_BOUND_ERROR_MSG;
     }
 };
 
@@ -96,9 +149,17 @@ public:
  */
 class valueError final : public error {
 public:
-    [[nodiscard]] auto what() const noexcept -> const char* override
-    {
-        return "Wrong value given.";
+    #define ORIGINAL_VALUE_ERROR_ERROR_MSG "Wrong value given"
+
+    explicit valueError(std::string msg = "")
+    : error(std::move(msg)) {}
+
+    std::string className() const override{
+        return "valueError";
+    }
+
+    std::string defaultMsg() const override {
+        return ORIGINAL_VALUE_ERROR_ERROR_MSG;
     }
 };
 
@@ -109,9 +170,17 @@ public:
  */
 class nullPointerError final : public error {
 public:
-    [[nodiscard]] auto what() const noexcept -> const char* override
-    {
-        return "Attempting to access null pointer.";
+    #define ORIGINAL_NULL_POINTER_ERROR_MSG "Attempting to access null pointer"
+
+    explicit nullPointerError(std::string msg = "")
+    : error(std::move(msg)) {}
+
+    std::string className() const override{
+        return "nullPointerError";
+    }
+
+    std::string defaultMsg() const override {
+        return ORIGINAL_NULL_POINTER_ERROR_MSG;
     }
 };
 
@@ -122,9 +191,17 @@ public:
  */
 class unSupportedMethodError final : public error {
 public:
-    [[nodiscard]] auto what() const noexcept -> const char* override
-    {
-        return "Unsupported Method for class.";
+    #define ORIGINAL_UNSUPPORTED_METHOD_ERROR_MSG "Unsupported Method for the call"
+
+    explicit unSupportedMethodError(std::string msg = "")
+    : error(std::move(msg)) {}
+
+    std::string className() const override{
+        return "unSupportedMethodError";
+    }
+
+    std::string defaultMsg() const override {
+        return ORIGINAL_UNSUPPORTED_METHOD_ERROR_MSG;
     }
 };
 
@@ -135,9 +212,17 @@ public:
  */
 class noElementError final : public error {
 public:
-    [[nodiscard]] auto what() const noexcept -> const char* override
-    {
-        return "No such element.";
+    #define ORIGINAL_NO_ELEMENT_ERROR_MSG "No such element"
+
+    explicit noElementError(std::string msg = "")
+    : error(std::move(msg)) {}
+
+    std::string className() const override{
+        return "noElementError";
+    }
+
+    std::string defaultMsg() const override {
+        return ORIGINAL_NO_ELEMENT_ERROR_MSG;
     }
 };
 
@@ -148,9 +233,17 @@ public:
  */
 class callbackSignatureError final : public error {
 public:
-    [[nodiscard]] auto what() const noexcept -> const char* override
-    {
-        return "Callback signature mismatch.";
+    #define ORIGINAL_CALLBACK_SIGNATURE_ERROR_MSG "Callback signature mismatch"
+
+    explicit callbackSignatureError(std::string msg = "")
+    : error(std::move(msg)) {}
+
+    std::string className() const override{
+        return "callbackSignatureError";
+    }
+
+    std::string defaultMsg() const override {
+        return ORIGINAL_CALLBACK_SIGNATURE_ERROR_MSG;
     }
 };
 
@@ -161,9 +254,17 @@ public:
  */
 class callbackReturnTypeError final : public error {
 public:
-    [[nodiscard]] auto what() const noexcept -> const char* override
-    {
-        return "Return type of callback mismatch.";
+    #define ORIGINAL_CALLBACK_RETURN_TYPE_ERROR_MSG "Return type of callback mismatch"
+
+    explicit callbackReturnTypeError(std::string msg = "")
+    : error(std::move(msg)) {}
+
+    std::string className() const override{
+        return "callbackReturnTypeError";
+    }
+
+    std::string defaultMsg() const override {
+        return ORIGINAL_CALLBACK_RETURN_TYPE_ERROR_MSG;
     }
 };
 
@@ -182,19 +283,39 @@ public:
 */
 class allocateError final : public error
 {
-    public:
-    [[nodiscard]] auto what() const noexcept -> const char* override
-    {
-        return "Can not allocate memory.";
+public:
+    #define ORIGINAL_ALLOCATE_ERROR_MSG "Can not allocate memory"
+
+    explicit allocateError(std::string msg = "")
+    : error(std::move(msg)) {}
+
+    std::string className() const override{
+        return "allocateError";
+    }
+
+    std::string defaultMsg() const override {
+        return ORIGINAL_ALLOCATE_ERROR_MSG;
     }
 };
 
+/**
+ * @class sysError
+ * @brief Exception for generic system failure.
+ */
 class sysError final : public error
 {
 public:
-    [[nodiscard]] auto what() const noexcept -> const char* override
-    {
-        return "A sys error triggered.";
+    #define ORIGINAL_SYS_ERROR_MSG "A system error triggered"
+
+    explicit sysError(std::string msg = "")
+    : error(std::move(msg)) {}
+
+    std::string className() const override{
+        return "sysError";
+    }
+
+    std::string defaultMsg() const override {
+        return ORIGINAL_SYS_ERROR_MSG;
     }
 };
 
@@ -218,55 +339,91 @@ void original::callBackChecker::check() {
 template <const bool TRIGGERING_CONDITION>
 class original::staticError<original::error, TRIGGERING_CONDITION>
 {
-    static_assert(!TRIGGERING_CONDITION, "A static assert triggered");
+public:
+    static void asserts(){
+        static_assert(!TRIGGERING_CONDITION, ORIGINAL_ERROR_MSG);
+    }
 };
 
 template <const bool TRIGGERING_CONDITION>
 class original::staticError<original::outOfBoundError, TRIGGERING_CONDITION>
 {
-    static_assert(!TRIGGERING_CONDITION, "Out of the bound of the object");
+public:
+    static void asserts(){
+        static_assert(!TRIGGERING_CONDITION, ORIGINAL_OUT_OF_BOUND_ERROR_MSG);
+    }
 };
 
 template <const bool TRIGGERING_CONDITION>
 class original::staticError<original::valueError, TRIGGERING_CONDITION>
 {
-    static_assert(!TRIGGERING_CONDITION, "Wrong value given");
+public:
+    static void asserts(){
+        static_assert(!TRIGGERING_CONDITION, ORIGINAL_VALUE_ERROR_ERROR_MSG);
+    }
 };
 
 template <const bool TRIGGERING_CONDITION>
 class original::staticError<original::nullPointerError, TRIGGERING_CONDITION>
 {
-    static_assert(!TRIGGERING_CONDITION, "Attempting to access null pointer");
+public:
+    static void asserts(){
+        static_assert(!TRIGGERING_CONDITION, ORIGINAL_NULL_POINTER_ERROR_MSG);
+    }
 };
 
 template <const bool TRIGGERING_CONDITION>
 class original::staticError<original::unSupportedMethodError, TRIGGERING_CONDITION>
 {
-    static_assert(!TRIGGERING_CONDITION, "Unsupported Method for class");
+public:
+    static void asserts(){
+        static_assert(!TRIGGERING_CONDITION, ORIGINAL_UNSUPPORTED_METHOD_ERROR_MSG);
+    }
 };
 
 template <const bool TRIGGERING_CONDITION>
 class original::staticError<original::noElementError, TRIGGERING_CONDITION>
 {
-    static_assert(!TRIGGERING_CONDITION, "No such element");
+public:
+    static void asserts(){
+        static_assert(!TRIGGERING_CONDITION, ORIGINAL_NO_ELEMENT_ERROR_MSG);
+    }
 };
 
 template <const bool TRIGGERING_CONDITION>
 class original::staticError<original::callbackSignatureError, TRIGGERING_CONDITION>
 {
-    static_assert(!TRIGGERING_CONDITION, "Return type of callback mismatch");
+public:
+    static void asserts(){
+        static_assert(!TRIGGERING_CONDITION, ORIGINAL_CALLBACK_SIGNATURE_ERROR_MSG);
+    }
 };
 
 template <const bool TRIGGERING_CONDITION>
 class original::staticError<original::callbackReturnTypeError, TRIGGERING_CONDITION>
 {
-    static_assert(!TRIGGERING_CONDITION, "Callback signature mismatch");
+public:
+    static void asserts(){
+        static_assert(!TRIGGERING_CONDITION, ORIGINAL_CALLBACK_RETURN_TYPE_ERROR_MSG);
+    }
 };
 
 template <const bool TRIGGERING_CONDITION>
 class original::staticError<original::allocateError, TRIGGERING_CONDITION>
 {
-    static_assert(!TRIGGERING_CONDITION, "Can not allocate memory");
+public:
+    static void asserts(){
+        static_assert(!TRIGGERING_CONDITION, ORIGINAL_ALLOCATE_ERROR_MSG);
+    }
+};
+
+template <const bool TRIGGERING_CONDITION>
+class original::staticError<original::sysError, TRIGGERING_CONDITION>
+{
+public:
+    static void asserts(){
+        static_assert(!TRIGGERING_CONDITION, ORIGINAL_SYS_ERROR_MSG);
+    }
 };
 
 #endif // ERROR_H

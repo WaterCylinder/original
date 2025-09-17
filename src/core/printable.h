@@ -7,7 +7,6 @@
 #include "types.h"
 #include "sstream"
 
-
 /**
  * @file printable.h
  * @brief Interface for polymorphic string formatting and output.
@@ -15,6 +14,14 @@
  *          utilities, supporting automatic formatting of primitive types, enums,
  *          pointers, and custom class hierarchies. Includes integration with
  *          C++20 std::format.
+ *
+ * Key Features:
+ * - Polymorphic string conversion for derived classes
+ * - Automatic formatting of built-in types and pointers
+ * - Enum value formatting with type names
+ * - C-style string conversion with caching
+ * - Integration with C++ streams and std::format
+ * - Thread-safe formatting utilities
  */
 
 namespace original {
@@ -25,6 +32,9 @@ namespace original {
  * @details Inherit from this class to enable automatic string representation
  *          for output streams, C-style string access, and std::format support.
  *          Provides extensible formatting through template specializations.
+ *
+ * @note All derived classes automatically gain string conversion capabilities
+ *       and can be used with std::cout, std::format, and other output mechanisms.
  */
 class printable {
     mutable std::string cache_string_; ///< Buffer for C-string conversions
@@ -51,9 +61,6 @@ public:
      * @return Formatted string in "ClassName(data)" format.
      *
      * @code{.cpp}
-     *
-     * Myclass : public printable{};
-     *
      * MyClass obj;
      * std::cout << obj.toString(true); // Outputs "printable(@0x7ffd) \n"
      * @endcode
@@ -69,6 +76,8 @@ public:
     /**
      * @brief Explicit conversion to C-style string.
      * @return Null-terminated C-string (lifetime tied to object).
+     * @note The returned pointer is valid until the next call to toCString()
+     *       or destruction of the object.
      */
     explicit operator const char*() const;
 
@@ -76,6 +85,8 @@ public:
      * @brief Direct C-string access with formatting control.
      * @param enter Append newline if true.
      * @return Managed C-string buffer.
+     * @note The returned pointer is valid until the next call to toCString()
+     *       or destruction of the object.
      */
     [[nodiscard]] const char* toCString(bool enter) const;
 
@@ -103,6 +114,24 @@ public:
     static std::string formatString(const TYPE& t);
 
     /**
+     * @brief Specialization for printable types
+     * @tparam TYPE Printable-derived type
+     * @param t Printable object to format
+     * @return String representation using the object's toString() method
+     */
+    template<Printable TYPE>
+    static std::string formatString(const TYPE& t);
+
+    /**
+     * @brief Specialization for enum types
+     * @tparam TYPE Enum type
+     * @param t Enum value to format
+     * @return String in "EnumName(value)" format
+     */
+    template<EnumType TYPE>
+    static std::string formatString(const TYPE& t);
+
+    /**
      * @brief Pointer-specific formatting.
      * @tparam TYPE Pointer type
      * @param ptr Pointer to format
@@ -123,6 +152,7 @@ public:
      * @return Static C-string buffer (thread-unsafe)
      *
      * @warning Not thread-safe due to static buffer
+     * @note For thread-safe usage, prefer formatString() and store the result
      */
     template<typename TYPE>
     static const char* formatCString(const TYPE& t);
@@ -151,16 +181,13 @@ public:
  * @return Modified output stream
  *
  * @code{.cpp}
- * Myclass : public printable{};
- *
  * MyClass obj;
- * std::cout << obj; // Outputs "printable(@0x7ffd) \n"
+ * std::cout << obj; // Outputs "printable(@0x7ffd)"
  * @endcode
  */
 std::ostream& operator<<(std::ostream& os, const printable& p);
 
 } // namespace original
-
 
     /**
      * @brief std::formatter specialization for printable types
@@ -178,20 +205,20 @@ std::ostream& operator<<(std::ostream& os, const printable& p);
     struct std::formatter<T> { // NOLINT
 
         /**
-         * @brief Parses the format specification
-         * @param ctx Format parse context
-         * @return Iterator past the parsed format specification
-         */
+        * @brief Parses the format specification
+        * @param ctx Format parse context
+        * @return Iterator past the parsed format specification
+        */
         static constexpr auto parse(format_parse_context& ctx);
 
         /**
-         * @brief Formats the printable object
-         * @param p Printable object to format
-         * @param ctx Format context
-         * @return Iterator past the formatted output
-         */
+        * @brief Formats the printable object
+        * @param p Printable object to format
+        * @param ctx Format context
+        * @return Iterator past the formatted output
+        */
         static auto format(const T& p, format_context& ctx);
-    };
+};
 
 // ----------------- Definitions of printable.h -----------------
 
@@ -227,13 +254,23 @@ inline auto original::printable::toCString(const bool enter) const -> const char
 template<typename TYPE>
 auto original::printable::formatString(const TYPE& t) -> std::string
 {
-    if constexpr (std::is_enum_v<TYPE>) {
-        return formatEnum(t);
-    } else {
-        std::stringstream ss;
-        ss << t;
-        return ss.str();
-    }
+    std::stringstream ss;
+    ss << typeid(t).name() << "("  << formatString(&t) << ")";
+    return ss.str();
+}
+
+template<original::Printable TYPE>
+std::string original::printable::formatString(const TYPE& t)
+{
+    std::stringstream ss;
+    ss << t;
+    return ss.str();
+}
+
+template <original::EnumType TYPE>
+std::string original::printable::formatString(const TYPE& t)
+{
+    return formatEnum(t);
 }
 
 template <typename TYPE>
@@ -247,9 +284,9 @@ auto original::printable::formatCString(const TYPE& t) -> const char*
 template <typename TYPE>
 auto original::printable::formatEnum(const TYPE& t) -> std::string
 {
-    const std::string enumName = typeid(t).name();
-    const int enumValue = static_cast<std::underlying_type_t<TYPE>>(t);
-    return enumName + "(" + std::to_string(enumValue) + ")";
+    const std::string enum_name = typeid(t).name();
+    const int enum_value = static_cast<std::underlying_type_t<TYPE>>(t);
+    return enum_name + "(" + std::to_string(enum_value) + ")";
 }
 
 template<>
@@ -273,7 +310,7 @@ inline auto original::printable::formatString<char>(const char& t) -> std::strin
 template<>
 inline auto original::printable::formatString<bool>(const bool& t) -> std::string
 {
-    return t != 0 ? "true" : "false";
+    return t ? "true" : "false";
 }
 
 template <typename TYPE>

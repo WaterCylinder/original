@@ -12,8 +12,8 @@
 #include "iterationStream.h"
 #include "array.h"
 
+namespace original {
 
-namespace original{
     /**
      * @class vector
      * @tparam TYPE Element type stored in the vector
@@ -40,12 +40,14 @@ namespace original{
      * - propagate_on_container_copy_assignment/move_assignment typedefs
      */
     template <typename TYPE, typename ALLOC = allocator<TYPE>>
-    class vector final : public baseList<TYPE, ALLOC>, public iterationStream<TYPE, vector<TYPE, ALLOC>>{
+    class vector final : public baseList<TYPE, ALLOC>, public iterationStream<TYPE, vector<TYPE, ALLOC>> {
         u_integer size_;                 ///< Current number of elements
-        const u_integer INNER_SIZE_INIT = 16; ///< Initial buffer capacity
+        static constexpr u_integer INNER_SIZE_INIT = 16; ///< Initial buffer capacity
         u_integer max_size;              ///< Current buffer capacity
         u_integer inner_begin;           ///< Starting index in circular buffer
         TYPE* body;                     ///< Internal storage buffer
+
+        // ==================== Private Methods ====================
 
         /**
          * @brief Initializes the vector with default settings.
@@ -72,9 +74,8 @@ namespace original{
          * - `body` pointer is set to nullptr (implicitly, via de-allocation)
          * - Allocator remains in valid state
          * - No memory leaks occur for properly destructible elements
-         *
          */
-        void vectorArrayDestruct() noexcept;
+        void vectorArrayDestroy() noexcept;
 
         /**
          * @brief Allocates and constructs a new array
@@ -85,6 +86,28 @@ namespace original{
          * - Default-construct elements
          */
         TYPE* vectorArrayInit(u_integer size);
+
+        /**
+         * @brief Gets an element from the internal buffer with proper copy/move semantics
+         * @param pos Position in the internal buffer
+         * @return The element at the specified position
+         */
+        TYPE getElem(integer pos) const;
+
+        /**
+         * @brief Sets an element in the internal buffer with proper assignment semantics
+         * @param pos Position in the internal buffer
+         * @param e Element to set
+         */
+        void setElem(integer pos, const TYPE &e);
+
+        /**
+         * @brief Sets an element in a given buffer with proper assignment semantics
+         * @param buf Target buffer
+         * @param pos Position in the buffer
+         * @param e Element to set
+         */
+        static void setBufElem(TYPE* buf, integer pos, const TYPE& e);
 
         /**
          * @brief Moves elements from the old buffer to the new buffer.
@@ -150,6 +173,9 @@ namespace original{
         explicit vector(u_integer size, ALLOC alloc = ALLOC{});
 
     public:
+
+        // ==================== Iterator Class ====================
+
         /**
          * @class Iterator
          * @brief Random access iterator implementation for vector
@@ -159,22 +185,22 @@ namespace original{
          * - Element dereferencing
          * - Comparison operators
          */
-        class Iterator final : public randomAccessIterator<TYPE, ALLOC>
-        {
-                /**
-                 * @brief Constructs an iterator for the vector.
-                 * @param ptr Pointer to the element in the vector that the iterator will point to.
-                 * @param container Pointer to the container (vector) the iterator belongs to.
-                 * @param pos The position of the iterator within the container.
-                 */
-                explicit Iterator(TYPE* ptr, const vector* container, integer pos);
-            public:
-                friend vector;
+        class Iterator final : public randomAccessIterator<TYPE, ALLOC> {
+            /**
+             * @brief Constructs an iterator for the vector.
+             * @param ptr Pointer to the element in the vector that the iterator will point to.
+             * @param container Pointer to the container (vector) the iterator belongs to.
+             * @param pos The position of the iterator within the container.
+             */
+            explicit Iterator(TYPE* ptr, const vector* container, integer pos);
+
+        public:
+            friend vector;
 
             /**
-            * @brief Copy constructor for the iterator.
-            * @param other The iterator to copy.
-            */
+             * @brief Copy constructor for the iterator.
+             * @param other The iterator to copy.
+             */
             Iterator(const Iterator& other);
 
             /**
@@ -210,6 +236,8 @@ namespace original{
              */
             [[nodiscard]] std::string className() const override;
         };
+
+        // ==================== Constructors and Destructor ====================
 
         /**
          * @brief Constructs a vector with specified allocator
@@ -275,10 +303,25 @@ namespace original{
         vector& operator=(vector&& other) noexcept;
 
         /**
+         * @brief Destructor for the vector.
+         */
+        ~vector() override;
+
+        // ==================== Capacity Methods ====================
+
+        /**
          * @brief Gets the size of the vector.
          * @return The number of elements in the vector.
          */
         [[nodiscard]] u_integer size() const override;
+
+        /**
+         * @brief Gets the current capacity of the vector.
+         * @return The maximum number of elements that can be stored without reallocation.
+         */
+        [[nodiscard]] u_integer capacity() const noexcept;
+
+        // ==================== Element Access ====================
 
         /**
          * @brief Gets a reference to the first element in the vector.
@@ -310,12 +353,16 @@ namespace original{
          */
         void set(integer index, const TYPE &e) override;
 
+        // ==================== Search Operations ====================
+
         /**
          * @brief Finds the index of the first occurrence of the specified element.
          * @param e The element to find.
          * @return The index of the element, or the size of the vector if not found.
          */
         u_integer indexOf(const TYPE &e) const override;
+
+        // ==================== Insertion Operations ====================
 
         /**
          * @brief Inserts an element at the beginning of the vector.
@@ -336,6 +383,8 @@ namespace original{
          */
         void pushEnd(const TYPE &e) override;
 
+        // ==================== Removal Operations ====================
+
         /**
          * @brief Removes and returns the first element in the vector.
          * @return The removed element.
@@ -355,6 +404,8 @@ namespace original{
          */
         TYPE popEnd() override;
 
+        // ==================== Iterator Methods ====================
+
         /**
          * @brief Gets an iterator to the beginning of the vector.
          * @return An iterator to the beginning.
@@ -367,20 +418,19 @@ namespace original{
          */
         Iterator* ends() const override;
 
+        // ==================== Utility Methods ====================
+
         /**
          * @brief Gets the class name of the vector.
          * @return The class name as a string.
          */
         [[nodiscard]] std::string className() const override;
 
-        /**
-         * @brief Destructor for the vector.
-         */
-        ~vector() override;
-
         template<typename T, typename... ARGS>
         friend vector<T> makeVector(u_integer size, ARGS&&... args);
     };
+
+    // ==================== Factory Function ====================
 
     /**
      * @brief Factory function to create a vector with specified size and construction arguments.
@@ -409,13 +459,13 @@ namespace original{
     auto original::vector<TYPE, ALLOC>::vectorInit() -> void
     {
         this->size_ = 0;
-        this->max_size = this->INNER_SIZE_INIT;
-        this->inner_begin = (this->INNER_SIZE_INIT - 1)/2;
-        this->body = vector::vectorArrayInit(this->INNER_SIZE_INIT);
+        this->max_size = INNER_SIZE_INIT;
+        this->inner_begin = (INNER_SIZE_INIT - 1)/2;
+        this->body = vector::vectorArrayInit(INNER_SIZE_INIT);
     }
 
     template <typename TYPE, typename ALLOC>
-    auto original::vector<TYPE, ALLOC>::vectorArrayDestruct() noexcept -> void
+    auto original::vector<TYPE, ALLOC>::vectorArrayDestroy() noexcept -> void
     {
         if (this->body) {
             for (u_integer i = 0; i < this->max_size; ++i) {
@@ -436,19 +486,50 @@ namespace original{
     }
 
     template <typename TYPE, typename ALLOC>
+    TYPE original::vector<TYPE, ALLOC>::getElem(integer pos) const
+    {
+        if constexpr (std::is_copy_constructible_v<TYPE>) {
+            return this->body[pos];
+        } else if constexpr (std::is_move_constructible_v<TYPE>) {
+            return std::move(this->body[pos]);
+        } else {
+            staticError<unSupportedMethodError, !std::is_copy_constructible_v<TYPE> && !std::is_move_constructible_v<TYPE>>::asserts();
+            return TYPE{};
+        }
+    }
+
+    template <typename TYPE, typename ALLOC>
+    void original::vector<TYPE, ALLOC>::setElem(const integer pos, const TYPE& e)
+    {
+        setBufElem(this->body, pos, e);
+    }
+
+    template <typename TYPE, typename ALLOC>
+    void original::vector<TYPE, ALLOC>::setBufElem(TYPE* buf, integer pos, const TYPE& e)
+    {
+        if constexpr (std::is_copy_assignable_v<TYPE>) {
+            buf[pos] = e;
+        } else if constexpr (std::is_move_assignable_v<TYPE>) {
+            buf[pos] = std::move(const_cast<TYPE&>(e));
+        } else {
+            staticError<unSupportedMethodError, !std::is_copy_constructible_v<TYPE> && !std::is_move_constructible_v<TYPE>>::asserts();
+        }
+    }
+
+    template <typename TYPE, typename ALLOC>
     auto original::vector<TYPE, ALLOC>::moveElements(TYPE* old_body, const u_integer inner_idx,
                                               const u_integer len, TYPE* new_body, const integer offset) -> void{
         if (offset > 0)
         {
             for (u_integer i = 0; i < len; i += 1)
             {
-                new_body[inner_idx + offset + len - 1 - i] = old_body[inner_idx + len - 1 - i];
+                setBufElem(new_body, inner_idx + offset + len - 1 - i, old_body[inner_idx + len - 1 - i]);
             }
         }else
         {
             for (u_integer i = 0; i < len; i += 1)
             {
-                new_body[inner_idx + offset + i] = old_body[inner_idx + i];
+                setBufElem(new_body, inner_idx + offset + i, old_body[inner_idx + i]);
             }
         }
     }
@@ -473,7 +554,7 @@ namespace original{
         const integer offset = static_cast<integer>(new_begin) - static_cast<integer>(this->inner_begin);
         vector::moveElements(this->body, this->inner_begin,
                              this->size(), new_body, offset);
-        this->vectorArrayDestruct();
+        this->vectorArrayDestroy();
         this->body = new_body;
         this->max_size = new_size;
         this->inner_begin = new_begin;
@@ -584,7 +665,7 @@ template<typename TYPE, typename ALLOC>
         if (this == &other)
             return *this;
 
-        this->vectorArrayDestruct();
+        this->vectorArrayDestroy();
 
         this->max_size = other.max_size;
         this->inner_begin = other.inner_begin;
@@ -612,7 +693,7 @@ template<typename TYPE, typename ALLOC>
         if (this == &other)
             return *this;
 
-        this->vectorArrayDestruct();
+        this->vectorArrayDestroy();
         this->body = other.body;
         other.body = nullptr;
         this->max_size = other.max_size;
@@ -643,6 +724,12 @@ template<typename TYPE, typename ALLOC>
     }
 
     template <typename TYPE, typename ALLOC>
+    original::u_integer original::vector<TYPE, ALLOC>::capacity() const noexcept
+    {
+        return this->max_size;
+    }
+
+    template <typename TYPE, typename ALLOC>
     auto original::vector<TYPE, ALLOC>::data() const -> TYPE& {
         return this->body[this->toInnerIdx(0)];
     }
@@ -652,10 +739,11 @@ template<typename TYPE, typename ALLOC>
     {
         if (this->indexOutOfBound(index))
         {
-            throw outOfBoundError();
+            throw outOfBoundError("Index " + std::to_string(this->parseNegIndex(index)) +
+                                  " out of bound max index " + std::to_string(this->size() - 1) + ".");
         }
         index = this->toInnerIdx(this->parseNegIndex(index));
-        return this->body[index];
+        return this->getElem(index);
     }
 
     template <typename TYPE, typename ALLOC>
@@ -663,7 +751,8 @@ template<typename TYPE, typename ALLOC>
     {
         if (this->indexOutOfBound(index))
         {
-            throw outOfBoundError();
+            throw outOfBoundError("Index " + std::to_string(this->parseNegIndex(index)) +
+                                  " out of bound max index " + std::to_string(this->size() - 1) + ".");
         }
         index = this->toInnerIdx(this->parseNegIndex(index));
         return this->body[index];
@@ -674,23 +763,28 @@ template<typename TYPE, typename ALLOC>
     {
         if (this->indexOutOfBound(index))
         {
-            throw outOfBoundError();
+            throw outOfBoundError("Index " + std::to_string(this->parseNegIndex(index)) +
+                                  " out of bound max index " + std::to_string(this->size() - 1) + ".");
         }
         index = this->toInnerIdx(this->parseNegIndex(index));
-        this->body[index] = e;
+        this->setElem(index, e);
     }
 
     template <typename TYPE, typename ALLOC>
     auto original::vector<TYPE, ALLOC>::indexOf(const TYPE &e) const -> u_integer
     {
-        for (u_integer i = 0; i < this->size(); i += 1)
-        {
-            if (this->get(i) == e)
+        if constexpr (Comparable<TYPE>) {
+            for (u_integer i = 0; i < this->size(); i += 1)
             {
-                return i;
+                if (this->get(i) == e)
+                {
+                    return i;
+                }
             }
+            return this->size();
+        } else {
+            throw unSupportedMethodError("Comparison unsupported type");
         }
-        return this->size();
     }
 
     template <typename TYPE, typename ALLOC>
@@ -698,7 +792,7 @@ template<typename TYPE, typename ALLOC>
     {
         this->adjust(1);
         this->inner_begin -= 1;
-        this->body[this->toInnerIdx(0)] = e;
+        this->setElem(this->toInnerIdx(0), e);
         this->size_ += 1;
     }
 
@@ -715,7 +809,8 @@ template<typename TYPE, typename ALLOC>
         {
             if (this->indexOutOfBound(index))
             {
-                throw outOfBoundError();
+                throw outOfBoundError("Index " + std::to_string(this->parseNegIndex(index)) +
+                                      " out of bound max index " + std::to_string(this->size() - 1) + ".");
             }
             this->adjust(1);
             index = this->toInnerIdx(this->parseNegIndex(index));
@@ -730,7 +825,7 @@ template<typename TYPE, typename ALLOC>
                 vector::moveElements(this->body, index,
                                      this->size() - rel_idx, this->body, 1);
             }
-            this->body[this->toInnerIdx(rel_idx)] = e;
+            this->setElem(this->toInnerIdx(rel_idx), e);
             this->size_ += 1;
         }
     }
@@ -739,7 +834,7 @@ template<typename TYPE, typename ALLOC>
     auto original::vector<TYPE, ALLOC>::pushEnd(const TYPE &e) -> void
     {
         this->adjust(1);
-        this->body[this->toInnerIdx(this->size())] = e;
+        this->setElem(this->toInnerIdx(this->size()), e);
         this->size_ += 1;
     }
 
@@ -767,7 +862,8 @@ template<typename TYPE, typename ALLOC>
             return this->popEnd();
         }
         if (this->indexOutOfBound(index)){
-            throw outOfBoundError();
+            throw outOfBoundError("Index " + std::to_string(this->parseNegIndex(index)) +
+                                  " out of bound max index " + std::to_string(this->size() - 1) + ".");
         }
         TYPE res = this->get(index);
         index = this->toInnerIdx(this->parseNegIndex(index));
@@ -815,7 +911,7 @@ template<typename TYPE, typename ALLOC>
 
     template <typename TYPE, typename ALLOC>
     original::vector<TYPE, ALLOC>::~vector() {
-        this->vectorArrayDestruct();
+        this->vectorArrayDestroy();
     }
 
     template<typename T, typename... ARGS>

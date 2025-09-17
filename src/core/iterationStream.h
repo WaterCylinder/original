@@ -2,7 +2,6 @@
 #define ITERATIONSTREAM_H
 
 #include <sstream>
-
 #include "comparable.h"
 #include "printable.h"
 #include "iterable.h"

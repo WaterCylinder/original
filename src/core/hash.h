@@ -1,32 +1,30 @@
 #ifndef HASH_H
 #define HASH_H
 
-
 #include "config.h"
 #include <cstring>
 #include <string>
 
-
 /**
  * @file hash.h
- * @brief Provides a generic hashing utility and a base interface for hashable types.
+ * @brief Provides a generic hashing utility and interface for hashable types.
  * @details This header defines:
  * - A comprehensive hash function object (hash) with specializations for common types
  * - A base interface (hashable) for user-defined hashable types
  * - Concept checking for hashable types (isHashable)
+ * - Integration with std::hash for STL compatibility
  *
- * Hash Function Features:
- * - FNV-1a algorithm implementation for byte data
+ * Features:
+ * - Implements FNV-1a algorithm for byte data
  * - Specializations for integral types, pointers, strings, and custom types
  * - Fallback implementations for trivially copyable types
- * - Support for nullptr handling
+ * - Safe nullptr handling
+ * - Hash combination utilities
  *
  * @note All hash functions are noexcept and provide basic hash distribution
+ * @namespace original
+ * @brief Main namespace containing all hashing utilities
  */
-
-#include "config.h"
-#include <cstring>
-#include <string>
 
 namespace original {
 
@@ -46,11 +44,19 @@ namespace original {
 
     /**
      * @concept isHashable
+     * @brief Concept checking for types that can be hashed.
      * @tparam DERIVED The type to be checked
-     * @brief Concept checking for hashable types
-     * @details Requires:
+     * @details Requires the type to implement:
      * - toHash() method returning u_integer
      * - equals() method taking const DERIVED& and returning bool
+     *
+     * @code{.cpp}
+     * struct MyHashable {
+     *     u_integer toHash() const noexcept { return 42; }
+     *     bool equals(const MyHashable&) const noexcept { return true; }
+     * };
+     * static_assert(isHashable<MyHashable>);  // Passes
+     * @endcode
      */
     template <typename DERIVED>
     concept isHashable =
@@ -61,8 +67,8 @@ namespace original {
 
     /**
      * @class hash
+     * @brief Generic hash function object supporting multiple types.
      * @tparam TYPE The type for which the hash function object is defined
-     * @brief Generic hash function object supporting multiple types
      * @details Provides:
      * - FNV-1a hash algorithm implementation
      * - Specialized hash functions for common types
@@ -75,9 +81,23 @@ namespace original {
      * - Strings (FNV-1a over characters)
      * - Trivially copyable types (byte-wise hashing)
      * - Types implementing hashable interface
+     *
+     * Example Usage:
+     * @code{.cpp}
+     * original::hash<std::string> hasher;
+     * u_integer h = hasher("hello world");
+     * @endcode
      */
     template <typename TYPE>
     class hash {
+        /**
+         * @brief Combines a hash value with another value's hash
+         * @tparam T Type of the value to combine
+         * @param seed Current hash value (modified in-place)
+         * @param value Value whose hash to combine
+         */
+        template <typename T>
+        static inline void hashCombine(u_integer& seed, const T& value) noexcept;
 
         /**
          * @brief Internal implementation of the hash function
@@ -85,19 +105,10 @@ namespace original {
          * @param t The object to hash
          * @return Computed hash value
          * @details This internal function provides the fundamental hashing strategy:
-         * - For trivially copyable types: Uses byte-wise FNV-1a hashing of the object's memory representation
+         * - For trivially copyable types: Uses byte-wise FNV-1a hashing
          * - For non-trivially copyable types: Falls back to address-based hashing
          *
-         * Implementation Notes:
-         * 1. Checks if type is trivially copyable at compile time
-         * 2. For trivially copyable types:
-         *    - Copies object bytes to temporary buffer
-         *    - Applies FNV-1a algorithm to the byte sequence
-         * 3. For other types:
-         *    - Uses the object's address as hash value
-         *
          * @note This function is not meant to be called directly - use hashFunc() instead
-         * @see hashFunc For the public interface to hashing functionality
          */
         template <typename T>
         static u_integer hashFuncImpl(const T& t) noexcept;
@@ -106,10 +117,10 @@ namespace original {
         template <typename>
         friend class hashable;
 
-        /// FNV-1a initial offset value
+        /// @brief FNV-1a initial offset value (0x811C9DC5)
         static constexpr u_integer FNV_OFFSET_BASIS = 0x811C9DC5;
 
-        /// FNV-1a prime multiplier
+        /// @brief FNV-1a prime multiplier (0x01000193)
         static constexpr u_integer FNV_32_PRIME = 0x01000193;
 
         /**
@@ -120,6 +131,17 @@ namespace original {
          * @note This is the fundamental hashing operation used by other specializations
          */
         static u_integer fnv1a(const byte* data, u_integer size) noexcept;
+
+        /**
+         * @brief Combines multiple hash values into one
+         * @tparam T First value type
+         * @tparam Rest Remaining value types
+         * @param seed Current hash value (modified in-place)
+         * @param value First value to combine
+         * @param rest Remaining values to combine
+         */
+        template <typename T, typename... Rest>
+        static void hashCombine(u_integer& seed, const T& value, const Rest&... rest) noexcept;
 
         /**
          * @brief Default hash function fallback
@@ -145,7 +167,7 @@ namespace original {
          * @brief Hash function specialization for integral types
          * @tparam T Integral type
          * @param t The value to hash
-         * @return The casted hash value
+         * @return The cast hash value
          */
         template<std::integral T>
         static u_integer hashFunc(const T& t) noexcept;
@@ -199,15 +221,17 @@ namespace original {
 
     /**
      * @class hashable
-     * @tparam DERIVED The derived type
      * @brief Interface for user-defined hashable types
+     * @tparam DERIVED The derived type (CRTP pattern)
      * @details Provides default implementations for:
      * - toHash(): Uses byte-wise hashing of object representation
      * - equals(): Uses operator== comparison
      *
-     * Usage:
-     * @code
+     * Usage Example:
+     * @code{.cpp}
      * class MyType : public hashable<MyType> {
+     * public:
+     *     bool operator==(const MyType&) const { return true; }
      *     // Optionally override toHash() and equals()
      * };
      * @endcode
@@ -230,9 +254,34 @@ namespace original {
          */
         virtual bool equals(const DERIVED& other) const noexcept;
 
-        /// Virtual destructor
+        /**
+         * @brief Virtual destructor
+         * @note Required for proper polymorphic behavior
+         */
         virtual ~hashable() = 0;
     };
+}
+
+
+/**
+ * @brief std::hash specialization for isHashable types
+ * @tparam T Type that satisfies isHashable concept
+ */
+template <typename T>
+requires original::isHashable<T>
+struct std::hash<T> { // NOLINT
+    /**
+     * @brief Hash function operator for STL compatibility
+     * @param t The object to hash
+     * @return Hash value as std::size_t
+     */
+    std::size_t operator()(const T& t) const noexcept;
+};
+
+template<typename TYPE>
+template<typename T>
+void original::hash<TYPE>::hashCombine(u_integer &seed, const T& value) noexcept {
+    seed ^= hash<T>::hashFunc(value) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
 }
 
 template<typename TYPE>
@@ -255,6 +304,13 @@ original::u_integer original::hash<TYPE>::fnv1a(const byte* data, const u_intege
         hash *= FNV_32_PRIME;
     }
     return hash;
+}
+
+template<typename TYPE>
+template<typename T, typename... Rest>
+void original::hash<TYPE>::hashCombine(u_integer &seed, const T& value, const Rest&... rest) noexcept {
+    hashCombine(seed, value);
+    (hashCombine(seed, rest), ...);
 }
 
 template<typename TYPE>
@@ -319,5 +375,11 @@ bool original::hashable<DERIVED>::equals(const DERIVED &other) const noexcept {
 
 template <typename DERIVED>
 original::hashable<DERIVED>::~hashable() = default;
+
+template <typename T>
+requires original::isHashable<T>
+std::size_t std::hash<T>::operator()(const T &t) const noexcept {
+    return static_cast<std::size_t>(t.toHash());
+}
 
 #endif //HASH_H

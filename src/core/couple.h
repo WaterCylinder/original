@@ -268,7 +268,7 @@ namespace std {
     template<typename F_TYPE, typename S_TYPE>
     template<original::u_integer IDX>
     auto& original::couple<F_TYPE, S_TYPE>::get() {
-        staticError<outOfBoundError, (IDX > 1)>{};
+        staticError<outOfBoundError, (IDX > 1)>::asserts();
         if constexpr (IDX == 0){
             return this->first_;
         }else {
@@ -279,7 +279,7 @@ namespace std {
     template<typename F_TYPE, typename S_TYPE>
     template<original::u_integer IDX>
     const auto& original::couple<F_TYPE, S_TYPE>::get() const {
-        staticError<outOfBoundError, (IDX > 1)>{};
+        staticError<outOfBoundError, (IDX > 1)>::asserts();
         if constexpr (IDX == 0){
             return this->first_;
         }else {
@@ -290,12 +290,12 @@ namespace std {
     template<typename F_TYPE, typename S_TYPE>
     template<original::u_integer IDX, typename T>
     original::couple<F_TYPE, S_TYPE>& original::couple<F_TYPE, S_TYPE>::set(const T &e) {
-        staticError<outOfBoundError, (IDX > 1)>{};
+        staticError<outOfBoundError, (IDX > 1)>::asserts();
         if constexpr (IDX == 0){
-            staticError<valueError, !std::is_convertible_v<T, F_TYPE>>{};
+            staticError<valueError, !std::is_convertible_v<T, F_TYPE>>::asserts();
             this->first_ = static_cast<F_TYPE>(e);
         } else{
-            staticError<valueError, !std::is_convertible_v<T, S_TYPE>>{};
+            staticError<valueError, !std::is_convertible_v<T, S_TYPE>>::asserts();
             this->second_ = static_cast<S_TYPE>(e);
         }
         return *this;

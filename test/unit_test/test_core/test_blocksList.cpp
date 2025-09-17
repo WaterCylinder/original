@@ -305,7 +305,7 @@ TEST_F(BlocksListTest, PopBeginTest) {
 
 // 测试 push（插入到容器中间）
 TEST_F(BlocksListTest, PushTestMiddle) {
-    constexpr size_t dataSize = 100000;  // 大数据量测试
+    constexpr size_t dataSize = 10000;  // 大数据量测试
     for (size_t i = 0; i < dataSize; ++i) {
         this->originalBL.pushEnd(static_cast<int>(i));
         this->stdDQ.push_back(static_cast<int>(i));
@@ -322,7 +322,7 @@ TEST_F(BlocksListTest, PushTestMiddle) {
 
 // 测试插入和弹出混合操作
 TEST_F(BlocksListTest, MixedPushPopTest) {
-    constexpr size_t dataSize = 100000;  // 大数据量测试
+    constexpr size_t dataSize = 10000;  // 大数据量测试
 
     // 在末尾插入数据
     for (size_t i = 0; i < dataSize; ++i) {

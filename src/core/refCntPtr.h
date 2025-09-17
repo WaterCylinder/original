@@ -3,6 +3,7 @@
 
 #include "autoPtr.h"
 #include "deleter.h"
+#include "refCntPtr.h"
 
 /**
 * @file refCntPtr.h
@@ -11,8 +12,15 @@
 * Base class provides common reference counting infrastructure, while derived classes
 * implement specific ownership policies. Supports cyclic reference breaking through
 * weak reference design.
+*
+* Key Features:
+* - Shared ownership semantics with automatic memory management
+* - Strong and weak reference tracking
+* - Thread-safe reference counting operations
+* - Type-safe pointer casting operations
+* - Customizable deletion policies
+* - Integration with printable and comparable interfaces
 */
-
 
 namespace original{
     /**
@@ -29,6 +37,7 @@ namespace original{
     */
     template<typename TYPE, typename DERIVED, typename DELETER>
     class refCntPtr : public autoPtr<TYPE, DERIVED, DELETER>{
+        template<typename, typename, typename> friend class refCntPtr;
     protected:
         /**
         * @brief Construct from raw pointer
@@ -83,7 +92,6 @@ namespace original{
     template<typename TYPE, typename DELETER = deleter<TYPE>>
     class weakPtr;
 
-
     /**
     * @class strongPtr
     * @tparam TYPE Managed object type
@@ -98,8 +106,15 @@ namespace original{
     */
     template<typename TYPE, typename DELETER>
     class strongPtr final : public refCntPtr<TYPE, strongPtr<TYPE, DELETER>, DELETER>{
-        friend class weakPtr<TYPE, DELETER>;
+        template<typename, typename> friend class strongPtr;
+        template<typename, typename> friend class weakPtr;
 
+        /**
+        * @brief Internal constructor for casting operations
+        * @param cnt Reference counter to use
+        * @param alias Aliased pointer for type casting
+        */
+        strongPtr(refCountBase* cnt, TYPE* alias);
     public:
         /**
         * @brief Construct from raw pointer
@@ -127,6 +142,56 @@ namespace original{
         * @post other becomes empty
         */
         strongPtr(strongPtr&& other) noexcept;
+
+        /**
+        * @brief Static cast to different pointer type
+        * @tparam U Target type for static cast
+        * @tparam DEL Rebound deleter type for target type
+        * @return strongPtr<U, DEL> with same reference counter
+        * @note Uses static_cast for type conversion
+        */
+        template<typename U, typename DEL = DELETER::template rebound_deleter<U>>
+        strongPtr<U, DEL> staticCastTo();
+
+        /**
+        * @brief Static cast to const pointer type
+        * @tparam U Target type for static cast
+        * @tparam DEL Rebound deleter type for target type
+        * @return strongPtr<const U, DEL> with same reference counter
+        * @note Uses static_cast for type conversion
+        */
+        template<typename U, typename DEL = DELETER::template rebound_deleter<const U>>
+        strongPtr<const U, DEL> staticCastTo() const;
+
+        /**
+        * @brief Dynamic cast to different pointer type
+        * @tparam U Target type for dynamic cast
+        * @tparam DEL Rebound deleter type for target type
+        * @return strongPtr<U, DEL> if cast succeeds, empty strongPtr otherwise
+        * @note Uses dynamic_cast for type conversion
+        */
+        template<typename U, typename DEL = DELETER::template rebound_deleter<U>>
+        strongPtr<U, DEL> dynamicCastTo();
+
+        /**
+        * @brief Dynamic cast to const pointer type
+        * @tparam U Target type for dynamic cast
+        * @tparam DEL Rebound deleter type for target type
+        * @return strongPtr<const U, DEL> if cast succeeds, empty strongPtr otherwise
+        * @note Uses dynamic_cast for type conversion
+        */
+        template<typename U, typename DEL = DELETER::template rebound_deleter<const U>>
+        strongPtr<const U, DEL> dynamicCastTo() const;
+
+        /**
+        * @brief Const cast to remove const qualifier
+        * @tparam U Target type for const cast
+        * @tparam DEL Rebound deleter type for target type
+        * @return strongPtr<U, DEL> with const removed
+        * @note Uses const_cast for type conversion
+        */
+        template<typename U, typename DEL = DELETER::template rebound_deleter<U>>
+        strongPtr<U, DEL> constCastTo() const;
 
         /**
         * @brief Resets the smart pointer and releases the managed object
@@ -177,8 +242,15 @@ namespace original{
     */
     template<typename TYPE, typename DELETER>
     class weakPtr final : public refCntPtr<TYPE, weakPtr<TYPE, DELETER>, DELETER>{
-        friend class strongPtr<TYPE, DELETER>;
+        template<typename, typename> friend class weakPtr;
+        template<typename, typename> friend class strongPtr;
 
+        /**
+        * @brief Internal constructor for casting operations
+        * @param cnt Reference counter to use
+        * @param alias Aliased pointer for type casting
+        */
+        weakPtr(refCountBase* cnt, TYPE* alias);
     public:
 
         /**
@@ -245,6 +317,56 @@ namespace original{
         weakPtr& operator=(weakPtr&& other) noexcept;
 
         /**
+        * @brief Static cast to different pointer type
+        * @tparam U Target type for static cast
+        * @tparam DEL Rebound deleter type for target type
+        * @return weakPtr<U, DEL> with same reference counter
+        * @note Uses static_cast for type conversion
+        */
+        template<typename U, typename DEL = DELETER::template rebound_deleter<U>>
+        weakPtr<U, DEL> staticCastTo();
+
+        /**
+        * @brief Static cast to const pointer type
+        * @tparam U Target type for static cast
+        * @tparam DEL Rebound deleter type for target type
+        * @return weakPtr<const U, DEL> with same reference counter
+        * @note Uses static_cast for type conversion
+        */
+        template<typename U, typename DEL = DELETER::template rebound_deleter<const U>>
+        weakPtr<const U, DEL> staticCastTo() const;
+
+        /**
+        * @brief Dynamic cast to different pointer type
+        * @tparam U Target type for dynamic cast
+        * @tparam DEL Rebound deleter type for target type
+        * @return weakPtr<U, DEL> if cast succeeds, empty weakPtr otherwise
+        * @note Uses dynamic_cast for type conversion
+        */
+        template<typename U, typename DEL = DELETER::template rebound_deleter<U>>
+        weakPtr<U, DEL> dynamicCastTo();
+
+        /**
+        * @brief Dynamic cast to const pointer type
+        * @tparam U Target type for dynamic cast
+        * @tparam DEL Rebound deleter type for target type
+        * @return weakPtr<const U, DEL> if cast succeeds, empty weakPtr otherwise
+        * @note Uses dynamic_cast for type conversion
+        */
+        template<typename U, typename DEL = DELETER::template rebound_deleter<const U>>
+        weakPtr<const U, DEL> dynamicCastTo() const;
+
+        /**
+        * @brief Const cast to remove const qualifier
+        * @tparam U Target type for const cast
+        * @tparam DEL Rebound deleter type for target type
+        * @return weakPtr<U, DEL> with const removed
+        * @note Uses const_cast for type conversion
+        */
+        template<typename U, typename DEL = DELETER::template rebound_deleter<U>>
+        weakPtr<U, DEL> constCastTo() const;
+
+        /**
         * @brief Attempt to acquire ownership
         * @return strongPtr<TYPE, DELETER> Valid strongPtr if resource exists
         * @details Creates temporary strong reference:
@@ -258,12 +380,14 @@ namespace original{
         /**
         * @brief Const dereference via temporary strong reference
         * @return const TYPE& Reference to observed object
+        * @throws nullPointerError if object has been destroyed
         */
         const TYPE& operator*() const override;
 
         /**
         * @brief Const member access via temporary strong reference
         * @return Pointer to observed object
+        * @throws nullPointerError if object has been destroyed
         */
         const TYPE* operator->() const override;
 
@@ -271,18 +395,21 @@ namespace original{
         * @brief Const array element access via temporary strong reference
         * @param index Array position
         * @return Reference to element
+        * @throws nullPointerError if object has been destroyed
         */
         const TYPE& operator[](u_integer index) const override;
 
         /**
         * @brief Mutable dereference via temporary strong reference
         * @return Reference to observed object
+        * @throws nullPointerError if object has been destroyed
         */
         TYPE& operator*() override;
 
         /**
         * @brief Mutable member access via temporary strong reference
         * @return Pointer to observed object
+        * @throws nullPointerError if object has been destroyed
         */
         TYPE* operator->() override;
 
@@ -290,6 +417,7 @@ namespace original{
         * @brief Mutable array element access via temporary strong reference
         * @param index Array position
         * @return Reference to element
+        * @throws nullPointerError if object has been destroyed
         */
         TYPE& operator[](u_integer index) override;
 
@@ -345,7 +473,6 @@ namespace original{
     template <typename T, typename DEL = deleter<T[]>, typename... Args>
     strongPtr<T, DEL> makeStrongPtrArray(u_integer size, Args&&... args);
 
-
     // ----------------- Definitions of refCntPtr.h -----------------
 
 
@@ -356,13 +483,13 @@ namespace original{
     template<typename TYPE, typename DERIVED, typename DELETER>
     template<typename O_DERIVED>
     bool refCntPtr<TYPE, DERIVED, DELETER>::operator==(const refCntPtr<TYPE, O_DERIVED, DELETER>& other) const {
-        return this->get() == other.get();
+        return this->ref_count == other.ref_count;
     }
 
     template<typename TYPE, typename DERIVED, typename DELETER>
     template<typename O_DERIVED>
     bool refCntPtr<TYPE, DERIVED, DELETER>::operator!=(const refCntPtr<TYPE, O_DERIVED, DELETER>& other) const {
-        return this->get() != other.get();
+        return this->ref_count != other.ref_count;
     }
 
     template<typename TYPE, typename DERIVED, typename DELETER>
@@ -380,6 +507,16 @@ namespace original{
         if (enter)
             ss << "\n";
         return ss.str();
+    }
+
+    template <typename TYPE, typename DELETER>
+    strongPtr<TYPE, DELETER>::strongPtr(refCountBase* cnt, TYPE* alias) : strongPtr()
+    {
+        this->removeStrongRef();
+        this->clean();
+        this->ref_count = cnt;
+        this->alias_ptr = alias;
+        this->addStrongRef();
     }
 
     template<typename TYPE, typename DELETER>
@@ -402,6 +539,7 @@ namespace original{
         this->clean();
         this->ref_count = other.ref_count;
         this->addStrongRef();
+        this->alias_ptr = other.alias_ptr;
         return *this;
     }
 
@@ -410,12 +548,61 @@ namespace original{
         this->operator=(std::move(other));
     }
 
+    template <typename TYPE, typename DELETER>
+    template <typename U, typename DEL>
+    strongPtr<U, DEL> strongPtr<TYPE, DELETER>::staticCastTo()
+    {
+        staticError<valueError, !std::is_convertible_v<TYPE*, U*>>::asserts();
+        strongPtr<U, DEL> res{this->ref_count, static_cast<U*>(this->get())};
+        return res;
+    }
+
+    template <typename TYPE, typename DELETER>
+    template <typename U, typename DEL>
+    strongPtr<const U, DEL> strongPtr<TYPE, DELETER>::staticCastTo() const
+    {
+        staticError<valueError, !std::is_convertible_v<TYPE*, U*>>::asserts();
+        strongPtr<const U, DEL> res{this->ref_count, static_cast<const U*>(this->get())};
+        return res;
+    }
+
+    template <typename TYPE, typename DELETER>
+    template <typename U, typename DEL>
+    strongPtr<U, DEL> strongPtr<TYPE, DELETER>::dynamicCastTo()
+    {
+        auto alias = dynamic_cast<U*>(this->get());
+        if (alias == nullptr) {
+            return strongPtr<U, DEL>{};
+        }
+        return strongPtr<U, DEL>{this->ref_count, alias};
+    }
+
+    template <typename TYPE, typename DELETER>
+    template <typename U, typename DEL>
+    strongPtr<const U, DEL> strongPtr<TYPE, DELETER>::dynamicCastTo() const
+    {
+        auto alias = dynamic_cast<const U*>(this->get());
+        if (alias == nullptr) {
+            return strongPtr<const U, DEL>{};
+        }
+        return strongPtr<const U, DEL>{this->ref_count, alias};
+    }
+
+    template <typename TYPE, typename DELETER>
+    template <typename U, typename DEL>
+    strongPtr<U, DEL> strongPtr<TYPE, DELETER>::constCastTo() const
+    {
+        auto alias = const_cast<U*>(this->get());
+        return strongPtr<U, DEL>{this->ref_count, alias};
+    }
+
     template<typename TYPE, typename DELETER>
     void strongPtr<TYPE, DELETER>::reset() noexcept {
         this->removeStrongRef();
         this->clean();
         this->ref_count = autoPtr<TYPE, strongPtr, DELETER>::newRefCount();
         this->addStrongRef();
+        this->alias_ptr = nullptr;
     }
 
     template<typename TYPE, typename DELETER>
@@ -428,6 +615,7 @@ namespace original{
         this->ref_count = other.ref_count;
         other.ref_count = autoPtr<TYPE, strongPtr, DELETER>::newRefCount();
         other.addStrongRef();
+        this->alias_ptr = other.alias_ptr;
         return *this;
     }
 
@@ -456,6 +644,16 @@ namespace original{
         return strong_ptr;
     }
 
+    template <typename TYPE, typename DELETER>
+    weakPtr<TYPE, DELETER>::weakPtr(refCountBase* cnt, TYPE* alias) : weakPtr()
+    {
+        this->removeWeakRef();
+        this->clean();
+        this->ref_count = cnt;
+        this->alias_ptr = alias;
+        this->addWeakRef();
+    }
+
     template<typename TYPE, typename DELETER>
     weakPtr<TYPE, DELETER>::weakPtr()
         : refCntPtr<TYPE, weakPtr, DELETER>() {
@@ -477,6 +675,7 @@ namespace original{
         this->clean();
         this->ref_count = other.ref_count;
         this->addWeakRef();
+        this->alias_ptr = other.alias_ptr;
         return *this;
     }
 
@@ -495,6 +694,7 @@ namespace original{
         this->clean();
         this->ref_count = other.ref_count;
         this->addWeakRef();
+        this->alias_ptr = other.alias_ptr;
         return *this;
     }
 
@@ -513,7 +713,56 @@ namespace original{
         this->ref_count = other.ref_count;
         other.ref_count = autoPtr<TYPE, weakPtr, DELETER>::newRefCount();
         other.addWeakRef();
+        this->alias_ptr = other.alias_ptr;
         return *this;
+    }
+
+    template <typename TYPE, typename DELETER>
+    template <typename U, typename DEL>
+    weakPtr<U, DEL> weakPtr<TYPE, DELETER>::staticCastTo()
+    {
+        staticError<valueError, !std::is_convertible_v<TYPE*, U*>>::asserts();
+        weakPtr<U, DEL> res{this->ref_count, static_cast<U*>(this->get())};
+        return res;
+    }
+
+    template <typename TYPE, typename DELETER>
+    template <typename U, typename DEL>
+    weakPtr<const U, DEL> weakPtr<TYPE, DELETER>::staticCastTo() const
+    {
+        staticError<valueError, !std::is_convertible_v<TYPE*, U*>>::asserts();
+        weakPtr<const U, DEL> res{this->ref_count, static_cast<const U*>(this->get())};
+        return res;
+    }
+
+    template <typename TYPE, typename DELETER>
+    template <typename U, typename DEL>
+    weakPtr<U, DEL> weakPtr<TYPE, DELETER>::dynamicCastTo()
+    {
+        auto alias = dynamic_cast<U*>(this->get());
+        if (alias == nullptr) {
+            return weakPtr<U, DEL>{};
+        }
+        return weakPtr<U, DEL>{this->ref_count, alias};
+    }
+
+    template <typename TYPE, typename DELETER>
+    template <typename U, typename DEL>
+    weakPtr<const U, DEL> weakPtr<TYPE, DELETER>::dynamicCastTo() const
+    {
+        auto alias = dynamic_cast<const U*>(this->get());
+        if (alias == nullptr) {
+            return weakPtr<const U, DEL>{};
+        }
+        return weakPtr<const U, DEL>{this->ref_count, alias};
+    }
+
+    template <typename TYPE, typename DELETER>
+    template <typename U, typename DEL>
+    weakPtr<U, DEL> weakPtr<TYPE, DELETER>::constCastTo() const
+    {
+        auto alias = const_cast<U*>(this->get());
+        return weakPtr<U, DEL>{this->ref_count, alias};
     }
 
     template<typename TYPE, typename DELETER>
@@ -524,6 +773,7 @@ namespace original{
             strong_ptr.clean();
             strong_ptr.ref_count = this->ref_count;
             strong_ptr.addStrongRef();
+            strong_ptr.alias_ptr = this->alias_ptr;
         }
         return strong_ptr;
     }

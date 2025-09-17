@@ -55,8 +55,25 @@ namespace original {
          * @details Deallocates the memory used by the array through the configured allocator.
          *          Destroys all elements before de-allocation.
          */
-        void arrDestruct() noexcept;
+        void arrDestroy() noexcept;
 
+        /**
+         * @brief Retrieves an element at the specified position.
+         * @param pos The position of the element to retrieve.
+         * @return The element at the specified position.
+         * @details Uses copy or move construction depending on TYPE's capabilities.
+         * @throws unSupportedMethodError If TYPE is neither copy nor move constructible.
+         */
+        TYPE getElem(integer pos) const;
+
+        /**
+         * @brief Sets the value of an element at the specified position.
+         * @param pos The position of the element to set.
+         * @param e The value to assign to the element.
+         * @details Uses copy or move assignment depending on TYPE's capabilities.
+         * @throws unSupportedMethodError If TYPE is neither copy nor move assignable.
+         */
+        void setElem(integer pos, const TYPE &e);
     public:
 
     /**
@@ -188,6 +205,7 @@ namespace original {
         /**
          * @brief Returns a reference to the first element of the array.
          * @return A reference to the first element of the array.
+         * @throws outOfBoundError If the array is empty.
          */
         TYPE& data() const;
 
@@ -207,7 +225,12 @@ namespace original {
          */
         TYPE& operator[](integer index) override;
 
-        // const version
+        /**
+         * @brief Access an element at a specified index (const version).
+         * @param index The index of the element to access.
+         * @return A const reference to the element at the specified index.
+         * @throws outOfBoundError If the index is out of bounds.
+         */
         using serial<TYPE, ALLOC>::operator[];
 
         /**
@@ -222,6 +245,7 @@ namespace original {
          * @brief Finds the index of the specified element in the array.
          * @param e The element to find.
          * @return The index of the element, or the size of the array if the element is not found.
+         * @throws unSupportedMethodError If TYPE is not comparable.
          */
         u_integer indexOf(const TYPE& e) const override;
 
@@ -262,7 +286,7 @@ namespace original {
     }
 
     template<typename TYPE, typename ALLOC>
-    void original::array<TYPE, ALLOC>::arrDestruct() noexcept
+    void original::array<TYPE, ALLOC>::arrDestroy() noexcept
     {
         if (this->body){
             for (u_integer i = 0; i < this->size_; ++i) {
@@ -270,6 +294,31 @@ namespace original {
             }
             this->deallocate(this->body, this->size_);
             this->body = nullptr;
+        }
+    }
+
+    template <typename TYPE, typename ALLOC>
+    TYPE original::array<TYPE, ALLOC>::getElem(integer pos) const
+    {
+        if constexpr (std::is_copy_constructible_v<TYPE>) {
+            return this->body[pos];
+        } else if constexpr (std::is_move_constructible_v<TYPE>) {
+            return std::move(this->body[pos]);
+        } else {
+            staticError<unSupportedMethodError, !std::is_copy_constructible_v<TYPE> && !std::is_move_constructible_v<TYPE>>::asserts();
+            return TYPE{};
+        }
+    }
+
+    template <typename TYPE, typename ALLOC>
+    void original::array<TYPE, ALLOC>::setElem(integer pos, const TYPE& e)
+    {
+        if constexpr (std::is_copy_assignable_v<TYPE>) {
+            this->body[pos] = e;
+        } else if constexpr (std::is_move_assignable_v<TYPE>) {
+            this->body[pos] = std::move(const_cast<TYPE&>(e));
+        } else {
+            staticError<unSupportedMethodError, !std::is_copy_constructible_v<TYPE> && !std::is_move_constructible_v<TYPE>>::asserts();
         }
     }
 
@@ -344,7 +393,7 @@ namespace original {
         if (this == &other)
             return *this;
 
-        this->arrDestruct();
+        this->arrDestroy();
 
         this->arrInit(other.size());
         for (u_integer i = 0; i < this->size_; i++) {
@@ -366,7 +415,7 @@ namespace original {
         if (this == &other)
             return *this;
 
-        this->arrDestruct();
+        this->arrDestroy();
 
         this->body = other.body;
         this->size_ = other.size_;
@@ -379,7 +428,7 @@ namespace original {
 
     template<typename TYPE, typename ALLOC>
     original::array<TYPE, ALLOC>::~array() {
-        this->arrDestruct();
+        this->arrDestroy();
     }
 
     template<typename TYPE, typename ALLOC>
@@ -397,16 +446,18 @@ namespace original {
     auto original::array<TYPE, ALLOC>::get(integer index) const -> TYPE
     {
         if (this->indexOutOfBound(index)){
-            throw outOfBoundError();
+            throw outOfBoundError("Index " + std::to_string(this->parseNegIndex(index)) +
+                                  " out of bound max index " + std::to_string(this->size() - 1) + ".");
         }
-        return this->body[this->parseNegIndex(index)];
+        return this->getElem(this->parseNegIndex(index));
     }
 
     template<typename TYPE, typename ALLOC>
     auto original::array<TYPE, ALLOC>::operator[](integer index) -> TYPE&
     {
         if (this->indexOutOfBound(index)){
-            throw outOfBoundError();
+            throw outOfBoundError("Index " + std::to_string(this->parseNegIndex(index)) +
+                                  " out of bound max index " + std::to_string(this->size() - 1) + ".");
         }
         return this->body[this->parseNegIndex(index)];
     }
@@ -415,22 +466,28 @@ namespace original {
     auto original::array<TYPE, ALLOC>::set(integer index, const TYPE &e) -> void
     {
         if (this->indexOutOfBound(index)){
-            throw outOfBoundError();
+            throw outOfBoundError("Index " + std::to_string(this->parseNegIndex(index)) +
+                                  " out of bound max index " + std::to_string(this->size() - 1) + ".");
         }
-        this->body[this->parseNegIndex(index)] = e;
+        this->setElem(this->parseNegIndex(index), e);
     }
 
     template<typename TYPE, typename ALLOC>
     auto original::array<TYPE, ALLOC>::indexOf(const TYPE &e) const -> u_integer
     {
-        for (u_integer i = 0; i < this->size(); i += 1)
+        if constexpr (Comparable<TYPE>)
         {
-            if (this->get(i) == e)
+            for (u_integer i = 0; i < this->size(); i += 1)
             {
-                return i;
+                if (this->get(i) == e)
+                {
+                    return i;
+                }
             }
+            return this->size();
+        } else {
+            throw unSupportedMethodError("Comparison unsupported type");
         }
-        return this->size();
     }
 
     template<typename TYPE, typename ALLOC>

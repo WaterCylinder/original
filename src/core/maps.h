@@ -1657,13 +1657,14 @@ original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::Iterator(const Iterato
     : skipListType::Iterator(other) {}
 
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
-original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator&
+typename original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator&
 original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::operator=(const Iterator& other) {
     skipListType::Iterator::operator=(other);
+    return *this;
 }
 
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
-original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
+typename original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
 original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::clone() const {
     return new Iterator(*this);
 }
@@ -1719,7 +1720,7 @@ bool original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::atPrev(
 
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
 bool original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::atNext(
-        const original::iterator<original::couple<const K_TYPE, V_TYPE>>* other) const {
+        const iterator<couple<const K_TYPE, V_TYPE>>* other) const {
     return other->atPrev(*this);
 }
 
@@ -1734,7 +1735,7 @@ void original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::prev() const {
 }
 
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
-original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
+typename original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
 original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::getPrev() const {
     throw unSupportedMethodError();
 }
@@ -1869,13 +1870,13 @@ V_TYPE &original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::operator[](const K_TYPE 
 }
 
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
-original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
+typename original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
 original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::begins() const {
     return new Iterator(this->head_->getPNext(1));
 }
 
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
-original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
+typename original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
 original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::ends() const {
     return new Iterator(this->findLastNode());
 }

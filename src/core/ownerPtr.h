@@ -11,6 +11,13 @@
 * @details Provides move-only semantics for dynamic object ownership management.
 * Enforces single ownership through deleted copy operations and supports custom deleters.
 * Inherits reference counting infrastructure from autoPtr base class.
+*
+* Key Features:
+* - Move-only semantics ensuring unique ownership
+* - Customizable deletion policies
+* - Type-safe pointer casting operations
+* - Factory functions for safe object creation
+* - RAII-compliant resource management
 */
 
 namespace original {
@@ -28,6 +35,7 @@ namespace original {
     */
     template <typename TYPE, typename DELETER = deleter<TYPE>>
     class ownerPtr final : public autoPtr<TYPE, ownerPtr<TYPE, DELETER>, DELETER>{
+        template<typename, typename> friend class ownerPtr;
     public:
         /**
         * @brief Construct from raw pointer
@@ -53,6 +61,36 @@ namespace original {
         * @post other becomes empty
         */
         ownerPtr& operator=(ownerPtr&& other) noexcept;
+
+        /**
+        * @brief Performs static cast and transfers ownership
+        * @tparam U Target type for static cast
+        * @tparam DEL Rebound deleter type for target type
+        * @return ownerPtr<U, DEL> with ownership transferred
+        * @note Uses static_cast for type conversion
+        */
+        template<typename U, typename DEL = DELETER::template rebound_deleter<U>>
+        ownerPtr<U, DEL> staticCastMoveTo();
+
+        /**
+        * @brief Performs dynamic cast and transfers ownership
+        * @tparam U Target type for dynamic cast
+        * @tparam DEL Rebound deleter type for target type
+        * @return ownerPtr<U, DEL> with ownership transferred if cast succeeds, empty ownerPtr otherwise
+        * @note Uses dynamic_cast for type conversion, returns empty pointer if cast fails
+        */
+        template<typename U, typename DEL = DELETER::template rebound_deleter<U>>
+        ownerPtr<U, DEL> dynamicCastMoveTo();
+
+        /**
+        * @brief Performs const cast and transfers ownership
+        * @tparam U Target type for const cast
+        * @tparam DEL Rebound deleter type for target type
+        * @return ownerPtr<U, DEL> with ownership transferred
+        * @note Uses const_cast for type conversion
+        */
+        template<typename U, typename DEL = DELETER::template rebound_deleter<U>>
+        ownerPtr<U, DEL> constCastMoveTo();
 
         /**
         * @brief Release ownership of managed object
@@ -146,11 +184,39 @@ namespace original {
         return *this;
     }
 
+    template <typename TYPE, typename DELETER>
+    template<typename U, typename DEL>
+    ownerPtr<U, DEL>
+    ownerPtr<TYPE, DELETER>::staticCastMoveTo() {
+        return ownerPtr<U, DEL>{
+            static_cast<U*>(this->unlock())
+        };
+    }
+
+    template <typename TYPE, typename DELETER>
+    template<typename U, typename DEL>
+    ownerPtr<U, DEL>
+    ownerPtr<TYPE, DELETER>::dynamicCastMoveTo() {
+        auto p = dynamic_cast<U*>(this->get());
+        if (p == nullptr) {
+            return ownerPtr<U, DEL>{};
+        }
+        this->unlock();
+        return ownerPtr<U, DEL>{p};
+    }
+
+    template <typename TYPE, typename DELETER>
+    template<typename U, typename DEL>
+    ownerPtr<U, DEL>
+    ownerPtr<TYPE, DELETER>::constCastMoveTo() {
+        return ownerPtr<U, DEL>{
+            const_cast<U*>(this->unlock())
+        };
+    }
+
     template<typename TYPE, typename DELETER>
     TYPE* ownerPtr<TYPE, DELETER>::unlock() {
-        TYPE* p = this->get();
-        this->setPtr(nullptr);
-        return p;
+        return this->releasePtr();
     }
 
     template<typename TYPE, typename DELETER>

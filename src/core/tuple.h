@@ -30,7 +30,7 @@
  * const auto& [a, b] = t; // structured binding
  */
 
-namespace original{
+namespace original {
 
     /**
      * @class tuple
@@ -50,7 +50,7 @@ namespace original{
      * - Tuple concatenation and slicing operations
      */
     template<typename... TYPES>
-    class tuple final : public printable, public comparable<tuple<TYPES...>>{
+    class tuple final : public printable, public comparable<tuple<TYPES...>> {
         static constexpr u_integer SIZE = sizeof...(TYPES);
 
         /**
@@ -67,21 +67,18 @@ namespace original{
         template<u_integer I, typename... TS>
         class tupleImpl;
 
+        /**
+         * @brief Specialization for single element (base case)
+         */
         template<u_integer I, typename T>
-        class tupleImpl<I, T> : public printable, public comparable<tupleImpl<I, T>>{
+        class tupleImpl<I, T> : public printable, public comparable<tupleImpl<I, T>> {
             T cur_elem;  ///< Current element storage
 
-            /**
-             * @brief Constructor of tupleImpl that initializes the current element
-             * @param cur The current element to be stored
-             */
+        public:
             explicit tupleImpl(const T& cur = T{});
-
-            tupleImpl(tupleImpl<I, T>&& other) noexcept;
-
-            tupleImpl(const tupleImpl<I, T>& other);
-
-            tupleImpl<I, T>& operator=(tupleImpl<I, T>&& other) noexcept;
+            tupleImpl(tupleImpl&& other) noexcept;
+            tupleImpl(const tupleImpl& other);
+            tupleImpl& operator=(tupleImpl&& other) noexcept;
 
             template<u_integer I_DIFF>
             const auto& get() const;
@@ -91,30 +88,26 @@ namespace original{
 
             template<u_integer I_DIFF, typename E>
             void set(const E& e);
-        public:
-            friend class tuple;
-            integer compareTo(const tupleImpl<I, T>& other) const override;
 
+            integer compareTo(const tupleImpl& other) const override;
             std::string toString(bool enter) const override;
+
+            friend class tuple;
         };
 
+        /**
+         * @brief Specialization for two elements
+         */
         template<u_integer I, typename T, typename TS>
-        class tupleImpl<I, T, TS> : public printable, public comparable<tupleImpl<I, T, TS>>{
+        class tupleImpl<I, T, TS> : public printable, public comparable<tupleImpl<I, T, TS>> {
             T cur_elem;                  ///< Current element storage
             tupleImpl<I + 1, TS> next;   ///< Recursive next element storage
 
-            /**
-             * @brief Constructor of tupleImpl that initializes the current element
-             * @param cur The current element to be stored
-             * @param next_elems next element to storage
-             */
+        public:
             explicit tupleImpl(const T& cur = T{}, const TS& next_elems = TS{});
-
-            tupleImpl(tupleImpl<I, T, TS>&& other) noexcept;
-
-            tupleImpl(const tupleImpl<I, T, TS>& other);
-
-            tupleImpl<I, T, TS>& operator=(tupleImpl<I, T, TS>&& other) noexcept;
+            tupleImpl(tupleImpl&& other) noexcept;
+            tupleImpl(const tupleImpl& other);
+            tupleImpl& operator=(tupleImpl&& other) noexcept;
 
             template<u_integer I_DIFF>
             const auto& get() const;
@@ -124,32 +117,27 @@ namespace original{
 
             template<u_integer I_DIFF, typename E>
             void set(const E& e);
-        public:
-            friend class tuple;
-            integer compareTo(const tupleImpl<I, T, TS>& other) const override;
 
+            integer compareTo(const tupleImpl& other) const override;
             std::string toString(bool enter) const override;
+
+            friend class tuple;
         };
 
+        /**
+         * @brief General case for three or more elements
+         */
         template<u_integer I, typename T, typename... TS>
-        class tupleImpl<I, T, TS...> : public printable, public comparable<tupleImpl<I, T, TS...>>{
+        class tupleImpl<I, T, TS...> : public printable, public comparable<tupleImpl<I, T, TS...>> {
             T cur_elem;                     ///< Current element storage
             tupleImpl<I + 1, TS...> next;   ///< Recursive next element storage
 
-            /**
-             * @brief Constructor of tupleImpl that initializes the current element
-             * @param cur The current element to be stored
-             * @param next_elems next elements to storage
-             */
+        public:
             explicit tupleImpl(const T& cur, const TS&... next_elems);
-
             explicit tupleImpl(const T& cur = T{}, const tupleImpl<I + 1, TS...>& nt = tupleImpl<I + 1, TS...>{});
-
-            tupleImpl(tupleImpl<I, T, TS...>&& other) noexcept;
-
-            tupleImpl(const tupleImpl<I, T, TS...>& other);
-
-            tupleImpl<I, T, TS...>& operator=(tupleImpl<I, T, TS...>&& other) noexcept;
+            tupleImpl(tupleImpl&& other) noexcept;
+            tupleImpl(const tupleImpl& other);
+            tupleImpl& operator=(tupleImpl&& other) noexcept;
 
             template<u_integer I_DIFF>
             const auto& get() const;
@@ -159,11 +147,11 @@ namespace original{
 
             template<u_integer I_DIFF, typename E>
             void set(const E& e);
-        public:
-            friend class tuple;
-            integer compareTo(const tupleImpl<I, T, TS...>& other) const override;
 
+            integer compareTo(const tupleImpl& other) const override;
             std::string toString(bool enter) const override;
+
+            friend class tuple;
         };
 
         tupleImpl<0, TYPES...> elems;  ///< Recursive element storage
@@ -194,147 +182,42 @@ namespace original{
                                             std::integer_sequence<u_integer, O_SIZE...> os) const;
 
     public:
-
         explicit tuple();
-
-        /**
-         * @brief Constructs a tuple with given elements
-         * @param e Elements to initialize the tuple with
-         */
         explicit tuple(const TYPES&... e);
-
-        /**
-         * @brief Copy constructor
-         * @param other Tuple to copy from
-         */
         tuple(const tuple& other);
-
-        /**
-         * @brief Copy assignment operator
-         * @param other Tuple to copy from
-         * @return Reference to this tuple
-         */
         tuple& operator=(const tuple& other);
-
-        /**
-         * @brief Move constructor
-         * @param other Tuple to move from
-         */
         tuple(tuple&& other) noexcept;
-
-        /**
-         * @brief Move assignment operator
-         * @param other Tuple to move from
-         * @return Reference to this tuple
-         */
         tuple& operator=(tuple&& other) noexcept;
 
-        /**
-         * @brief Get the number of elements in the tuple
-         * @return The size of the tuple (number of elements)
-         */
-        static constexpr u_integer size();
+        static consteval u_integer size() noexcept;
 
-        /**
-         * @brief Access element by index (const lvalue-reference version)
-         * @tparam IDX Zero-based index of the element
-         * @return Const lvalue-reference to the element at the specified index
-         *
-         * @warning The return type is a reference, which affects structured bindings
-         *          if used directly in `tuple_element`. Use value type in `tuple_element` to avoid type deduction issues.
-         */
         template<u_integer IDX>
         const auto& get() const;
 
-        /**
-         * @brief Access element by index (non const lvalue-reference version)
-         * @tparam IDX Zero-based index of the element
-         * @return Lvalue-reference to the element at the specified index
-         *
-         * @warning The return type is a reference, which affects structured bindings
-         *          if used directly in `tuple_element`. Use value type in `tuple_element` to avoid type deduction issues.
-         */
         template<u_integer IDX>
         auto& get();
 
-        /**
-         * @brief Set (modify) the value of the element at the specified index
-         * @tparam IDX Index of the element to modify (zero-based)
-         * @tparam E Type of the new value (auto-deduced)
-         * @param e Value to assign to the element at position `IDX`
-         * @return Reference to the current tuple instance (for chaining)
-         *
-         * @note This method uses a static check to ensure type safety:
-         *       the value `e` must be convertible to the element type `T` at index `IDX`.
-         * @note Invoking this method on a `const` tuple is not allowed.
-         *
-         */
         template<u_integer IDX, typename E>
         tuple& set(const E& e);
 
-        /**
-         * @brief Slice the tuple from a specific index
-         * @tparam BEGIN_IDX The starting index for slicing
-         * @tparam N_ELEMS The number of elements to slice
-         * @return A new tuple with the sliced elements
-         */
         template<u_integer BEGIN_IDX, u_integer N_ELEMS>
         auto slice() const;
 
-        /**
-         * @brief Compare two tuples lexicographically
-         * @param other Tuple to compare with
-         * @return Comparison result:
-         *         - Negative if this tuple is smaller
-         *         - Positive if this tuple is larger
-         *         - Zero if tuples are equal
-         *
-         * @details Comparison rules:
-         * 1. Compares elements pairwise from first to last
-         * 2. Stops at first unequal element pair
-         * 3. Elements must be comparable using < operator
-         */
         integer compareTo(const tuple& other) const override;
-
-        /**
-         * @brief Generate formatted string representation
-         * @param enter Whether to add newline (implementation specific)
-         * @return String in format "tuple(element1, element2, ...)"
-         */
         std::string toString(bool enter) const override;
-
-        /**
-         * @brief Get class name identifier
-         * @return "tuple" string literal
-         */
         std::string className() const override;
 
         ~tuple() override = default;
 
-        /**
-         * @brief Create a tuple from a couple
-         * @tparam F_TYPE Type of the first element
-         * @tparam S_TYPE Type of the second element
-         * @param cp The couple to convert
-         * @return A new tuple with the couple's elements
-         */
         template<typename F_TYPE, typename S_TYPE>
         friend tuple<F_TYPE, S_TYPE> makeTuple(const couple<F_TYPE, S_TYPE>& cp);
 
-        /**
-         * @brief Concatenate two tuples (friend function)
-         * @tparam L_TYPES Types of the left tuple's elements
-         * @tparam R_TYPES Types of the right tuple's elements
-         * @param lt The left tuple
-         * @param rt The right tuple
-         * @return A new tuple combining elements from both tuples
-         */
         template<typename... L_TYPES, typename... R_TYPES>
         friend tuple<L_TYPES..., R_TYPES...> operator+(const tuple<L_TYPES...>& lt, const tuple<R_TYPES...>& rt);
     };
 
     template<typename F_TYPE, typename S_TYPE>
-    tuple<F_TYPE, S_TYPE> makeTuple(const couple<F_TYPE, S_TYPE> &cp);
+    tuple<F_TYPE, S_TYPE> makeTuple(const couple<F_TYPE, S_TYPE>& cp);
 
     template<typename... L_TYPES, typename... R_TYPES>
     tuple<L_TYPES..., R_TYPES...> operator+(const tuple<L_TYPES...>& lt, const tuple<R_TYPES...>& rt);
@@ -400,7 +283,6 @@ namespace std {
     constexpr auto&& get(original::tuple<TYPES...>&& t) noexcept; //NOLINT
 }
 
-
 template<typename... TYPES>
 template<original::u_integer I, typename T>
 original::tuple<TYPES...>::tupleImpl<I, T>::tupleImpl(const T& cur)
@@ -408,17 +290,17 @@ original::tuple<TYPES...>::tupleImpl<I, T>::tupleImpl(const T& cur)
 
 template<typename... TYPES>
 template<original::u_integer I, typename T>
-original::tuple<TYPES...>::tupleImpl<I, T>::tupleImpl(tupleImpl<I, T>&& other) noexcept
+original::tuple<TYPES...>::tupleImpl<I, T>::tupleImpl(tupleImpl&& other) noexcept
     : cur_elem(std::move(other.cur_elem)) {}
 
 template<typename... TYPES>
 template<original::u_integer I, typename T>
-original::tuple<TYPES...>::tupleImpl<I, T>::tupleImpl(const tupleImpl<I, T>& other)
+original::tuple<TYPES...>::tupleImpl<I, T>::tupleImpl(const tupleImpl& other)
     : cur_elem(other.cur_elem) {}
 
 template<typename... TYPES>
 template<original::u_integer I, typename T>
-auto original::tuple<TYPES...>::tupleImpl<I, T>::operator=(tupleImpl<I, T>&& other) noexcept -> tupleImpl<I, T>&
+auto original::tuple<TYPES...>::tupleImpl<I, T>::operator=(tupleImpl&& other) noexcept -> tupleImpl&
 {
     if (this == &other)
         return *this;
@@ -430,7 +312,7 @@ template<typename... TYPES>
 template<original::u_integer I, typename T>
 template<original::u_integer I_DIFF>
 const auto& original::tuple<TYPES...>::tupleImpl<I, T>::get() const {
-    staticError<outOfBoundError, (I_DIFF > 0)>{};
+    staticError<outOfBoundError, (I_DIFF > 0)>::asserts();
 
     return cur_elem;
 }
@@ -439,7 +321,7 @@ template<typename... TYPES>
 template<original::u_integer I, typename T>
 template<original::u_integer I_DIFF>
 auto& original::tuple<TYPES...>::tupleImpl<I, T>::get() {
-    staticError<outOfBoundError, (I_DIFF > 0)>{};
+    staticError<outOfBoundError, (I_DIFF > 0)>::asserts();
 
     return cur_elem;
 }
@@ -448,15 +330,15 @@ template<typename... TYPES>
 template<original::u_integer I, typename T>
 template<original::u_integer I_DIFF, typename E>
 void original::tuple<TYPES...>::tupleImpl<I, T>::set(const E& e) {
-    staticError<outOfBoundError, (I_DIFF > 0)>{};
-    staticError<valueError, !std::is_convertible_v<E, T>>{};
+    staticError<outOfBoundError, (I_DIFF > 0)>::asserts();
+    staticError<valueError, !std::is_convertible_v<E, T>>::asserts();
 
     cur_elem = static_cast<T>(e);
 }
 
 template<typename... TYPES>
 template<original::u_integer I, typename T>
-auto original::tuple<TYPES...>::tupleImpl<I, T>::compareTo(const tupleImpl<I, T>& other) const -> integer
+auto original::tuple<TYPES...>::tupleImpl<I, T>::compareTo(const tupleImpl& other) const -> integer
 {
     if constexpr (Comparable<T>){
         if (cur_elem != other.cur_elem)
@@ -482,18 +364,18 @@ original::tuple<TYPES...>::tupleImpl<I, T, TS>::tupleImpl(const T& cur, const TS
 
 template<typename... TYPES>
 template<original::u_integer I, typename T, typename TS>
-original::tuple<TYPES...>::tupleImpl<I, T, TS>::tupleImpl(tupleImpl<I, T, TS>&& other) noexcept
+original::tuple<TYPES...>::tupleImpl<I, T, TS>::tupleImpl(tupleImpl&& other) noexcept
     : cur_elem(std::move(other.cur_elem)), next(std::move(other.next)) {}
 
 template<typename... TYPES>
 template<original::u_integer I, typename T, typename TS>
-original::tuple<TYPES...>::tupleImpl<I, T, TS>::tupleImpl(const tupleImpl<I, T, TS>& other)
+original::tuple<TYPES...>::tupleImpl<I, T, TS>::tupleImpl(const tupleImpl& other)
     : cur_elem(other.cur_elem), next(other.next) {}
 
 template<typename... TYPES>
 template<original::u_integer I, typename T, typename TS>
 auto original::tuple<TYPES...>::tupleImpl<I, T, TS>::operator=(
-    tupleImpl<I, T, TS>&& other) noexcept -> tupleImpl<I, T, TS>&
+    tupleImpl&& other) noexcept -> tupleImpl&
 {
     if (this == &other)
         return *this;
@@ -529,7 +411,7 @@ template<original::u_integer I, typename T, typename TS>
 template<original::u_integer I_DIFF, typename E>
 void original::tuple<TYPES...>::tupleImpl<I, T, TS>::set(const E& e) {
     if constexpr (I_DIFF == 0){
-        staticError<valueError, !std::is_convertible_v<E, T>>{};
+        staticError<valueError, !std::is_convertible_v<E, T>>::asserts();
 
         cur_elem = static_cast<T>(e);
     } else{
@@ -540,7 +422,7 @@ void original::tuple<TYPES...>::tupleImpl<I, T, TS>::set(const E& e) {
 template<typename... TYPES>
 template<original::u_integer I, typename T, typename TS>
 auto original::tuple<TYPES...>::tupleImpl<I, T, TS>::compareTo(
-    const tupleImpl<I, T, TS>& other) const -> integer
+    const tupleImpl& other) const -> integer
 {
     if constexpr (Comparable<T>){
         if (cur_elem != other.cur_elem)
@@ -572,18 +454,18 @@ original::tuple<TYPES...>::tupleImpl<I, T, TS...>::tupleImpl(const T& cur, const
 
 template<typename... TYPES>
 template<original::u_integer I, typename T, typename... TS>
-original::tuple<TYPES...>::tupleImpl<I, T, TS...>::tupleImpl(tupleImpl<I, T, TS...> &&other) noexcept
+original::tuple<TYPES...>::tupleImpl<I, T, TS...>::tupleImpl(tupleImpl&& other) noexcept
     : cur_elem(std::move(other.cur_elem)), next(std::move(other.next)) {}
 
 template<typename... TYPES>
 template<original::u_integer I, typename T, typename... TS>
-original::tuple<TYPES...>::tupleImpl<I, T, TS...>::tupleImpl(const tupleImpl<I, T, TS...>& other)
+original::tuple<TYPES...>::tupleImpl<I, T, TS...>::tupleImpl(const tupleImpl& other)
     : cur_elem(other.cur_elem), next(other.next) {}
 
 template<typename... TYPES>
 template<original::u_integer I, typename T, typename... TS>
 auto original::tuple<TYPES...>::tupleImpl<I, T, TS...>::operator=(
-    tupleImpl<I, T, TS...>&& other) noexcept -> tupleImpl<I, T, TS...>&
+    tupleImpl&& other) noexcept -> tupleImpl&
 {
     if (this == &other)
         return *this;
@@ -619,7 +501,7 @@ template<original::u_integer I, typename T, typename... TS>
 template<original::u_integer I_DIFF, typename E>
 void original::tuple<TYPES...>::tupleImpl<I, T, TS...>::set(const E& e) {
     if constexpr (I_DIFF == 0){
-        staticError<valueError, !std::is_convertible_v<E, T>>{};
+        staticError<valueError, !std::is_convertible_v<E, T>>::asserts();
 
         cur_elem = static_cast<T>(e);
     } else{
@@ -630,7 +512,7 @@ void original::tuple<TYPES...>::tupleImpl<I, T, TS...>::set(const E& e) {
 template<typename... TYPES>
 template<original::u_integer I, typename T, typename... TS>
 original::integer
-original::tuple<TYPES...>::tupleImpl<I, T, TS...>::compareTo(const tupleImpl<I, T, TS...>& other) const {
+original::tuple<TYPES...>::tupleImpl<I, T, TS...>::compareTo(const tupleImpl& other) const {
     if constexpr (Comparable<T>){
         if (cur_elem != other.cur_elem)
             return cur_elem < other.cur_elem ? -1 : 1;
@@ -693,8 +575,7 @@ original::tuple<TYPES...>& original::tuple<TYPES...>::operator=(tuple&& other) n
 }
 
 template<typename... TYPES>
-constexpr original::u_integer original::tuple<TYPES...>::size()
-{
+consteval original::u_integer original::tuple<TYPES...>::size() noexcept {
     return SIZE;
 }
 
@@ -721,7 +602,7 @@ template<typename... TYPES>
 template<original::u_integer BEGIN_IDX, original::u_integer N_ELEMS>
 auto original::tuple<TYPES...>::slice() const {
     constexpr bool out_of_bound = BEGIN_IDX >= SIZE || BEGIN_IDX + N_ELEMS > SIZE;
-    staticError<outOfBoundError, out_of_bound>{};
+    staticError<outOfBoundError, out_of_bound>::asserts();
 
     return this->_slice(
             std::make_integer_sequence<u_integer, N_ELEMS>{},

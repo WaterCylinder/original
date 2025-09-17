@@ -4,9 +4,6 @@
 
 #include "config.h"
 
-
-namespace original {
-
 /**
  * @file container.h
  * @brief Abstract base class for container types.
@@ -15,6 +12,7 @@ namespace original {
  *          and checking if an element exists in the container.
  */
 
+namespace original {
 /**
  * @class container
  * @tparam TYPE Type of the elements stored in the container.
