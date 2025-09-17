@@ -6,14 +6,14 @@
 using namespace original;
 
 class runTimeTestError final : std::exception {
-    mutable std::string msg_;
+    mutable std::string msg_{"runTimeTestError"};
 
 public:
-    runTimeTestError() : msg_("runTimeTestError") {}
+    runTimeTestError() = default;
 
     explicit runTimeTestError(std::string msg) : msg_(std::move(msg)) {}
 
-    const char* what() const noexcept override {
+    [[nodiscard]] const char* what() const noexcept override {
         return this->msg_.c_str();
     }
 };
