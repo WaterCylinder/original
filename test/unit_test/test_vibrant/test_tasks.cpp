@@ -28,8 +28,8 @@ TEST(TaskDelegatorTest, SubmitNormalTasks) {
 TEST(TaskDelegatorTest, SubmitHighPriority) {
     taskDelegator delegator(2);
 
-    auto f1 = delegator.submit(taskDelegator::priority::NORMAL, add_func, 1, 1);
-    auto f2 = delegator.submit(taskDelegator::priority::HIGH, add_func, 2, 2);
+    auto f1 = delegator.submit(taskDelegator::NORMAL, add_func, 1, 1);
+    auto f2 = delegator.submit(taskDelegator::HIGH, add_func, 2, 2);
 
     EXPECT_EQ(f1.result(), 2);
     EXPECT_EQ(f2.result(), 4);
@@ -60,7 +60,7 @@ TEST(TaskDelegatorTest, SubmitImmediateWithoutIdleThreadThrows) {
 
     // 尝试提交立即任务，应抛出异常
     EXPECT_THROW({
-        delegator.submit(taskDelegator::priority::IMMEDIATE, []{ return 0; });
+        delegator.submit(taskDelegator::IMMEDIATE, []{ return 0; });
     }, sysError);
 }
 
@@ -69,7 +69,7 @@ TEST(TaskDelegatorTest, SubmitWithUnknownPriorityThrows) {
     taskDelegator delegator(2);
 
     // 使用无效的优先级值
-    auto invalid_priority = static_cast<taskDelegator::priority>(999);
+    constexpr auto invalid_priority = static_cast<taskDelegator::priority>(999);
 
     EXPECT_THROW({
         delegator.submit(invalid_priority, []{ return 0; });
@@ -138,7 +138,7 @@ TEST(TaskDelegatorTest, RunDeferredOneByOne) {
 
     // 提交多个延迟任务
     for (int i = 0; i < 3; ++i) {
-        delegator.submit(taskDelegator::priority::DEFERRED, [&counter]{
+        delegator.submit(taskDelegator::DEFERRED, [&counter]{
             ++counter;
             return counter.load();
         });
@@ -204,23 +204,23 @@ TEST(TaskDelegatorTest, StopPreventsAllPrioritySubmits) {
 
     // 所有优先级都应抛出异常
     EXPECT_THROW({
-        delegator.submit(taskDelegator::priority::IMMEDIATE, []{});
+        delegator.submit(taskDelegator::IMMEDIATE, []{});
     }, sysError);
 
     EXPECT_THROW({
-        delegator.submit(taskDelegator::priority::HIGH, []{});
+        delegator.submit(taskDelegator::HIGH, []{});
     }, sysError);
 
     EXPECT_THROW({
-        delegator.submit(taskDelegator::priority::NORMAL, []{});
+        delegator.submit(taskDelegator::NORMAL, []{});
     }, sysError);
 
     EXPECT_THROW({
-        delegator.submit(taskDelegator::priority::LOW, []{});
+        delegator.submit(taskDelegator::LOW, []{});
     }, sysError);
 
     EXPECT_THROW({
-        delegator.submit(taskDelegator::priority::DEFERRED, []{});
+        delegator.submit(taskDelegator::DEFERRED, []{});
     }, sysError);
 }
 
@@ -274,31 +274,28 @@ TEST(TaskDelegatorTest, StressTestMixedTasks) {
     std::vector<async::future<int>> futures;
 
     // 提交 IMMEDIATE 任务
-    if (delegator.idleThreads() > 0)
-    {
-        constexpr int immediate_task = 1;
-        futures.push_back(delegator.submit(taskDelegator::priority::IMMEDIATE, immediate_func, immediate_task));
-        immediate_task_submitted = true;
-    }
+    constexpr int immediate_task = 1;
+    futures.push_back(delegator.submit(taskDelegator::IMMEDIATE, immediate_func, immediate_task));
+    immediate_task_submitted = true;
 
     // 提交 LOW 任务
     for (int j = 1; j <= low_tasks; ++j) {
-        futures.push_back(delegator.submit(taskDelegator::priority::LOW, low_func, j));
+        futures.push_back(delegator.submit(taskDelegator::LOW, low_func, j));
     }
 
     // 提交 NORMAL 任务
     for (int j = 1; j <= normal_tasks; ++j) {
-        futures.push_back(delegator.submit(taskDelegator::priority::NORMAL, normal_func, j));
+        futures.push_back(delegator.submit(taskDelegator::NORMAL, normal_func, j));
     }
 
     // 提交 HIGH 任务
     for (int j = 1; j <= high_tasks; ++j) {
-        futures.push_back(delegator.submit(taskDelegator::priority::HIGH, high_func, j));
+        futures.push_back(delegator.submit(taskDelegator::HIGH, high_func, j));
     }
 
     // 提交 DEFERRED 任务
     for (int j = 1; j <= deferred_tasks; ++j) {
-        futures.push_back(delegator.submit(taskDelegator::priority::DEFERRED, deferred_func, j));
+        futures.push_back(delegator.submit(taskDelegator::DEFERRED, deferred_func, j));
     }
 
     delegator.runAllDeferred();
