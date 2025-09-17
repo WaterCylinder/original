@@ -201,8 +201,13 @@ void original::async::asyncWrapper<TYPE>::wait()
 template <typename TYPE>
 TYPE original::async::asyncWrapper<TYPE>::get()
 {
-    this->wait();
-    this->rethrowIfException();
+    uniqueLock lock{this->mutex_};
+    this->cond_.wait(this->mutex_, [this]{
+        return this->ready();
+    });
+
+    if (this->e_) std::rethrow_exception(this->e_);
+
     TYPE result = *this->alter_;
     this->alter_.reset();
     return result;
@@ -219,12 +224,14 @@ template <typename TYPE>
 std::exception_ptr
 original::async::asyncWrapper<TYPE>::exception() const
 {
+    uniqueLock lock{this->mutex_};
     return this->e_;
 }
 
 template <typename TYPE>
 bool original::async::asyncWrapper<TYPE>::available() const
 {
+    uniqueLock lock{this->mutex_};
     return this->ready() && this->alter_.hasValue();
 }
 
@@ -349,8 +356,12 @@ inline void original::async::asyncWrapper<void>::wait()
 
 inline void original::async::asyncWrapper<void>::get()
 {
-    this->wait();
-    this->rethrowIfException();
+    uniqueLock lock{this->mutex_};
+    this->cond_.wait(this->mutex_, [this] {
+        return this->ready();
+    });
+
+    if (this->e_) std::rethrow_exception(this->e_);
 }
 
 inline void original::async::asyncWrapper<void>::rethrowIfException() const
@@ -362,11 +373,13 @@ inline void original::async::asyncWrapper<void>::rethrowIfException() const
 inline std::exception_ptr
 original::async::asyncWrapper<void>::exception() const noexcept
 {
+    uniqueLock lock{this->mutex_};
     return this->e_;
 }
 
 inline bool original::async::asyncWrapper<void>::available() const
 {
+    uniqueLock lock{this->mutex_};
     return this->ready() && this->alter_.hasValue();
 }
 
