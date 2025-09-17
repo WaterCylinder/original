@@ -14,11 +14,11 @@ namespace original {
     class async {
         template<typename TYPE>
         class asyncWrapper {
-            atomic<bool> ready_;
+            atomic<bool> ready_{makeAtomic(false)};
             alternative<TYPE> alter_;
-            pCondition cond_;
-            pMutex mutex_;
-            std::exception_ptr e_;
+            pCondition cond_{};
+            mutable pMutex mutex_{};
+            std::exception_ptr e_{};
 
         public:
             asyncWrapper();
@@ -43,7 +43,7 @@ namespace original {
     public:
         template<typename TYPE>
         class future {
-            strongPtr<asyncWrapper<TYPE>> awr_;
+            strongPtr<asyncWrapper<TYPE>> awr_{};
 
             friend class async;
             explicit future(strongPtr<asyncWrapper<TYPE>> awr);
@@ -70,7 +70,7 @@ namespace original {
         template<typename TYPE, typename Callback>
         class promise {
             std::function<TYPE()> c_;
-            strongPtr<asyncWrapper<TYPE>> awr_;
+            strongPtr<asyncWrapper<TYPE>> awr_{};
 
         public:
             promise() = default;
@@ -91,14 +91,14 @@ namespace original {
 
     template <>
     class async::asyncWrapper<void> {
-        atomic<bool> ready_;
+        atomic<bool> ready_{makeAtomic(false)};
         alternative<void> alter_;
-        pCondition cond_;
-        pMutex mutex_;
-        std::exception_ptr e_;
+        pCondition cond_{};
+        mutable pMutex mutex_{};
+        std::exception_ptr e_{};
 
     public:
-        asyncWrapper();
+        asyncWrapper() = default;
 
         void setValue();
 
@@ -119,7 +119,7 @@ namespace original {
 
     template <>
     class async::future<void> {
-        strongPtr<asyncWrapper<void>> awr_;
+        strongPtr<asyncWrapper<void>> awr_{};
 
         friend class async;
         explicit future(const strongPtr<asyncWrapper<void>>& awr) : awr_(std::move(awr)) {}
@@ -144,7 +144,7 @@ namespace original {
     template <typename Callback>
     class async::promise<void, Callback> {
         std::function<void()> c_;
-        strongPtr<asyncWrapper<void>> awr_;
+        strongPtr<asyncWrapper<void>> awr_{};
 
     public:
         promise() = default;
@@ -158,8 +158,7 @@ namespace original {
 } // namespace original
 
 template <typename TYPE>
-original::async::asyncWrapper<TYPE>::asyncWrapper()
-    : ready_(makeAtomic(false)) {}
+original::async::asyncWrapper<TYPE>::asyncWrapper() = default;
 
 template <typename TYPE>
 void original::async::asyncWrapper<TYPE>::setValue(TYPE&& v)
@@ -309,14 +308,10 @@ auto original::async::get(Callback&& c, Args&&... args)
         [p = std::move(p)]() mutable {
             p.run();
         },
-        thread::AUTO_DETACH
     };
 
     return fut.result();
 }
-
-inline original::async::asyncWrapper<void>::asyncWrapper()
-    : ready_(makeAtomic(false)) {}
 
 inline void original::async::asyncWrapper<void>::setValue()
 {
