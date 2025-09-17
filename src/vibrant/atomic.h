@@ -58,6 +58,12 @@ namespace original {
 
         explicit operator TYPE() const noexcept;
 
+        void operator=(TYPE value) noexcept;
+
+        atomicImpl& operator+=(TYPE value) noexcept;
+
+        atomicImpl& operator-=(TYPE value) noexcept;
+
         TYPE exchange(TYPE value, memOrder order = SEQ_CST) noexcept;
 
         bool exchangeCmp(TYPE& expected, TYPE desired, memOrder order = SEQ_CST) noexcept;
@@ -100,6 +106,12 @@ namespace original {
         TYPE operator*() const noexcept;
 
         explicit operator TYPE() const noexcept;
+
+        void operator=(TYPE value) noexcept;
+
+        atomicImpl& operator+=(TYPE value) noexcept;
+
+        atomicImpl& operator-=(TYPE value) noexcept;
 
         TYPE exchange(const TYPE& value, memOrder = SEQ_CST) noexcept;
 
@@ -161,6 +173,26 @@ original::atomicImpl<TYPE, false>::operator TYPE() const noexcept
 }
 
 template <typename TYPE>
+void original::atomicImpl<TYPE, false>::operator=(TYPE value) noexcept
+{
+    this->store(std::move(value));
+}
+
+template <typename TYPE>
+original::atomicImpl<TYPE, false>& original::atomicImpl<TYPE, false>::operator+=(TYPE value) noexcept
+{
+    __atomic_fetch_add(reinterpret_cast<TYPE*>(this->data_), value, static_cast<integer>(memOrder::SEQ_CST));
+    return *this;
+}
+
+template <typename TYPE>
+original::atomicImpl<TYPE, false>& original::atomicImpl<TYPE, false>::operator-=(TYPE value) noexcept
+{
+    __atomic_fetch_sub(reinterpret_cast<TYPE*>(this->data_), value, static_cast<integer>(memOrder::SEQ_CST));
+    return *this;
+}
+
+template <typename TYPE>
 TYPE original::atomicImpl<TYPE, false>::exchange(TYPE value, memOrder order) noexcept {
     TYPE result;
     __atomic_exchange(reinterpret_cast<TYPE*>(this->data_), &value,
@@ -209,6 +241,30 @@ template <typename TYPE>
 original::atomicImpl<TYPE, true>::operator TYPE() const noexcept
 {
     return this->load();
+}
+
+template <typename TYPE>
+void original::atomicImpl<TYPE, true>::operator=(TYPE value) noexcept
+{
+    this->store(std::move(value));
+}
+
+template <typename TYPE>
+original::atomicImpl<TYPE, true>& original::atomicImpl<TYPE, true>::operator+=(TYPE value) noexcept
+{
+    uniqueLock lock{this->mutex_};
+    TYPE result = *this->data_ + value;
+    this->data_.set(result);
+    return *this;
+}
+
+template <typename TYPE>
+original::atomicImpl<TYPE, true>& original::atomicImpl<TYPE, true>::operator-=(TYPE value) noexcept
+{
+    uniqueLock lock{this->mutex_};
+    TYPE result = *this->data_ - value;
+    this->data_.set(result);
+    return *this;
 }
 
 template <typename TYPE>
