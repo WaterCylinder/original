@@ -4,6 +4,7 @@
 #include "pthread.h"
 #include "error.h"
 #include "tuple.h"
+#include <iostream>
 
 /**
  * @file mutex.h
@@ -354,7 +355,7 @@ namespace original {
 inline original::pMutex::pMutex() : mutex_{} {
     if (const int code = pthread_mutex_init(&this->mutex_, nullptr);
         code != 0){
-        throw sysError();
+        throw sysError("Failed to initialize mutex (pthread_mutex_init returned " + printable::formatString(code) + ")");
     }
 }
 
@@ -370,7 +371,7 @@ inline void* original::pMutex::nativeHandle() noexcept
 inline void original::pMutex::lock() {
     if (const int code = pthread_mutex_lock(&this->mutex_);
         code != 0) {
-        throw sysError();
+        throw sysError("Failed to lock mutex (pthread_mutex_lock returned " + printable::formatString(code) + ")");
     }
 }
 
@@ -380,7 +381,7 @@ inline bool original::pMutex::tryLock() {
         if (code == EBUSY)
             return false;
 
-        throw sysError();
+        throw sysError("Failed to try-lock mutex (pthread_mutex_try-lock returned " + printable::formatString(code) + ")");
     }
     return true;
 }
@@ -388,13 +389,15 @@ inline bool original::pMutex::tryLock() {
 inline void original::pMutex::unlock() {
     if (const int code = pthread_mutex_unlock(&this->mutex_);
         code != 0){
-        throw sysError();
+        throw sysError("Failed to unlock mutex (pthread_mutex_unlock returned " + printable::formatString(code) + ")");
     }
 }
 
 inline original::pMutex::~pMutex() {
     if (const int code = pthread_mutex_destroy(&this->mutex_);
         code != 0){
+        std::cerr << "Fatal error: Failed to destroy mutex (pthread_mutex_destroy returned "
+                  << code << ")" << std::endl;
         std::terminate();
     }
 }
@@ -421,7 +424,7 @@ inline bool original::uniqueLock::isLocked() const noexcept {
 
 inline void original::uniqueLock::lock() {
     if (this->is_locked)
-        throw sysError();
+        throw sysError("Cannot lock uniqueLock: already locked");
 
     this->p_mutex_.lock();
     this->is_locked = true;
@@ -429,7 +432,7 @@ inline void original::uniqueLock::lock() {
 
 inline bool original::uniqueLock::tryLock() {
     if (this->is_locked)
-        throw sysError();
+        throw sysError("Cannot try-lock uniqueLock: already locked");
 
     this->is_locked = this->p_mutex_.tryLock();
     return this->is_locked;
@@ -513,7 +516,7 @@ bool original::multiLock<MUTEX...>::isLocked() const noexcept {
 template<typename... MUTEX>
 void original::multiLock<MUTEX...>::lock() {
     if (this->is_locked_all)
-        throw sysError();
+        throw sysError("Cannot lock multiLock: already locked");
 
     this->lockAll(makeSequence<sizeof...(MUTEX)>());
 }
@@ -521,7 +524,7 @@ void original::multiLock<MUTEX...>::lock() {
 template<typename... MUTEX>
 bool original::multiLock<MUTEX...>::tryLock() {
     if (this->is_locked_all)
-        throw sysError();
+        throw sysError("Cannot try-lock multiLock: already locked");
 
     return this->tryLockAll(makeSequence<sizeof...(MUTEX)>());
 }

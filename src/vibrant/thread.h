@@ -425,7 +425,7 @@ void* original::threadBase<DERIVED>::threadData<Callback>::run(void* arg)
     try {
         self->c();
     }catch (const error&) {
-        throw sysError();
+        throw sysError("Thread callback execution failed");
     }
     return nullptr;
 }
@@ -475,7 +475,8 @@ original::pThread::pThread(Callback c, ARGS&&... args) : handle(), is_joinable(t
 
     if (const int code = pthread_create(&this->handle, nullptr, &bound_thread_data::run, task); code != 0)
     {
-        std::terminate();
+        delete task;
+        throw sysError("Failed to create thread (pthread_create returned " + formatString(code) + ")");
     }
 }
 
@@ -537,7 +538,7 @@ inline void original::pThread::join() {
     if (this->is_joinable){
         if (const int code = pthread_join(this->handle, nullptr);
             code != 0){
-            std::terminate();
+            throw sysError("Failed to join thread (pthread_join returned " + formatString(code) + ")");
         }
         this->is_joinable = false;
         this->handle = {};
@@ -548,7 +549,7 @@ inline void original::pThread::detach() {
     if (this->is_joinable){
         if (const int code = pthread_detach(this->handle);
             code != 0){
-            std::terminate();
+            throw sysError("Failed to detach thread (pthread_detach returned " + formatString(code) + ")");
         }
         this->is_joinable = false;
         this->handle = {};
@@ -558,7 +559,12 @@ inline void original::pThread::detach() {
 inline original::pThread::~pThread()
 {
     if (this->is_joinable) {
-        std::terminate();
+        try {
+            this->detach();
+        } catch (...) {
+            std::cerr << "Fatal error in pThread destructor" << std::endl;
+            std::terminate();
+        }
     }
 }
 
@@ -585,15 +591,17 @@ inline void original::thread::sleep(const time::duration& d)
 #ifdef ORIGINAL_COMPILER_GCC
     const auto deadline = time::point::now() + d;
     const auto ts = deadline.toTimespec();
+    int ret;
 
     while (true) {
-        if (const int ret = clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &ts, nullptr)
+        if (ret = clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &ts, nullptr)
             ; ret == 0) break;
         if (errno == EINTR) continue;
         if (errno == EINVAL) {
             if (time::point::now() >= deadline) return;
         }
-        throw sysError();
+        throw sysError("Failed to sleep thread (clock_nano-sleep returned " + formatString(ret) +
+                      ", errno: " + std::to_string(errno) + ")");
     }
 #else
     ::Sleep(static_cast<DWORD>((d.value() + time::FACTOR_MILLISECOND - 1) / time::FACTOR_MILLISECOND));
@@ -657,8 +665,11 @@ inline void original::thread::detach()
 
 inline original::thread::~thread()
 {
-    if (this->thread_.joinable()) {
+    try {
         this->will_join ? this->thread_.join() : this->thread_.detach();
+    } catch (const sysError& e) {
+        std::cerr << "Fatal error in thread destructor: " << e.what() << std::endl;
+        std::terminate();
     }
 }
 

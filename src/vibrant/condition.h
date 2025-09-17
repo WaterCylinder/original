@@ -187,9 +187,9 @@ bool original::conditionBase::waitFor(mutexBase& mutex, const time::duration& d,
 
 inline original::pCondition::pCondition() : cond_{}
 {
-    if (pthread_cond_init(&this->cond_, nullptr) != 0)
+    if (const int code = pthread_cond_init(&this->cond_, nullptr); code != 0)
     {
-        throw sysError();
+        throw sysError("Failed to initialize condition variable (pthread_cond_init returned " + printable::formatString(code) + ")");
     }
 }
 
@@ -197,18 +197,20 @@ inline void original::pCondition::wait(mutexBase& mutex)
 {
     const auto p_mutex = dynamic_cast<pMutex*>(&mutex);
     if (!p_mutex) {
-        throw valueError();
+        throw valueError("Invalid mutex type for condition variable: must be pMutex");
     }
 
     const auto handle = static_cast<pMutex::native_handle*>(p_mutex->nativeHandle());
-    pthread_cond_wait(&this->cond_, handle);
+    if (const int code = pthread_cond_wait(&this->cond_, handle); code != 0) {
+        throw sysError("Failed to wait on condition variable (pthread_cond_wait returned " + printable::formatString(code) + ")");
+    }
 }
 
 inline bool original::pCondition::waitFor(mutexBase& mutex, const time::duration d)
 {
     const auto p_mutex = dynamic_cast<pMutex*>(&mutex);
     if (!p_mutex) {
-        throw valueError();
+        throw valueError("Invalid mutex type for condition variable: must be pMutex");
     }
 
     const auto deadline = time::point::now() + d;
@@ -217,22 +219,29 @@ inline bool original::pCondition::waitFor(mutexBase& mutex, const time::duration
     const int code = pthread_cond_timedwait(&this->cond_, handle, &ts);
     if (code == 0) return true;
     if (code == ETIMEDOUT) return false;
-    throw sysError();
+    throw sysError("Failed to timed wait on condition variable (pthread_cond_timed-wait returned " + printable::formatString(code) + ")");
 }
 
 inline void original::pCondition::notify()
 {
-    pthread_cond_signal(&this->cond_);
+    if (const int code = pthread_cond_signal(&this->cond_); code != 0) {
+        throw sysError("Failed to signal condition variable (pthread_cond_signal returned " + printable::formatString(code) + ")");
+    }
 }
 
 inline void original::pCondition::notifyAll()
 {
-    pthread_cond_broadcast(&this->cond_);
+    if (const int code = pthread_cond_broadcast(&this->cond_); code != 0) {
+        throw sysError("Failed to broadcast condition variable (pthread_cond_broadcast returned " + printable::formatString(code) + ")");
+    }
 }
 
 inline original::pCondition::~pCondition()
 {
-    pthread_cond_destroy(&this->cond_);
+    if (const int code = pthread_cond_destroy(&this->cond_); code != 0) {
+        std::cerr << "Warning: Failed to destroy condition variable (pthread_cond_destroy returned "
+                  << code << ")" << std::endl;
+    }
 }
 
 #endif //CONDITION_H

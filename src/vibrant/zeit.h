@@ -1100,7 +1100,7 @@ inline original::time::duration::duration(const time_val_type val, const unit un
             this->nano_seconds_ = FACTOR_NANOSECOND * val;
             break;
         default:
-            throw valueError();
+            throw valueError("Invalid time unit specified for duration construction");
     }
 }
 
@@ -1149,7 +1149,7 @@ original::time::duration::value(const unit unit) const {
             val /= FACTOR_NANOSECOND;
             break;
         default:
-            throw valueError();
+            throw valueError("Invalid time unit specified for duration value conversion");
     }
     return val;
 }
@@ -1567,7 +1567,8 @@ original::time::UTCTime::daysOfMonth(const integer year, const integer month) {
 constexpr original::time::UTCTime::weekdays
 original::time::UTCTime::weekday(const integer year, const integer month, const integer day) {
     if (!isValidYMD(year, month, day))
-        throw valueError();
+        throw valueError("Invalid date for weekday calculation: " +
+                        formatString(year) + "-" + formatString(month) + "-" + formatString(day));
 
     integer corrected_year, corrected_month;
     if (month == 1 || month == 2){
@@ -1629,7 +1630,9 @@ inline original::time::UTCTime::UTCTime(const integer year, const integer month,
 inline original::time::UTCTime::UTCTime(const integer year, const integer month, const integer day,
                                         const integer hour, const integer minute, const integer second) {
     if (!isValid(year, month, day, hour, minute, second))
-        throw valueError();
+        throw valueError("Invalid UTC time parameters: " +
+                        formatString(year) + "-" + formatString(month) + "-" + formatString(day) + " " +
+                        formatString(hour) + ":" + formatString(minute) + ":" + formatString(second));
 
     this->set(year, month, day, hour, minute, second);
 }
@@ -1707,7 +1710,7 @@ original::time::UTCTime::value(const unit unit) const {
         case DAY:
             return this->day_;
         default:
-            throw valueError();
+            throw valueError("Invalid time unit for UTCTime value access");
     }
 }
 
@@ -1719,7 +1722,7 @@ original::time::UTCTime::value(const calendar calendar) const {
         case YEAR:
             return this->year_;
         default:
-            throw valueError();
+            throw valueError("Invalid calendar component for UTCTime value access");
     }
 }
 
