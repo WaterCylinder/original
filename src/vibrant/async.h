@@ -164,18 +164,22 @@ original::async::asyncWrapper<TYPE>::asyncWrapper()
 template <typename TYPE>
 void original::async::asyncWrapper<TYPE>::setValue(TYPE&& v)
 {
-    uniqueLock lock{this->mutex_};
-    this->alter_.set(std::move(v));
-    this->ready_.store(true);
+    {
+        uniqueLock lock{this->mutex_};
+        this->alter_.set(std::move(v));
+        this->ready_.store(true);
+    }
     this->cond_.notify();
 }
 
 template <typename TYPE>
 void original::async::asyncWrapper<TYPE>::setException(std::exception_ptr e)
 {
-    uniqueLock lock{this->mutex_};
-    this->e_ = std::move(e);
-    this->ready_.store(true);
+    {
+        uniqueLock lock{this->mutex_};
+        this->e_ = std::move(e);
+        this->ready_.store(true);
+    }
     this->cond_.notify();
 }
 
@@ -188,8 +192,11 @@ bool original::async::asyncWrapper<TYPE>::ready() const
 template <typename TYPE>
 void original::async::asyncWrapper<TYPE>::wait()
 {
-    if (!this->ready())
-        this->cond_.wait(this->mutex_);
+    uniqueLock lock{this->mutex_};
+    this->cond_.wait(this->mutex_, [this]
+    {
+        return this->ready();
+    });
 }
 
 template <typename TYPE>
@@ -313,17 +320,21 @@ inline original::async::asyncWrapper<void>::asyncWrapper()
 
 inline void original::async::asyncWrapper<void>::setValue()
 {
-    uniqueLock lock{this->mutex_};
-    this->alter_.set();
-    this->ready_.store(true);
+    {
+        uniqueLock lock{this->mutex_};
+        this->alter_.set();
+        this->ready_.store(true);
+    }
     this->cond_.notify();
 }
 
 inline void original::async::asyncWrapper<void>::setException(std::exception_ptr e)
 {
-    uniqueLock lock{this->mutex_};
-    this->e_ = std::move(e);
-    this->ready_.store(true);
+    {
+        uniqueLock lock{this->mutex_};
+        this->e_ = std::move(e);
+        this->ready_.store(true);
+    }
     this->cond_.notify();
 }
 
@@ -334,8 +345,11 @@ inline bool original::async::asyncWrapper<void>::ready() const
 
 inline void original::async::asyncWrapper<void>::wait()
 {
-    if (!this->ready())
-        this->cond_.wait(this->mutex_);
+    uniqueLock lock{this->mutex_};
+    this->cond_.wait(this->mutex_, [this]
+    {
+        return this->ready();
+    });
 }
 
 inline void original::async::asyncWrapper<void>::get()
