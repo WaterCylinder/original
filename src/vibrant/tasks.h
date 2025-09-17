@@ -56,7 +56,9 @@ namespace original {
         priorityTaskQueue tasks_waiting_;
         mutable pCondition condition_;
         mutable pMutex mutex_;
-        atomic<bool> stopped_;
+        bool stopped_;
+        u_integer active_threads_;
+        u_integer idle_threads_;
     public:
         explicit taskDelegator(u_integer thread_cnt = 8);
 
@@ -120,7 +122,15 @@ inline original::taskDelegator::taskDelegator(const u_integer thread_cnt)
                         task = std::move(this->tasks_waiting_.pop().first());
                     }
 
+                    {
+                        uniqueLock lock(this->mutex_);
+                        this->active_threads_ += 1;
+                    }
                     task->run();
+                    {
+                        uniqueLock lock(this->mutex_);
+                        this->active_threads_ -= 1;
+                    }
                 }
             }
         };
@@ -162,7 +172,10 @@ original::taskDelegator::submit(const priority priority, strongPtr<task<TYPE>>& 
 
 inline void original::taskDelegator::stop()
 {
-    this->stopped_.store(true);
+    {
+        uniqueLock lock(this->mutex_);
+        this->stopped_ = true;
+    }
     this->condition_.notifyAll();
 
     for (auto& thread_ : this->threads_) {
@@ -174,7 +187,12 @@ inline void original::taskDelegator::stop()
 
 inline original::taskDelegator::~taskDelegator()
 {
-    if (!this->stopped_.load()) {
+    bool stopped;
+    {
+        uniqueLock lock(this->mutex_);
+        stopped = this->stopped_;
+    }
+    if (!stopped) {
         this->stop();
     }
 }
