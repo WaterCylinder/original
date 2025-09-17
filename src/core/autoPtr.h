@@ -7,7 +7,6 @@
 #include "hash.h"
 #include "error.h"
 
-
 /**
 * @file autoPtr.h
 * @brief Base class for reference-counted smart pointers
@@ -58,7 +57,7 @@ namespace original {
         template<typename, typename, typename> friend class autoPtr;
     protected:
         refCountBase* ref_count; ///< Reference counter object
-        TYPE* alias_ptr;
+        TYPE* alias_ptr;         ///< Aliased pointer for type casting scenarios
 
         /**
         * @brief Construct from raw pointer
@@ -91,6 +90,12 @@ namespace original {
         */
         void removeWeakRef() const;
 
+        /**
+        * @brief Release ownership of the managed pointer
+        * @return Raw pointer to the managed object
+        * @note The caller becomes responsible for deleting the returned pointer
+        * @post Reference counter retains weak references but no strong references
+        */
         TYPE* releasePtr() noexcept;
 
         /**
@@ -325,6 +330,11 @@ namespace original {
     template<typename T, typename DER, typename DEL>
     bool operator!=(const std::nullptr_t& null, const autoPtr<T, DER, DEL>& ptr);
 
+    /**
+    * @class refCountBase
+    * @brief Base class for reference counting metadata
+    * @details Stores reference counts and provides interface for pointer management
+    */
     class refCountBase {
         template <typename, typename, typename>
         friend class autoPtr;
@@ -333,12 +343,28 @@ namespace original {
         mutable u_integer strong_refs; ///< Strong reference counter
         mutable u_integer weak_refs;   ///< Weak reference counter
 
+        /**
+        * @brief Construct refCountBase object
+        */
         refCountBase();
 
+        /**
+        * @brief Get managed pointer (const version)
+        * @return Const pointer to managed object
+        */
         virtual const void* getPtr() const noexcept = 0;
 
+        /**
+        * @brief Get managed pointer
+        * @return Pointer to managed object
+        */
         virtual void* getPtr() noexcept = 0;
 
+        /**
+        * @brief Release ownership of the managed pointer
+        * @return Raw pointer to the managed object
+        * @note The caller becomes responsible for deleting the returned pointer
+        */
         virtual void* releasePtr() noexcept = 0;
 
         /**

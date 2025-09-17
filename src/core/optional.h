@@ -7,7 +7,7 @@
 /**
  * @file optional.h
  * @brief Type-safe optional value container
- * @details Provides an alternative<TYPE> class that can either contain a value of type TYPE
+ * @details Provides an alternative<TYPE> class that can either contain a value of type 'TYPE'
  * or be in an empty state (represented by original::none from types.h). This implementation
  * provides:
  * - Value semantics with proper construction/destruction
@@ -204,33 +204,75 @@ namespace original {
         ~alternative();
     };
 
+    /**
+     * @class alternative
+     * @brief Specialization for void type alternative
+     * @details Represents a simple boolean flag indicating presence or absence
+     * of a value without storing actual data. Useful for signaling states
+     * without associated data.
+     */
     template<>
     class alternative<void> {
-        bool has_value_ = false;
+        bool has_value_ = false; ///< Flag indicating value presence
 
     public:
+        /**
+         * @brief Constructs an empty alternative<void>
+         * @post hasValue() == false
+         */
         explicit alternative();
 
+        /**
+         * @brief Constructs from none (empty state)
+         * @param n none value indicating empty state
+         * @post hasValue() == false
+         */
         explicit alternative(none n);
 
+        /**
+         * @brief Constructs with value present
+         * @param t std::in_place_t tag to indicate value should be present
+         * @post hasValue() == true
+         */
         explicit alternative(std::in_place_t t);
 
+        /**
+         * @brief Sets the alternative to have a value
+         * @post hasValue() == true
+         */
         void set();
 
+        /**
+         * @brief Resets to empty state
+         * @post hasValue() == false
+         */
         void reset() noexcept;
 
+        /**
+         * @brief Checks if contains a value
+         * @return true if contains value, false if empty
+         */
         [[nodiscard]] bool hasValue() const;
 
+        /**
+         * @brief Boolean conversion operator
+         * @return true if contains value, false if empty
+         */
         explicit operator bool() const;
 
+        /// Default copy constructor
         alternative(const alternative& other) = default;
 
+        /// Default copy assignment
         alternative& operator=(const alternative& other) = default;
 
+        /// Default move constructor
         alternative(alternative&& other) noexcept = default;
 
+        /// Default move assignment
         alternative& operator=(alternative&& other) noexcept = default;
 
+        /// Default destructor
         ~alternative() = default;
     };
 }

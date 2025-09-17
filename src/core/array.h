@@ -57,8 +57,22 @@ namespace original {
          */
         void arrDestroy() noexcept;
 
+        /**
+         * @brief Retrieves an element at the specified position.
+         * @param pos The position of the element to retrieve.
+         * @return The element at the specified position.
+         * @details Uses copy or move construction depending on TYPE's capabilities.
+         * @throws unSupportedMethodError If TYPE is neither copy nor move constructible.
+         */
         TYPE getElem(integer pos) const;
 
+        /**
+         * @brief Sets the value of an element at the specified position.
+         * @param pos The position of the element to set.
+         * @param e The value to assign to the element.
+         * @details Uses copy or move assignment depending on TYPE's capabilities.
+         * @throws unSupportedMethodError If TYPE is neither copy nor move assignable.
+         */
         void setElem(integer pos, const TYPE &e);
     public:
 
@@ -191,6 +205,7 @@ namespace original {
         /**
          * @brief Returns a reference to the first element of the array.
          * @return A reference to the first element of the array.
+         * @throws outOfBoundError If the array is empty.
          */
         TYPE& data() const;
 
@@ -210,7 +225,12 @@ namespace original {
          */
         TYPE& operator[](integer index) override;
 
-        // const version
+        /**
+         * @brief Access an element at a specified index (const version).
+         * @param index The index of the element to access.
+         * @return A const reference to the element at the specified index.
+         * @throws outOfBoundError If the index is out of bounds.
+         */
         using serial<TYPE, ALLOC>::operator[];
 
         /**
@@ -225,6 +245,7 @@ namespace original {
          * @brief Finds the index of the specified element in the array.
          * @param e The element to find.
          * @return The index of the element, or the size of the array if the element is not found.
+         * @throws unSupportedMethodError If TYPE is not comparable.
          */
         u_integer indexOf(const TYPE& e) const override;
 

@@ -20,6 +20,8 @@
 
 namespace original {
 
+    // ==================== Fundamental Types ====================
+
     /**
      * @class none
      * @brief A placeholder type representing the absence of a value.
@@ -48,6 +50,8 @@ namespace original {
         consteval bool operator!() const;
     };
 
+    // ==================== Core Concepts ====================
+
     /**
      * @concept NotNull
      * @brief Ensures the parameter pack is not empty.
@@ -63,6 +67,11 @@ namespace original {
     template<typename... ARGS>
     concept NotNull = sizeof...(ARGS) > 0;
 
+    /**
+     * @concept EnumType
+     * @brief Requires type to be an enumeration.
+     * @tparam TYPE The type to check.
+     */
     template<typename TYPE>
     concept EnumType = std::is_enum_v<TYPE>;
 
@@ -89,10 +98,24 @@ namespace original {
         { t1 >= t2 } -> std::same_as<bool>;
     };
 
+    /**
+     * @concept Printable
+     * @brief Requires type to support output stream insertion.
+     * @tparam TYPE The type to check.
+     * @details Ensures the type can be written to std::ostream using the << operator.
+     *
+     * @code{.cpp}
+     * static_assert(Printable<int>);  // Succeeds
+     * struct NoOutput {};
+     * static_assert(!Printable<NoOutput>); // Fails
+     * @endcode
+     */
     template <typename TYPE>
     concept Printable = requires(std::ostream& os, const TYPE& t) {
         { os << t } -> std::same_as<std::ostream&>;
     };
+
+    // ==================== Callback Concepts ====================
 
     /**
      * @concept CallbackOf
@@ -110,7 +133,7 @@ namespace original {
      * @endcode
      */
     template <typename Callback, typename ReturnType, typename... Args>
-    concept CallbackOf = requires(Callback callback, Args&&... args){
+    concept CallbackOf = requires(Callback callback, Args&&... args) {
         { callback(std::forward<Args>(args)...) } -> std::same_as<ReturnType>;
     };
 
@@ -133,8 +156,8 @@ namespace original {
      * @endcode
      */
     template <typename Callback, typename TYPE>
-    concept Compare =
-    Comparable<TYPE> && CallbackOf<Callback, bool, const TYPE&, const TYPE&>;
+    concept Compare = Comparable<TYPE> &&
+                     CallbackOf<Callback, bool, const TYPE&, const TYPE&>;
 
     /**
      * @concept Condition
@@ -178,6 +201,8 @@ namespace original {
     template <typename Callback, typename TYPE>
     concept Operation = CallbackOf<Callback, void, TYPE&>;
 
+    // ==================== Type Relationship Concepts ====================
+
     /**
      * @concept SuperOf
      * @brief Checks inheritance or type equality.
@@ -218,6 +243,8 @@ namespace original {
     template <typename Base, typename Derive>
     concept ExtendsOf = std::derived_from<Derive, Base> || std::is_same_v<Base, Derive>;
 
+    // ==================== Compile-time Index Sequences ====================
+
     /**
      * @class indexSequence
      * @brief Compile-time sequence of unsigned integers.
@@ -251,9 +278,9 @@ namespace original {
         };
 
         template <u_integer NUM, u_integer... INTS>
-        class indexSequenceImpl : public indexSequenceImpl<NUM - 1, NUM - 1, INTS...>{
+        class indexSequenceImpl : public indexSequenceImpl<NUM - 1, NUM - 1, INTS...> {
         public:
-            using type = typename indexSequenceImpl<NUM - 1, NUM - 1, INTS...>::type;
+            using type = indexSequenceImpl<NUM - 1, NUM - 1, INTS...>::type;
         };
     public:
         template <u_integer NUM>
@@ -266,7 +293,7 @@ namespace original {
      * @return indexSequence instance with values 0..NUM-1
      */
     template <u_integer NUM>
-    consteval auto makeSequence() noexcept; //NOLINT: Forward declaration for 'makeReverseSequence'
+    consteval auto makeSequence() noexcept; // NOLINT: Forward declaration for makeReverseSequence
 
     /**
      * @brief Implementation detail for reversing an index sequence
@@ -284,39 +311,56 @@ namespace original {
      */
     template<u_integer N>
     using makeReverseSequence = decltype(
-    reverseIndexSequenceImpl(makeSequence<N>())
+        reverseIndexSequenceImpl(makeSequence<N>())
     );
 
+    // ==================== Function Traits ====================
+
+    /**
+     * @struct functionTraits
+     * @brief Extracts function signature information from callable types.
+     * @tparam Callback The callable type to analyze
+     * @details Provides ReturnType and Signature type aliases for:
+     *          - Function pointers
+     *          - Function types
+     *          - Lambda expressions
+     *          - Member function pointers
+     */
     template <typename Callback>
     struct functionTraits;
 
+    /// @brief Specialization for function pointers
     template <typename R, typename... Args>
     struct functionTraits<R(*)(Args...)> {
         using ReturnType = R;
         using Signature = R(Args...);
     };
 
+    /// @brief Specialization for function types
     template <typename R, typename... Args>
     struct functionTraits<R(Args...)> {
         using ReturnType = R;
         using Signature = R(Args...);
     };
 
+    /// @brief Primary template for general callable types
     template <typename C>
     struct functionTraits {
     private:
         using CallType = functionTraits<decltype(&C::operator())>;
     public:
-        using ReturnType = typename CallType::ReturnType;
-        using Signature  = typename CallType::Signature;
+        using ReturnType = CallType::ReturnType;
+        using Signature  = CallType::Signature;
     };
 
+    /// @brief Specialization for const member function pointers
     template <typename C, typename R, typename... Args>
     struct functionTraits<R(C::*)(Args...) const> {
         using ReturnType = R;
         using Signature  = R(Args...);
     };
 
+    /// @brief Specialization for non-const member function pointers
     template <typename C, typename R, typename... Args>
     struct functionTraits<R(C::*)(Args...)> {
         using ReturnType = R;
@@ -340,7 +384,7 @@ consteval original::u_integer original::indexSequence<INTS...>::size() noexcept 
 
 template<original::u_integer NUM>
 consteval auto original::makeSequence() noexcept {
-    using sequence = typename makeIndexSequence::indexSequenceImpl<NUM>::type;
+    using sequence = makeIndexSequence::indexSequenceImpl<NUM>::type;
     return sequence{};
 }
 

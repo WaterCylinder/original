@@ -12,8 +12,8 @@
 #include "iterationStream.h"
 #include "array.h"
 
+namespace original {
 
-namespace original{
     /**
      * @class vector
      * @tparam TYPE Element type stored in the vector
@@ -40,12 +40,14 @@ namespace original{
      * - propagate_on_container_copy_assignment/move_assignment typedefs
      */
     template <typename TYPE, typename ALLOC = allocator<TYPE>>
-    class vector final : public baseList<TYPE, ALLOC>, public iterationStream<TYPE, vector<TYPE, ALLOC>>{
+    class vector final : public baseList<TYPE, ALLOC>, public iterationStream<TYPE, vector<TYPE, ALLOC>> {
         u_integer size_;                 ///< Current number of elements
         static constexpr u_integer INNER_SIZE_INIT = 16; ///< Initial buffer capacity
         u_integer max_size;              ///< Current buffer capacity
         u_integer inner_begin;           ///< Starting index in circular buffer
         TYPE* body;                     ///< Internal storage buffer
+
+        // ==================== Private Methods ====================
 
         /**
          * @brief Initializes the vector with default settings.
@@ -72,7 +74,6 @@ namespace original{
          * - `body` pointer is set to nullptr (implicitly, via de-allocation)
          * - Allocator remains in valid state
          * - No memory leaks occur for properly destructible elements
-         *
          */
         void vectorArrayDestroy() noexcept;
 
@@ -86,10 +87,26 @@ namespace original{
          */
         TYPE* vectorArrayInit(u_integer size);
 
+        /**
+         * @brief Gets an element from the internal buffer with proper copy/move semantics
+         * @param pos Position in the internal buffer
+         * @return The element at the specified position
+         */
         TYPE getElem(integer pos) const;
 
+        /**
+         * @brief Sets an element in the internal buffer with proper assignment semantics
+         * @param pos Position in the internal buffer
+         * @param e Element to set
+         */
         void setElem(integer pos, const TYPE &e);
 
+        /**
+         * @brief Sets an element in a given buffer with proper assignment semantics
+         * @param buf Target buffer
+         * @param pos Position in the buffer
+         * @param e Element to set
+         */
         static void setBufElem(TYPE* buf, integer pos, const TYPE& e);
 
         /**
@@ -156,6 +173,9 @@ namespace original{
         explicit vector(u_integer size, ALLOC alloc = ALLOC{});
 
     public:
+
+        // ==================== Iterator Class ====================
+
         /**
          * @class Iterator
          * @brief Random access iterator implementation for vector
@@ -165,22 +185,22 @@ namespace original{
          * - Element dereferencing
          * - Comparison operators
          */
-        class Iterator final : public randomAccessIterator<TYPE, ALLOC>
-        {
-                /**
-                 * @brief Constructs an iterator for the vector.
-                 * @param ptr Pointer to the element in the vector that the iterator will point to.
-                 * @param container Pointer to the container (vector) the iterator belongs to.
-                 * @param pos The position of the iterator within the container.
-                 */
-                explicit Iterator(TYPE* ptr, const vector* container, integer pos);
-            public:
-                friend vector;
+        class Iterator final : public randomAccessIterator<TYPE, ALLOC> {
+            /**
+             * @brief Constructs an iterator for the vector.
+             * @param ptr Pointer to the element in the vector that the iterator will point to.
+             * @param container Pointer to the container (vector) the iterator belongs to.
+             * @param pos The position of the iterator within the container.
+             */
+            explicit Iterator(TYPE* ptr, const vector* container, integer pos);
+
+        public:
+            friend vector;
 
             /**
-            * @brief Copy constructor for the iterator.
-            * @param other The iterator to copy.
-            */
+             * @brief Copy constructor for the iterator.
+             * @param other The iterator to copy.
+             */
             Iterator(const Iterator& other);
 
             /**
@@ -216,6 +236,8 @@ namespace original{
              */
             [[nodiscard]] std::string className() const override;
         };
+
+        // ==================== Constructors and Destructor ====================
 
         /**
          * @brief Constructs a vector with specified allocator
@@ -281,12 +303,25 @@ namespace original{
         vector& operator=(vector&& other) noexcept;
 
         /**
+         * @brief Destructor for the vector.
+         */
+        ~vector() override;
+
+        // ==================== Capacity Methods ====================
+
+        /**
          * @brief Gets the size of the vector.
          * @return The number of elements in the vector.
          */
         [[nodiscard]] u_integer size() const override;
 
+        /**
+         * @brief Gets the current capacity of the vector.
+         * @return The maximum number of elements that can be stored without reallocation.
+         */
         [[nodiscard]] u_integer capacity() const noexcept;
+
+        // ==================== Element Access ====================
 
         /**
          * @brief Gets a reference to the first element in the vector.
@@ -318,12 +353,16 @@ namespace original{
          */
         void set(integer index, const TYPE &e) override;
 
+        // ==================== Search Operations ====================
+
         /**
          * @brief Finds the index of the first occurrence of the specified element.
          * @param e The element to find.
          * @return The index of the element, or the size of the vector if not found.
          */
         u_integer indexOf(const TYPE &e) const override;
+
+        // ==================== Insertion Operations ====================
 
         /**
          * @brief Inserts an element at the beginning of the vector.
@@ -344,6 +383,8 @@ namespace original{
          */
         void pushEnd(const TYPE &e) override;
 
+        // ==================== Removal Operations ====================
+
         /**
          * @brief Removes and returns the first element in the vector.
          * @return The removed element.
@@ -363,6 +404,8 @@ namespace original{
          */
         TYPE popEnd() override;
 
+        // ==================== Iterator Methods ====================
+
         /**
          * @brief Gets an iterator to the beginning of the vector.
          * @return An iterator to the beginning.
@@ -375,20 +418,19 @@ namespace original{
          */
         Iterator* ends() const override;
 
+        // ==================== Utility Methods ====================
+
         /**
          * @brief Gets the class name of the vector.
          * @return The class name as a string.
          */
         [[nodiscard]] std::string className() const override;
 
-        /**
-         * @brief Destructor for the vector.
-         */
-        ~vector() override;
-
         template<typename T, typename... ARGS>
         friend vector<T> makeVector(u_integer size, ARGS&&... args);
     };
+
+    // ==================== Factory Function ====================
 
     /**
      * @brief Factory function to create a vector with specified size and construction arguments.
