@@ -14,7 +14,9 @@
  * - Automatic or manually shutdown
  *   with configurable stop modes (DISCARD_DEFERRED, KEEP_DEFERRED, RUN_DEFERRED)
  *   to handle deferred task
- * - Deferred task handling and activation
+ * - Deferred task handling (activate, discard, or keep on shutdown)
+ * - Query interfaces for task counts and thread states
+ * - Timeout-based immediate task submission
  * - Thread-safe execution and synchronization
  *
  * @note taskDelegator is **non-copyable** and **non-movable** to prevent accidental
@@ -217,6 +219,9 @@ namespace original {
          * @param c Callable to execute
          * @param args Arguments to forward to the callable
          * @return Future for the task result
+         *
+         * @throw sysError if delegator is stopped or no idle thread is available
+         *        for IMMEDIATE submission
          */
         template<typename Callback, typename... Args>
         auto submit(priority priority, Callback&& c, Args&&... args);
@@ -278,6 +283,10 @@ namespace original {
         /**
          * @brief Stops the task delegator
          * @param mode Stop mode (default: KEEP_DEFERRED)
+         * @details
+         * - DISCARD_DEFERRED: Discard all deferred tasks
+         * - KEEP_DEFERRED: Keep deferred tasks without executing them
+         * - RUN_DEFERRED: Activate all deferred tasks before stopping
          */
         void stop(stopMode mode = stopMode::KEEP_DEFERRED);
 
@@ -294,7 +303,8 @@ namespace original {
         u_integer idleThreads() const noexcept;
 
         /**
-         * @brief Destructor, stops the pool and joins threads
+         * @brief Destructor
+         * @details Calls stop(RUN_DEFERRED) and joins all threads
          */
         ~taskDelegator();
     };
