@@ -376,7 +376,7 @@ namespace original {
         : array(lst.size()) {
         u_integer i = 0;
         for (const auto& e : lst) {
-            this->body[i] = e;
+            this->setElem(i, e);
             i += 1;
         }
     }
@@ -397,7 +397,7 @@ namespace original {
 
         this->arrInit(other.size());
         for (u_integer i = 0; i < this->size_; i++) {
-            this->body[i] = other.body[i];
+            this->setElem(i, other.getElem(i));
         }
         if constexpr (ALLOC::propagate_on_container_copy_assignment::value){
             this->allocator = other.allocator;
