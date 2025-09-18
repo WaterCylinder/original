@@ -222,6 +222,34 @@ namespace original {
         auto submit(priority priority, Callback&& c, Args&&... args);
 
         /**
+         * @brief Submits a task with IMMEDIATE priority and a timeout
+         * @tparam Callback Type of the callable
+         * @tparam Args Types of the arguments
+         * @param timeout Maximum duration to wait for an idle thread
+         * @param c Callable to execute
+         * @param args Arguments to forward to the callable
+         * @return Future for the task result
+         *
+         * @throw sysError if delegator is stopped
+         * @throw sysError if no idle thread becomes available within the timeout
+         *
+         * @note Unlike normal submission, this will not throw immediately if
+         *       no idle threads are available, but waits up to the given timeout.
+         */
+        template<typename Callback, typename... Args>
+        auto submitWithTimeOut(time::duration timeout, Callback&& c, Args&&... args);
+
+        /**
+         * @brief Returns the number of waiting (non-immediate, non-deferred) tasks
+         */
+        u_integer waitingCnt() const noexcept;
+
+        /**
+         * @brief Returns the number of immediate tasks pending execution
+         */
+        u_integer immediateCnt() const noexcept;
+
+        /**
          * @brief Activates one deferred task
          */
         void runDeferred();
@@ -230,6 +258,17 @@ namespace original {
          * @brief Activates all deferred tasks
          */
         void runAllDeferred();
+
+        /**
+         * @brief Discards one deferred task
+         * @return Remaining number of deferred tasks after discarding
+         */
+        u_integer discardDeferred();
+
+        /**
+         * @brief Discards all deferred tasks
+         */
+        void discardAllDeferred();
 
         /**
          * @brief Returns number of deferred tasks
@@ -354,6 +393,44 @@ auto original::taskDelegator::submit(const priority priority, Callback&& c, Args
     return this->submit<ReturnType>(priority, new_task);
 }
 
+template <typename Callback, typename ... Args>
+auto original::taskDelegator::submitWithTimeOut(time::duration timeout, Callback&& c, Args&&... args)
+{
+    using ReturnType = decltype(c(args...));
+    strongPtr<task<ReturnType>> new_task = makeStrongPtr<task<ReturnType>>(
+        std::forward<Callback>(c),
+        std::forward<Args>(args)...
+    );
+    auto f = new_task->getFuture();
+    {
+        uniqueLock lock(this->mutex_);
+        if (this->stopped_) {
+            throw sysError("taskDelegator already stopped");
+        }
+        const bool success = this->condition_.waitFor(this->mutex_, timeout, [this]{
+            return this->idle_threads_ > 0;
+        });
+        if (!success) {
+            throw sysError("No idle threads available within timeout");
+        }
+        this->task_immediate_.push(std::move(new_task.template dynamicCastTo<taskBase>()));
+    }
+    this->condition_.notify();
+    return f;
+}
+
+inline original::u_integer original::taskDelegator::waitingCnt() const noexcept
+{
+    uniqueLock lock(this->mutex_);
+    return this->tasks_waiting_.size();
+}
+
+inline original::u_integer original::taskDelegator::immediateCnt() const noexcept
+{
+    uniqueLock lock(this->mutex_);
+    return this->task_immediate_.size();
+}
+
 template <typename TYPE>
 original::async::future<TYPE>
 original::taskDelegator::submit(const priority priority, strongPtr<task<TYPE>>& t)
@@ -412,6 +489,23 @@ inline void original::taskDelegator::runAllDeferred()
         }
     }
     this->condition_.notifyAll();
+}
+
+inline original::u_integer original::taskDelegator::discardDeferred()
+{
+    uniqueLock lock(this->mutex_);
+    if (!this->tasks_deferred_.empty()) {
+        this->tasks_deferred_.pop();
+    }
+    return this->tasks_deferred_.size();
+}
+
+inline void original::taskDelegator::discardAllDeferred()
+{
+    uniqueLock lock(this->mutex_);
+    if (!this->tasks_deferred_.empty()) {
+        this->tasks_deferred_.clear();
+    }
 }
 
 inline original::u_integer original::taskDelegator::deferredCnt() const noexcept
