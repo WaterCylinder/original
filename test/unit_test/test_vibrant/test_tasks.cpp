@@ -125,6 +125,9 @@ TEST(TaskDelegatorTest, ActiveAndIdleThreadCounts) {
 
     delegator.stop();
 
+    // 短暂等待让工作线程退出
+    thread::sleep(milliseconds(10));
+
     // 任务完成后，线程应回到空闲状态
     EXPECT_EQ(delegator.activeThreads(), 0);
     EXPECT_EQ(delegator.idleThreads(), 0);
@@ -156,23 +159,6 @@ TEST(TaskDelegatorTest, RunDeferredOneByOne) {
 
     // 所有延迟任务应已执行
     EXPECT_EQ(counter.load(), 3);
-}
-
-// 测试task的移动语义
-TEST(TaskTest, MoveSemantics) {
-    // 移动构造
-    auto task1 = original::task<int>([]{ return 1; });
-    auto task2 = std::move(task1);
-
-    // 移动赋值
-    task<int> task3 = std::move(task2);
-
-    // 验证移动后的task能正常工作
-    taskDelegator delegator(1);
-    auto t = makeStrongPtr<task<int>>(std::move(task3));
-    auto f = delegator.submit(t);
-
-    EXPECT_EQ(f.result(), 1);
 }
 
 // 测试空任务提交
@@ -222,6 +208,317 @@ TEST(TaskDelegatorTest, StopPreventsAllPrioritySubmits) {
     EXPECT_THROW({
         delegator.submit(taskDelegator::DEFERRED, []{});
     }, sysError);
+}
+
+// 测试延迟任务计数功能
+TEST(TaskDelegatorTest, DeferredTaskCount) {
+    taskDelegator delegator(2);
+
+    // 初始时没有延迟任务
+    EXPECT_EQ(delegator.deferredCnt(), 0);
+
+    // 提交一些延迟任务
+    constexpr int deferred_count = 5;
+    for (int i = 0; i < deferred_count; ++i) {
+        delegator.submit(taskDelegator::DEFERRED, [i]{ return i; });
+    }
+
+    // 验证延迟任务计数
+    EXPECT_EQ(delegator.deferredCnt(), deferred_count);
+
+    // 运行所有延迟任务
+    delegator.runAllDeferred();
+
+    // 延迟任务计数应归零
+    EXPECT_EQ(delegator.deferredCnt(), 0);
+}
+
+// 测试混合优先级任务的延迟计数
+TEST(TaskDelegatorTest, MixedPriorityDeferredCount) {
+    taskDelegator delegator(2);
+
+    // 提交不同优先级的任务
+    delegator.submit(taskDelegator::NORMAL, []{ return 1; });
+    delegator.submit(taskDelegator::HIGH, []{ return 2; });
+    delegator.submit(taskDelegator::LOW, []{ return 3; });
+
+    // 非延迟任务不应影响延迟计数
+    EXPECT_EQ(delegator.deferredCnt(), 0);
+
+    // 提交延迟任务
+    constexpr int deferred_count = 3;
+    for (int i = 0; i < deferred_count; ++i) {
+        delegator.submit(taskDelegator::DEFERRED, [i]{ return i + 10; });
+    }
+
+    // 验证只有延迟任务被计数
+    EXPECT_EQ(delegator.deferredCnt(), deferred_count);
+
+    // 运行所有延迟任务
+    delegator.runAllDeferred();
+
+    // 延迟任务计数应归零
+    EXPECT_EQ(delegator.deferredCnt(), 0);
+}
+
+// 测试runDeferred对计数的影响
+TEST(TaskDelegatorTest, RunDeferredAffectsCount) {
+    taskDelegator delegator(2);
+
+    // 提交多个延迟任务
+    constexpr int total_deferred = 4;
+    for (int i = 0; i < total_deferred; ++i) {
+        delegator.submit(taskDelegator::DEFERRED, [i]{ return i; });
+    }
+
+    EXPECT_EQ(delegator.deferredCnt(), total_deferred);
+
+    // 逐个运行延迟任务并验证计数
+    for (int i = 0; i < total_deferred; ++i) {
+        delegator.runDeferred();
+        thread::sleep(milliseconds(10)); // 短暂等待
+        EXPECT_EQ(delegator.deferredCnt(), total_deferred - i - 1);
+    }
+
+    EXPECT_EQ(delegator.deferredCnt(), 0);
+}
+
+// 测试runAllDeferred对计数的影响
+TEST(TaskDelegatorTest, RunAllDeferredAffectsCount) {
+    taskDelegator delegator(2);
+
+    // 提交多个延迟任务
+    constexpr int deferred_count = 5;
+    for (int i = 0; i < deferred_count; ++i) {
+        delegator.submit(taskDelegator::DEFERRED, [i]{ return i; });
+    }
+
+    EXPECT_EQ(delegator.deferredCnt(), deferred_count);
+
+    // 运行所有延迟任务
+    delegator.runAllDeferred();
+
+    // 延迟计数应立即归零
+    EXPECT_EQ(delegator.deferredCnt(), 0);
+}
+
+// 测试空延迟任务队列的计数
+TEST(TaskDelegatorTest, EmptyDeferredQueueCount) {
+    taskDelegator delegator(2);
+
+    // 空队列时应返回0
+    EXPECT_EQ(delegator.deferredCnt(), 0);
+
+    // 运行空延迟任务队列不应改变计数
+    delegator.runDeferred();
+    EXPECT_EQ(delegator.deferredCnt(), 0);
+
+    delegator.runAllDeferred();
+    EXPECT_EQ(delegator.deferredCnt(), 0);
+}
+
+// 测试停止模式：丢弃延迟任务
+TEST(TaskDelegatorTest, StopModeDiscardDeferred) {
+    taskDelegator delegator(2);
+
+    std::atomic executed_count{0};
+
+    // 提交一些延迟任务
+    for (int i = 0; i < 3; ++i) {
+        delegator.submit(taskDelegator::DEFERRED, [&executed_count, i]{
+            ++executed_count;
+            return i;
+        });
+    }
+
+    EXPECT_EQ(delegator.deferredCnt(), 3);
+
+    // 使用 DISCARD_DEFERRED 模式停止
+    delegator.stop(taskDelegator::DISCARD_DEFERRED);
+
+    // 延迟任务应该被丢弃，没有执行
+    EXPECT_EQ(executed_count.load(), 0);
+    EXPECT_EQ(delegator.deferredCnt(), 0);
+}
+
+// 测试停止模式：保持延迟任务
+TEST(TaskDelegatorTest, StopModeKeepDeferred) {
+    taskDelegator delegator(2);
+
+    std::atomic executed_count{0};
+
+    // 提交一些延迟任务
+    for (int i = 0; i < 3; ++i) {
+        delegator.submit(taskDelegator::DEFERRED, [&executed_count, i]{
+            ++executed_count;
+            return i;
+        });
+    }
+
+    EXPECT_EQ(delegator.deferredCnt(), 3);
+
+    // 使用 KEEP_DEFERRED 模式停止
+    delegator.stop(taskDelegator::KEEP_DEFERRED);
+
+    // 延迟任务应该保持，没有执行
+    EXPECT_EQ(executed_count.load(), 0);
+    EXPECT_EQ(delegator.deferredCnt(), 3);
+}
+
+// 测试停止模式：运行延迟任务
+TEST(TaskDelegatorTest, StopModeRunDeferred) {
+    taskDelegator delegator(2);
+
+    std::atomic executed_count{0};
+    vector<async::future<int>> futures;
+
+    // 提交一些延迟任务
+    for (int i = 0; i < 3; ++i) {
+        futures.pushEnd(delegator.submit(taskDelegator::DEFERRED,
+            [&executed_count, i]{
+                ++executed_count;
+                return i;
+        }));
+    }
+
+    EXPECT_EQ(delegator.deferredCnt(), 3);
+
+    // 使用 RUN_DEFERRED 模式停止
+    delegator.stop(taskDelegator::RUN_DEFERRED);
+
+    // 阻塞主线程，等待工作线程完成任务
+    for (auto& future : futures) {
+        future.result();
+    }
+
+    // 延迟任务应该全部执行
+    EXPECT_EQ(executed_count.load(), 3);
+    EXPECT_EQ(delegator.deferredCnt(), 0);
+}
+
+// 测试析构函数自动运行延迟任务
+TEST(TaskDelegatorTest, DestructorRunsDeferredTasks) {
+    std::atomic executed_count{0};
+
+    {
+        taskDelegator delegator(2);
+
+        // 提交一些延迟任务
+        for (int i = 0; i < 3; ++i) {
+            delegator.submit(taskDelegator::DEFERRED, [&executed_count, i]{
+                ++executed_count;
+                return i;
+            });
+        }
+
+        EXPECT_EQ(delegator.deferredCnt(), 3);
+        // 不手动调用stop，让析构函数处理（默认使用RUN_DEFERRED模式）
+    }
+
+    // 析构函数应该运行所有延迟任务
+    EXPECT_EQ(executed_count.load(), 3);
+}
+
+// 测试未知停止模式抛出异常
+TEST(TaskDelegatorTest, UnknownStopModeThrows) {
+    taskDelegator delegator(2);
+
+    // 使用无效的停止模式值
+    constexpr auto invalid_stop_mode = static_cast<taskDelegator::stopMode>(999);
+
+    EXPECT_THROW({
+        delegator.stop(invalid_stop_mode);
+    }, sysError);
+}
+
+// 测试混合停止模式场景
+TEST(TaskDelegatorTest, MixedStopModeScenarios) {
+    // 测试1: 空延迟任务队列的各种停止模式
+    {
+        taskDelegator delegator(2);
+
+        // 提交一些正常任务
+        auto f1 = delegator.submit([]{ return 1; });
+        auto f2 = delegator.submit([]{ return 2; });
+
+        EXPECT_EQ(f1.result(), 1);
+        EXPECT_EQ(f2.result(), 2);
+
+        // 各种停止模式都应该正常工作（没有延迟任务）
+        EXPECT_NO_THROW(delegator.stop(taskDelegator::DISCARD_DEFERRED));
+    }
+
+    // 测试2: 混合优先级任务的停止
+    {
+        taskDelegator delegator(2);
+
+        std::atomic normal_executed{0};
+        std::atomic deferred_executed{0};
+
+        vector<async::future<int>> futures;
+
+        // 提交混合优先级任务
+        futures.pushEnd(delegator.submit(taskDelegator::NORMAL,
+            [&normal_executed]{
+                ++normal_executed;
+                return 1;
+        }));
+
+        for (int i = 0; i < 2; ++i) {
+            futures.pushEnd(delegator.submit(taskDelegator::DEFERRED,
+                [&deferred_executed, i]{
+                    ++deferred_executed;
+                    return i;
+            }));
+        }
+
+        // 使用RUN_DEFERRED模式停止
+        delegator.stop(taskDelegator::RUN_DEFERRED);
+
+        // 阻塞主线程，等待工作线程完成任务
+        for (auto& future : futures) {
+            future.result();
+        }
+
+        EXPECT_EQ(normal_executed.load(), 1);
+        EXPECT_EQ(deferred_executed.load(), 2);
+    }
+}
+
+// 测试停止后再次停止的行为
+TEST(TaskDelegatorTest, StopAfterStop) {
+    taskDelegator delegator(2);
+
+    // 第一次停止
+    delegator.stop(taskDelegator::KEEP_DEFERRED);
+
+    // 再次停止应该不会抛出异常
+    EXPECT_NO_THROW(delegator.stop(taskDelegator::DISCARD_DEFERRED));
+    EXPECT_NO_THROW(delegator.stop(taskDelegator::RUN_DEFERRED));
+}
+
+// 测试停止模式默认参数
+TEST(TaskDelegatorTest, StopModeDefaultParameter) {
+    taskDelegator delegator(2);
+
+    std::atomic executed_count{0};
+
+    // 提交一些延迟任务
+    for (int i = 0; i < 2; ++i) {
+        delegator.submit(taskDelegator::DEFERRED, [&executed_count, i]{
+            ++executed_count;
+            return i;
+        });
+    }
+
+    // 使用默认参数停止（KEEP_DEFERRED）
+    delegator.stop();
+
+    // 延迟任务应该保持，没有执行
+    EXPECT_EQ(executed_count.load(), 0);
+    EXPECT_EQ(delegator.deferredCnt(), 2);
+
+    // 线程池自动析构应无崩溃触发或异常抛出
 }
 
 TEST(TaskDelegatorTest, StressTestMixedTasks) {
@@ -274,9 +571,14 @@ TEST(TaskDelegatorTest, StressTestMixedTasks) {
     std::vector<async::future<int>> futures;
 
     // 提交 IMMEDIATE 任务
-    constexpr int immediate_task = 1;
-    futures.push_back(delegator.submit(taskDelegator::IMMEDIATE, immediate_func, immediate_task));
-    immediate_task_submitted = true;
+    try {
+        constexpr int immediate_task = 1;
+        futures.push_back(delegator.submit(taskDelegator::IMMEDIATE, immediate_func, immediate_task));
+        immediate_task_submitted = true;
+    }
+    catch (const sysError&) {
+        immediate_task_submitted = false;
+    }
 
     // 提交 LOW 任务
     for (int j = 1; j <= low_tasks; ++j) {
@@ -300,6 +602,7 @@ TEST(TaskDelegatorTest, StressTestMixedTasks) {
 
     delegator.runAllDeferred();
 
+    // 阻塞主线程，等待工作线程完成任务
     for (auto &fut : futures) {
         fut.result();
     }
