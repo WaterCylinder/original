@@ -457,7 +457,7 @@ inline original::u_integer original::taskDelegator::idleThreads() const noexcept
 
 inline original::taskDelegator::~taskDelegator()
 {
-    stop(stopMode::RUN_DEFERRED);
+    this->stop(stopMode::RUN_DEFERRED);
     for (auto& thread : threads_) {
         if (thread.joinable())
             thread.join();
