@@ -90,14 +90,6 @@ namespace original {
      */
     template <typename TYPE>
     class hash {
-        /**
-         * @brief Combines a hash value with another value's hash
-         * @tparam T Type of the value to combine
-         * @param seed Current hash value (modified in-place)
-         * @param value Value whose hash to combine
-         */
-        template <typename T>
-        static inline void hashCombine(u_integer& seed, const T& value) noexcept;
 
         /**
          * @brief Internal implementation of the hash function
@@ -122,6 +114,15 @@ namespace original {
 
         /// @brief FNV-1a prime multiplier (0x01000193)
         static constexpr u_integer FNV_32_PRIME = 0x01000193;
+
+        /**
+         * @brief Combines a hash value with another value's hash
+         * @tparam T Type of the value to combine
+         * @param seed Current hash value (modified in-place)
+         * @param value Value whose hash to combine
+         */
+        template <typename T>
+        static void hashCombine(u_integer& seed, const T& value) noexcept;
 
         /**
          * @brief FNV-1a hash implementation for raw byte data
