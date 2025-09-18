@@ -11,73 +11,80 @@
 
 namespace original {
 
-    // ==================== Task Base Interface ====================
+    // ==================== Task Delegator (Thread Pool) ====================
 
     /**
-     * @class taskBase
-     * @brief Abstract base class for all task types
-     * @details Defines the common interface for executable tasks
+     * @class taskDelegator
+     * @brief Thread pool for managing and executing prioritized tasks
+     * @details
+     * Provides a managed thread pool that can execute tasks with different priority levels.
+     * Supports immediate, high, normal, low, and deferred tasks. Deferred tasks can be
+     * manually activated or discarded on shutdown.
      */
-    class taskBase {
-    public:
-        /**
-         * @brief Executes the task
-         */
-        virtual void run() = 0;
+    class taskDelegator {
+        // ==================== Task Base Interface ====================
 
         /**
-         * @brief Virtual destructor for proper polymorphism
+         * @class taskBase
+         * @brief Abstract base class for all tasks
+         * @details
+         * Provides the common interface for tasks to be executed in the thread pool.
+         * Must implement the run() method.
          */
-        virtual ~taskBase() = default;
-    };
+        class taskBase {
+        public:
+            /**
+             * @brief Executes the task
+             */
+            virtual void run() = 0;
 
-    // ==================== Concrete Task Class ====================
+            /**
+             * @brief Virtual destructor for proper polymorphic behavior
+             */
+            virtual ~taskBase() = default;
+        };
 
-    /**
-     * @class task
-     * @brief Concrete task implementation with result type
-     * @tparam TYPE The return type of the task computation
-     * @details Wraps a computation and provides future/promise integration
-     */
-    template<typename TYPE>
-    class task final : public taskBase {
-        async::promise<TYPE, std::function<TYPE()>> p;  ///< Promise for the computation result
-
-    public:
-        // Disable copying
-        task(const task&) = delete;
-        task& operator=(const task&) = delete;
-
-        // Allow moving
-        task(task&&) = default;
-        task& operator=(task&&) = default;
+        // ==================== Concrete Task Class ====================
 
         /**
-         * @brief Default constructor
+         * @class task
+         * @brief Concrete task implementation with future/promise support
+         * @tparam TYPE Return type of the task
+         * @details
+         * Wraps a callable and its arguments, and provides integration with futures.
          */
-        task() = default;
+        template<typename TYPE>
+        class task final : public taskBase {
+            async::promise<TYPE, std::function<TYPE()>> p;  ///< Promise for task result
 
-        /**
-         * @brief Constructs a task with a callable and arguments
-         * @tparam Callback Type of the callable
-         * @tparam Args Types of the arguments
-         * @param c Callable to execute
-         * @param args Arguments to forward to the callable
-         */
-        template<typename Callback, typename... Args>
-        explicit task(Callback&& c, Args&&... args);
+        public:
+            task(const task&) = delete;                 ///< Disable copy constructor
+            task& operator=(const task&) = delete;      ///< Disable copy assignment
+            task(task&&) = default;                     ///< Allow move constructor
+            task& operator=(task&&) = default;          ///< Allow move assignment
+            task() = default;
 
-        /**
-         * @brief Executes the task computation
-         */
-        void run() override;
+            /**
+             * @brief Constructs a task from a callable and its arguments
+             * @tparam Callback Callable type
+             * @tparam Args Argument types
+             * @param c Callable to execute
+             * @param args Arguments for the callable
+             */
+            template<typename Callback, typename... Args>
+            explicit task(Callback&& c, Args&&... args);
 
-        /**
-         * @brief Gets the future associated with this task
-         * @return A future that will receive the computation result
-         */
-        async::future<TYPE> getFuture();
-    };
+            /**
+             * @brief Executes the task
+             */
+            void run() override;
+
+            /**
+             * @brief Gets the future associated with this task
+             * @return Future object for the task result
+             */
+            async::future<TYPE> getFuture();
+        };
 
     // ==================== Task Delegator (Thread Pool) ====================
 
@@ -224,21 +231,23 @@ namespace original {
     };
 } // namespace original
 
+// ==================== Task Implementation ====================
+
 template <typename TYPE>
 template <typename Callback, typename... Args>
-original::task<TYPE>::task(Callback&& c, Args&&... args)
+original::taskDelegator::task<TYPE>::task(Callback&& c, Args&&... args)
     : p([c = std::forward<Callback>(c), ...args = std::forward<Args>(args)]() mutable {
         return c(args...);
     }) {}
 
 template <typename TYPE>
-void original::task<TYPE>::run()
+void original::taskDelegator::task<TYPE>::run()
 {
     this->p.run();
 }
 
 template <typename TYPE>
-original::async::future<TYPE> original::task<TYPE>::getFuture()
+original::async::future<TYPE> original::taskDelegator::task<TYPE>::getFuture()
 {
     return this->p.getFuture();
 }
