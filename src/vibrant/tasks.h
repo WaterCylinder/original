@@ -1,3 +1,26 @@
+/**
+ * @file tasks.h
+ * @brief Thread pool and task management utilities
+ * @details
+ * This header defines the `taskDelegator` class, which provides a managed thread pool
+ * with support for prioritized tasks, deferred execution, and futures.
+ *
+ * The file also defines:
+ * - `taskDelegator::taskBase`: abstract base class for tasks
+ * - `taskDelegator::task<TYPE>`: concrete task wrapper with future/promise support
+ *
+ * Features:
+ * - Task prioritization (IMMEDIATE, HIGH, NORMAL, LOW, DEFERRED)
+ * - Automatic or manually shutdown
+ *   with configurable stop modes (DISCARD_DEFERRED, KEEP_DEFERRED, RUN_DEFERRED)
+ *   to handle deferred task
+ * - Deferred task handling and activation
+ * - Thread-safe execution and synchronization
+ *
+ * @note taskDelegator is **non-copyable** and **non-movable** to prevent accidental
+ * duplication of threads or task state.
+ */
+
 #ifndef ORIGINAL_TASKS_H
 #define ORIGINAL_TASKS_H
 
@@ -227,7 +250,7 @@ namespace original {
         u_integer idleThreads() const noexcept;
 
         /**
-         * @brief Destructor - automatically stops if not already stopped
+         * @brief Destructor, stops the pool and joins threads
          */
         ~taskDelegator();
     };
