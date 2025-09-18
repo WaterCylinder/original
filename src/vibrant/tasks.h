@@ -187,6 +187,11 @@ namespace original {
         async::future<TYPE> submit(priority priority, strongPtr<task<TYPE>>& t);
 
     public:
+        taskDelegator(const taskDelegator&) = delete;               ///< Disable copy constructor
+        taskDelegator& operator=(const taskDelegator&) = delete;    ///< Disable copy assignment
+        taskDelegator(taskDelegator&&) = delete;                    ///< Disable move constructor
+        taskDelegator& operator=(taskDelegator&&) = delete;         ///< Disable move assignment
+
         /**
          * @brief Constructs a task delegator with a given number of threads
          * @param thread_cnt Number of threads (default: 8)
