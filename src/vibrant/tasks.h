@@ -98,7 +98,17 @@ namespace original {
             HIGH = 1,       ///< High priority task
             NORMAL = 2,     ///< Normal priority task (default)
             LOW = 3,        ///< Low priority task
-            DEFERRED = 4,   ///< Deferred execution (manual activation)
+            DEFERRED = 4,   ///< Deferred execution
+        };
+
+        /**
+         * @enum stopMode
+         * @brief Stop behavior for deferred tasks
+         */
+        enum class stopMode {
+            DISCARD_DEFERRED,  ///< Discard deferred tasks
+            KEEP_DEFERRED,     ///< Keep deferred tasks
+            RUN_DEFERRED,      ///< Execute all deferred tasks before stopping
         };
 
         // Convenience constants
@@ -107,6 +117,10 @@ namespace original {
         static constexpr auto NORMAL = priority::NORMAL;
         static constexpr auto LOW = priority::LOW;
         static constexpr auto DEFERRED = priority::DEFERRED;
+
+        static constexpr auto DISCARD_DEFERRED = stopMode::DISCARD_DEFERRED;
+        static constexpr auto KEEP_DEFERRED = stopMode::KEEP_DEFERRED;
+        static constexpr auto RUN_DEFERRED = stopMode::RUN_DEFERRED;
 
     private:
         // Internal type definitions
@@ -190,9 +204,15 @@ namespace original {
         void runAllDeferred();
 
         /**
-         * @brief Stops the task delegator and waits for completion
+         * @brief Returns number of deferred tasks
          */
-        void stop();
+        u_integer deferredCnt() const noexcept;
+
+        /**
+         * @brief Stops the task delegator
+         * @param mode Stop mode (default: KEEP_DEFERRED)
+         */
+        void stop(stopMode mode = stopMode::KEEP_DEFERRED);
 
         /**
          * @brief Gets the number of active threads
@@ -261,7 +281,6 @@ inline original::taskDelegator::taskDelegator(const u_integer thread_cnt)
 
                         if (this->stopped_ &&
                             this->tasks_waiting_.empty() &&
-                            this->tasks_deferred_.empty() &&
                             this->task_immediate_.empty()) {
                                 this->idle_threads_ -= 1;
                                 return;
@@ -367,19 +386,33 @@ inline void original::taskDelegator::runAllDeferred()
     this->condition_.notifyAll();
 }
 
-inline void original::taskDelegator::stop()
+inline original::u_integer original::taskDelegator::deferredCnt() const noexcept
+{
+    uniqueLock lock(this->mutex_);
+    return this->tasks_deferred_.size();
+}
+
+inline void original::taskDelegator::stop(const stopMode mode)
 {
     {
         uniqueLock lock(this->mutex_);
+        switch (mode) {
+        case RUN_DEFERRED:
+            while (!this->tasks_deferred_.empty()) {
+                this->tasks_waiting_.push(priorityTask{this->tasks_deferred_.pop(), DEFERRED});
+            }
+            break;
+        case DISCARD_DEFERRED:
+            this->tasks_deferred_.clear();
+            break;
+        case KEEP_DEFERRED:
+            break;
+        default:
+            throw sysError("Unknown stop mode");
+        }
         this->stopped_ = true;
     }
     this->condition_.notifyAll();
-
-    for (auto& thread_ : this->threads_) {
-        if (thread_.joinable()) {
-            thread_.join();
-        }
-    }
 }
 
 inline original::u_integer original::taskDelegator::activeThreads() const noexcept
@@ -396,13 +429,10 @@ inline original::u_integer original::taskDelegator::idleThreads() const noexcept
 
 inline original::taskDelegator::~taskDelegator()
 {
-    bool stopped;
-    {
-        uniqueLock lock(this->mutex_);
-        stopped = this->stopped_;
-    }
-    if (!stopped) {
-        this->stop();
+    stop(stopMode::RUN_DEFERRED);
+    for (auto& thread : threads_) {
+        if (thread.joinable())
+            thread.join();
     }
 }
 
