@@ -86,16 +86,9 @@ namespace original {
             async::future<TYPE> getFuture();
         };
 
-    // ==================== Task Delegator (Thread Pool) ====================
-
-    /**
-     * @class taskDelegator
-     * @brief Thread pool for managing and executing tasks with priority
-     * @details Provides a managed thread pool with task prioritization,
-     *          deferred execution, and resource monitoring
-     */
-    class taskDelegator {
     public:
+        // ==================== Task Priorities ====================
+
         /**
          * @enum priority
          * @brief Task priority levels for execution scheduling
@@ -108,7 +101,7 @@ namespace original {
             DEFERRED = 4,   ///< Deferred execution (manual activation)
         };
 
-        // Priority constants for convenience
+        // Convenience constants
         static constexpr auto IMMEDIATE = priority::IMMEDIATE;
         static constexpr auto HIGH = priority::HIGH;
         static constexpr auto NORMAL = priority::NORMAL;
@@ -121,8 +114,7 @@ namespace original {
 
         /**
          * @struct taskComparator
-         * @brief Comparator for priority-based task ordering
-         * @tparam COUPLE Type of the priority task couple
+         * @brief Comparator for ordering tasks by priority
          */
         template<typename COUPLE>
         struct taskComparator {
@@ -135,23 +127,32 @@ namespace original {
             bool operator()(const COUPLE& lhs, const COUPLE& rhs) const;
         };
 
-        using priorityTaskQueue = prique<priorityTask, taskComparator, vector>;  ///< Priority task queue
+        using priorityTaskQueue = prique<priorityTask, taskComparator, vector>;  ///< Priority queue
 
-        // Member variables
         array<thread> threads_;              ///< Worker threads
-        priorityTaskQueue tasks_waiting_;    ///< Waiting tasks with priority
-        queue<strongPtr<taskBase>> task_immediate_;  ///< Immediate execution tasks
-        queue<strongPtr<taskBase>> tasks_deferred_;  ///< Deferred execution tasks
-        mutable pCondition condition_;       ///< Condition variable for synchronization
+        priorityTaskQueue tasks_waiting_;    ///< Waiting tasks
+        queue<strongPtr<taskBase>> task_immediate_;  ///< Immediate tasks
+        queue<strongPtr<taskBase>> tasks_deferred_;  ///< Deferred tasks
+        mutable pCondition condition_;       ///< Synchronization
         mutable pMutex mutex_;               ///< Mutex for thread safety
         bool stopped_;                       ///< Stop flag
         u_integer active_threads_;           ///< Count of active threads
         u_integer idle_threads_;             ///< Count of idle threads
 
+        /**
+         * @brief Submits a pre-created task with specified priority
+         * @tparam TYPE Task result type
+         * @param priority Task priority level
+         * @param t Shared pointer to the task
+         * @return Future for the task result
+         */
+        template<typename TYPE>
+        async::future<TYPE> submit(priority priority, strongPtr<task<TYPE>>& t);
+
     public:
         /**
-         * @brief Constructs a task delegator with specified thread count
-         * @param thread_cnt Number of worker threads (default: 8)
+         * @brief Constructs a task delegator with a given number of threads
+         * @param thread_cnt Number of threads (default: 8)
          */
         explicit taskDelegator(u_integer thread_cnt = 8);
 
@@ -179,31 +180,12 @@ namespace original {
         auto submit(priority priority, Callback&& c, Args&&... args);
 
         /**
-         * @brief Submits a pre-created task with normal priority
-         * @tparam TYPE Task result type
-         * @param t Shared pointer to the task
-         * @return Future for the task result
-         */
-        template<typename TYPE>
-        async::future<TYPE> submit(strongPtr<task<TYPE>>& t);
-
-        /**
-         * @brief Submits a pre-created task with specified priority
-         * @tparam TYPE Task result type
-         * @param priority Task priority level
-         * @param t Shared pointer to the task
-         * @return Future for the task result
-         */
-        template<typename TYPE>
-        async::future<TYPE> submit(priority priority, strongPtr<task<TYPE>>& t);
-
-        /**
-         * @brief Moves one deferred task to the waiting queue
+         * @brief Activates one deferred task
          */
         void runDeferred();
 
         /**
-         * @brief Moves all deferred tasks to the waiting queue
+         * @brief Activates all deferred tasks
          */
         void runAllDeferred();
 
@@ -251,6 +233,8 @@ original::async::future<TYPE> original::taskDelegator::task<TYPE>::getFuture()
 {
     return this->p.getFuture();
 }
+
+// ==================== Task Delegator Implementation ====================
 
 template <typename COUPLE>
 bool original::taskDelegator::taskComparator<COUPLE>::operator()(const COUPLE& lhs, const COUPLE& rhs) const
@@ -321,12 +305,6 @@ auto original::taskDelegator::submit(const priority priority, Callback&& c, Args
         std::forward<Args>(args)...
     );
     return this->submit<ReturnType>(priority, new_task);
-}
-
-template <typename TYPE>
-original::async::future<TYPE> original::taskDelegator::submit(strongPtr<task<TYPE>>& t)
-{
-    return this->submit(priority::NORMAL, t);
 }
 
 template <typename TYPE>
