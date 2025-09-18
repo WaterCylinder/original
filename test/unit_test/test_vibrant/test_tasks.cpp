@@ -521,6 +521,145 @@ TEST(TaskDelegatorTest, StopModeDefaultParameter) {
     // 线程池自动析构应无崩溃触发或异常抛出
 }
 
+// 测试等待任务计数
+TEST(TaskDelegatorTest, WaitingTaskCount) {
+    taskDelegator delegator(2);
+
+    // 初始时没有等待任务
+    EXPECT_EQ(delegator.waitingCnt(), 0);
+
+    // 提交一些正常优先级任务
+    for (int i = 0; i < 3; ++i) {
+        delegator.submit(taskDelegator::NORMAL, []{
+            thread::sleep(milliseconds(100));
+            return 1;
+        });
+    }
+
+    // 应该有3个等待任务
+    EXPECT_EQ(delegator.waitingCnt(), 3);
+
+    // 等待任务完成
+    thread::sleep(milliseconds(200));
+    EXPECT_EQ(delegator.waitingCnt(), 0);
+}
+
+// 测试立即任务计数
+TEST(TaskDelegatorTest, ImmediateTaskCount) {
+    taskDelegator delegator(2);
+
+    // 初始时没有立即任务
+    EXPECT_EQ(delegator.immediateCnt(), 0);
+
+    // 提交一个立即任务
+    try {
+        delegator.submit(taskDelegator::IMMEDIATE, []{ return 1; });
+        // 应该有1个立即任务
+        EXPECT_EQ(delegator.immediateCnt(), 1);
+    } catch (const sysError&) {
+        // 如果没有空闲线程，立即任务提交会失败
+        // 这是正常情况，跳过测试
+        SUCCEED();
+    }
+}
+
+// 测试丢弃单个延迟任务
+TEST(TaskDelegatorTest, DiscardSingleDeferredTask) {
+    taskDelegator delegator(2);
+
+    // 提交3个延迟任务
+    for (int i = 0; i < 3; ++i) {
+        delegator.submit(taskDelegator::DEFERRED, [i]{ return i; });
+    }
+
+    EXPECT_EQ(delegator.deferredCnt(), 3);
+
+    // 丢弃一个延迟任务
+    EXPECT_EQ(delegator.discardDeferred(), 2);
+
+    // 再丢弃一个
+    EXPECT_EQ(delegator.discardDeferred(), 1);
+
+    // 丢弃最后一个
+    EXPECT_EQ(delegator.discardDeferred(), 0);
+}
+
+// 测试丢弃所有延迟任务
+TEST(TaskDelegatorTest, DiscardAllDeferredTasks) {
+    taskDelegator delegator(2);
+
+    std::atomic executed_count{0};
+
+    // 提交多个延迟任务
+    for (int i = 0; i < 5; ++i) {
+        delegator.submit(taskDelegator::DEFERRED, [&executed_count, i]{
+            ++executed_count;
+            return i;
+        });
+    }
+
+    EXPECT_EQ(delegator.deferredCnt(), 5);
+
+    // 丢弃所有延迟任务
+    delegator.discardAllDeferred();
+    EXPECT_EQ(delegator.deferredCnt(), 0);
+    EXPECT_EQ(executed_count.load(), 0);
+}
+
+// 测试带超时的提交接口 - 成功情况
+TEST(TaskDelegatorTest, SubmitWithTimeoutSuccess) {
+    taskDelegator delegator(2);
+
+    // 短暂阻塞主线程，等待线程池的工作线程准备好
+    thread::sleep(milliseconds(10));
+
+    // 确保有空闲线程
+    EXPECT_GT(delegator.idleThreads(), 0);
+
+    // 提交带超时的任务
+    auto future = delegator.submitWithTimeOut(milliseconds(100), []{
+        return 42;
+    });
+
+    // 应该成功完成
+    EXPECT_EQ(future.result(), 42);
+}
+
+// 测试带超时的提交接口 - 超时情况
+TEST(TaskDelegatorTest, SubmitWithTimeoutFailure) {
+    taskDelegator delegator(1);
+
+    // 提交一个长时间运行的任务占用线程
+    auto long_task = delegator.submit([]{
+        thread::sleep(seconds(2));
+        return 100;
+    });
+
+    // 短暂等待确保线程被占用
+    thread::sleep(milliseconds(10));
+
+    // 尝试提交带超时的任务，应该超时
+    EXPECT_THROW({
+        delegator.submitWithTimeOut(milliseconds(50), []{
+            return 42;
+        });
+    }, sysError);
+}
+
+// 测试带超时的提交接口 - 停止状态
+TEST(TaskDelegatorTest, SubmitWithTimeoutWhenStopped) {
+    taskDelegator delegator(2);
+    delegator.stop();
+
+    // 在停止状态下提交带超时的任务应该立即抛出异常
+    EXPECT_THROW({
+        delegator.submitWithTimeOut(milliseconds(100), []{
+            return 42;
+        });
+    }, sysError);
+}
+
+// 高并发下的综合压力测试
 TEST(TaskDelegatorTest, StressTestMixedTasks) {
     constexpr int thread_count = 8;
     constexpr int normal_tasks = 50;
