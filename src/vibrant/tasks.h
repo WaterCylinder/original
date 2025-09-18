@@ -396,7 +396,7 @@ template <typename Callback, typename ... Args>
 auto original::taskDelegator::submit(const priority priority, Callback&& c, Args&&... args)
 {
     using ReturnType = decltype(c(args...));
-    auto new_task = makeStrongPtr<task<ReturnType>>(
+    strongPtr<task<ReturnType>> new_task = makeStrongPtr<task<ReturnType>>(
         std::forward<Callback>(c),
         std::forward<Args>(args)...
     );
