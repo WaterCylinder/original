@@ -194,7 +194,7 @@ namespace original {
         EXPECT_FALSE(c1 == c2);
         c1.pushEnd(5);
         EXPECT_FALSE(c1 == c3);
-    }
+    } // TODO: Also
 
     TEST(ChainTest, OutOfBoundsAccess) {
         const chain c = {1, 2, 3};
