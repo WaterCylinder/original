@@ -371,10 +371,29 @@ TEST(AsyncTest, InvalidFutureBaseAccess) {
     EXPECT_THROW(basePtr->wait(), original::error);
 
     // 无效的future应该返回异常指针
-    auto exceptionPtr = basePtr->exception();
-    EXPECT_NE(exceptionPtr, nullptr);
+    auto exception_ptr = basePtr->exception();
+    EXPECT_NE(exception_ptr, nullptr);
 
-    EXPECT_THROW(std::rethrow_exception(exceptionPtr), original::error);
+    EXPECT_THROW(std::rethrow_exception(exception_ptr), original::error);
+
+    strongPtr<async::sharedFuture<void>> f2 = makeStrongPtr<async::sharedFuture<void>>();
+
+    EXPECT_FALSE(f2->valid());
+    EXPECT_THROW(f2->wait(), original::error);
+
+    auto exception_ptr2 = f2->exception();
+    EXPECT_NE(exception_ptr2, nullptr);
+
+    EXPECT_THROW(std::rethrow_exception(exception_ptr2), original::error);
+
+    auto f3 = f2.dynamicCastTo<async::futureBase>();
+    EXPECT_FALSE(f3->valid());
+    EXPECT_THROW(f3->wait(), original::error);
+
+    auto exception_ptr3 = f3->exception();
+    EXPECT_NE(exception_ptr3, nullptr);
+
+    EXPECT_THROW(std::rethrow_exception(exception_ptr3), original::error);
 }
 
 // 测试 sharedFuture 的 ready() 方法
