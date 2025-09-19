@@ -31,7 +31,7 @@ namespace original {
         class asyncWrapper {
             atomic<bool> ready_{makeAtomic(false)};  ///< Atomic flag indicating result readiness
             alternative<TYPE> alter_;                ///< Optional storage for the result value
-            pCondition cond_{};                      ///< Condition variable for synchronization
+            mutable pCondition cond_{};                      ///< Condition variable for synchronization
             mutable pMutex mutex_{};                 ///< Mutex for thread safety
             std::exception_ptr e_{};                 ///< Exception pointer for error handling
 
@@ -68,6 +68,8 @@ namespace original {
              */
             TYPE get();
 
+            const TYPE& peek() const;
+
             /**
              * @brief Throws stored exception if present
              */
@@ -78,16 +80,26 @@ namespace original {
              * @return Exception pointer (nullptr if no exception)
              */
             [[nodiscard]] std::exception_ptr exception() const;
-
-            /**
-             * @brief Checks if a valid result is available
-             * @return True if result is ready and contains a value (not exception)
-             */
-            [[nodiscard]] bool available() const;
         };
 
     public:
+        class futureBase {
+        public:
+            [[nodiscard]] virtual bool valid() const noexcept = 0;
+
+            virtual void wait() = 0;
+
+            [[nodiscard]] virtual std::exception_ptr exception() const noexcept = 0;
+
+            [[nodiscard]] virtual bool ready() const = 0;
+
+            virtual ~futureBase() = default;
+        };
+
         // ==================== Future Class ====================
+
+        template<typename TYPE>
+        class sharedFuture;
 
         /**
          * @class future
@@ -97,7 +109,7 @@ namespace original {
          * The result can be retrieved only once.
          */
         template<typename TYPE>
-        class future {
+        class future final : public futureBase {
             strongPtr<asyncWrapper<TYPE>> awr_{};  ///< Shared pointer to the async wrapper
 
             friend class async;
@@ -114,6 +126,10 @@ namespace original {
             future(future&&) = default;
             future& operator=(future&&) = default;
 
+            [[nodiscard]] bool valid() const noexcept override;
+
+            sharedFuture<TYPE> share();
+
             /**
              * @brief Gets the result (blocks until ready)
              * @return The computed result
@@ -125,18 +141,55 @@ namespace original {
              * @brief Checks if the result is ready
              * @return True if result is available
              */
-            [[nodiscard]] bool ready() const;
+            [[nodiscard]] bool ready() const override;
 
             /**
              * @brief Gets the exception if computation failed
              * @return Exception pointer (nullptr if no exception)
              */
-            [[nodiscard]] std::exception_ptr exception() const noexcept;
+            [[nodiscard]] std::exception_ptr exception() const noexcept override;
 
             /**
              * @brief Waits until the result becomes ready
              */
-            void wait();
+            void wait() override;
+        };
+
+        template<typename TYPE>
+        class sharedFuture final : public futureBase, public hashable<sharedFuture<TYPE>> {
+            strongPtr<asyncWrapper<TYPE>> awr_{};
+
+            friend class async;
+            explicit sharedFuture(strongPtr<asyncWrapper<TYPE>> awr);
+
+        public:
+            sharedFuture() = default;
+
+            // Allow copying and moving
+            sharedFuture(const sharedFuture&) = default;
+            sharedFuture& operator=(const sharedFuture&) = default;
+            sharedFuture(sharedFuture&&) = default;
+            sharedFuture& operator=(sharedFuture&&) = default;
+
+            [[nodiscard]] bool valid() const noexcept override;
+
+            const TYPE& result() const;
+
+            [[nodiscard]] bool ready() const override;
+
+            [[nodiscard]] std::exception_ptr exception() const noexcept override;
+
+            bool operator==(const sharedFuture& other) const noexcept;
+
+            bool operator!=(const sharedFuture& other) const noexcept;
+
+            void wait() override;
+
+            [[nodiscard]] u_integer toHash() const noexcept override;
+
+            bool equals(const sharedFuture& other) const noexcept override;
+
+            ~sharedFuture() override = default;
         };
 
         // ==================== Promise Class ====================
@@ -150,7 +203,7 @@ namespace original {
          */
         template<typename TYPE, typename Callback>
         class promise {
-            std::function<TYPE()> c_;                  ///< The computation to execute
+            std::function<TYPE()> c_{};                ///< The computation to execute
             strongPtr<asyncWrapper<TYPE>> awr_{};      ///< Shared pointer to the async wrapper
 
         public:
@@ -209,7 +262,7 @@ namespace original {
     class async::asyncWrapper<void> {
         atomic<bool> ready_{makeAtomic(false)};  ///< Atomic flag indicating completion
         alternative<void> alter_;                ///< Optional void marker
-        pCondition cond_{};                      ///< Condition variable for synchronization
+        mutable pCondition cond_{};                      ///< Condition variable for synchronization
         mutable pMutex mutex_{};                 ///< Mutex for thread safety
         std::exception_ptr e_{};                 ///< Exception pointer for error handling
 
@@ -236,13 +289,15 @@ namespace original {
         /**
          * @brief Waits until the computation completes
          */
-        void wait();
+        void wait() const;
 
         /**
          * @brief Waits for completion and checks for exceptions
          * @throws std::exception if the computation threw an exception
          */
         void get();
+
+        void peek() const;
 
         /**
          * @brief Throws stored exception if present
@@ -254,23 +309,17 @@ namespace original {
          * @return Exception pointer (nullptr if no exception)
          */
         [[nodiscard]] std::exception_ptr exception() const noexcept;
-
-        /**
-         * @brief Checks if the computation completed successfully
-         * @return True if completed without exception
-         */
-        [[nodiscard]] bool available() const;
     };
 
     /**
      * @brief Specialization of future for void results
      */
     template <>
-    class async::future<void> {
+    class async::future<void> final : public futureBase {
         strongPtr<asyncWrapper<void>> awr_{};  ///< Shared pointer to the async wrapper
 
         friend class async;
-        explicit future(const strongPtr<asyncWrapper<void>>& awr) : awr_(std::move(awr)) {}
+        explicit future(strongPtr<asyncWrapper<void>> awr);
 
     public:
         future() = default;
@@ -283,6 +332,10 @@ namespace original {
         future(future&&) = default;
         future& operator=(future&&) = default;
 
+        [[nodiscard]] bool valid() const noexcept override;
+
+        sharedFuture<void> share();
+
         /**
          * @brief Waits for completion and checks for exceptions
          * @throws std::exception if the computation threw an exception
@@ -293,18 +346,55 @@ namespace original {
          * @brief Checks if the computation is completed
          * @return True if completed
          */
-        [[nodiscard]] bool ready() const;
+        [[nodiscard]] bool ready() const override;
 
         /**
          * @brief Gets the exception if computation failed
          * @return Exception pointer (nullptr if no exception)
          */
-        [[nodiscard]] std::exception_ptr exception() const noexcept;
+        [[nodiscard]] std::exception_ptr exception() const noexcept override;
 
         /**
          * @brief Waits until the computation completes
          */
-        void wait();
+        void wait() override;
+    };
+
+    template <>
+    class async::sharedFuture<void> final : public futureBase, public hashable<sharedFuture<void>> {
+        strongPtr<asyncWrapper<void>> awr_{};
+
+        friend class async;
+        explicit sharedFuture(strongPtr<asyncWrapper<void>> awr);
+
+    public:
+        sharedFuture() = default;
+
+        // Allow copying and moving
+        sharedFuture(const sharedFuture&) = default;
+        sharedFuture& operator=(const sharedFuture&) = default;
+        sharedFuture(sharedFuture&&) = default;
+        sharedFuture& operator=(sharedFuture&&) = default;
+
+        [[nodiscard]] bool valid() const noexcept override;
+
+        void result() const;
+
+        [[nodiscard]] bool ready() const override;
+
+        [[nodiscard]] std::exception_ptr exception() const noexcept override;
+
+        bool operator==(const sharedFuture& other) const noexcept;
+
+        bool operator!=(const sharedFuture& other) const noexcept;
+
+        void wait() override;
+
+        [[nodiscard]] u_integer toHash() const noexcept override;
+
+        [[nodiscard]] bool equals(const sharedFuture& other) const noexcept override;
+
+        ~sharedFuture() override = default;
     };
 
     /**
@@ -313,7 +403,7 @@ namespace original {
      */
     template <typename Callback>
     class async::promise<void, Callback> {
-        std::function<void()> c_;                  ///< The computation to execute
+        std::function<void()> c_{};                  ///< The computation to execute
         strongPtr<asyncWrapper<void>> awr_{};      ///< Shared pointer to the async wrapper
 
     public:
@@ -383,6 +473,12 @@ template <typename TYPE>
 TYPE original::async::asyncWrapper<TYPE>::get()
 {
     uniqueLock lock{this->mutex_};
+    if (this->e_) std::rethrow_exception(this->e_);
+    if (this->alter_.hasValue()) {
+        TYPE result = *this->alter_;
+        this->alter_.reset();
+        return result;
+    }
     this->cond_.wait(this->mutex_, [this]{
         return this->ready();
     });
@@ -392,6 +488,22 @@ TYPE original::async::asyncWrapper<TYPE>::get()
     TYPE result = *this->alter_;
     this->alter_.reset();
     return result;
+}
+
+template <typename TYPE>
+const TYPE& original::async::asyncWrapper<TYPE>::peek() const
+{
+    uniqueLock lock{this->mutex_};
+    if (this->e_) std::rethrow_exception(this->e_);
+    if (this->alter_.hasValue()) {
+        return *this->alter_;
+    }
+    this->cond_.wait(this->mutex_, [this]{
+        return this->ready();
+    });
+
+    if (this->e_) std::rethrow_exception(this->e_);
+    return *this->alter_;
 }
 
 template <typename TYPE>
@@ -410,38 +522,126 @@ original::async::asyncWrapper<TYPE>::exception() const
 }
 
 template <typename TYPE>
-bool original::async::asyncWrapper<TYPE>::available() const
-{
-    uniqueLock lock{this->mutex_};
-    return this->ready() && this->alter_.hasValue();
-}
-
-template <typename TYPE>
 original::async::future<TYPE>::future(strongPtr<asyncWrapper<TYPE>> awr)
     : awr_(awr) {}
 
 template <typename TYPE>
+bool original::async::future<TYPE>::valid() const noexcept
+{
+    return this->awr_ != nullptr;
+}
+
+template <typename TYPE>
+original::async::sharedFuture<TYPE> original::async::future<TYPE>::share()
+{
+    return sharedFuture<TYPE>(std::move(this->awr_));
+}
+
+
+template <typename TYPE>
 TYPE original::async::future<TYPE>::result()
 {
+    if (!this->valid()) {
+        throw sysError("Access an invalid future");
+    }
     return this->awr_->get();
 }
 
 template <typename TYPE>
 bool original::async::future<TYPE>::ready() const
 {
+    if (!this->valid()) {
+        throw sysError("Access an invalid future");
+    }
     return this->awr_->ready();
 }
 
 template <typename TYPE>
 std::exception_ptr original::async::future<TYPE>::exception() const noexcept
 {
+    if (!this->valid()) {
+        return std::make_exception_ptr(sysError("Access an invalid future"));
+    }
     return this->awr_->exception();
 }
 
 template <typename TYPE>
 void original::async::future<TYPE>::wait()
 {
+    if (!this->valid()) {
+        throw sysError("Access an invalid future");
+    }
     this->awr_->wait();
+}
+
+template <typename TYPE>
+original::async::sharedFuture<TYPE>::sharedFuture(strongPtr<asyncWrapper<TYPE>> awr)
+    : awr_(std::move(awr)) {}
+
+template <typename TYPE>
+bool original::async::sharedFuture<TYPE>::valid() const noexcept
+{
+    return this->awr_ != nullptr;
+}
+
+template <typename TYPE>
+const TYPE& original::async::sharedFuture<TYPE>::result() const
+{
+    if (!this->valid()) {
+        throw sysError("Access an invalid sharedFuture");
+    }
+    return this->awr_->peek();
+}
+
+template <typename TYPE>
+bool original::async::sharedFuture<TYPE>::ready() const
+{
+    if (!this->valid()) {
+        throw sysError("Access an invalid sharedFuture");
+    }
+    return this->awr_->ready();
+}
+
+template <typename TYPE>
+std::exception_ptr original::async::sharedFuture<TYPE>::exception() const noexcept
+{
+    if (!this->valid()) {
+        return std::make_exception_ptr(sysError("Access an invalid sharedFuture"));
+    }
+    return this->awr_->exception();
+}
+
+template <typename TYPE>
+bool original::async::sharedFuture<TYPE>::operator==(const sharedFuture& other) const noexcept
+{
+    return this->awr_ == other.awr_;
+}
+
+template <typename TYPE>
+bool original::async::sharedFuture<TYPE>::operator!=(const sharedFuture& other) const noexcept
+{
+    return this->awr_ != other.awr_;
+}
+
+template <typename TYPE>
+void original::async::sharedFuture<TYPE>::wait()
+{
+    if (!this->valid()) {
+        throw sysError("Access an invalid sharedFuture");
+    }
+    this->awr_->wait();
+}
+
+template <typename TYPE>
+original::u_integer original::async::sharedFuture<TYPE>::toHash() const noexcept
+{
+    return this->awr_.toHash();
+}
+
+template <typename TYPE>
+bool original::async::sharedFuture<TYPE>::equals(const sharedFuture& other) const noexcept
+{
+    return *this == other;
 }
 
 template <typename TYPE, typename Callback>
@@ -495,7 +695,7 @@ auto original::async::get(Callback&& c, Args&&... args)
     thread t{
         [p = std::move(p)]() mutable {
             p.run();
-        },
+        }
     };
 
     return fut.result();
@@ -526,7 +726,7 @@ inline bool original::async::asyncWrapper<void>::ready() const
     return this->ready_.load();
 }
 
-inline void original::async::asyncWrapper<void>::wait()
+inline void original::async::asyncWrapper<void>::wait() const
 {
     uniqueLock lock{this->mutex_};
     this->cond_.wait(this->mutex_, [this]
@@ -538,6 +738,26 @@ inline void original::async::asyncWrapper<void>::wait()
 inline void original::async::asyncWrapper<void>::get()
 {
     uniqueLock lock{this->mutex_};
+    if (this->e_) std::rethrow_exception(this->e_);
+    if (this->alter_) {
+        this->alter_.reset();
+        return;
+    }
+    this->cond_.wait(this->mutex_, [this] {
+        return this->ready();
+    });
+
+    if (this->e_) std::rethrow_exception(this->e_);
+    this->alter_.reset();
+}
+
+inline void original::async::asyncWrapper<void>::peek() const
+{
+    uniqueLock lock{this->mutex_};
+    if (this->e_) std::rethrow_exception(this->e_);
+    if (this->alter_) {
+        return;
+    }
     this->cond_.wait(this->mutex_, [this] {
         return this->ready();
     });
@@ -558,30 +778,110 @@ original::async::asyncWrapper<void>::exception() const noexcept
     return this->e_;
 }
 
-inline bool original::async::asyncWrapper<void>::available() const
+inline original::async::future<void>::future(strongPtr<asyncWrapper<void>> awr)
+    : awr_(std::move(awr)) {}
+
+inline bool original::async::future<void>::valid() const noexcept
 {
-    uniqueLock lock{this->mutex_};
-    return this->ready() && this->alter_.hasValue();
+    return this->awr_ != nullptr;
+}
+
+inline original::async::sharedFuture<void> original::async::future<void>::share()
+{
+    return sharedFuture(std::move(this->awr_));
 }
 
 inline void original::async::future<void>::result()
 {
+    if (!this->valid()) {
+        throw sysError("Access an invalid future");
+    }
     this->awr_->get();
 }
 
 inline bool original::async::future<void>::ready() const
 {
+    if (!this->valid()) {
+        throw sysError("Access an invalid future");
+    }
     return this->awr_->ready();
 }
 
 inline std::exception_ptr original::async::future<void>::exception() const noexcept
 {
+    if (!this->valid()) {
+        return std::make_exception_ptr(sysError("Access an invalid future"));
+    }
     return this->awr_->exception();
 }
 
 inline void original::async::future<void>::wait()
 {
+    if (!this->valid()) {
+        throw sysError("Access an invalid future");
+    }
     this->awr_->wait();
+}
+
+inline original::async::sharedFuture<void>::sharedFuture(strongPtr<asyncWrapper<void>> awr)
+    : awr_(std::move(awr)) {}
+
+inline bool original::async::sharedFuture<void>::valid() const noexcept
+{
+    return this->awr_ != nullptr;
+}
+
+inline void original::async::sharedFuture<void>::result() const
+{
+    if (!this->valid()) {
+        throw sysError("Access an invalid sharedFuture");
+    }
+    this->awr_->peek();
+}
+
+inline bool original::async::sharedFuture<void>::ready() const
+{
+    if (!this->valid()) {
+        throw sysError("Access an invalid sharedFuture");
+    }
+    return this->awr_->ready();
+}
+
+inline std::exception_ptr original::async::sharedFuture<void>::exception() const noexcept
+{
+    if (!this->valid()) {
+        return std::make_exception_ptr(sysError("Access an invalid sharedFuture"));
+    }
+    return this->awr_->exception();
+}
+
+inline bool original::async::sharedFuture<void>::operator==(const sharedFuture& other) const noexcept
+{
+    return this->awr_ == other.awr_;
+}
+
+inline bool original::async::sharedFuture<void>::operator!=(const sharedFuture& other) const noexcept
+{
+    return this->awr_ != other.awr_;
+}
+
+
+inline void original::async::sharedFuture<void>::wait()
+{
+    if (!this->valid()) {
+        throw sysError("Access an invalid sharedFuture");
+    }
+    this->awr_->wait();
+}
+
+inline original::u_integer original::async::sharedFuture<void>::toHash() const noexcept
+{
+    return this->awr_.toHash();
+}
+
+inline bool original::async::sharedFuture<void>::equals(const sharedFuture& other) const noexcept
+{
+    return *this == other;
 }
 
 template <typename Callback>
