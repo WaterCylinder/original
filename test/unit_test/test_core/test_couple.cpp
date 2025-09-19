@@ -58,8 +58,8 @@ TEST(CoupleTest, GetMethodVariants) {
     couple<std::string, int> c("abc", 42);
 
     // 非常量对象调用 -> 匹配 auto&
-    std::string& s1 = c.template get<0>();
-    int& i1 = c.template get<1>();
+    std::string& s1 = c.get<0>();
+    int& i1 = c.get<1>();
     s1 = "def";
     i1 = 99;
     EXPECT_EQ(c.first(), "def");
@@ -67,14 +67,14 @@ TEST(CoupleTest, GetMethodVariants) {
 
     // 常量对象调用 -> 匹配 const auto&
     const couple<std::string, int>& cc = c;
-    const std::string& s2 = cc.template get<0>();
-    const int& i2 = cc.template get<1>();
+    const std::string& s2 = cc.get<0>();
+    const int& i2 = cc.get<1>();
     EXPECT_EQ(s2, "def");
     EXPECT_EQ(i2, 99);
 
     // 右值对象调用 -> 匹配 auto&&
     couple<std::string, int> temp("move", 123);
-    std::string&& moved_str = std::move(temp.template get<0>());
+    std::string&& moved_str = std::move(temp.get<0>());
     EXPECT_EQ(moved_str, "move");
 }
 
