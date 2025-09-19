@@ -4,6 +4,7 @@
 #include "config.h"
 #include <cstring>
 #include <string>
+#include "types.h"
 
 /**
  * @file hash.h
@@ -11,7 +12,6 @@
  * @details This header defines:
  * - A comprehensive hash function object (hash) with specializations for common types
  * - A base interface (hashable) for user-defined hashable types
- * - Concept checking for hashable types (isHashable)
  * - Integration with std::hash for STL compatibility
  *
  * Features:
@@ -29,41 +29,11 @@
 namespace original {
 
     /**
-     * @brief Forward declaration of hash class template.
-     * @tparam TYPE The type for which the hash function object is defined.
-     */
-    template <typename TYPE>
-    class hash;
-
-    /**
      * @brief Forward declaration of hashable interface template.
      * @tparam DERIVED The derived class that inherits from hashable.
      */
     template <typename DERIVED>
     class hashable;
-
-    /**
-     * @concept isHashable
-     * @brief Concept checking for types that can be hashed.
-     * @tparam DERIVED The type to be checked
-     * @details Requires the type to implement:
-     * - toHash() method returning u_integer
-     * - equals() method taking const DERIVED& and returning bool
-     *
-     * @code{.cpp}
-     * struct MyHashable {
-     *     u_integer toHash() const noexcept { return 42; }
-     *     bool equals(const MyHashable&) const noexcept { return true; }
-     * };
-     * static_assert(isHashable<MyHashable>);  // Passes
-     * @endcode
-     */
-    template <typename DERIVED>
-    concept isHashable =
-    requires(const DERIVED& t, const DERIVED& other) {
-        { t.toHash() } -> std::same_as<u_integer>;
-        { t.equals(other) } -> std::same_as<bool>;
-    };
 
     /**
      * @class hash
@@ -155,13 +125,8 @@ namespace original {
         template <typename T>
         static u_integer hashFunc(const T& t) noexcept;
 
-        /**
-         * @brief Hash function for types satisfying the isHashable concept
-         * @tparam T A hashable type
-         * @param t The object to hash
-         * @return The hash value from the object's toHash method
-         */
-        template <isHashable T>
+        template <typename T>
+        requires ExtendsOf<hashable<T>, T>
         static u_integer hashFunc(const T& t) noexcept;
 
         /**
@@ -269,7 +234,7 @@ namespace original {
  * @tparam T Type that satisfies isHashable concept
  */
 template <typename T>
-requires original::isHashable<T>
+requires original::Hashable<T>
 struct std::hash<T> { // NOLINT
     /**
      * @brief Hash function operator for STL compatibility
@@ -320,9 +285,9 @@ original::u_integer original::hash<TYPE>::hashFunc(const T &t) noexcept {
     return hashFuncImpl(t);
 }
 
-template<typename TYPE>
-template<original::isHashable T>
-original::u_integer original::hash<TYPE>::hashFunc(const T &t) noexcept {
+template <typename TYPE>
+template <typename T> requires original::ExtendsOf<original::hashable<T>, T>
+original::u_integer original::hash<TYPE>::hashFunc(const T& t) noexcept {
     return t.toHash();
 }
 
@@ -378,7 +343,7 @@ template <typename DERIVED>
 original::hashable<DERIVED>::~hashable() = default;
 
 template <typename T>
-requires original::isHashable<T>
+requires original::Hashable<T>
 std::size_t std::hash<T>::operator()(const T &t) const noexcept {
     return static_cast<std::size_t>(t.toHash());
 }
