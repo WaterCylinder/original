@@ -102,7 +102,7 @@ TEST(TupleTest, MoveSemantics) {
     EXPECT_EQ(t2.get<1>(), (array{1, 2, 3}));
 
     // Verify original was moved from
-    EXPECT_TRUE(t1.get<0>().empty());
+    EXPECT_TRUE(t1.get<0>().empty()); // NOLINT: Test move
     EXPECT_TRUE(t1.get<1>().empty());
 
     // Test move assignment
@@ -110,7 +110,7 @@ TEST(TupleTest, MoveSemantics) {
     t3 = std::move(t2);
     EXPECT_EQ(t3.get<0>(), "test");
     EXPECT_EQ(t3.get<1>(), (array{1, 2, 3}));
-    EXPECT_TRUE(t2.get<0>().empty());
+    EXPECT_TRUE(t2.get<0>().empty()); // NOLINT: Test move
     EXPECT_TRUE(t2.get<1>().empty());
 }
 
