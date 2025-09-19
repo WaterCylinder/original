@@ -1,3 +1,4 @@
+#include <unordered_set>
 #include <gtest/gtest.h>
 #include <utility>
 #include "async.h"
@@ -199,4 +200,264 @@ TEST(AsyncTest, WaitMethodWorks) {
     EXPECT_GE(duration.value(), 90);  // 应该等待了至少100ms
     EXPECT_TRUE(f.ready());
     EXPECT_EQ(f.result(), 42);
+}
+
+// 测试 sharedFuture 的基本功能（复制和多次访问）
+TEST(AsyncTest, SharedFutureBasicFunctionality) {
+    auto p = async::makePromise([] {
+        thread::sleep(milliseconds(100));
+        return 42;
+    });
+
+    auto f = p.getFuture();
+    auto sf = f.share();  // 转换为 sharedFuture
+
+    runPromiseInThread(p);
+
+    // 多个 sharedFuture 副本应该都能访问结果
+    auto sf2 = sf;
+    EXPECT_EQ(sf.result(), 42);
+    EXPECT_EQ(sf2.result(), 42);
+
+    // 原始 future 应该失效
+    EXPECT_FALSE(f.valid());
+}
+
+// 测试 void 类型的 sharedFuture
+TEST(AsyncTest, SharedFutureVoidType) {
+    auto p = async::makePromise([] {
+        thread::sleep(milliseconds(50));
+    });
+
+    auto f = p.getFuture();
+    auto sf = f.share();
+
+    runPromiseInThread(p);
+
+    // 应该能正常调用（无返回值）
+    EXPECT_NO_THROW(sf.result());
+
+    // 可以复制
+    auto sf2 = sf;
+    EXPECT_NO_THROW(sf2.result());
+}
+
+// 测试 sharedFuture 的异常处理
+TEST(AsyncTest, SharedFutureExceptionHandling) {
+    auto p = async::makePromise([]() -> int {
+        throw runTimeTestError("shared future error");
+    });
+
+    auto f = p.getFuture();
+    auto sf = f.share();
+
+    runPromiseInThread(p);
+
+    // 应该抛出相同的异常
+    EXPECT_THROW(sf.result(), runTimeTestError);
+
+    // 副本也应该抛出相同的异常
+    auto sf2 = sf;
+    EXPECT_THROW(sf2.result(), runTimeTestError);
+}
+
+// 测试多线程同时访问 sharedFuture
+TEST(AsyncTest, SharedFutureMultithreadedAccess) {
+    auto p = async::makePromise([] {
+        thread::sleep(milliseconds(200));
+        return 100;
+    });
+
+    auto f = p.getFuture();
+    auto sf = f.share();
+
+    runPromiseInThread(p);
+
+    std::vector<thread> threads;
+    std::atomic successCount{0};
+
+    // 启动多个线程同时访问 sharedFuture
+    for (int i = 0; i < 5; i++) {
+        threads.emplace_back([&sf, &successCount] {
+            try {
+                EXPECT_EQ(sf.result(), 100);
+                ++successCount;
+            } catch (...) {
+                // 不应该有异常
+                FAIL() << "Unexpected exception in worker thread";
+            }
+        });
+    }
+
+    // 等待所有线程完成
+    for (auto& t : threads) {
+        t.join();
+    }
+
+    EXPECT_EQ(successCount.load(), 5);
+}
+
+// 测试 futureBase 多态接口
+TEST(AsyncTest, FutureBasePolymorphicInterface) {
+    auto p = async::makePromise([] {
+        thread::sleep(milliseconds(50));
+        return 42;
+    });
+
+    auto f = p.getFuture();
+
+    // 通过基类指针操作
+    async::futureBase* basePtr = &f;
+
+    runPromiseInThread(p);
+
+    EXPECT_TRUE(basePtr->valid());
+    EXPECT_NO_THROW(basePtr->wait());
+    EXPECT_TRUE(basePtr->ready());
+
+    // 异常应该为nullptr（无异常）
+    EXPECT_EQ(basePtr->exception(), nullptr);
+}
+
+// 测试 sharedFuture 通过 futureBase 接口操作
+TEST(AsyncTest, SharedFutureBaseInterface) {
+    auto p = async::makePromise([] {
+        thread::sleep(milliseconds(50));
+        return 42;
+    });
+
+    auto f = p.getFuture();
+    auto sf = f.share();
+
+    // 通过基类指针操作 sharedFuture
+    async::futureBase* basePtr = &sf;
+
+    runPromiseInThread(p);
+
+    EXPECT_TRUE(basePtr->valid());
+    EXPECT_NO_THROW(basePtr->wait());
+    EXPECT_TRUE(basePtr->ready());
+    EXPECT_EQ(basePtr->exception(), nullptr);
+}
+
+// 测试异常情况下的 futureBase 接口
+TEST(AsyncTest, FutureBaseExceptionCase) {
+    auto p = async::makePromise([]() -> int {
+        throw runTimeTestError("base interface error");
+    });
+
+    auto f = p.getFuture();
+    async::futureBase* basePtr = &f;
+
+    runPromiseInThread(p);
+
+    EXPECT_TRUE(basePtr->valid());
+
+    // 应该能检测到异常
+    auto exceptionPtr = basePtr->exception();
+    EXPECT_NE(exceptionPtr, nullptr);
+
+    // 通过异常指针重新抛出
+    EXPECT_THROW(std::rethrow_exception(exceptionPtr), runTimeTestError);
+}
+
+// 测试无效的 future 通过 base 接口操作
+TEST(AsyncTest, InvalidFutureBaseAccess) {
+    async::future<int> f;  // 默认构造，无效的future
+
+    async::futureBase* basePtr = &f;
+
+    EXPECT_FALSE(basePtr->valid());
+    EXPECT_THROW(basePtr->wait(), original::error);
+
+    // 无效的future应该返回异常指针
+    auto exceptionPtr = basePtr->exception();
+    EXPECT_NE(exceptionPtr, nullptr);
+
+    EXPECT_THROW(std::rethrow_exception(exceptionPtr), original::error);
+}
+
+// 测试 sharedFuture 的 ready() 方法
+TEST(AsyncTest, SharedFutureReadyMethod) {
+    auto p = async::makePromise([] {
+        thread::sleep(milliseconds(100));
+        return 42;
+    });
+
+    auto f = p.getFuture();
+    auto sf = f.share();
+
+    EXPECT_FALSE(sf.ready());  // 任务还没开始
+
+    runPromiseInThread(p);
+    thread::sleep(milliseconds(150));  // 等待任务完成
+
+    EXPECT_TRUE(sf.ready());  // 现在应该准备好了
+    EXPECT_EQ(sf.result(), 42);
+}
+
+// 测试 sharedFuture 的 wait() 方法
+TEST(AsyncTest, SharedFutureWaitMethod) {
+    auto p = async::makePromise([] {
+        thread::sleep(milliseconds(100));
+        return 42;
+    });
+
+    auto f = p.getFuture();
+    auto sf = f.share();
+
+    auto start = time::point::now();
+
+    runPromiseInThread(p);
+    sf.wait();  // 等待任务完成
+
+    auto end = time::point::now();
+    auto duration = end - start;
+
+    EXPECT_GE(duration.value(), 90);  // 应该等待了至少100ms
+    EXPECT_TRUE(sf.ready());
+    EXPECT_EQ(sf.result(), 42);
+}
+
+// 测试 sharedFuture 的比较运算符
+TEST(AsyncTest, SharedFutureComparisonOperators) {
+    auto p1 = async::makePromise([] {
+        return 42;
+    });
+    auto p2 = async::makePromise([] {
+        return 100;
+    });
+
+    auto f1 = p1.getFuture();
+    auto f2 = p2.getFuture();
+
+    auto sf1 = f1.share();
+    auto sf2 = f2.share();
+    auto sf1_copy = sf1;  // 复制构造
+    auto sf1_move = std::move(sf1);  // 移动构造
+
+    // 相同底层对象的副本应该相等
+    EXPECT_TRUE(sf1_copy == sf1_move);
+    EXPECT_FALSE(sf1_copy != sf1_move);
+
+    // 不同底层对象应该不相等
+    EXPECT_FALSE(sf1_copy == sf2);
+    EXPECT_TRUE(sf1_copy != sf2);
+
+    // 无效的 sharedFuture 应该相等（都是nullptr）
+    async::sharedFuture<int> invalid1, invalid2;
+    EXPECT_TRUE(invalid1 == invalid2);
+    EXPECT_FALSE(invalid1 != invalid2);
+
+    // 有效的和无效的不相等
+    EXPECT_FALSE(sf1_copy == invalid1);
+    EXPECT_TRUE(sf1_copy != invalid1);
+
+    runPromiseInThread(p1);
+    runPromiseInThread(p2);
+
+    // 比较结果不应该影响值访问
+    EXPECT_EQ(sf1_copy.result(), 42);
+    EXPECT_EQ(sf1_move.result(), 42);
+    EXPECT_EQ(sf2.result(), 100);
 }
