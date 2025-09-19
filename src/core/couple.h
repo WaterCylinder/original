@@ -58,6 +58,8 @@ namespace original
          */
         couple(const F_TYPE& first, const S_TYPE& second);
 
+        couple(F_TYPE&& first, S_TYPE&& second);
+
         /**
          * @brief Copy constructor
          * @param other couple to copy from
@@ -237,6 +239,10 @@ namespace std {
     template <typename F_TYPE, typename S_TYPE>
     original::couple<F_TYPE, S_TYPE>::couple(const F_TYPE& first, const S_TYPE& second)
         : first_(first), second_(second) {}
+
+    template <typename F_TYPE, typename S_TYPE>
+    original::couple<F_TYPE, S_TYPE>::couple(F_TYPE&& first, S_TYPE&& second)
+        : first_(std::move(first)), second_(std::move(second)) {}
 
     template <typename F_TYPE, typename S_TYPE>
     original::couple<F_TYPE, S_TYPE>::couple(const couple& other)
