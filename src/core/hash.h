@@ -230,11 +230,11 @@ namespace original {
 
 
 /**
- * @brief std::hash specialization for isHashable types
- * @tparam T Type that satisfies isHashable concept
+ * @brief std::hash specialization for derived types of hashable
+ * @tparam T Type that extends hashable
  */
 template <typename T>
-requires original::Hashable<T>
+requires original::ExtendsOf<original::hashable<T>, T>
 struct std::hash<T> { // NOLINT
     /**
      * @brief Hash function operator for STL compatibility
@@ -343,7 +343,7 @@ template <typename DERIVED>
 original::hashable<DERIVED>::~hashable() = default;
 
 template <typename T>
-requires original::Hashable<T>
+requires original::ExtendsOf<original::hashable<T>, T>
 std::size_t std::hash<T>::operator()(const T &t) const noexcept {
     return static_cast<std::size_t>(t.toHash());
 }
