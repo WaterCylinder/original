@@ -75,7 +75,8 @@ namespace original {
             T cur_elem;  ///< Current element storage
 
         public:
-            explicit tupleImpl(const T& cur = T{});
+            explicit tupleImpl() = default;
+            explicit tupleImpl(T&& cur);
             tupleImpl(tupleImpl&& other) noexcept;
             tupleImpl(const tupleImpl& other);
             tupleImpl& operator=(tupleImpl&& other) noexcept;
@@ -104,7 +105,8 @@ namespace original {
             tupleImpl<I + 1, TS> next;   ///< Recursive next element storage
 
         public:
-            explicit tupleImpl(const T& cur = T{}, const TS& next_elems = TS{});
+            tupleImpl() = default;
+            explicit tupleImpl(T&& cur, TS&& next_elems);
             tupleImpl(tupleImpl&& other) noexcept;
             tupleImpl(const tupleImpl& other);
             tupleImpl& operator=(tupleImpl&& other) noexcept;
@@ -133,7 +135,7 @@ namespace original {
             tupleImpl<I + 1, TS...> next;   ///< Recursive next element storage
 
         public:
-            explicit tupleImpl(const T& cur, const TS&... next_elems);
+            explicit tupleImpl(T&& cur, TS&&... next_elems);
             explicit tupleImpl(const T& cur = T{}, const tupleImpl<I + 1, TS...>& nt = tupleImpl<I + 1, TS...>{});
             tupleImpl(tupleImpl&& other) noexcept;
             tupleImpl(const tupleImpl& other);
@@ -182,8 +184,8 @@ namespace original {
                                             std::integer_sequence<u_integer, O_SIZE...> os) const;
 
     public:
-        explicit tuple();
-        explicit tuple(const TYPES&... e);
+        tuple() = default;
+        explicit tuple(TYPES&&... e);
         tuple(const tuple& other);
         tuple& operator=(const tuple& other);
         tuple(tuple&& other) noexcept;
@@ -283,10 +285,10 @@ namespace std {
     constexpr auto&& get(original::tuple<TYPES...>&& t) noexcept; //NOLINT
 }
 
-template<typename... TYPES>
-template<original::u_integer I, typename T>
-original::tuple<TYPES...>::tupleImpl<I, T>::tupleImpl(const T& cur)
-    : cur_elem(cur) {}
+template <typename ... TYPES>
+template <original::u_integer I, typename T>
+original::tuple<TYPES...>::tupleImpl<I, T>::tupleImpl(T&& cur)
+    : cur_elem(std::forward<T>(cur)) {}
 
 template<typename... TYPES>
 template<original::u_integer I, typename T>
@@ -357,10 +359,10 @@ std::string original::tuple<TYPES...>::tupleImpl<I, T>::toString(bool enter) con
     return ss.str();
 }
 
-template<typename... TYPES>
-template<original::u_integer I, typename T, typename TS>
-original::tuple<TYPES...>::tupleImpl<I, T, TS>::tupleImpl(const T& cur, const TS& next_elems)
-    : cur_elem(cur), next(next_elems) {}
+template <typename ... TYPES>
+template <original::u_integer I, typename T, typename TS>
+original::tuple<TYPES...>::tupleImpl<I, T, TS>::tupleImpl(T&& cur, TS&& next_elems)
+    : cur_elem(std::forward<T>(cur)), next(std::forward<TS>(next_elems)) {}
 
 template<typename... TYPES>
 template<original::u_integer I, typename T, typename TS>
@@ -442,10 +444,10 @@ std::string original::tuple<TYPES...>::tupleImpl<I, T, TS>::toString(bool enter)
     return ss.str();
 }
 
-template<typename... TYPES>
-template<original::u_integer I, typename T, typename... TS>
-original::tuple<TYPES...>::tupleImpl<I, T, TS...>::tupleImpl(const T& cur, const TS&... next_elems)
-    : cur_elem(cur), next(next_elems...) {}
+template <typename ... TYPES>
+template <original::u_integer I, typename T, typename ... TS>
+original::tuple<TYPES...>::tupleImpl<I, T, TS...>::tupleImpl(T&& cur, TS&&... next_elems)
+    : cur_elem(std::forward<T>(cur)), next(std::forward<TS>(next_elems)...) {}
 
 template<typename... TYPES>
 template<original::u_integer I, typename T, typename... TS>
