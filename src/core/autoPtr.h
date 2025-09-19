@@ -584,7 +584,7 @@ void original::autoPtr<TYPE, DERIVED, DELETER>::swap(autoPtr& other) noexcept {
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 original::integer original::autoPtr<TYPE, DERIVED, DELETER>::compareTo(const autoPtr& other) const {
-    return this->ref_count - other.ref_count;
+    return this->get() - other.get();
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
