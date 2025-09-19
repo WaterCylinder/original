@@ -157,7 +157,7 @@ TEST(TupleTest, SliceOperation) {
 }
 
 TEST(TupleTest, Concatenation) {
-    tuple<int, double> t1(1, 2.3);
+    tuple t1(1, 2.3);
     tuple<std::string, char> t2("concat", 'X');
 
     // Test basic concatenation
@@ -169,7 +169,7 @@ TEST(TupleTest, Concatenation) {
     EXPECT_EQ(t3.get<3>(), 'X');
 
     // Test chained concatenation
-    tuple<bool> t4(true);
+    tuple t4(true);
     auto t5 = t1 + t2 + t4;
     EXPECT_EQ(t5.size(), 5);
     EXPECT_TRUE(t5.get<4>());
