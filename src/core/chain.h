@@ -698,7 +698,8 @@ namespace original {
     auto original::chain<TYPE, ALLOC>::get(integer index) const -> TYPE
     {
         if (this->indexOutOfBound(index)){
-            throw outOfBoundError();
+            throw outOfBoundError("chain::get: Index " + printable::formatString(index) +
+                                 " out of bounds for chain of size " + printable::formatString(this->size()));
         }
         chainNode* cur = this->findNode(this->parseNegIndex(index));
         return cur->getVal();
@@ -708,7 +709,8 @@ namespace original {
     auto original::chain<TYPE, ALLOC>::operator[](const integer index) -> TYPE&
     {
         if (this->indexOutOfBound(index)){
-            throw outOfBoundError();
+            throw outOfBoundError("chain::operator[]: Index " + printable::formatString(index) +
+                                 " out of bounds for chain of size " + printable::formatString(this->size()));
         }
         chainNode* cur = this->findNode(this->parseNegIndex(index));
         return cur->getVal();
@@ -718,7 +720,8 @@ namespace original {
     auto original::chain<TYPE, ALLOC>::set(integer index, const TYPE &e) -> void
     {
         if (this->indexOutOfBound(index)){
-            throw outOfBoundError();
+            throw outOfBoundError("chain::set: Index " + printable::formatString(index) +
+                                 " out of bounds for chain of size " + printable::formatString(this->size()));
         }
         auto cur = this->findNode(this->parseNegIndex(index));
         cur->setVal(e);
@@ -761,7 +764,8 @@ namespace original {
             this->pushEnd(e);
         } else{
             if (this->indexOutOfBound(index)){
-                throw outOfBoundError();
+                throw outOfBoundError("chain::push: Index " + printable::formatString(index) +
+                                     " out of bounds for chain of size " + printable::formatString(this->size()));
             }
             auto new_node = this->createNode(e);
             auto cur = this->findNode(index);
@@ -790,7 +794,7 @@ namespace original {
     {
         TYPE res;
         if (this->size() == 0){
-            throw noElementError();
+            throw noElementError("chain::popBegin: Cannot pop from empty chain");
         }
         if (this->size() == 1){
             auto del = this->lastDelete();
@@ -819,7 +823,8 @@ namespace original {
             return this->popEnd();
         }
         if (this->indexOutOfBound(index)){
-            throw outOfBoundError();
+            throw outOfBoundError("chain::pop: Index " + printable::formatString(index) +
+                                 " out of bounds for chain of size " + printable::formatString(this->size()));
         }
         TYPE res;
         chainNode* cur = this->findNode(index);
@@ -837,7 +842,7 @@ namespace original {
     {
         TYPE res;
         if (this->size() == 0){
-            throw noElementError();
+            throw noElementError("chain::popEnd: Cannot pop from empty chain");
         }
         if (this->size() == 1){
             auto del = this->lastDelete();
