@@ -61,6 +61,11 @@ namespace original {
              */
             void wait() const;
 
+            /**
+             * @brief Waits for the result with a timeout
+             * @param timeout Maximum time to wait
+             * @return True if result is ready within timeout, false otherwise
+             */
             bool waitFor(time::duration timeout) const;
 
             /**
@@ -121,6 +126,11 @@ namespace original {
              */
             virtual void wait() const = 0;
 
+            /**
+             * @brief Waits for the result with a timeout
+             * @param timeout Maximum time to wait
+             * @return True if result is ready within timeout, false otherwise
+             */
             virtual bool waitFor(time::duration timeout) const = 0;
 
             /**
@@ -204,6 +214,11 @@ namespace original {
              */
             void wait() const override;
 
+            /**
+             * @brief Waits for the result with a timeout
+             * @param timeout Maximum time to wait
+             * @return True if result is ready within timeout, false otherwise
+             */
             bool waitFor(time::duration timeout) const override;
         };
 
@@ -289,6 +304,11 @@ namespace original {
              */
             void wait() const override;
 
+            /**
+             * @brief Waits for the result with a timeout
+             * @param timeout Maximum time to wait
+             * @return True if result is ready within timeout, false otherwise
+             */
             bool waitFor(time::duration timeout) const override;
 
             /**
@@ -355,6 +375,14 @@ namespace original {
         template <typename Callback, typename... Args>
         static auto makePromise(Callback&& c, Args&&... args);
 
+        /**
+         * @brief Executes a callable asynchronously and returns a future for the result
+         * @tparam Callback The type of the callable
+         * @tparam Args The types of the arguments
+         * @param c Callable to execute
+         * @param args Arguments to forward to the callable
+         * @return A future that will hold the result of the computation
+         */
         template <typename Callback, typename... Args>
         static auto get(Callback&& c, Args&&... args) -> future<std::invoke_result_t<std::decay_t<Callback>, std::decay_t<Args>...>>;
     };
