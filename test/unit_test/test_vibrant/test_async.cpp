@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <unordered_set>
 #include <gtest/gtest.h>
 #include <utility>
@@ -1051,4 +1052,218 @@ TEST(AsyncTest, WaitForMultipleSharedFutures) {
     EXPECT_TRUE(sf2.ready());
     EXPECT_EQ(sf1.result(), 42);
     EXPECT_EQ(sf2.result(), 42);
+}
+
+// 测试 future 的管道操作符
+TEST(AsyncTest, FuturePipeOperator) {
+    auto f = async::get([] {
+        return 21;
+    }) | [](const int x) {
+        return x * 2;
+    };
+
+    EXPECT_EQ(f.result(), 42);
+}
+
+// 测试 sharedFuture 的管道操作符
+TEST(AsyncTest, SharedFuturePipeOperator) {
+    const auto sf = async::get([] {
+        return 21;
+    }).share() | [](int x) {
+        return x * 2;
+    };
+
+    EXPECT_EQ(sf.result(), 42);
+}
+
+// 测试多级管道操作
+TEST(AsyncTest, MultiplePipeOperations) {
+    auto f = async::get([] {
+        return 10;
+    }) | [](int x) {
+        return x * 2;  // 20
+    } | [](int x) {
+        return x + 22;  // 42
+    } | [](int x) {
+        return std::to_string(x);  // "42"
+    };
+
+    EXPECT_EQ(f.result(), "42");
+}
+
+// 测试管道操作中的类型转换
+TEST(AsyncTest, PipeOperatorTypeConversion) {
+    auto f = async::get([] {
+        return 42;
+    }) | [](const int x) {
+        return std::vector<int>{x, x * 2, x * 3};
+    };
+
+    const auto result = f.result();
+
+    EXPECT_EQ(result.size(), 3);
+    EXPECT_EQ(result[0], 42);
+    EXPECT_EQ(result[1], 84);
+    EXPECT_EQ(result[2], 126);
+}
+
+// 测试管道操作的异步性
+TEST(AsyncTest, PipeOperatorAsynchronous) {
+    const auto start = time::point::now();
+
+    auto f = async::get([] {
+        thread::sleep(milliseconds(100));
+        return 1;
+    }) | [](const int x) {
+        thread::sleep(milliseconds(100));
+        return x + 1;
+    };
+
+    EXPECT_EQ(f.result(), 2);
+    const auto end = time::point::now();
+    const auto duration = end - start;
+
+    EXPECT_GE(duration.value(), 190);  // 至少200ms
+}
+
+// 测试管道操作中的异常处理
+TEST(AsyncTest, PipeOperatorExceptionHandling) {
+    auto future = async::get([]() -> int {
+        throw runTimeTestError("source error");
+    }) | [](const int x) {
+        return x + 1;  // 不会执行
+    };
+
+    EXPECT_THROW(future.result(), runTimeTestError);
+}
+
+// 测试管道操作中回调抛出异常
+TEST(AsyncTest, PipeOperatorCallbackException) {
+    auto future = async::get([] {
+        return 42;
+    }) | [](int x) -> int {
+        throw runTimeTestError("callback error");
+    };
+
+    EXPECT_THROW(future.result(), runTimeTestError);
+}
+
+// 测试 void future 的管道操作
+TEST(AsyncTest, VoidFuturePipeOperator) {
+    std::atomic executed{false};
+
+    auto future = async::get([] {
+        thread::sleep(milliseconds(50));
+    }) | [&executed]{
+        executed = true;
+    };
+
+    future.result();
+    EXPECT_TRUE(executed);
+}
+
+// 测试 void 到非 void 的管道转换
+TEST(AsyncTest, VoidToNonVoidPipe) {
+    auto f = async::get([] {
+        thread::sleep(milliseconds(50));
+    }) | []{
+        return 42;
+    };
+
+    EXPECT_EQ(f.result(), 42);
+}
+
+// 测试管道操作的链式调用与共享
+TEST(AsyncTest, PipeOperatorChainingAndSharing) {
+    const auto shared_future = async::get([] {
+        return 21;
+    }).share();
+
+    // 从同一个共享 future 创建多个管道
+    const auto chain1 = shared_future | [](const int x) { return x * 2; };
+    const auto chain2 = shared_future | [](const int x) { return x + 21; };
+    const auto chain3 = shared_future | [](const int x) { return x - 1; };
+
+    EXPECT_EQ(chain1.result(), 42);
+    EXPECT_EQ(chain2.result(), 42);
+    EXPECT_EQ(chain3.result(), 20);
+}
+
+// 测试管道操作与标准算法结合
+TEST(AsyncTest, PipeOperatorWithAlgorithms) {
+    auto f = async::get([] {
+        return std::vector{1, 2, 3, 4, 5};
+    }) | [](const std::vector<int>& vec) {
+        std::vector<int> transformed;
+        std::ranges::transform(vec, std::back_inserter(transformed),
+                               [](const int x) { return x * x; });
+        return transformed;
+    };
+
+    EXPECT_EQ(f.result(), std::vector({1, 4, 9, 16, 25}));
+}
+
+// 测试管道操作中的移动语义
+TEST(AsyncTest, PipeOperatorMoveSemantics) {
+    auto f = async::get([] {
+        return std::make_unique<int>(42);
+    }) | [](const std::unique_ptr<int>& ptr) {
+        return *ptr;  // 移动语义，ptr 被消耗
+    };
+
+    EXPECT_EQ(f.result(), 42);
+}
+
+// 测试管道操作与异常传播
+TEST(AsyncTest, PipeOperatorExceptionPropagation) {
+    try {
+        auto f = async::get([]() -> int {
+            throw runTimeTestError("first error");
+        }) | [](const int x) {
+            return x + 1;  // 不会执行
+        } | [](const int x) {
+            return x * 2;  // 不会执行
+        };
+        f.result();
+
+        FAIL() << "Should have thrown an exception";
+    } catch (const runTimeTestError& e) {
+        EXPECT_STREQ(e.what(), "first error");
+    }
+}
+
+// 测试复杂的管道组合
+TEST(AsyncTest, ComplexPipeComposition) {
+    auto process_data = [](const std::string& input) {
+        return input + " processed";
+    };
+
+    auto convert_to_upper = [](std::string str) {
+        std::ranges::transform(str, str.begin(), ::toupper);
+        return str;
+    };
+
+    auto add_suffix = [](const std::string& str) {
+        return str + "!";
+    };
+
+    auto f = async::get([] {
+        return "hello";
+    }) | process_data | convert_to_upper | add_suffix;
+
+    EXPECT_EQ(f.result(), "HELLO PROCESSED!");
+}
+
+// 测试管道操作与条件逻辑
+TEST(AsyncTest, PipeOperatorWithConditionalLogic) {
+    auto f = async::get([] {
+        return 42;
+    }) | [](const int x) {
+    if (x > 0) {
+        return x * 2;
+    }
+    return x;
+    };
+
+    EXPECT_EQ(f.result(), 84);
 }
