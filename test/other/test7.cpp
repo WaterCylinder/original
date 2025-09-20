@@ -50,10 +50,10 @@ int main() {
     };
     std::cout << ff.result() << std::endl;
 
-    std::cout << original::async::get(simple_func) << std::endl;
-    std::cout << original::async::get(add_func, 1, 5) << std::endl;
-    std::cout << original::async::get(matrixAdd, original::array{1, 2, 3, 4}, original::array{2, 4, 5, 7, 12}) << std::endl;
-    std::cout << original::async::get(sub_func, 5, 1) << std::endl;
+    std::cout << original::async::get(simple_func).result() << std::endl;
+    std::cout << original::async::get(add_func, 1, 5).result() << std::endl;
+    std::cout << original::async::get(matrixAdd, original::array{1, 2, 3, 4}, original::array{2, 4, 5, 7, 12}).result() << std::endl;
+    std::cout << original::async::get(sub_func, 5, 1).result() << std::endl;
 
     original::singleton<original::taskDelegator>::init();
     auto& delegator = original::singleton<original::taskDelegator>::instance();
