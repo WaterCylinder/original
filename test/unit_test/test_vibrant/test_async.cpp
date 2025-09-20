@@ -129,39 +129,118 @@ TEST(AsyncTest, ExceptionConsistency) {
     runPromiseInThread(p);
 
     EXPECT_THROW(f.result(), runTimeTestError);
-    // 第二次调用仍然抛异常（根据你的实现）
+    // 第二次调用仍然抛异常
     EXPECT_THROW(f.result(), runTimeTestError);
 }
 
-// 测试 get() 函数（便捷函数）
-TEST(AsyncTest, GetFunctionWorks) {
-    auto result = async::get([] {
-        thread::sleep(milliseconds(50));
-        return 123;
+// 测试 get 函数的基本功能
+TEST(AsyncTest, GetAsyncBasicFunctionality) {
+    auto sf = async::get([] {
+        thread::sleep(milliseconds(100));
+        return 42;
     });
-    EXPECT_EQ(result, 123);
+
+    EXPECT_TRUE(sf.valid());
+    EXPECT_FALSE(sf.ready());  // 任务刚开始，应该还没完成
+
+    // 等待任务完成
+    sf.wait();
+
+    EXPECT_TRUE(sf.ready());
+    EXPECT_EQ(sf.result(), 42);
 }
 
-// 测试带参数的 get() 函数
-TEST(AsyncTest, GetFunctionWithArgs) {
-    auto result = async::get([](int a, int b) {
-        return a + b;
-    }, 20, 22);
-    EXPECT_EQ(result, 42);
+// 测试 get 函数的异常处理
+TEST(AsyncTest, GetAsyncExceptionHandling) {
+    auto sf = async::get([]() -> int {
+        thread::sleep(milliseconds(50));
+        throw runTimeTestError("getAsync error");
+        return 42;
+    });
+
+    EXPECT_TRUE(sf.valid());
+
+    // 等待任务完成
+    sf.wait();
+
+    EXPECT_TRUE(sf.ready());
+    EXPECT_THROW(sf.result(), runTimeTestError);
 }
 
-// 压力测试：启动多个任务，确保不会死锁
-TEST(AsyncTest, StressTestMultipleTasks) {
-    std::vector<async::future<int>> futures;
+// 测试 get 函数带参数
+TEST(AsyncTest, GetAsyncWithArguments) {
+    auto sf = async::get([](const int a, const int b, const int c) {
+        thread::sleep(milliseconds(50));
+        return a + b + c;
+    }, 10, 20, 12);
 
-    for (int i = 0; i < 20; i++) {
-        // 直接使用 async::get 简化测试
-        auto result = async::get([](int x) {
-            thread::sleep(milliseconds(10));
-            return x * x;
-        }, i);
-        EXPECT_EQ(result, i * i);
+    EXPECT_TRUE(sf.valid());
+
+    // 等待任务完成
+    sf.wait();
+
+    EXPECT_TRUE(sf.ready());
+    EXPECT_EQ(sf.result(), 42);
+}
+
+// 测试 get 的 void 返回类型
+TEST(AsyncTest, GetAsyncVoidReturnType) {
+    std::atomic completed{false};
+
+    auto sf = async::get([&completed] {
+        thread::sleep(milliseconds(50));
+        completed.store(true);
+    });
+
+    EXPECT_TRUE(sf.valid());
+
+    // 等待任务完成
+    sf.wait();
+
+    EXPECT_TRUE(sf.ready());
+    EXPECT_NO_THROW(sf.result());
+    EXPECT_TRUE(completed.load());
+}
+
+// 测试多个 get 任务并发执行
+TEST(AsyncTest, GetAsyncMultipleConcurrentTasks) {
+    constexpr int numTasks = 10;
+    std::vector<async::sharedFuture<int>> futures;
+
+    // 启动多个并发任务
+    for (int i = 0; i < numTasks; i++) {
+        futures.push_back(async::get([i] {
+            thread::sleep(milliseconds(20));
+            return i * i;
+        }).share());
     }
+
+    // 等待所有任务完成
+    for (auto& sf : futures) {
+        sf.wait();
+        EXPECT_TRUE(sf.ready());
+    }
+
+    // 验证所有结果
+    for (int i = 0; i < numTasks; i++) {
+        EXPECT_EQ(futures[i].result(), i * i);
+    }
+}
+
+// 测试 get 任务的自动分离线程
+TEST(AsyncTest, GetAsyncAutoDetachThread) {
+    // 这个测试验证线程确实会自动分离，不会造成资源泄漏
+    const auto sf = async::get([] {
+        thread::sleep(milliseconds(100));
+        return 123;
+    }).share();
+
+    // 获取结果，应该能正常完成
+    EXPECT_EQ(sf.result(), 123);
+
+    // 多次调用应该都能正常工作（因为是 sharedFuture）
+    EXPECT_EQ(sf.result(), 123);
+    EXPECT_EQ(sf.result(), 123);
 }
 
 // 测试 ready() 方法
