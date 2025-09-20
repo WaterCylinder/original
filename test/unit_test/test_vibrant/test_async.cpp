@@ -59,14 +59,14 @@ TEST(AsyncTest, AsynchronousExecution) {
         return 2025;
     });
 
-    auto start = time::point::now();
+    const auto start = time::point::now();
     auto f = p.getFuture();
     runPromiseInThread(p);
 
-    int result = f.result();
-    auto end = time::point::now();
+    const int result = f.result();
+    const auto end = time::point::now();
 
-    auto duration = end - start;
+    const auto duration = end - start;
     EXPECT_GE(duration.value(), 190);  // 至少等待了200ms（允许误差）
     EXPECT_EQ(result, 2025);
 }
@@ -95,7 +95,7 @@ TEST(AsyncTest, VoidReturnType) {
 
 // 测试传参异步任务
 TEST(AsyncTest, TaskWithArguments) {
-    auto p = async::makePromise([](int a, int b) {
+    auto p = async::makePromise([](const int a, const int b) {
         return a + b;
     }, 10, 32);
 
@@ -210,7 +210,7 @@ TEST(AsyncTest, SharedFutureBasicFunctionality) {
     });
 
     auto f = p.getFuture();
-    auto sf = f.share();  // 转换为 sharedFuture
+    const auto sf = f.share();  // 转换为 sharedFuture
 
     runPromiseInThread(p);
 
@@ -230,7 +230,7 @@ TEST(AsyncTest, SharedFutureVoidType) {
     });
 
     auto f = p.getFuture();
-    auto sf = f.share();
+    const auto sf = f.share();
 
     runPromiseInThread(p);
 
@@ -354,7 +354,7 @@ TEST(AsyncTest, FutureBaseExceptionCase) {
     EXPECT_TRUE(basePtr->valid());
 
     // 应该能检测到异常
-    auto exceptionPtr = basePtr->exception();
+    const auto exceptionPtr = basePtr->exception();
     EXPECT_NE(exceptionPtr, nullptr);
 
     // 通过异常指针重新抛出
