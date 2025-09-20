@@ -474,3 +474,265 @@ TEST(AsyncTest, SharedFutureComparisonOperators) {
     EXPECT_EQ(sf1_move.result(), 42);
     EXPECT_EQ(sf2.result(), 100);
 }
+
+// 测试 strongPointer() 方法
+TEST(AsyncTest, SharedFutureStrongPointerMethod) {
+    auto p = async::makePromise([] {
+        thread::sleep(milliseconds(100));
+        return std::vector{1, 2, 3, 4, 5};
+    });
+
+    auto f = p.getFuture();
+    auto sf = f.share();
+
+    runPromiseInThread(p);
+    sf.wait();  // 等待任务完成
+
+    // 使用 strongPointer() 避免拷贝
+    const auto result_ptr = sf.strongPointer();
+    ASSERT_NE(result_ptr, nullptr);
+    EXPECT_EQ(result_ptr->size(), 5);
+    EXPECT_EQ((*result_ptr)[0], 1);
+    EXPECT_EQ((*result_ptr)[4], 5);
+
+    // 原始数据不应被修改（因为是 const 指针）
+    // (*result_ptr)[0] = 99;  // 这行应该编译错误
+
+    // 拷贝后的结果可以随意修改
+    auto result = *result_ptr;
+    result.push_back(6);
+    EXPECT_EQ(result.size(), 6);
+}
+
+// 测试 sharedFuture 的哈希功能
+TEST(AsyncTest, SharedFutureHashFunctionality) {
+    auto p1 = async::makePromise([] {
+        return 42;
+    });
+    auto p2 = async::makePromise([] {
+        return 100;
+    });
+
+    auto f1 = p1.getFuture();
+    auto f2 = p2.getFuture();
+
+    auto sf1 = f1.share();
+    auto sf2 = f2.share();
+    auto sf1_copy = sf1;  // 复制构造
+    auto sf1_move = std::move(sf1);  // 移动构造
+
+    runPromiseInThread(p1);
+    runPromiseInThread(p2);
+
+    // 相同底层对象的副本应该有相同的哈希值
+    EXPECT_EQ(sf1_copy.toHash(), sf1_move.toHash());
+    EXPECT_TRUE(sf1_copy.equals(sf1_move));
+
+    // 不同底层对象应该有不同的哈希值（大概率）
+    EXPECT_NE(sf1_copy.toHash(), sf2.toHash());
+    EXPECT_FALSE(sf1_copy.equals(sf2));
+
+    // 验证哈希值的一致性（多次调用应该返回相同值）
+    auto hash1 = sf1_copy.toHash();
+    auto hash2 = sf1_copy.toHash();
+    EXPECT_EQ(hash1, hash2);
+
+    // 无效的 sharedFuture 应该有合理的哈希值（通常是0）
+    async::sharedFuture<int> invalid1, invalid2;
+    EXPECT_EQ(invalid1.toHash(), invalid2.toHash());
+    EXPECT_TRUE(invalid1.equals(invalid2));
+
+    // 有效的和无效的不应该相等
+    EXPECT_FALSE(sf1_copy.equals(invalid1));
+    EXPECT_NE(sf1_copy.toHash(), invalid1.toHash());
+}
+
+// 测试 void 类型的 sharedFuture 哈希
+TEST(AsyncTest, SharedFutureVoidHashFunctionality) {
+    auto p1 = async::makePromise([] {
+        thread::sleep(milliseconds(50));
+    });
+    auto p2 = async::makePromise([] {
+        thread::sleep(milliseconds(50));
+    });
+
+    auto f1 = p1.getFuture();
+    auto f2 = p2.getFuture();
+
+    auto sf1 = f1.share();
+    auto sf2 = f2.share();
+    auto sf1_copy = sf1;
+
+    runPromiseInThread(p1);
+    runPromiseInThread(p2);
+
+    // 等待任务完成
+    sf1.wait();
+    sf2.wait();
+
+    // 相同底层对象应该有相同的哈希值
+    EXPECT_EQ(sf1.toHash(), sf1_copy.toHash());
+    EXPECT_TRUE(sf1.equals(sf1_copy));
+
+    // 不同底层对象应该有不同的哈希值
+    EXPECT_NE(sf1.toHash(), sf2.toHash());
+    EXPECT_FALSE(sf1.equals(sf2));
+
+    // 验证哈希一致性
+    EXPECT_EQ(sf1.toHash(), sf1.toHash());
+}
+
+// 测试 sharedFuture 在 unordered_set 中的使用
+TEST(AsyncTest, SharedFutureInUnorderedSet) {
+    std::unordered_set<async::sharedFuture<int>> future_set;
+
+    auto p1 = async::makePromise([] { return 1; });
+    auto p2 = async::makePromise([] { return 2; });
+    auto p3 = async::makePromise([] { return 3; });
+
+    auto sf1 = p1.getFuture().share();
+    auto sf2 = p2.getFuture().share();
+    auto sf3 = p3.getFuture().share();
+    auto sf1_copy = sf1;  // 副本
+
+    runPromiseInThread(p1);
+    runPromiseInThread(p2);
+    runPromiseInThread(p3);
+
+    // 插入到 unordered_set
+    future_set.insert(sf1);
+    future_set.insert(sf2);
+    future_set.insert(sf3);
+    future_set.insert(sf1_copy);  // 应该不会插入，因为与 sf1 相同
+
+    // 应该有3个元素（sf1_copy 是重复的）
+    EXPECT_EQ(future_set.size(), 3);
+
+    // 检查元素是否存在
+    EXPECT_NE(future_set.find(sf1), future_set.end());
+    EXPECT_NE(future_set.find(sf2), future_set.end());
+    EXPECT_NE(future_set.find(sf3), future_set.end());
+    EXPECT_NE(future_set.find(sf1_copy), future_set.end());  // 应该找到 sf1
+
+    // 检查不存在的元素
+    auto p4 = async::makePromise([] { return 4; });
+    auto sf4 = p4.getFuture().share();
+    EXPECT_EQ(future_set.find(sf4), future_set.end());
+}
+
+// 测试 sharedFuture 在 unordered_map 中的使用
+TEST(AsyncTest, SharedFutureInUnorderedMap) {
+    std::unordered_map<async::sharedFuture<int>, std::string> future_map;
+
+    auto p1 = async::makePromise([] { return 1; });
+    auto p2 = async::makePromise([] { return 2; });
+
+    auto sf1 = p1.getFuture().share();
+    auto sf2 = p2.getFuture().share();
+    auto sf1_copy = sf1;  // 副本
+
+    runPromiseInThread(p1);
+    runPromiseInThread(p2);
+
+    // 插入到 unordered_map
+    future_map[sf1] = "first";
+    future_map[sf2] = "second";
+    future_map[sf1_copy] = "first_copy";  // 应该覆盖之前的值
+
+    // 应该有2个元素
+    EXPECT_EQ(future_map.size(), 2);
+
+    // 检查值
+    EXPECT_EQ(future_map[sf1], "first_copy");
+    EXPECT_EQ(future_map[sf2], "second");
+    EXPECT_EQ(future_map[sf1_copy], "first_copy");
+
+    // 使用 find 方法
+    auto it1 = future_map.find(sf1);
+    ASSERT_NE(it1, future_map.end());
+    EXPECT_EQ(it1->second, "first_copy");
+
+    auto it2 = future_map.find(sf2);
+    ASSERT_NE(it2, future_map.end());
+    EXPECT_EQ(it2->second, "second");
+}
+
+// 测试哈希值的稳定性（多次运行应该相同）
+TEST(AsyncTest, SharedFutureHashStability) {
+    auto p = async::makePromise([] {
+        return 42;
+    });
+
+    auto sf = p.getFuture().share();
+    runPromiseInThread(p);
+
+    // 获取哈希值多次，应该都相同
+    const auto hash1 = sf.toHash();
+    const auto hash2 = sf.toHash();
+    const auto hash3 = sf.toHash();
+
+    EXPECT_EQ(hash1, hash2);
+    EXPECT_EQ(hash2, hash3);
+    EXPECT_EQ(hash1, hash3);
+
+    // 即使等待任务完成，哈希值也应该不变
+    sf.wait();
+    const auto hash_after_wait = sf.toHash();
+    EXPECT_EQ(hash1, hash_after_wait);
+
+    // 获取结果后，哈希值也应该不变
+    const int result = sf.result();
+    EXPECT_EQ(result, 42);
+    const auto hash_after_result = sf.toHash();
+    EXPECT_EQ(hash1, hash_after_result);
+}
+
+// 测试异常情况下的哈希行为
+TEST(AsyncTest, SharedFutureHashWithException) {
+    auto p = async::makePromise([]() -> int {
+        throw runTimeTestError("hash test error");
+    });
+
+    const auto sf = p.getFuture().share();
+    runPromiseInThread(p);
+
+    // 即使有异常，哈希值也应该可用
+    EXPECT_NO_THROW({
+        std::cout << sf.toHash() << std::endl;
+    });
+    const auto hash = sf.toHash();
+
+    // 多次调用应该返回相同的哈希值
+    EXPECT_EQ(sf.toHash(), hash);
+    EXPECT_EQ(sf.toHash(), hash);
+
+    // 尝试获取结果应该抛出异常，但哈希值不变
+    EXPECT_THROW(sf.result(), runTimeTestError);
+    EXPECT_EQ(sf.toHash(), hash);
+}
+
+// 测试移动语义对哈希的影响
+TEST(AsyncTest, SharedFutureHashMoveSemantics) {
+    auto p = async::makePromise([] {
+        return 42;
+    });
+
+    auto sf_original = p.getFuture().share();
+    runPromiseInThread(p);
+
+    const auto original_hash = sf_original.toHash();
+
+    // 移动构造
+    async::sharedFuture sf_moved(std::move(sf_original));
+    EXPECT_EQ(sf_moved.toHash(), original_hash);
+
+    // 移动后原始对象应该无效
+    EXPECT_FALSE(sf_original.valid());
+    EXPECT_EQ(sf_original.toHash(), 0);  // 无效对象的哈希值应该是0
+
+    // 移动赋值
+    const async::sharedFuture<int> sf_target = std::move(sf_moved);
+    EXPECT_EQ(sf_target.toHash(), original_hash);
+    EXPECT_FALSE(sf_moved.valid());
+    EXPECT_EQ(sf_moved.toHash(), 0);
+}
