@@ -560,7 +560,7 @@ template <typename TYPE>
 std::exception_ptr original::async::future<TYPE>::exception() const noexcept
 {
     if (!this->valid()) {
-        return std::make_exception_ptr(sysError("Access an invalid future"));
+        return {};
     }
     return this->awr_->exception();
 }
@@ -606,7 +606,7 @@ template <typename TYPE>
 std::exception_ptr original::async::sharedFuture<TYPE>::exception() const noexcept
 {
     if (!this->valid()) {
-        return std::make_exception_ptr(sysError("Access an invalid sharedFuture"));
+        return {};
     }
     return this->awr_->exception();
 }
@@ -810,7 +810,7 @@ inline bool original::async::future<void>::ready() const
 inline std::exception_ptr original::async::future<void>::exception() const noexcept
 {
     if (!this->valid()) {
-        return std::make_exception_ptr(sysError("Access an invalid future"));
+        return {};
     }
     return this->awr_->exception();
 }
@@ -850,7 +850,7 @@ inline bool original::async::sharedFuture<void>::ready() const
 inline std::exception_ptr original::async::sharedFuture<void>::exception() const noexcept
 {
     if (!this->valid()) {
-        return std::make_exception_ptr(sysError("Access an invalid sharedFuture"));
+        return {};
     }
     return this->awr_->exception();
 }
