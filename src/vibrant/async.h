@@ -731,7 +731,7 @@ TYPE original::async::asyncWrapper<TYPE>::get()
     uniqueLock lock{this->mutex_};
     this->rethrowIfException();
     if (this->result_) {
-        TYPE result = *this->result_;
+        TYPE result = std::move(*this->result_);
         this->result_.reset();
         return result;
     }
@@ -741,7 +741,7 @@ TYPE original::async::asyncWrapper<TYPE>::get()
 
     this->rethrowIfException();
 
-    TYPE result = *this->result_;
+    TYPE result = std::move(*this->result_);
     this->result_.reset();
     return result;
 }
