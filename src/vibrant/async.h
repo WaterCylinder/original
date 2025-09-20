@@ -688,7 +688,7 @@ original::async::asyncWrapper<TYPE>::exception() const
 
 template <typename TYPE>
 original::async::future<TYPE>::future(strongPtr<asyncWrapper<TYPE>> awr)
-    : awr_(awr) {}
+    : awr_(std::move(awr)) {}
 
 template <typename TYPE>
 bool original::async::future<TYPE>::valid() const noexcept
