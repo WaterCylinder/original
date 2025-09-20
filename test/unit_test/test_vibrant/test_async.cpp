@@ -215,7 +215,7 @@ TEST(AsyncTest, SharedFutureBasicFunctionality) {
     runPromiseInThread(p);
 
     // 多个 sharedFuture 副本应该都能访问结果
-    auto sf2 = sf;
+    auto sf2 = sf;  // NOLINT: Copy test
     EXPECT_EQ(sf.result(), 42);
     EXPECT_EQ(sf2.result(), 42);
 
@@ -238,7 +238,7 @@ TEST(AsyncTest, SharedFutureVoidType) {
     EXPECT_NO_THROW(sf.result());
 
     // 可以复制
-    auto sf2 = sf;
+    auto sf2 = sf;  // NOLINT: Copy test
     EXPECT_NO_THROW(sf2.result());
 }
 
@@ -257,7 +257,7 @@ TEST(AsyncTest, SharedFutureExceptionHandling) {
     EXPECT_THROW(sf.result(), runTimeTestError);
 
     // 副本也应该抛出相同的异常
-    auto sf2 = sf;
+    auto sf2 = sf;  // NOLINT: Copy test
     EXPECT_THROW(sf2.result(), runTimeTestError);
 }
 
