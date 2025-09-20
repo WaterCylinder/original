@@ -473,10 +473,7 @@ template <typename TYPE>
 TYPE original::async::asyncWrapper<TYPE>::get()
 {
     uniqueLock lock{this->mutex_};
-    if (this->e_) std::rethrow_exception(this->e_);
-    if (this->alter_.hasValue()) {
-        TYPE result = *this->alter_;
-        this->alter_.reset();
+    this->rethrowIfException();
     if (this->result_.hasValue()) {
         TYPE result = *this->result_;
         this->result_.reset();
@@ -486,7 +483,7 @@ TYPE original::async::asyncWrapper<TYPE>::get()
         return this->ready();
     });
 
-    if (this->e_) std::rethrow_exception(this->e_);
+    this->rethrowIfException();
 
     TYPE result = *this->result_;
     this->result_.reset();
@@ -497,9 +494,7 @@ template <typename TYPE>
 const TYPE& original::async::asyncWrapper<TYPE>::peek() const
 {
     uniqueLock lock{this->mutex_};
-    if (this->e_) std::rethrow_exception(this->e_);
-    if (this->alter_.hasValue()) {
-        return *this->alter_;
+    this->rethrowIfException();
     if (this->result_.hasValue()) {
         return *this->result_;
     }
@@ -507,8 +502,7 @@ const TYPE& original::async::asyncWrapper<TYPE>::peek() const
         return this->ready();
     });
 
-    if (this->e_) std::rethrow_exception(this->e_);
-    return *this->alter_;
+    this->rethrowIfException();
     return *this->result_;
 }
 
@@ -744,9 +738,7 @@ inline void original::async::asyncWrapper<void>::wait() const
 inline void original::async::asyncWrapper<void>::get()
 {
     uniqueLock lock{this->mutex_};
-    if (this->e_) std::rethrow_exception(this->e_);
-    if (this->alter_) {
-        this->alter_.reset();
+    this->rethrowIfException();
     if (this->result_) {
         this->result_.reset();
         return;
@@ -755,16 +747,14 @@ inline void original::async::asyncWrapper<void>::get()
         return this->ready();
     });
 
-    if (this->e_) std::rethrow_exception(this->e_);
-    this->alter_.reset();
+    this->rethrowIfException();
     this->result_.reset();
 }
 
 inline void original::async::asyncWrapper<void>::peek() const
 {
     uniqueLock lock{this->mutex_};
-    if (this->e_) std::rethrow_exception(this->e_);
-    if (this->alter_) {
+    this->rethrowIfException();
     if (this->result_) {
         return;
     }
@@ -772,7 +762,7 @@ inline void original::async::asyncWrapper<void>::peek() const
         return this->ready();
     });
 
-    if (this->e_) std::rethrow_exception(this->e_);
+    this->rethrowIfException();
 }
 
 inline void original::async::asyncWrapper<void>::rethrowIfException() const
