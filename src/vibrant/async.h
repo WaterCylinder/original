@@ -387,6 +387,61 @@ namespace original {
         static auto get(Callback&& c, Args&&... args) -> future<std::invoke_result_t<std::decay_t<Callback>, std::decay_t<Args>...>>;
     };
 
+    /**
+     * @brief Pipe operator for chaining asynchronous computations
+     * @details Applies a callback function to the result of a future once it is ready.
+     * Provides a functional style syntax for continuation of asynchronous tasks.
+     *
+     * @tparam T Result type of the future
+     * @tparam Callback Callable type, must accept T or T&& (depending on constness and value category)
+     * @param f Source future containing the asynchronous result
+     * @param c Callback function to process the result
+     * @return A new future holding the result of the callback
+     */
+    template<typename T, typename Callback>
+    auto operator|(async::future<T> f, Callback&& c);
+
+    /**
+     * @brief Pipe operator specialization for future<void>
+     * @details Applies a callback function once the future completes.
+     * Useful for chaining tasks that do not produce a value.
+     *
+     * @tparam Callback Callable type, must accept no arguments
+     * @param f Source future<void> representing completion of an asynchronous task
+     * @param c Callback function to execute after completion
+     * @return A new future holding the result of the callback
+     */
+    template <typename Callback>
+    auto operator|(async::future<void> f, Callback&& c);
+
+    /**
+     * @brief Pipe operator for chaining computations on sharedFuture
+     * @details Applies a callback function to the result of a sharedFuture once it is ready.
+     * Unlike future, sharedFuture can be copied and used in multiple places.
+     *
+     * @tparam T Result type of the sharedFuture
+     * @tparam Callback Callable type, must accept T const& or T (depending on design)
+     * @param sf Source sharedFuture containing the asynchronous result
+     * @param c Callback function to process the result
+     * @return A new future holding the result of the callback
+     */
+    template<typename T, typename Callback>
+    auto operator|(async::sharedFuture<T> sf, Callback&& c);
+
+    /**
+     * @brief Pipe operator specialization for sharedFuture<void>
+     * @details Applies a callback function once the sharedFuture completes.
+     * Suitable for chaining multiple consumers of the same asynchronous task.
+     *
+     * @tparam Callback Callable type, must accept no arguments
+     * @param sf Source sharedFuture<void> representing completion of an asynchronous task
+     * @param c Callback function to execute after completion
+     * @return A new future holding the result of the callback
+     */
+    template <typename Callback>
+    auto operator|(async::sharedFuture<void> sf, Callback&& c);
+
+
     // ==================== Void Specializations ====================
 
     /**
@@ -929,6 +984,65 @@ auto original::async::get(Callback&& c, Args&&... args)
     };
 
     return fut;
+}
+
+template <typename T, typename Callback>
+auto original::operator|(async::future<T> f, Callback&& c)
+{
+    using ResultType = std::invoke_result_t<Callback, T>;
+    strongPtr<async::future<T>> shared_f = makeStrongPtr<async::future<T>>(std::move(f));
+    return async::get([shared_f, c = std::forward<Callback>(c)] mutable -> ResultType {
+        if constexpr (!std::is_void_v<ResultType>) {
+            return c(shared_f->result());
+        } else {
+            return c();
+        }
+    });
+}
+
+template <typename Callback>
+auto original::operator|(async::future<void> f, Callback&& c)
+{
+    using ResultType = std::invoke_result_t<Callback>;
+    strongPtr<async::future<void>> shared_f = makeStrongPtr<async::future<void>>(std::move(f));
+    return async::get([shared_f, c = std::forward<Callback>(c)]() mutable -> ResultType {
+        shared_f->result();
+        if constexpr (!std::is_void_v<ResultType>) {
+            return c();
+        } else {
+            c();
+            return;
+        }
+    });
+}
+
+template <typename T, typename Callback>
+auto original::operator|(async::sharedFuture<T> sf, Callback&& c)
+{
+    using ResultType = std::invoke_result_t<Callback, T>;
+    return async::get([sf, c = std::forward<Callback>(c)] mutable -> ResultType {
+        if constexpr (!std::is_void_v<ResultType>) {
+            return c(sf.result());
+        } else {
+            sf.result();
+            return c();
+        }
+    }).share();
+}
+
+template <typename Callback>
+auto original::operator|(async::sharedFuture<void> sf, Callback&& c)
+{
+    using ResultType = std::invoke_result_t<Callback>;
+    return async::get([sf, c = std::forward<Callback>(c)]() mutable -> ResultType {
+        sf.result();
+        if constexpr (!std::is_void_v<ResultType>) {
+            return c();
+        } else {
+            c();
+            return;
+        }
+    }).share();
 }
 
 inline void original::async::asyncWrapper<void>::setValue()
