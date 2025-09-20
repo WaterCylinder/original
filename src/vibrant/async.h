@@ -836,12 +836,7 @@ template <typename TYPE, typename Callback>
 void original::async::promise<TYPE, Callback>::run()
 {
     try {
-        if constexpr (!std::is_void_v<TYPE>) {
-            this->awr_->setValue(this->c_());
-        } else {
-            this->c_();
-            this->awr_->setValue({});
-        }
+        this->awr_->setValue(this->c_());
     } catch (...) {
         this->awr_->setException(std::current_exception());
     }
