@@ -30,7 +30,7 @@ namespace original {
         template<typename TYPE>
         class asyncWrapper {
             atomic<bool> ready_{makeAtomic(false)};  ///< Atomic flag indicating result readiness
-            alternative<TYPE> alter_;                ///< Optional storage for the result value
+            alternative<TYPE> result_;                ///< Optional storage for the result value
             mutable pCondition cond_{};                      ///< Condition variable for synchronization
             mutable pMutex mutex_{};                 ///< Mutex for thread safety
             std::exception_ptr e_{};                 ///< Exception pointer for error handling
@@ -261,7 +261,7 @@ namespace original {
     template <>
     class async::asyncWrapper<void> {
         atomic<bool> ready_{makeAtomic(false)};  ///< Atomic flag indicating completion
-        alternative<void> alter_;                ///< Optional void marker
+        alternative<void> result_;                ///< Optional void marker
         mutable pCondition cond_{};                      ///< Condition variable for synchronization
         mutable pMutex mutex_{};                 ///< Mutex for thread safety
         std::exception_ptr e_{};                 ///< Exception pointer for error handling
@@ -436,7 +436,7 @@ void original::async::asyncWrapper<TYPE>::setValue(TYPE&& v)
 {
     {
         uniqueLock lock{this->mutex_};
-        this->alter_.set(std::move(v));
+        this->result_.set(std::move(v));
         this->ready_.store(true);
     }
     this->cond_.notify();
@@ -477,6 +477,9 @@ TYPE original::async::asyncWrapper<TYPE>::get()
     if (this->alter_.hasValue()) {
         TYPE result = *this->alter_;
         this->alter_.reset();
+    if (this->result_.hasValue()) {
+        TYPE result = *this->result_;
+        this->result_.reset();
         return result;
     }
     this->cond_.wait(this->mutex_, [this]{
@@ -485,8 +488,8 @@ TYPE original::async::asyncWrapper<TYPE>::get()
 
     if (this->e_) std::rethrow_exception(this->e_);
 
-    TYPE result = *this->alter_;
-    this->alter_.reset();
+    TYPE result = *this->result_;
+    this->result_.reset();
     return result;
 }
 
@@ -497,6 +500,8 @@ const TYPE& original::async::asyncWrapper<TYPE>::peek() const
     if (this->e_) std::rethrow_exception(this->e_);
     if (this->alter_.hasValue()) {
         return *this->alter_;
+    if (this->result_.hasValue()) {
+        return *this->result_;
     }
     this->cond_.wait(this->mutex_, [this]{
         return this->ready();
@@ -504,6 +509,7 @@ const TYPE& original::async::asyncWrapper<TYPE>::peek() const
 
     if (this->e_) std::rethrow_exception(this->e_);
     return *this->alter_;
+    return *this->result_;
 }
 
 template <typename TYPE>
@@ -705,7 +711,7 @@ inline void original::async::asyncWrapper<void>::setValue()
 {
     {
         uniqueLock lock{this->mutex_};
-        this->alter_.set();
+        this->result_.set();
         this->ready_.store(true);
     }
     this->cond_.notify();
@@ -741,6 +747,8 @@ inline void original::async::asyncWrapper<void>::get()
     if (this->e_) std::rethrow_exception(this->e_);
     if (this->alter_) {
         this->alter_.reset();
+    if (this->result_) {
+        this->result_.reset();
         return;
     }
     this->cond_.wait(this->mutex_, [this] {
@@ -749,6 +757,7 @@ inline void original::async::asyncWrapper<void>::get()
 
     if (this->e_) std::rethrow_exception(this->e_);
     this->alter_.reset();
+    this->result_.reset();
 }
 
 inline void original::async::asyncWrapper<void>::peek() const
@@ -756,6 +765,7 @@ inline void original::async::asyncWrapper<void>::peek() const
     uniqueLock lock{this->mutex_};
     if (this->e_) std::rethrow_exception(this->e_);
     if (this->alter_) {
+    if (this->result_) {
         return;
     }
     this->cond_.wait(this->mutex_, [this] {
