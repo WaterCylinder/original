@@ -68,8 +68,17 @@ namespace original {
              */
             TYPE get();
 
+            /**
+             * @brief Peeks at the result value without consuming it (blocks until ready)
+             * @return Const reference to the computed result
+             * @throws std::exception if an exception was set
+             */
             const TYPE& peek() const;
 
+            /**
+             * @brief Gets a strong pointer to the result value
+             * @return Strong pointer to the result
+             */
             strongPtr<TYPE> getPtr() const;
 
             /**
@@ -85,14 +94,41 @@ namespace original {
         };
 
     public:
+        /**
+         * @class futureBase
+         * @brief Abstract base interface for asynchronous consumers
+         * @details Provides a common, type-erased interface for accessing asynchronous
+         * results, regardless of their actual type or ownership semantics.
+         *
+         * Key methods include:
+         * - `valid()`   : check if the consumer is valid
+         * - `ready()`   : check if the result is ready
+         * - `wait()`    : block until ready
+         * - `exception()`: retrieve any stored exception
+         */
         class futureBase {
         public:
+            /**
+             * @brief Checks if the future is valid (has an associated async wrapper)
+             * @return True if valid, false otherwise
+             */
             [[nodiscard]] virtual bool valid() const noexcept = 0;
 
+            /**
+             * @brief Waits until the result becomes ready
+             */
             virtual void wait() = 0;
 
+            /**
+             * @brief Gets the stored exception if computation failed
+             * @return Exception pointer (nullptr if no exception)
+             */
             [[nodiscard]] virtual std::exception_ptr exception() const noexcept = 0;
 
+            /**
+             * @brief Checks if the result is ready
+             * @return True if result is available
+             */
             [[nodiscard]] virtual bool ready() const = 0;
 
             virtual ~futureBase() = default;
@@ -105,10 +141,10 @@ namespace original {
 
         /**
          * @class future
-         * @brief Represents a future result of an asynchronous computation
+         * @brief Represents a one-shot future result of an asynchronous computation
          * @tparam TYPE The result type of the computation
-         * @details Provides access to the result of an asynchronous operation.
-         * The result can be retrieved only once.
+         * @details `future` allows retrieving the result exactly once.
+         * After consumption, the value is moved out of storage.
          */
         template<typename TYPE>
         class future final : public futureBase {
@@ -128,8 +164,16 @@ namespace original {
             future(future&&) = default;
             future& operator=(future&&) = default;
 
+            /**
+             * @brief Checks if the future is valid (has an associated async wrapper)
+             * @return True if valid, false otherwise
+             */
             [[nodiscard]] bool valid() const noexcept override;
 
+            /**
+             * @brief Converts this future to a shared future
+             * @return A shared future that shares the same async wrapper
+             */
             sharedFuture<TYPE> share();
 
             /**
@@ -157,6 +201,14 @@ namespace original {
             void wait() override;
         };
 
+        /**
+         * @class sharedFuture
+         * @brief Represents a sharable asynchronous result
+         * @tparam TYPE The result type of the computation
+         * @details Unlike `future`, `sharedFuture` can be copied and safely stored in
+         * multiple places. All copies refer to the same asynchronous result, making it
+         * suitable for scenarios where results are needed by multiple consumers.
+         */
         template<typename TYPE>
         class sharedFuture final : public futureBase, public hashable<sharedFuture<TYPE>> {
             strongPtr<asyncWrapper<TYPE>> awr_{};
@@ -173,24 +225,75 @@ namespace original {
             sharedFuture(sharedFuture&&) = default;
             sharedFuture& operator=(sharedFuture&&) = default;
 
+            /**
+             * @brief Checks if the shared future is valid (has an associated async wrapper)
+             * @return True if valid, false otherwise
+             */
             [[nodiscard]] bool valid() const noexcept override;
 
+            /**
+             * @brief Gets the result value (blocks until ready)
+             * @return The computed result
+             * @throws std::exception if the computation threw an exception
+             */
             TYPE result() const;
 
+            /**
+             * @brief Gets a strong pointer to the result value
+             * @details Returns a strong reference pointer to the asynchronous result,
+             * extending the lifetime of the referenced object and avoiding dangling references.
+             * The pointer approach avoids unnecessary copying
+             * @warning the returned pointer directly references the result stored within the async module.
+             * Modifying the stored result through constCastTo or other means may cause unexpected behavior
+             * and is strongly discouraged.
+             * @return Strong pointer to the const result value
+             * @throws sysError if the shared future is invalid or not ready
+             * @throws std::exception if the computation threw an exception
+             */
             strongPtr<const TYPE> strongPointer() const;
 
+            /**
+             * @brief Checks if the result is ready
+             * @return True if result is available
+             */
             [[nodiscard]] bool ready() const override;
 
+            /**
+             * @brief Gets the exception if computation failed
+             * @return Exception pointer (nullptr if no exception)
+             */
             [[nodiscard]] std::exception_ptr exception() const noexcept override;
 
+            /**
+             * @brief Equality comparison operator
+             * @param other The other shared future to compare with
+             * @return True if both shared futures refer to the same async wrapper
+             */
             bool operator==(const sharedFuture& other) const noexcept;
 
+            /**
+             * @brief Inequality comparison operator
+             * @param other The other shared future to compare with
+             * @return True if shared futures refer to different async wrappers
+             */
             bool operator!=(const sharedFuture& other) const noexcept;
 
+            /**
+             * @brief Waits until the result becomes ready
+             */
             void wait() override;
 
+            /**
+             * @brief Generates a hash value for the shared future
+             * @return Hash value based on the async wrapper pointer
+             */
             [[nodiscard]] u_integer toHash() const noexcept override;
 
+            /**
+             * @brief Checks if two shared futures are equal
+             * @param other The other shared future to compare with
+             * @return True if both shared futures refer to the same async wrapper
+             */
             bool equals(const sharedFuture& other) const noexcept override;
 
             ~sharedFuture() override = default;
@@ -200,7 +303,7 @@ namespace original {
 
         /**
          * @class promise
-         * @brief Represents a promise of a future result
+         * @brief Represents an asynchronous producer
          * @tparam TYPE The result type of the computation
          * @tparam Callback The type of the computation callback
          * @details Provides the means to set the result of an asynchronous computation
@@ -301,10 +404,15 @@ namespace original {
          */
         void get();
 
+        /**
+         * @brief Checks for completion and exceptions without consuming the result
+         * @throws std::exception if the computation threw an exception
+         */
         void peek() const;
 
         /**
          * @brief Throws stored exception if present
+         * @throws std::exception if the computation threw an exception
          */
         void rethrowIfException() const;
 
@@ -336,8 +444,16 @@ namespace original {
         future(future&&) = default;
         future& operator=(future&&) = default;
 
+        /**
+         * @brief Checks if the future is valid (has an associated async wrapper)
+         * @return True if valid, false otherwise
+         */
         [[nodiscard]] bool valid() const noexcept override;
 
+        /**
+         * @brief Converts this future to a shared future
+         * @return A shared future that shares the same async wrapper
+         */
         sharedFuture<void> share();
 
         /**
@@ -380,22 +496,60 @@ namespace original {
         sharedFuture(sharedFuture&&) = default;
         sharedFuture& operator=(sharedFuture&&) = default;
 
+        /**
+         * @brief Checks if the shared future is valid (has an associated async wrapper)
+         * @return True if valid, false otherwise
+         */
         [[nodiscard]] bool valid() const noexcept override;
 
+        /**
+         * @brief Waits for completion and checks for exceptions
+         * @throws std::exception if the computation threw an exception
+         */
         void result() const;
 
+        /**
+         * @brief Checks if the computation is completed
+         * @return True if completed
+         */
         [[nodiscard]] bool ready() const override;
 
+        /**
+         * @brief Gets the exception if computation failed
+         * @return Exception pointer (nullptr if no exception)
+         */
         [[nodiscard]] std::exception_ptr exception() const noexcept override;
 
+        /**
+         * @brief Equality comparison operator
+         * @param other The other shared future to compare with
+         * @return True if both shared futures refer to the same async wrapper
+         */
         bool operator==(const sharedFuture& other) const noexcept;
 
+        /**
+         * @brief Inequality comparison operator
+         * @param other The other shared future to compare with
+         * @return True if shared futures refer to different async wrappers
+         */
         bool operator!=(const sharedFuture& other) const noexcept;
 
+        /**
+         * @brief Waits until the computation completes
+         */
         void wait() override;
 
+        /**
+         * @brief Generates a hash value for the shared future
+         * @return Hash value based on the async wrapper pointer
+         */
         [[nodiscard]] u_integer toHash() const noexcept override;
 
+        /**
+         * @brief Checks if two shared futures are equal
+         * @param other The other shared future to compare with
+         * @return True if both shared futures refer to the same async wrapper
+         */
         [[nodiscard]] bool equals(const sharedFuture& other) const noexcept override;
 
         ~sharedFuture() override = default;
@@ -513,6 +667,7 @@ const TYPE& original::async::asyncWrapper<TYPE>::peek() const
 template <typename TYPE>
 original::strongPtr<TYPE> original::async::asyncWrapper<TYPE>::getPtr() const
 {
+    this->rethrowIfException();
     return this->result_;
 }
 
