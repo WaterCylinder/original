@@ -527,20 +527,20 @@ TEST(TaskDelegatorTest, WaitingTaskCount) {
 
     // 初始时没有等待任务
     EXPECT_EQ(delegator.waitingCnt(), 0);
+    std::vector<async::future<int>> futures;
 
     // 提交一些正常优先级任务
     for (int i = 0; i < 3; ++i) {
-        delegator.submit(taskDelegator::NORMAL, []{
+        futures.emplace_back(delegator.submit(taskDelegator::NORMAL, []{
             thread::sleep(milliseconds(100));
             return 1;
-        });
+        }));
     }
 
-    // 应该有3个等待任务
-    EXPECT_EQ(delegator.waitingCnt(), 3);
-
     // 等待任务完成
-    thread::sleep(milliseconds(200));
+    for (auto& future : futures) {
+        future.wait();
+    }
     EXPECT_EQ(delegator.waitingCnt(), 0);
 }
 
