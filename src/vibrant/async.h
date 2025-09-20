@@ -59,7 +59,9 @@ namespace original {
             /**
              * @brief Waits until the result becomes ready
              */
-            void wait();
+            void wait() const;
+
+            bool waitFor(time::duration timeout) const;
 
             /**
              * @brief Retrieves the result value (blocks until ready)
@@ -117,7 +119,9 @@ namespace original {
             /**
              * @brief Waits until the result becomes ready
              */
-            virtual void wait() = 0;
+            virtual void wait() const = 0;
+
+            virtual bool waitFor(time::duration timeout) const = 0;
 
             /**
              * @brief Gets the stored exception if computation failed
@@ -198,7 +202,9 @@ namespace original {
             /**
              * @brief Waits until the result becomes ready
              */
-            void wait() override;
+            void wait() const override;
+
+            bool waitFor(time::duration timeout) const override;
         };
 
         /**
@@ -281,7 +287,9 @@ namespace original {
             /**
              * @brief Waits until the result becomes ready
              */
-            void wait() override;
+            void wait() const override;
+
+            bool waitFor(time::duration timeout) const override;
 
             /**
              * @brief Generates a hash value for the shared future
@@ -389,6 +397,8 @@ namespace original {
          */
         void wait() const;
 
+        bool waitFor(time::duration timeout) const;
+
         /**
          * @brief Waits for completion and checks for exceptions
          * @throws std::exception if the computation threw an exception
@@ -468,7 +478,9 @@ namespace original {
         /**
          * @brief Waits until the computation completes
          */
-        void wait() override;
+        void wait() const override;
+
+        bool waitFor(time::duration timeout) const override;
     };
 
     template <>
@@ -528,7 +540,9 @@ namespace original {
         /**
          * @brief Waits until the computation completes
          */
-        void wait() override;
+        void wait() const override;
+
+        bool waitFor(time::duration timeout) const override;
 
         /**
          * @brief Generates a hash value for the shared future
@@ -609,10 +623,20 @@ bool original::async::asyncWrapper<TYPE>::ready() const
 }
 
 template <typename TYPE>
-void original::async::asyncWrapper<TYPE>::wait()
+void original::async::asyncWrapper<TYPE>::wait() const
 {
     uniqueLock lock{this->mutex_};
     this->cond_.wait(this->mutex_, [this]
+    {
+        return this->ready();
+    });
+}
+
+template <typename TYPE>
+bool original::async::asyncWrapper<TYPE>::waitFor(time::duration timeout) const
+{
+    uniqueLock lock{this->mutex_};
+    return this->cond_.waitFor(this->mutex_, timeout, [this]
     {
         return this->ready();
     });
@@ -722,12 +746,21 @@ std::exception_ptr original::async::future<TYPE>::exception() const noexcept
 }
 
 template <typename TYPE>
-void original::async::future<TYPE>::wait()
+void original::async::future<TYPE>::wait() const
 {
     if (!this->valid()) {
         throw sysError("Access an invalid future");
     }
     this->awr_->wait();
+}
+
+template <typename TYPE>
+bool original::async::future<TYPE>::waitFor(time::duration timeout) const
+{
+    if (!this->valid()) {
+        throw sysError("Access an invalid future");
+    }
+    return this->awr_->waitFor(timeout);
 }
 
 template <typename TYPE>
@@ -792,12 +825,21 @@ bool original::async::sharedFuture<TYPE>::operator!=(const sharedFuture& other) 
 }
 
 template <typename TYPE>
-void original::async::sharedFuture<TYPE>::wait()
+void original::async::sharedFuture<TYPE>::wait() const
 {
     if (!this->valid()) {
         throw sysError("Access an invalid sharedFuture");
     }
     this->awr_->wait();
+}
+
+template <typename TYPE>
+bool original::async::sharedFuture<TYPE>::waitFor(time::duration timeout) const
+{
+    if (!this->valid()) {
+        throw sysError("Access an invalid sharedFuture");
+    }
+    return this->awr_->waitFor(timeout);
 }
 
 template <typename TYPE>
@@ -895,6 +937,15 @@ inline void original::async::asyncWrapper<void>::wait() const
     });
 }
 
+inline bool original::async::asyncWrapper<void>::waitFor(time::duration timeout) const
+{
+    uniqueLock lock{this->mutex_};
+    return this->cond_.waitFor(this->mutex_, std::move(timeout), [this]
+    {
+       return this->ready();
+    });
+}
+
 inline void original::async::asyncWrapper<void>::get()
 {
     uniqueLock lock{this->mutex_};
@@ -975,12 +1026,20 @@ inline std::exception_ptr original::async::future<void>::exception() const noexc
     return this->awr_->exception();
 }
 
-inline void original::async::future<void>::wait()
+inline void original::async::future<void>::wait() const
 {
     if (!this->valid()) {
         throw sysError("Access an invalid future");
     }
     this->awr_->wait();
+}
+
+inline bool original::async::future<void>::waitFor(const time::duration timeout) const
+{
+    if (!this->valid()) {
+        throw sysError("Access an invalid future");
+    }
+    return this->awr_->waitFor(timeout);
 }
 
 inline original::async::sharedFuture<void>::sharedFuture(strongPtr<asyncWrapper<void>> awr)
@@ -1026,12 +1085,20 @@ inline bool original::async::sharedFuture<void>::operator!=(const sharedFuture& 
 }
 
 
-inline void original::async::sharedFuture<void>::wait()
+inline void original::async::sharedFuture<void>::wait() const
 {
     if (!this->valid()) {
         throw sysError("Access an invalid sharedFuture");
     }
     this->awr_->wait();
+}
+
+inline bool original::async::sharedFuture<void>::waitFor(const time::duration timeout) const
+{
+    if (!this->valid()) {
+        throw sysError("Access an invalid sharedFuture");
+    }
+    return this->awr_->waitFor(timeout);
 }
 
 inline original::u_integer original::async::sharedFuture<void>::toHash() const noexcept
