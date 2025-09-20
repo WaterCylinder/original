@@ -30,10 +30,10 @@ namespace original {
         template<typename TYPE>
         class asyncWrapper {
             atomic<bool> ready_{makeAtomic(false)};  ///< Atomic flag indicating result readiness
-            strongPtr<TYPE> result_;
-            mutable pCondition cond_{};                      ///< Condition variable for synchronization
-            mutable pMutex mutex_{};                 ///< Mutex for thread safety
-            std::exception_ptr e_{};                 ///< Exception pointer for error handling
+            strongPtr<TYPE> result_;                      ///< Storage of asynchronous computation result
+            mutable pCondition cond_{};                   ///< Condition variable for synchronization
+            mutable pMutex mutex_{};                      ///< Mutex for thread safety
+            std::exception_ptr e_{};                      ///< Exception pointer for error handling
 
         public:
             asyncWrapper();
@@ -368,10 +368,10 @@ namespace original {
     template <>
     class async::asyncWrapper<void> {
         atomic<bool> ready_{makeAtomic(false)};  ///< Atomic flag indicating completion
-        alternative<void> result_;                ///< Optional void marker
-        mutable pCondition cond_{};                      ///< Condition variable for synchronization
-        mutable pMutex mutex_{};                 ///< Mutex for thread safety
-        std::exception_ptr e_{};                 ///< Exception pointer for error handling
+        alternative<void> result_;                    ///< Mark of asynchronous computation status
+        mutable pCondition cond_{};                   ///< Condition variable for synchronization
+        mutable pMutex mutex_{};                      ///< Mutex for thread safety
+        std::exception_ptr e_{};                      ///< Exception pointer for error handling
 
     public:
         asyncWrapper() = default;
