@@ -70,6 +70,8 @@ namespace original {
 
             const TYPE& peek() const;
 
+            strongPtr<TYPE> getPtr() const;
+
             /**
              * @brief Throws stored exception if present
              */
@@ -173,7 +175,9 @@ namespace original {
 
             [[nodiscard]] bool valid() const noexcept override;
 
-            const TYPE& result() const;
+            TYPE result() const;
+
+            strongPtr<const TYPE> strongPointer() const;
 
             [[nodiscard]] bool ready() const override;
 
@@ -507,6 +511,12 @@ const TYPE& original::async::asyncWrapper<TYPE>::peek() const
 }
 
 template <typename TYPE>
+original::strongPtr<TYPE> original::async::asyncWrapper<TYPE>::getPtr() const
+{
+    return this->result_;
+}
+
+template <typename TYPE>
 void original::async::asyncWrapper<TYPE>::rethrowIfException() const
 {
     if (this->e_)
@@ -591,6 +601,18 @@ TYPE original::async::sharedFuture<TYPE>::result() const
         throw sysError("Access an invalid sharedFuture");
     }
     return this->awr_->peek();
+}
+
+template <typename TYPE>
+original::strongPtr<const TYPE> original::async::sharedFuture<TYPE>::strongPointer() const
+{
+    if (!this->valid()) {
+        throw sysError("Access an invalid sharedFuture");
+    }
+    if (!this->ready()) {
+        throw sysError("Cannot get a strongPtr from a sharedFuture that is not ready");
+    }
+    return this->awr_->getPtr().template constCastTo<const TYPE>();
 }
 
 template <typename TYPE>
