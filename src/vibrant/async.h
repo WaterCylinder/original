@@ -30,7 +30,7 @@ namespace original {
         template<typename TYPE>
         class asyncWrapper {
             atomic<bool> ready_{makeAtomic(false)};  ///< Atomic flag indicating result readiness
-            alternative<TYPE> result_;                ///< Optional storage for the result value
+            strongPtr<TYPE> result_;
             mutable pCondition cond_{};                      ///< Condition variable for synchronization
             mutable pMutex mutex_{};                 ///< Mutex for thread safety
             std::exception_ptr e_{};                 ///< Exception pointer for error handling
@@ -436,7 +436,7 @@ void original::async::asyncWrapper<TYPE>::setValue(TYPE&& v)
 {
     {
         uniqueLock lock{this->mutex_};
-        this->result_.set(std::move(v));
+        this->result_ = makeStrongPtr<TYPE>(std::move(v));
         this->ready_.store(true);
     }
     this->cond_.notify();
@@ -474,7 +474,7 @@ TYPE original::async::asyncWrapper<TYPE>::get()
 {
     uniqueLock lock{this->mutex_};
     this->rethrowIfException();
-    if (this->result_.hasValue()) {
+    if (this->result_) {
         TYPE result = *this->result_;
         this->result_.reset();
         return result;
@@ -495,7 +495,7 @@ const TYPE& original::async::asyncWrapper<TYPE>::peek() const
 {
     uniqueLock lock{this->mutex_};
     this->rethrowIfException();
-    if (this->result_.hasValue()) {
+    if (this->result_) {
         return *this->result_;
     }
     this->cond_.wait(this->mutex_, [this]{
@@ -585,7 +585,7 @@ bool original::async::sharedFuture<TYPE>::valid() const noexcept
 }
 
 template <typename TYPE>
-const TYPE& original::async::sharedFuture<TYPE>::result() const
+TYPE original::async::sharedFuture<TYPE>::result() const
 {
     if (!this->valid()) {
         throw sysError("Access an invalid sharedFuture");
