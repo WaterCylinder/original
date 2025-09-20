@@ -347,17 +347,8 @@ namespace original {
         template <typename Callback, typename... Args>
         static auto makePromise(Callback&& c, Args&&... args);
 
-        /**
-         * @brief Executes a callable asynchronously and gets the result
-         * @tparam Callback The type of the callable
-         * @tparam Args The types of the arguments
-         * @param c Callable to execute
-         * @param args Arguments to forward to the callable
-         * @return The result of the computation (blocks until ready)
-         * @throws std::exception if the computation threw an exception
-         */
         template <typename Callback, typename... Args>
-        static auto get(Callback&& c, Args&&... args);
+        static auto get(Callback&& c, Args&&... args) -> future<std::invoke_result_t<std::decay_t<Callback>, std::decay_t<Args>...>>;
     };
 
     // ==================== Void Specializations ====================
@@ -855,22 +846,19 @@ auto original::async::makePromise(Callback&& c, Args&&... args) {
 
 template <typename Callback, typename ... Args>
 auto original::async::get(Callback&& c, Args&&... args)
+    -> future<std::invoke_result_t<std::decay_t<Callback>, std::decay_t<Args>...>>
 {
-    using ResultType = std::invoke_result_t<std::decay_t<Callback>, std::decay_t<Args>...>;
-    auto task = [c = std::forward<Callback>(c), ... args = std::forward<Args>(args)]() mutable -> ResultType {
-        return c(std::forward<Args>(args)...);
-    };
-
-    auto p = makePromise(std::move(task));
+    auto p = makePromise(std::forward<Callback>(c), std::forward<Args>(args)...);
     auto fut = p.getFuture();
 
     thread t{
         [p = std::move(p)]() mutable {
             p.run();
-        }
+        },
+        thread::AUTO_DETACH
     };
 
-    return fut.result();
+    return fut;
 }
 
 inline void original::async::asyncWrapper<void>::setValue()
