@@ -815,3 +815,240 @@ TEST(AsyncTest, SharedFutureHashMoveSemantics) {
     EXPECT_FALSE(sf_moved.valid());
     EXPECT_EQ(sf_moved.toHash(), 0);
 }
+
+
+// 测试 future 的 waitFor 方法（成功情况）
+TEST(AsyncTest, FutureWaitForSuccess) {
+    auto f = async::get([] {
+        thread::sleep(milliseconds(100));
+        return 42;
+    });
+
+    // 等待足够长的时间，应该成功
+    const bool completed = f.waitFor(milliseconds(200));
+    EXPECT_TRUE(completed);
+    EXPECT_TRUE(f.ready());
+    EXPECT_EQ(f.result(), 42);
+}
+
+// 测试 future 的 waitFor 方法（超时情况）
+TEST(AsyncTest, FutureWaitForTimeout) {
+    auto f = async::get([] {
+        thread::sleep(milliseconds(200));  // 需要200ms
+        return 42;
+    });
+
+    // 立即检查，应该还没完成
+    EXPECT_FALSE(f.ready());
+
+    // 等待时间不够，应该超时
+    const bool completed = f.waitFor(milliseconds(50));
+    EXPECT_FALSE(completed);
+    EXPECT_FALSE(f.ready());  // 应该还没完成
+
+    // 现在等待足够的时间
+    f.wait();
+    EXPECT_TRUE(f.ready());
+    EXPECT_EQ(f.result(), 42);
+}
+
+// 测试 future<void> 的 waitFor 方法
+TEST(AsyncTest, FutureVoidWaitFor) {
+    std::atomic completed{false};
+
+    auto f = async::get([&completed] {
+        thread::sleep(milliseconds(100));
+        completed = true;
+    });
+
+    // 等待足够长的时间
+    const bool success = f.waitFor(milliseconds(150));
+    EXPECT_TRUE(success);
+    EXPECT_TRUE(f.ready());
+    EXPECT_NO_THROW(f.result());
+    EXPECT_TRUE(completed);
+}
+
+// 测试 sharedFuture 的 waitFor 方法
+TEST(AsyncTest, SharedFutureWaitFor) {
+    const auto sf = async::get([] {
+        thread::sleep(milliseconds(100));
+        return 42;
+    }).share();
+
+    // 等待足够长的时间
+    const bool completed = sf.waitFor(milliseconds(150));
+    EXPECT_TRUE(completed);
+    EXPECT_TRUE(sf.ready());
+    EXPECT_EQ(sf.result(), 42);
+
+    // 副本也应该有相同的行为
+    const auto sf_copy = sf;
+    EXPECT_TRUE(sf_copy.ready());
+    EXPECT_EQ(sf_copy.result(), 42);
+}
+
+// 测试 sharedFuture<void> 的 waitFor 方法
+TEST(AsyncTest, SharedFutureVoidWaitFor) {
+    std::atomic executed{false};
+
+    const auto sf = async::get([&executed] {
+        thread::sleep(milliseconds(100));
+        executed = true;
+    }).share();
+
+    // 等待足够长的时间
+    const bool success = sf.waitFor(milliseconds(150));
+    EXPECT_TRUE(success);
+    EXPECT_TRUE(sf.ready());
+    EXPECT_NO_THROW(sf.result());
+    EXPECT_TRUE(executed);
+}
+
+// 测试 futureBase 接口的 waitFor 方法
+TEST(AsyncTest, FutureBaseWaitFor) {
+    auto f = async::get([] {
+        thread::sleep(milliseconds(100));
+        return 42;
+    });
+
+    async::futureBase* base_ptr = &f;
+
+    // 通过基类接口调用 waitFor
+    const bool completed = base_ptr->waitFor(milliseconds(150));
+    EXPECT_TRUE(completed);
+    EXPECT_TRUE(base_ptr->ready());
+    EXPECT_EQ(base_ptr->exception(), nullptr);
+}
+
+// 测试 sharedFuture 通过 futureBase 接口的 waitFor
+TEST(AsyncTest, SharedFutureBaseWaitFor) {
+    const auto sf = async::get([] {
+        thread::sleep(milliseconds(100));
+        return 42;
+    }).share();
+
+    const async::futureBase* base_ptr = &sf;
+
+    // 通过基类接口调用 waitFor
+    const bool completed = base_ptr->waitFor(milliseconds(150));
+    EXPECT_TRUE(completed);
+    EXPECT_TRUE(base_ptr->ready());
+    EXPECT_EQ(base_ptr->exception(), nullptr);
+}
+
+// 测试 waitFor 在异常情况下的行为
+TEST(AsyncTest, WaitForWithException) {
+    auto f = async::get([]() -> int {
+        thread::sleep(milliseconds(50));
+        throw runTimeTestError("waitFor test error");
+    });
+
+    // 等待足够长的时间
+    const bool completed = f.waitFor(milliseconds(100));
+    EXPECT_TRUE(completed);
+    EXPECT_TRUE(f.ready());
+
+    // 应该能检测到异常
+    const auto exception_ptr = f.exception();
+    EXPECT_NE(exception_ptr, nullptr);
+    EXPECT_THROW(std::rethrow_exception(exception_ptr), runTimeTestError);
+    EXPECT_THROW(f.result(), runTimeTestError);
+}
+
+// 测试 waitFor 的多次调用
+TEST(AsyncTest, WaitForMultipleCalls) {
+    auto f = async::get([] {
+        thread::sleep(milliseconds(100));
+        return 42;
+    });
+
+    // 第一次调用，可能还没完成
+    f.waitFor(milliseconds(50));
+
+    // 第二次调用，等待更长时间
+    const bool second_call = f.waitFor(milliseconds(100));
+
+    // 第三次调用，应该已经完成了
+    const bool third_call = f.waitFor(milliseconds(50));
+
+    EXPECT_TRUE(second_call || third_call);  // 至少有一次应该成功
+    EXPECT_TRUE(f.ready());
+    EXPECT_EQ(f.result(), 42);
+}
+
+// 测试 waitFor 零超时的情况
+TEST(AsyncTest, WaitForZeroTimeout) {
+    auto f = async::get([] {
+        thread::sleep(milliseconds(100));
+        return 42;
+    });
+
+    // 零超时，应该立即返回
+    if (f.waitFor(milliseconds(0))) {
+        EXPECT_TRUE(f.ready());
+        EXPECT_EQ(f.result(), 42);
+    } else {
+        EXPECT_FALSE(f.ready());
+        // 稍等一会儿再检查
+        thread::sleep(milliseconds(150));
+        EXPECT_TRUE(f.ready());
+        EXPECT_EQ(f.result(), 42);
+    }
+}
+
+// 测试 waitFor 在任务立即完成的情况
+TEST(AsyncTest, WaitForImmediateCompletion) {
+    auto f = async::get([] {
+        return 42;  // 立即返回
+    });
+
+    // 即使是很短的超时，也应该立即完成
+    const bool completed = f.waitFor(milliseconds(1));
+    EXPECT_TRUE(completed);
+    EXPECT_TRUE(f.ready());
+    EXPECT_EQ(f.result(), 42);
+}
+
+// 测试 waitFor 与 wait 的组合使用
+TEST(AsyncTest, WaitForAndWaitCombination) {
+    auto f = async::get([] {
+        thread::sleep(milliseconds(200));
+        return 42;
+    });
+
+    // 先用 waitFor 尝试短时间等待
+    const bool short_wait = f.waitFor(milliseconds(50));
+    EXPECT_FALSE(short_wait);
+    EXPECT_FALSE(f.ready());
+
+    // 然后用 wait 无限等待
+    f.wait();
+    EXPECT_TRUE(f.ready());
+    EXPECT_EQ(f.result(), 42);
+
+    // 现在 waitFor 应该立即返回 true
+    const bool final_wait = f.waitFor(milliseconds(0));
+    EXPECT_TRUE(final_wait);
+}
+
+// 测试 waitFor 在多个共享 future 上的行为
+TEST(AsyncTest, WaitForMultipleSharedFutures) {
+    const auto sf1 = async::get([] {
+        thread::sleep(milliseconds(100));
+        return 42;
+    }).share();
+
+    const auto sf2 = sf1;  // 副本
+
+    // 两个共享 future 都应该能正确响应 waitFor
+    const bool completed1 = sf1.waitFor(milliseconds(150));
+    const bool completed2 = sf2.waitFor(milliseconds(150));
+
+    EXPECT_TRUE(completed1);
+    EXPECT_TRUE(completed2);
+    EXPECT_TRUE(sf1.ready());
+    EXPECT_TRUE(sf2.ready());
+    EXPECT_EQ(sf1.result(), 42);
+    EXPECT_EQ(sf2.result(), 42);
+}
