@@ -1171,9 +1171,10 @@ auto original::async::get(Callback&& c, Args&&... args)
     auto p = makePromise(std::forward<Callback>(c), std::forward<Args>(args)...);
     auto fut = p.getFuture();
 
+    auto p_shared = makeStrongPtr<decltype(p)>(std::move(p));
     thread t{
-        [p = std::move(p)]() mutable {
-            p.run();
+        [p_shared]() mutable {
+            p_shared->run();
         },
         thread::AUTO_DETACH
     };
