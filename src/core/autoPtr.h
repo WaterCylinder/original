@@ -1,6 +1,7 @@
 #ifndef AUTOPTR_H
 #define AUTOPTR_H
 
+#include "atomic.h"
 #include "config.h"
 #include "printable.h"
 #include "comparable.h"
@@ -56,7 +57,7 @@ namespace original {
                     public hashable<autoPtr<TYPE, DERIVED, DELETER>> {
         template<typename, typename, typename> friend class autoPtr;
     protected:
-        refCountBase* ref_count; ///< Reference counter object
+        atomic<refCountBase*> ref_count; ///< Reference counter object
         TYPE* alias_ptr;         ///< Aliased pointer for type casting scenarios
 
         /**
@@ -340,8 +341,8 @@ namespace original {
         friend class autoPtr;
 
         protected:
-        mutable u_integer strong_refs; ///< Strong reference counter
-        mutable u_integer weak_refs;   ///< Weak reference counter
+        mutable atomic<u_integer> strong_refs; ///< Strong reference counter
+        mutable atomic<u_integer> weak_refs;   ///< Weak reference counter
 
         /**
         * @brief Construct refCountBase object
@@ -419,51 +420,73 @@ namespace original {
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 original::autoPtr<TYPE, DERIVED, DELETER>::autoPtr(TYPE* p)
-    : ref_count(newRefCount(p)), alias_ptr(nullptr) {}
+    : ref_count(makeAtomic<refCountBase*>(newRefCount(p))), alias_ptr(nullptr) {}
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 void original::autoPtr<TYPE, DERIVED, DELETER>::addStrongRef() const
 {
-    this->ref_count->strong_refs += 1;
+    if (const refCountBase* current = *this->ref_count) {
+        current->strong_refs += 1;
+    }
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 void original::autoPtr<TYPE, DERIVED, DELETER>::addWeakRef() const
 {
-    this->ref_count->weak_refs += 1;
+    if (const refCountBase* current = *this->ref_count) {
+        current->weak_refs += 1;
+    }
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 void original::autoPtr<TYPE, DERIVED, DELETER>::removeStrongRef() const
 {
-    this->ref_count->strong_refs -= 1;
+    if (const refCountBase* current = *this->ref_count) {
+        current->strong_refs -= 1;
+    }
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 void original::autoPtr<TYPE, DERIVED, DELETER>::removeWeakRef() const
 {
-    this->ref_count->weak_refs -= 1;
+    if (const refCountBase* current = *this->ref_count) {
+        current->weak_refs -= 1;
+    }
 }
 
 template <typename TYPE, typename DERIVED, typename DELETER>
 TYPE* original::autoPtr<TYPE, DERIVED, DELETER>::releasePtr() noexcept
 {
-    return static_cast<TYPE*>(this->ref_count->releasePtr());
+    refCountBase* current = *this->ref_count;
+    if (!current) return nullptr;
+    return static_cast<TYPE*>(current->releasePtr());
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 void original::autoPtr<TYPE, DERIVED, DELETER>::destroyRefCnt() noexcept {
-    delete this->ref_count;
+    const refCountBase* current = *this->ref_count;
+    if (!current) return;
     this->ref_count = nullptr;
+    delete current;
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 void original::autoPtr<TYPE, DERIVED, DELETER>::clean() noexcept {
-    if (!this->exist()){
-        this->destroyRefCnt();
+    refCountBase* current = *this->ref_count;
+    if (!current) {
+        return;
     }
-    if (this->expired()){
-        this->ref_count->destroyPtr();
+
+    const u_integer strong_refs = *current->strong_refs;
+    const u_integer weak_refs = *current->weak_refs;
+
+    if (strong_refs == 0) {
+        current->destroyPtr();
+    }
+
+    if (strong_refs == 0 && weak_refs == 0) {
+        this->ref_count = nullptr;
+        delete current;
     }
 }
 
@@ -475,27 +498,39 @@ original::refCount<TYPE, DELETER>* original::autoPtr<TYPE, DERIVED, DELETER>::ne
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 original::u_integer original::autoPtr<TYPE, DERIVED, DELETER>::strongRefs() const {
-    return this->ref_count->strong_refs;
+    const refCountBase* current = *this->ref_count;
+    if (!current) return 0;
+    return *current->strong_refs;
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 original::u_integer original::autoPtr<TYPE, DERIVED, DELETER>::weakRefs() const {
-    return this->ref_count->weak_refs;
+    const refCountBase* current = *this->ref_count;
+    if (!current) return 0;
+    return *current->weak_refs;
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 bool original::autoPtr<TYPE, DERIVED, DELETER>::exist() const {
-    return this->ref_count && (this->strongRefs() > 0 || this->weakRefs() > 0);
+    const refCountBase* current = *this->ref_count;
+    if (!current) return false;
+    return *current->strong_refs > 0 || *current->weak_refs > 0;
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 bool original::autoPtr<TYPE, DERIVED, DELETER>::expired() const {
-    return this->ref_count && this->strongRefs() == 0;
+    const refCountBase* current = *this->ref_count;
+    if (!current) return true;
+    return *current->strong_refs == 0;
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 original::autoPtr<TYPE, DERIVED, DELETER>::operator bool() const {
-    return this->exist() && this->get();
+    refCountBase* current = *this->ref_count;
+    if (!current) return false;
+    if (*current->strong_refs == 0) return false;
+    const void* p = current->getPtr();
+    return p != nullptr || this->alias_ptr != nullptr;
 }
 
 template <typename TYPE, typename DERIVED, typename DELETER>
@@ -511,7 +546,8 @@ const TYPE* original::autoPtr<TYPE, DERIVED, DELETER>::get() const {
     if (this->alias_ptr) {
         return this->alias_ptr;
     }
-    return static_cast<TYPE*>(this->ref_count->getPtr());
+    refCountBase* current = *this->ref_count;
+    return static_cast<TYPE*>(current->getPtr());
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
@@ -522,7 +558,8 @@ TYPE* original::autoPtr<TYPE, DERIVED, DELETER>::get() {
     if (this->alias_ptr) {
         return this->alias_ptr;
     }
-    return static_cast<TYPE*>(this->ref_count->getPtr());
+    refCountBase* current = *this->ref_count;
+    return static_cast<TYPE*>(current->getPtr());
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
@@ -577,9 +614,11 @@ TYPE& original::autoPtr<TYPE, DERIVED, DELETER>::operator[](u_integer index) {
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 void original::autoPtr<TYPE, DERIVED, DELETER>::swap(autoPtr& other) noexcept {
-    auto other_ref_count = other.ref_count;
-    other.ref_count = this->ref_count;
-    this->ref_count = other_ref_count;
+    std::swap(this->alias_ptr, other.alias_ptr);
+
+    refCountBase* a = this->ref_count.exchange(nullptr);
+    refCountBase* b = other.ref_count.exchange(a);
+    this->ref_count = b;
 }
 
 template<typename TYPE, typename DERIVED, typename DELETER>
@@ -638,7 +677,7 @@ bool original::operator!=(const std::nullptr_t&, const autoPtr<T, DER, DEL>& ptr
     return ptr.operator bool();
 }
 
-inline original::refCountBase::refCountBase() : strong_refs(0), weak_refs(0) {}
+inline original::refCountBase::refCountBase() : strong_refs(makeAtomic<u_integer>(0)), weak_refs(makeAtomic<u_integer>(0)) {}
 
 template<typename TYPE, typename DELETER>
 original::refCount<TYPE, DELETER>::refCount(TYPE *p)
