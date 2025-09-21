@@ -43,7 +43,7 @@ int main() {
     auto pp = original::async::makePromise(simple_func2, 5);
     auto ff = pp.getFuture();
     original::thread  t{
-        [pp = original::makeStrongPtr<decltype(pp)>(pp)] mutable
+        [pp = original::makeStrongPtr<decltype(pp)>(std::move(pp))] mutable
         {
             pp->run();
         }
