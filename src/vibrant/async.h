@@ -332,33 +332,87 @@ namespace original {
 
         /**
          * @class promise
-         * @brief Represents an asynchronous producer
+         * @brief Represents a one-time asynchronous producer with result setting capability
          * @tparam TYPE The result type of the computation
          * @tparam Callback The type of the computation callback
-         * @details Provides the means to set the result of an asynchronous computation
+         * @details Provides the means to set the result of an asynchronous computation.
+         * A promise is a single-use object that can be either executed via run() or
+         * have its computation function extracted via function(). Once used, the promise
+         * becomes invalid and cannot be reused.
+         *
+         * Key characteristics:
+         * - Single-use: can be executed or have its function extracted only once
+         * - Thread-safe: internal state is properly synchronized
+         * - Exception-safe: exceptions during computation are properly captured and stored
          */
         template<typename TYPE, typename Callback>
         class promise {
-            std::function<TYPE()> c_{};                ///< The computation to execute
+            std::function<TYPE()> c_{};                ///< The computation to execute (one-time use)
             strongPtr<asyncWrapper<TYPE>> awr_{};      ///< Shared pointer to the async wrapper
+            bool valid_{false};                         ///< Whether the promise still holds a valid task
 
         public:
+            // Disable copying to prevent multiple executions of the same computation
+            promise(const promise&) = delete;
+            promise& operator=(const promise&) = delete;
+
+            // Allow moving to transfer ownership of the computation
+            promise(promise&&) = default;
+            promise& operator=(promise&&) = default;
+
+            /**
+             * @brief Default constructor creates an invalid promise
+             * @details Creates a promise that is not associated with any computation.
+             * The resulting promise is invalid and cannot be used until assigned a valid promise.
+             */
             promise() = default;
 
             /**
              * @brief Constructs a promise with a computation callback
-             * @param c Callback that will produce the result
+             * @param c Callback that will produce the result when executed
+             * @details The promise takes ownership of the callback and becomes valid.
+             * The callback will be invoked exactly once - either by run() or through function().
              */
             explicit promise(Callback&& c);
 
             /**
              * @brief Gets the future associated with this promise
              * @return A future that will receive the result
+             * @throws Nothing - can be called multiple times while the promise is valid
+             * @note The promise remains valid after calling getFuture()
              */
             future<TYPE> getFuture();
 
             /**
-             * @brief Executes the computation and sets the result
+             * @brief Checks if the promise is still valid (can be executed or have function extracted)
+             * @return True if the promise holds a valid computation that hasn't been used yet
+             * @details A promise becomes invalid after:
+             * - run() is called (executes the computation)
+             * - function() is called (extracts the computation function)
+             * - Being default-constructed (no computation associated)
+             */
+            [[nodiscard]] bool valid() const noexcept;
+
+            /**
+             * @brief Extracts the computation function from the promise
+             * @return The computation function that was associated with this promise
+             * @throws sysError if the promise is invalid (already used or default-constructed)
+             * @details After calling this method:
+             * - The promise becomes invalid
+             * - The caller takes ownership of the computation function
+             * - The promise can no longer be used for execution
+             * @note This is an alternative to run() for manual execution control
+             */
+            std::function<TYPE()> function();
+
+            /**
+             * @brief Executes the computation and sets the result in the associated future
+             * @throws sysError if the promise is invalid (already used or default-constructed)
+             * @throws Any exception thrown by the computation function (captured in the future)
+             * @details After calling this method:
+             * - The promise becomes invalid
+             * - The computation result (or exception) is stored in the associated future
+             * - Any waiting futures will be notified of completion
              */
             void run();
         };
@@ -372,6 +426,8 @@ namespace original {
          * @param c Callable to execute asynchronously
          * @param args Arguments to forward to the callable
          * @return A promise object for the asynchronous computation
+         * @details The created promise is a single-use object that can be executed
+         * exactly once via run() or have its function extracted via function().
          */
         template <typename Callback, typename... Args>
         static auto makePromise(Callback&& c, Args&&... args);
@@ -662,13 +718,26 @@ namespace original {
     /**
      * @brief Specialization of promise for void results
      * @tparam Callback The type of the computation callback
+     * @details Same single-use semantics as the general promise template, but for void-returning computations.
      */
     template <typename Callback>
     class async::promise<void, Callback> {
-        std::function<void()> c_{};                  ///< The computation to execute
-        strongPtr<asyncWrapper<void>> awr_{};      ///< Shared pointer to the async wrapper
+        std::function<void()> c_{};                  ///< The computation to execute (one-time use)
+        strongPtr<asyncWrapper<void>> awr_{};        ///< Shared pointer to the async wrapper
+        bool valid_{false};                           ///< Whether the promise still holds a valid task
 
     public:
+        // Disable copying to prevent multiple executions of the same computation
+        promise(const promise&) = delete;
+        promise& operator=(const promise&) = delete;
+
+        // Allow moving to transfer ownership of the computation
+        promise(promise&&) = default;
+        promise& operator=(promise&&) = default;
+
+        /**
+         * @brief Default constructor creates an invalid promise
+         */
         promise() = default;
 
         /**
@@ -684,7 +753,22 @@ namespace original {
         [[nodiscard]] future<void> getFuture() const;
 
         /**
-         * @brief Executes the computation and marks completion
+         * @brief Checks if the promise is still valid
+         * @return True if the promise holds a valid computation that hasn't been used yet
+         */
+        [[nodiscard]] bool valid() const noexcept;
+
+        /**
+         * @brief Extracts the computation function from the promise
+         * @return The computation function that was associated with this promise
+         * @throws sysError if the promise is invalid
+         */
+        std::function<void()> function();
+
+        /**
+         * @brief Executes the computation and marks completion in the associated future
+         * @throws sysError if the promise is invalid
+         * @throws Any exception thrown by the computation function
          */
         void run();
     };
@@ -955,7 +1039,7 @@ bool original::async::sharedFuture<TYPE>::equals(const sharedFuture& other) cons
 
 template <typename TYPE, typename Callback>
 original::async::promise<TYPE, Callback>::promise(Callback&& c)
-    : c_(std::forward<Callback>(c)), awr_(makeStrongPtr<asyncWrapper<TYPE>>()) {}
+    : c_(std::forward<Callback>(c)), awr_(makeStrongPtr<asyncWrapper<TYPE>>()), valid_(true) {}
 
 template <typename TYPE, typename Callback>
 original::async::future<TYPE>
@@ -965,13 +1049,33 @@ original::async::promise<TYPE, Callback>::getFuture()
 }
 
 template <typename TYPE, typename Callback>
+bool original::async::promise<TYPE, Callback>::valid() const noexcept
+{
+    return this->valid_;
+}
+
+template <typename TYPE, typename Callback>
+std::function<TYPE()> original::async::promise<TYPE, Callback>::function()
+{
+    if (!this->valid_) {
+        throw sysError("Try to get an invalid task");
+    }
+    this->valid_ = false;
+    return std::move(this->c_);
+}
+
+template <typename TYPE, typename Callback>
 void original::async::promise<TYPE, Callback>::run()
 {
+    if (!this->valid_) {
+        throw sysError("Try to run an invalid task");
+    }
     try {
         this->awr_->setValue(this->c_());
     } catch (...) {
         this->awr_->setException(std::current_exception());
     }
+    this->valid_ = false;
 }
 
 template <typename Callback, typename... Args>
@@ -1280,14 +1384,34 @@ original::async::future<void> original::async::promise<void, Callback>::getFutur
 }
 
 template <typename Callback>
+bool original::async::promise<void, Callback>::valid() const noexcept
+{
+    return this->valid_;
+}
+
+template <typename Callback>
+std::function<void()> original::async::promise<void, Callback>::function()
+{
+    if (!this->valid_) {
+        throw sysError("Try to get an invalid task");
+    }
+    this->valid_ = false;
+    return std::move(this->c_);
+}
+
+template <typename Callback>
 void original::async::promise<void, Callback>::run()
 {
+    if (!this->valid_) {
+        throw sysError("Try to run an invalid task");
+    }
     try {
         this->c_();
         this->awr_->setValue();
     } catch (...) {
         this->awr_->setException(std::current_exception());
     }
+    this->valid_ = false;
 }
 
 #endif // ORIGINAL_ASYNC_H
