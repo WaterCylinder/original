@@ -357,8 +357,9 @@ namespace original {
             promise& operator=(const promise&) = delete;
 
             // Allow moving to transfer ownership of the computation
-            promise(promise&&) = default;
-            promise& operator=(promise&&) = default;
+            promise(promise&& other) noexcept;
+
+            promise& operator=(promise&& other) noexcept;
 
             /**
              * @brief Default constructor creates an invalid promise
@@ -732,8 +733,9 @@ namespace original {
         promise& operator=(const promise&) = delete;
 
         // Allow moving to transfer ownership of the computation
-        promise(promise&&) = default;
-        promise& operator=(promise&&) = default;
+        promise(promise&& other) noexcept;
+
+        promise& operator=(promise&& other) noexcept;
 
         /**
          * @brief Default constructor creates an invalid promise
@@ -1035,6 +1037,32 @@ template <typename TYPE>
 bool original::async::sharedFuture<TYPE>::equals(const sharedFuture& other) const noexcept
 {
     return *this == other;
+}
+
+template <typename TYPE, typename Callback>
+original::async::promise<TYPE, Callback>::promise(promise&& other) noexcept
+{
+    if (!other.valid()){
+        return;
+    }
+    this->valid_ = true;
+    this->c_ = std::move(other.c_);
+    this->awr_ = std::move(other.awr_);
+    other.valid_ = false;
+}
+
+template <typename TYPE, typename Callback>
+original::async::promise<TYPE, Callback>&
+original::async::promise<TYPE, Callback>::operator=(promise&& other) noexcept
+{
+    if (this == &other || !other.valid()) {
+        return *this;
+    }
+    this->valid_ = true;
+    this->c_ = std::move(other.c_);
+    this->awr_ = std::move(other.awr_);
+    other.valid_ = false;
+    return *this;
 }
 
 template <typename TYPE, typename Callback>
@@ -1371,6 +1399,31 @@ inline original::u_integer original::async::sharedFuture<void>::toHash() const n
 inline bool original::async::sharedFuture<void>::equals(const sharedFuture& other) const noexcept
 {
     return *this == other;
+}
+
+template <typename Callback>
+original::async::promise<void, Callback>::promise(promise&& other) noexcept
+{
+    if (!other.valid()){
+        return;
+    }
+    this->valid_ = true;
+    this->c_ = std::move(other.c_);
+    this->awr_ = std::move(other.awr_);
+    other.valid_ = false;
+}
+
+template <typename Callback>
+original::async::promise<void, Callback>& original::async::promise<void, Callback>::operator=(promise&& other) noexcept
+{
+    if (this == &other || !other.valid()) {
+        return *this;
+    }
+    this->valid_ = true;
+    this->c_ = std::move(other.c_);
+    this->awr_ = std::move(other.awr_);
+    other.valid_ = false;
+    return *this;
 }
 
 template <typename Callback>
