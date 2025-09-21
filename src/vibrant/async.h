@@ -1375,7 +1375,7 @@ inline bool original::async::sharedFuture<void>::equals(const sharedFuture& othe
 
 template <typename Callback>
 original::async::promise<void, Callback>::promise(Callback&& c)
-    : c_(std::forward<Callback>(c)), awr_(makeStrongPtr<asyncWrapper<void>>()) {}
+    : c_(std::forward<Callback>(c)), awr_(makeStrongPtr<asyncWrapper<void>>()), valid_(true) {}
 
 template <typename Callback>
 original::async::future<void> original::async::promise<void, Callback>::getFuture() const
