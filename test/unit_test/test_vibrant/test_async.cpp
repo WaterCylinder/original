@@ -22,9 +22,10 @@ public:
 
 // 辅助函数：运行 promise 在单独线程中
 template<typename Promise>
-void runPromiseInThread(Promise& p) {
-    thread t([p = std::move(p)]() mutable {
-        p.run();
+void runPromiseInThread(Promise p) {
+    auto shared_p = makeStrongPtr<Promise>(std::move(p));
+    thread t([shared_p]() mutable {
+        shared_p->run();
     });
 }
 
@@ -35,7 +36,8 @@ TEST(AsyncTest, SimpleAsyncReturnsValue) {
     });
 
     auto f = p.getFuture();
-    runPromiseInThread(p);
+    runPromiseInThread(std::move(p));
+    f.wait();
     EXPECT_EQ(f.result(), 42);
 }
 
@@ -46,7 +48,7 @@ TEST(AsyncTest, MultipleWaitsAreSafe) {
     });
 
     auto f = p.getFuture();
-    runPromiseInThread(p);
+    runPromiseInThread(std::move(p));
 
     std::cout << f.result() << std::endl;  // 第一次应该成功
 
@@ -62,7 +64,7 @@ TEST(AsyncTest, AsynchronousExecution) {
 
     const auto start = time::point::now();
     auto f = p.getFuture();
-    runPromiseInThread(p);
+    runPromiseInThread(std::move(p));
 
     const int result = f.result();
     const auto end = time::point::now();
@@ -78,7 +80,7 @@ TEST(AsyncTest, ExceptionHandledProperly) {
     });
 
     auto f = p.getFuture();
-    runPromiseInThread(p);
+    runPromiseInThread(std::move(p));
     EXPECT_THROW(f.result(), runTimeTestError);
 }
 
@@ -90,7 +92,7 @@ TEST(AsyncTest, VoidReturnType) {
     });
 
     auto f = p.getFuture();
-    runPromiseInThread(p);
+    runPromiseInThread(std::move(p));
     EXPECT_NO_THROW(f.result());  // 应该能正常返回（void）
 }
 
@@ -101,7 +103,7 @@ TEST(AsyncTest, TaskWithArguments) {
     }, 10, 32);
 
     auto f = p.getFuture();
-    runPromiseInThread(p);
+    runPromiseInThread(std::move(p));
     EXPECT_EQ(f.result(), 42);
 }
 
@@ -113,8 +115,8 @@ TEST(AsyncTest, MultipleFuturesIndependence) {
     auto f1 = p1.getFuture();
     auto f2 = p2.getFuture();
 
-    runPromiseInThread(p1);
-    runPromiseInThread(p2);
+    runPromiseInThread(std::move(p1));
+    runPromiseInThread(std::move(p2));
 
     EXPECT_EQ(f1.result(), 1);
     EXPECT_EQ(f2.result(), 2);
@@ -127,7 +129,7 @@ TEST(AsyncTest, ExceptionConsistency) {
     });
 
     auto f = p.getFuture();
-    runPromiseInThread(p);
+    runPromiseInThread(std::move(p));
 
     EXPECT_THROW(f.result(), runTimeTestError);
     // 第二次调用仍然抛异常
@@ -254,7 +256,7 @@ TEST(AsyncTest, ReadyMethodWorks) {
     auto f = p.getFuture();
     EXPECT_FALSE(f.ready());  // 任务还没开始，应该没准备好
 
-    runPromiseInThread(p);
+    runPromiseInThread(std::move(p));
     thread::sleep(milliseconds(150));  // 等待任务完成
 
     EXPECT_TRUE(f.ready());  // 现在应该准备好了
@@ -271,7 +273,7 @@ TEST(AsyncTest, WaitMethodWorks) {
     auto f = p.getFuture();
     auto start = time::point::now();
 
-    runPromiseInThread(p);
+    runPromiseInThread(std::move(p));
     f.wait();  // 等待任务完成
 
     const auto end = time::point::now();
@@ -292,7 +294,7 @@ TEST(AsyncTest, SharedFutureBasicFunctionality) {
     auto f = p.getFuture();
     const auto sf = f.share();  // 转换为 sharedFuture
 
-    runPromiseInThread(p);
+    runPromiseInThread(std::move(p));
 
     // 多个 sharedFuture 副本应该都能访问结果
     auto sf2 = sf;  // NOLINT: Copy test
@@ -312,7 +314,7 @@ TEST(AsyncTest, SharedFutureVoidType) {
     auto f = p.getFuture();
     const auto sf = f.share();
 
-    runPromiseInThread(p);
+    runPromiseInThread(std::move(p));
 
     // 应该能正常调用（无返回值）
     EXPECT_NO_THROW(sf.result());
@@ -331,7 +333,7 @@ TEST(AsyncTest, SharedFutureExceptionHandling) {
     auto f = p.getFuture();
     auto sf = f.share();
 
-    runPromiseInThread(p);
+    runPromiseInThread(std::move(p));
 
     // 应该抛出相同的异常
     EXPECT_THROW(sf.result(), runTimeTestError);
@@ -351,7 +353,7 @@ TEST(AsyncTest, SharedFutureMultithreadedAccess) {
     auto f = p.getFuture();
     auto sf = f.share();
 
-    runPromiseInThread(p);
+    runPromiseInThread(std::move(p));
 
     std::vector<thread> threads;
     std::atomic successCount{0};
@@ -389,7 +391,7 @@ TEST(AsyncTest, FutureBasePolymorphicInterface) {
     // 通过基类指针操作
     async::futureBase* basePtr = &f;
 
-    runPromiseInThread(p);
+    runPromiseInThread(std::move(p));
 
     EXPECT_TRUE(basePtr->valid());
     EXPECT_NO_THROW(basePtr->wait());
@@ -412,7 +414,7 @@ TEST(AsyncTest, SharedFutureBaseInterface) {
     // 通过基类指针操作 sharedFuture
     async::futureBase* basePtr = &sf;
 
-    runPromiseInThread(p);
+    runPromiseInThread(std::move(p));
 
     EXPECT_TRUE(basePtr->valid());
     EXPECT_NO_THROW(basePtr->wait());
@@ -429,7 +431,7 @@ TEST(AsyncTest, FutureBaseExceptionCase) {
     auto f = p.getFuture();
     async::futureBase* basePtr = &f;
 
-    runPromiseInThread(p);
+    runPromiseInThread(std::move(p));
 
     EXPECT_TRUE(basePtr->valid());
 
@@ -482,7 +484,7 @@ TEST(AsyncTest, SharedFutureReadyMethod) {
 
     EXPECT_FALSE(sf.ready());  // 任务还没开始
 
-    runPromiseInThread(p);
+    runPromiseInThread(std::move(p));
     thread::sleep(milliseconds(150));  // 等待任务完成
 
     EXPECT_TRUE(sf.ready());  // 现在应该准备好了
@@ -501,7 +503,7 @@ TEST(AsyncTest, SharedFutureWaitMethod) {
 
     auto start = time::point::now();
 
-    runPromiseInThread(p);
+    runPromiseInThread(std::move(p));
     sf.wait();  // 等待任务完成
 
     auto end = time::point::now();
@@ -546,8 +548,8 @@ TEST(AsyncTest, SharedFutureComparisonOperators) {
     EXPECT_FALSE(sf1_copy == invalid1);
     EXPECT_TRUE(sf1_copy != invalid1);
 
-    runPromiseInThread(p1);
-    runPromiseInThread(p2);
+    runPromiseInThread(std::move(p1));
+    runPromiseInThread(std::move(p2));
 
     // 比较结果不应该影响值访问
     EXPECT_EQ(sf1_copy.result(), 42);
@@ -565,7 +567,7 @@ TEST(AsyncTest, SharedFutureStrongPointerMethod) {
     auto f = p.getFuture();
     auto sf = f.share();
 
-    runPromiseInThread(p);
+    runPromiseInThread(std::move(p));
     sf.wait();  // 等待任务完成
 
     // 使用 strongPointer() 避免拷贝
@@ -601,8 +603,8 @@ TEST(AsyncTest, SharedFutureHashFunctionality) {
     auto sf1_copy = sf1;  // 复制构造
     auto sf1_move = std::move(sf1);  // 移动构造
 
-    runPromiseInThread(p1);
-    runPromiseInThread(p2);
+    runPromiseInThread(std::move(p1));
+    runPromiseInThread(std::move(p2));
 
     // 相同底层对象的副本应该有相同的哈希值
     EXPECT_EQ(sf1_copy.toHash(), sf1_move.toHash());
@@ -643,8 +645,8 @@ TEST(AsyncTest, SharedFutureVoidHashFunctionality) {
     auto sf2 = f2.share();
     auto sf1_copy = sf1;
 
-    runPromiseInThread(p1);
-    runPromiseInThread(p2);
+    runPromiseInThread(std::move(p1));
+    runPromiseInThread(std::move(p2));
 
     // 等待任务完成
     sf1.wait();
@@ -675,9 +677,9 @@ TEST(AsyncTest, SharedFutureInUnorderedSet) {
     auto sf3 = p3.getFuture().share();
     auto sf1_copy = sf1;  // 副本
 
-    runPromiseInThread(p1);
-    runPromiseInThread(p2);
-    runPromiseInThread(p3);
+    runPromiseInThread(std::move(p1));
+    runPromiseInThread(std::move(p2));
+    runPromiseInThread(std::move(p3));
 
     // 插入到 unordered_set
     future_set.insert(sf1);
@@ -711,8 +713,8 @@ TEST(AsyncTest, SharedFutureInUnorderedMap) {
     auto sf2 = p2.getFuture().share();
     auto sf1_copy = sf1;  // 副本
 
-    runPromiseInThread(p1);
-    runPromiseInThread(p2);
+    runPromiseInThread(std::move(p1));
+    runPromiseInThread(std::move(p2));
 
     // 插入到 unordered_map
     future_map[sf1] = "first";
@@ -744,7 +746,7 @@ TEST(AsyncTest, SharedFutureHashStability) {
     });
 
     auto sf = p.getFuture().share();
-    runPromiseInThread(p);
+    runPromiseInThread(std::move(p));
 
     // 获取哈希值多次，应该都相同
     const auto hash1 = sf.toHash();
@@ -774,7 +776,7 @@ TEST(AsyncTest, SharedFutureHashWithException) {
     });
 
     const auto sf = p.getFuture().share();
-    runPromiseInThread(p);
+    runPromiseInThread(std::move(p));
 
     // 即使有异常，哈希值也应该可用
     EXPECT_NO_THROW({
@@ -798,7 +800,7 @@ TEST(AsyncTest, SharedFutureHashMoveSemantics) {
     });
 
     auto sf_original = p.getFuture().share();
-    runPromiseInThread(p);
+    runPromiseInThread(std::move(p));
 
     const auto original_hash = sf_original.toHash();
 
