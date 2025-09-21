@@ -270,3 +270,130 @@ TEST(RefCntPtrTest, ConstCastTo) {
     // 确认引用计数保持一致
     EXPECT_EQ(d.strongRefs(), d2.strongRefs());
 }
+
+// 多线程测试：并发拷贝和释放 strongPtr
+TEST(RefCntPtrTest, MultiThreadedStrongPtr) {
+    TrackedObject::alive_count = 0;
+    {
+        auto shared = original::makeStrongPtr<TrackedObject>(100);
+        EXPECT_EQ(TrackedObject::alive_count, 1);
+
+        constexpr int thread_count = 8;
+        constexpr int iterations = 10000;
+        std::vector<std::thread> threads;
+
+        for (int t = 0; t < thread_count; ++t) {
+            threads.emplace_back([shared]() mutable {
+                for (int i = 0; i < iterations; i++) {
+                    // 拷贝构造和析构在多线程下交替
+                    auto local = shared;
+                    EXPECT_TRUE(local);
+                    EXPECT_EQ(local->id, 100);
+                }
+            });
+        }
+
+        for (auto &th : threads) th.join();
+        EXPECT_EQ(shared->id, 100);
+        EXPECT_EQ(shared.strongRefs(), 1 + thread_count * iterations * 0);
+        // 实际上拷贝结束后 local 全部析构，强引用数回到1
+        EXPECT_EQ(shared.strongRefs(), 1);
+    }
+    EXPECT_EQ(TrackedObject::alive_count, 0); // 最终析构
+}
+
+TEST(RefCntPtrTest, MultiThreadedWeakPtrLock) {
+    TrackedObject::alive_count = 0;
+    {
+        auto shared = original::makeStrongPtr<TrackedObject>(200);
+        auto weak = original::weakPtr(shared);
+
+        constexpr int thread_count = 8;
+        std::vector<std::thread> threads;
+        std::atomic<int> success_count{0};
+
+        for (int t = 0; t < thread_count; ++t) {
+            threads.emplace_back([weak, &success_count]() {
+                for (int i = 0; i < 10000; i++) {
+                    if (auto locked = weak.lock()) {
+                        EXPECT_EQ(locked->id, 200);
+                        ++success_count;
+                    }
+                }
+            });
+        }
+
+        for (auto &th : threads) th.join();
+
+        EXPECT_GT(success_count, 0); // 应该有大量成功 lock
+        EXPECT_EQ(shared->id, 200);
+    }
+    EXPECT_EQ(TrackedObject::alive_count, 0);
+}
+
+TEST(RefCntPtrTest, MultiThreadedResetAndLock) {
+    TrackedObject::alive_count = 0;
+    const auto shared_keep = original::makeStrongPtr<TrackedObject>(300);
+    auto shared = shared_keep;
+    const auto weak = original::weakPtr(shared);
+
+    std::atomic stop{false};
+    std::thread reset_thread([&]() {
+        while (!stop) {
+            shared.reset();
+            shared = shared_keep;
+        }
+    });
+
+    std::atomic observed{0};
+    std::thread lock_thread([&]() {
+        for (int i = 0; i < 5000; i++) {
+            if (auto locked = weak.lock()) {
+                EXPECT_EQ(locked->id, 300);
+                ++observed;
+            }
+        }
+    });
+
+    lock_thread.join();
+    stop = true;
+    reset_thread.join();
+
+    EXPECT_GT(observed, 0);
+}
+
+TEST(RefCntPtrTest, MultiThreadedMixedOperations) {
+    TrackedObject::alive_count = 0;
+    {
+        auto shared = original::makeStrongPtr<TrackedObject>(400);
+        auto weak = original::weakPtr(shared);
+
+        constexpr int thread_count = 4;
+        std::vector<std::thread> threads;
+
+        // 一半线程频繁拷贝 strongPtr
+        for (int i = 0; i < thread_count / 2; ++i) {
+            threads.emplace_back([shared]() mutable {
+                for (int j = 0; j < 5000; j++) {
+                    auto local = shared;
+                    EXPECT_TRUE(local);
+                    EXPECT_EQ(local->id, 400);
+                }
+            });
+        }
+
+        // 一半线程频繁 lock weakPtr
+        for (int i = 0; i < thread_count / 2; ++i) {
+            threads.emplace_back([weak]() mutable {
+                for (int j = 0; j < 5000; j++) {
+                    if (auto local = weak.lock()) {
+                        EXPECT_EQ(local->id, 400);
+                    }
+                }
+            });
+        }
+
+        for (auto &th : threads) th.join();
+    }
+    EXPECT_EQ(TrackedObject::alive_count, 0);
+}
