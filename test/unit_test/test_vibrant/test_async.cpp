@@ -1497,3 +1497,577 @@ TEST(AsyncTest, PromiseFunctionMoveSemantics) {
     const auto result = moved_func();
     EXPECT_EQ(*result, 42);
 }
+
+// 测试惰性管道操作符的基本功能
+TEST(AsyncTest, LazyPipeOperatorBasic) {
+    auto p = async::makePromise([] {
+        return 21;
+    }) | [](const int x) {
+        return x * 2;
+    };
+
+    EXPECT_TRUE(p.valid());
+
+    auto f = p.getFuture();
+    p.run();
+
+    EXPECT_EQ(f.result(), 42);
+    EXPECT_FALSE(p.valid()); // promise 执行后应该变为无效
+}
+
+// 测试惰性管道操作符的多级组合
+TEST(AsyncTest, LazyPipeOperatorMultipleStages) {
+    auto p = async::makePromise([] {
+        return 10;
+    }) | [](const int x) {
+        return x + 5;  // 15
+    } | [](const int x) {
+        return x * 3;  // 45
+    } | [](const int x) {
+        return x - 3;  // 42
+    };
+
+    auto f = p.getFuture();
+    p.run();
+
+    EXPECT_EQ(f.result(), 42);
+}
+
+// 测试惰性管道操作符的类型转换
+TEST(AsyncTest, LazyPipeOperatorTypeConversion) {
+    auto p = async::makePromise([] {
+        return 42;
+    }) | [](const int x) {
+        return std::to_string(x) + " answer";
+    };
+
+    auto f = p.getFuture();
+    p.run();
+
+    EXPECT_EQ(f.result(), "42 answer");
+}
+
+// 测试惰性管道操作符的异常处理
+TEST(AsyncTest, LazyPipeOperatorExceptionHandling) {
+    auto p = async::makePromise([]() -> int {
+        throw runTimeTestError("source error");
+    }) | [](const int x) {
+        return x + 1;  // 不会执行
+    };
+
+    auto f = p.getFuture();
+    p.run();
+
+    EXPECT_THROW(f.result(), runTimeTestError);
+}
+
+// 测试惰性管道操作符中回调抛出异常
+TEST(AsyncTest, LazyPipeOperatorCallbackException) {
+    auto p = async::makePromise([] {
+        return 42;
+    }) | [](int) -> int {
+        throw runTimeTestError("callback error");
+    };
+
+    auto f = p.getFuture();
+    p.run();
+
+    EXPECT_THROW(f.result(), runTimeTestError);
+}
+
+// 测试 void 类型的惰性管道操作符
+TEST(AsyncTest, LazyPipeOperatorVoidType) {
+    std::atomic counter{0};
+
+    auto p = async::makePromise([&counter] {
+        counter = 100;
+    }) | [&counter] {
+        counter += 42;
+    };
+
+    EXPECT_EQ(counter.load(), 0); // 惰性执行，尚未修改
+
+    const auto f = p.getFuture();
+    p.run();
+
+    f.wait(); // 等待执行完成
+    EXPECT_EQ(counter.load(), 142);
+}
+
+// 测试 void 到非 void 的惰性管道转换
+TEST(AsyncTest, LazyPipeOperatorVoidToNonVoid) {
+    std::atomic initValue{0};
+
+    auto p = async::makePromise([&initValue] {
+        initValue = 21;
+    }) | [&initValue] {
+        return initValue.load() * 2;
+    };
+
+    auto f = p.getFuture();
+    p.run();
+
+    EXPECT_EQ(f.result(), 42);
+    EXPECT_EQ(initValue.load(), 21);
+}
+
+// 测试惰性管道操作符的移动语义
+TEST(AsyncTest, LazyPipeOperatorMoveSemantics) {
+    auto p = async::makePromise([] {
+        return std::make_unique<int>(21);
+    }) | [](std::unique_ptr<int> ptr) {
+        *ptr *= 2;
+        return ptr;
+    };
+
+    auto f = p.getFuture();
+    p.run();
+
+    const auto result = f.result();
+    EXPECT_EQ(*result, 42);
+}
+
+// 测试惰性管道操作符与标准算法结合
+TEST(AsyncTest, LazyPipeOperatorWithAlgorithms) {
+    auto p = async::makePromise([] {
+        return std::vector{1, 2, 3, 4, 5};
+    }) | [](const std::vector<int>& vec) {
+        std::vector<int> transformed;
+        std::ranges::transform(vec, std::back_inserter(transformed),
+                             [](const int x) { return x * x; });
+        return transformed;
+    };
+
+    auto f = p.getFuture();
+    p.run();
+
+    EXPECT_EQ(f.result(), std::vector({1, 4, 9, 16, 25}));
+}
+
+// 测试惰性管道操作符的多次使用
+TEST(AsyncTest, LazyPipeOperatorMultipleUses) {
+    auto func = [] {
+        return 10;
+    };
+
+    // 创建多个不同的管道
+    auto pipe1 = async::makePromise(func) | [](int x) { return x + 32; };
+    auto pipe2 = async::makePromise(func) | [](int x) { return x * 4; };
+    auto pipe3 = async::makePromise(func) | [](int x) { return x - 2; };
+
+    // 执行各个管道
+    auto f1 = pipe1.getFuture();
+    pipe1.run();
+    EXPECT_EQ(f1.result(), 42);
+
+    auto f2 = pipe2.getFuture();
+    pipe2.run();
+    EXPECT_EQ(f2.result(), 40);
+
+    auto f3 = pipe3.getFuture();
+    pipe3.run();
+    EXPECT_EQ(f3.result(), 8);
+}
+
+// 测试惰性管道操作符的延迟执行特性
+TEST(AsyncTest, LazyPipeOperatorDelayedExecution) {
+    std::atomic executionCount{0};
+
+    auto p = async::makePromise([&executionCount] {
+        ++executionCount;
+        return 21;
+    }) | [&executionCount](int x) {
+        ++executionCount;
+        return x * 2;
+    };
+
+    // 尚未执行，计数器应为0
+    EXPECT_EQ(executionCount.load(), 0);
+
+    // 执行管道
+    auto f = p.getFuture();
+    p.run();
+
+    EXPECT_EQ(f.result(), 42);
+    EXPECT_EQ(executionCount.load(), 2); // 两个阶段都执行了
+}
+
+// 测试惰性管道操作符的复杂组合
+TEST(AsyncTest, LazyPipeOperatorComplexComposition) {
+    auto process_data = [](const std::string& input) {
+        return input + " processed";
+    };
+
+    auto convert_to_upper = [](std::string str) {
+        std::ranges::transform(str, str.begin(), ::toupper);
+        return str;
+    };
+
+    auto add_suffix = [](const std::string& str) {
+        return str + "!";
+    };
+
+    auto p = async::makePromise([] {
+        return "hello";
+    }) | process_data | convert_to_upper | add_suffix;
+
+    auto f = p.getFuture();
+    p.run();
+
+    EXPECT_EQ(f.result(), "HELLO PROCESSED!");
+}
+
+// 测试惰性管道操作符的条件逻辑
+TEST(AsyncTest, LazyPipeOperatorWithConditionalLogic) {
+    auto p = async::makePromise([] {
+        return 42;
+    }) | [](const int x) {
+        if (x > 0) {
+            return x * 2;
+        }
+        return x;
+    };
+
+    auto f = p.getFuture();
+    p.run();
+
+    EXPECT_EQ(f.result(), 84);
+}
+
+// 测试惰性管道操作符与异常传播
+TEST(AsyncTest, LazyPipeOperatorExceptionPropagation) {
+    try {
+        auto p = async::makePromise([]() -> int {
+            throw runTimeTestError("first error");
+        }) | [](const int x) {
+            return x + 1;  // 不会执行
+        } | [](const int x) {
+            return x * 2;  // 不会执行
+        };
+
+        auto f = p.getFuture();
+        p.run();
+        f.result();
+
+        FAIL() << "Should have thrown an exception";
+    } catch (const runTimeTestError& e) {
+        EXPECT_STREQ(e.what(), "first error");
+    }
+}
+
+// 测试惰性管道操作符在无效 promise 上的行为
+TEST(AsyncTest, LazyPipeOperatorWithInvalidPromise) {
+    async::promise<int, std::function<int()>> invalid_promise;
+
+    EXPECT_THROW({
+        auto p = std::move(invalid_promise) | [](const int x) { return x + 1; };
+    }, original::error);
+}
+
+// 测试惰性管道操作符的函数提取
+TEST(AsyncTest, LazyPipeOperatorFunctionExtraction) {
+    auto p = async::makePromise([] {
+        return 21;
+    }) | [](const int x) {
+        return x * 2;
+    };
+
+    // 提取函数而不是运行
+    const auto func = p.function();
+    EXPECT_FALSE(p.valid());
+
+    // 手动执行函数
+    const int result = func();
+    EXPECT_EQ(result, 42);
+}
+
+// 测试惰性管道操作符的多线程安全性
+TEST(AsyncTest, LazyPipeOperatorMultithreaded) {
+    auto p = async::makePromise([] {
+        thread::sleep(milliseconds(50));
+        return 21;
+    }) | [](int x) {
+        thread::sleep(milliseconds(50));
+        return x * 2;
+    };
+
+    auto f = p.getFuture();
+
+    // 在单独线程中运行管道
+    thread t([p = std::move(p)]() mutable {
+        p.run();
+    });
+
+    // 等待结果
+    const int result = f.result();
+    EXPECT_EQ(result, 42);
+
+    t.join();
+}
+
+// 测试惰性管道操作符与共享 future 的组合使用
+TEST(AsyncTest, LazyPipeOperatorWithSharedFuture) {
+    auto sourcePromise = async::makePromise([] {
+        return 21;
+    });
+
+    auto sourceFuture = sourcePromise.getFuture().share();
+
+    // 先运行源 promise
+    sourcePromise.run();
+
+    // 使用共享 future 的结果创建惰性管道
+    auto p = async::makePromise([sourceFuture] {
+        return sourceFuture.result();
+    }) | [](int x) {
+        return x * 2;
+    };
+
+    auto f = p.getFuture();
+    p.run();
+
+    EXPECT_EQ(f.result(), 42);
+}
+
+// 测试惰性管道操作符的性能特性（延迟执行验证）
+TEST(AsyncTest, LazyPipeOperatorPerformance) {
+    const auto start = time::point::now();
+
+    // 创建管道但不立即执行
+    auto p = async::makePromise([] {
+        thread::sleep(milliseconds(100));
+        return 1;
+    }) | [](int x) {
+        thread::sleep(milliseconds(100));
+        return x + 1;
+    };
+
+    // 管道创建应该很快
+    const auto createTime = time::point::now() - start;
+    EXPECT_LT(createTime.value(), 50); // 创建时间应该很短
+
+    // 执行管道
+    auto f = p.getFuture();
+    p.run();
+
+    const int result = f.result();
+    const auto totalTime = time::point::now() - start;
+
+    EXPECT_EQ(result, 2);
+    EXPECT_GE(totalTime.value(), 190); // 总执行时间应该至少200ms
+}
+
+// 测试 promise 的移动构造函数
+TEST(AsyncTest, PromiseMoveConstructor) {
+    auto p1 = async::makePromise([] { return 42; });
+    EXPECT_TRUE(p1.valid());
+
+    // 移动构造
+    auto p2(std::move(p1));
+    EXPECT_TRUE(p2.valid());
+    EXPECT_FALSE(p1.valid());  // 移动后原对象应该无效
+
+    // 运行移动后的 promise
+    auto f = p2.getFuture();
+    p2.run();
+    EXPECT_EQ(f.result(), 42);
+}
+
+// 测试 promise 的移动赋值运算符
+TEST(AsyncTest, PromiseMoveAssignment) {
+    auto p1 = async::makePromise([] { return 42; });
+    EXPECT_TRUE(p1.valid());
+
+    auto p2 = std::move(p1);
+    EXPECT_TRUE(p2.valid());
+    p2.run();
+    EXPECT_FALSE(p2.valid());
+    EXPECT_FALSE(p1.valid());  // 移动后原对象应该无效
+
+    // 运行移动后的 promise
+    auto f = p2.getFuture();
+    EXPECT_THROW(p2.run(), original::sysError);
+}
+
+// 测试移动到自身的移动赋值
+TEST(AsyncTest, PromiseMoveAssignmentToSelf) {
+    auto p = async::makePromise([] { return 42; });
+    EXPECT_TRUE(p.valid());
+
+    // 移动到自身应该保持有效
+    p = std::move(p);
+    EXPECT_TRUE(p.valid());  // 应该仍然有效
+
+    // 运行 promise
+    auto f = p.getFuture();
+    p.run();
+    EXPECT_EQ(f.result(), 42);
+}
+
+// 测试从无效 promise 移动
+TEST(AsyncTest, PromiseMoveFromInvalid) {
+    async::promise<int, std::function<int()>> p1;  // 默认构造，无效
+    EXPECT_FALSE(p1.valid());
+
+    // 从无效 promise 移动构造
+    async::promise<int, std::function<int()>> p2(std::move(p1));
+    EXPECT_FALSE(p2.valid());  // 移动后的对象也应该无效
+    EXPECT_FALSE(p1.valid());  // 原对象仍然无效
+
+    // 从无效 promise 移动赋值
+    const async::promise<int, std::function<int()>> p3 = std::move(p1);
+    EXPECT_FALSE(p3.valid());  // 移动后的对象也应该无效
+}
+
+// 测试移动语义与 function() 方法的交互
+TEST(AsyncTest, PromiseMoveThenFunction) {
+    auto p1 = async::makePromise([] { return 42; });
+    EXPECT_TRUE(p1.valid());
+
+    // 移动构造
+    auto p2(std::move(p1));
+    EXPECT_TRUE(p2.valid());
+    EXPECT_FALSE(p1.valid());
+
+    // 从移动后的对象获取函数
+    const auto func = p2.function();
+    EXPECT_FALSE(p2.valid());  // 获取函数后应该无效
+
+    // 执行函数
+    EXPECT_EQ(func(), 42);
+}
+
+// 测试移动语义与 run() 方法的交互
+TEST(AsyncTest, PromiseMoveThenRun) {
+    auto p1 = async::makePromise([] { return 42; });
+    EXPECT_TRUE(p1.valid());
+
+    // 移动构造
+    auto p2(std::move(p1));
+    EXPECT_TRUE(p2.valid());
+    EXPECT_FALSE(p1.valid());
+
+    // 运行移动后的 promise
+    auto f = p2.getFuture();
+    p2.run();
+    EXPECT_FALSE(p2.valid());  // 运行后应该无效
+
+    EXPECT_EQ(f.result(), 42);
+}
+
+// 测试移动语义与惰性管道操作符的结合
+TEST(AsyncTest, PromiseMoveWithLazyPipeOperator) {
+    auto source_promise = async::makePromise([] {
+        return 10;
+    });
+    EXPECT_TRUE(source_promise.valid());
+
+    // 移动源 promise 到管道
+    auto pipe_promise = std::move(source_promise) | [](int x) { return x + 32; };
+    EXPECT_TRUE(pipe_promise.valid());
+    EXPECT_FALSE(source_promise.valid());  // 移动后源 promise 应该无效
+
+    // 运行管道 promise
+    auto f = pipe_promise.getFuture();
+    pipe_promise.run();
+    EXPECT_EQ(f.result(), 42);
+}
+
+// 测试多次移动
+TEST(AsyncTest, PromiseMultipleMoves) {
+    auto p1 = async::makePromise([] { return 42; });
+    EXPECT_TRUE(p1.valid());
+
+    // 第一次移动
+    auto p2(std::move(p1));
+    EXPECT_TRUE(p2.valid());
+    EXPECT_FALSE(p1.valid());
+
+    // 第二次移动
+    auto p3(std::move(p2));
+    EXPECT_TRUE(p3.valid());
+    EXPECT_FALSE(p2.valid());
+
+    // 第三次移动
+    auto p4 = std::move(p3);
+    EXPECT_TRUE(p4.valid());
+    EXPECT_FALSE(p3.valid());
+
+    // 运行最终 promise
+    auto f = p4.getFuture();
+    p4.run();
+    EXPECT_EQ(f.result(), 42);
+}
+
+// 测试移动语义在多线程环境下的行为
+TEST(AsyncTest, PromiseMoveMultithreaded) {
+    auto p = async::makePromise([] {
+        thread::sleep(milliseconds(100));
+        return 42;
+    });
+    EXPECT_TRUE(p.valid());
+
+    std::atomic moved{false};
+    std::atomic valid_after_move{false};
+
+    // 在一个线程中移动 promise
+    thread move_thread([&p, &moved, &valid_after_move] {
+        auto moved_promise(std::move(p));
+        moved = true;
+        valid_after_move = moved_promise.valid();
+
+        // 运行移动后的 promise
+        auto f = moved_promise.getFuture();
+        moved_promise.run();
+        EXPECT_EQ(f.result(), 42);
+    });
+
+    // 在主线程中等待移动完成
+    while (!moved) {
+        thread::sleep(milliseconds(10));
+    }
+
+    // 移动后原 promise 应该无效
+    EXPECT_FALSE(p.valid());
+
+    move_thread.join();
+    EXPECT_TRUE(valid_after_move);
+}
+
+// 测试移动语义与异常处理的结合
+TEST(AsyncTest, PromiseMoveWithException) {
+    auto p1 = async::makePromise([]() -> int {
+        throw runTimeTestError("test error");
+    });
+    EXPECT_TRUE(p1.valid());
+
+    // 移动构造
+    auto p2(std::move(p1));
+    EXPECT_TRUE(p2.valid());
+    EXPECT_FALSE(p1.valid());
+
+    // 运行移动后的 promise
+    auto f = p2.getFuture();
+    p2.run();
+    EXPECT_FALSE(p2.valid());
+
+    // 应该抛出异常
+    EXPECT_THROW(f.result(), runTimeTestError);
+}
+
+// 测试 void 类型 promise 的移动语义
+TEST(AsyncTest, PromiseVoidMoveSemantics) {
+    auto p1 = async::makePromise([] {});
+    EXPECT_TRUE(p1.valid());
+
+    // 移动构造
+    auto p2(std::move(p1));
+    EXPECT_TRUE(p2.valid());
+    EXPECT_FALSE(p1.valid());
+
+    // 运行移动后的 promise
+    auto f = p2.getFuture();
+    p2.run();
+    EXPECT_FALSE(p2.valid());
+    EXPECT_NO_THROW(f.result());
+}
