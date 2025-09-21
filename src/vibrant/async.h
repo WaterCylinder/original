@@ -503,6 +503,49 @@ namespace original {
     template <typename Callback>
     auto operator|(async::sharedFuture<void> sf, Callback&& c);
 
+    /**
+     * @brief Lazy pipe operator for chaining promise computations
+     * @details This operator creates a lazy composition of promises, where the computation
+     * is only executed when the resulting promise is run. Unlike the dynamic pipe operator
+     * for futures, this creates a new promise that combines both computations without
+     * immediate execution.
+     *
+     * The pipeline is built lazily - no computation occurs until run() is called on the
+     * resulting promise. This allows for building complex computation graphs without
+     * immediate execution overhead.
+     *
+     * @tparam T Result type of the source promise
+     * @tparam Callback1 Type of the source promise's computation
+     * @tparam Callback2 Type of the continuation callback
+     * @param p Source promise containing the initial computation
+     * @param c Callback function to process the result of the source promise
+     * @return A new promise that will execute both computations in sequence when run
+     * @note The source promise is moved into the resulting promise, making it invalid
+     * after this operation. The continuation callback must accept the result type T.
+     */
+    template<typename T, typename Callback1, typename Callback2>
+    auto operator|(async::promise<T, Callback1> p, Callback2&& c);
+
+    /**
+     * @brief Lazy pipe operator specialization for promise<void>
+     * @details This operator creates a lazy composition of void-returning promises,
+     * where the first computation completes before the second begins. The pipeline
+     * executes sequentially but only when the resulting promise is run.
+     *
+     * Useful for building sequences of side-effectful operations that need to
+     * execute in order but don't produce values.
+     *
+     * @tparam Callback1 Type of the source promise's computation
+     * @tparam Callback2 Type of the continuation callback
+     * @param p Source promise containing the initial void computation
+     * @param c Callback function to execute after the source promise completes
+     * @return A new promise that will execute both computations in sequence when run
+     * @note The source promise is moved into the resulting promise, making it invalid
+     * after this operation. The continuation callback must accept no arguments.
+     */
+    template<typename Callback1, typename Callback2>
+    auto operator|(async::promise<void, Callback1> p, Callback2&& c);
+
 
     // ==================== Void Specializations ====================
 
@@ -1195,6 +1238,38 @@ auto original::operator|(async::sharedFuture<void> sf, Callback&& c)
             return;
         }
     }).share();
+}
+
+template <typename T, typename Callback1, typename Callback2>
+auto original::operator|(async::promise<T, Callback1> p, Callback2&& c)
+{
+    if (!p.valid()) {
+        throw sysError("Try to build a lazy pipeline from an invalid promise");
+    }
+    using ResultType = decltype(c(std::declval<T>()));
+    strongPtr<async::promise<T,Callback1>> shared_p = makeStrongPtr<async::promise<T, Callback1>>(std::move(p));
+    return async::makePromise([shared_p, c = std::forward<Callback2>(c)]() mutable -> ResultType {
+        if constexpr (!std::is_void_v<ResultType>) {
+            return c(shared_p->function()());
+        } else {
+            shared_p->function()();
+            return c();
+        }
+    });
+}
+
+template <typename Callback1, typename Callback2>
+auto original::operator|(async::promise<void, Callback1> p, Callback2&& c)
+{
+    if (!p.valid()) {
+        throw sysError("Try to build a lazy pipeline from an invalid promise");
+    }
+    using ResultType = decltype(c());
+    strongPtr<async::promise<void, Callback1>> shared_p = makeStrongPtr<async::promise<void, Callback1>>(std::move(p));
+    return async::makePromise([shared_p, c = std::forward<Callback2>(c)]() mutable -> ResultType {
+        shared_p->function()();
+        return c();
+    });
 }
 
 inline void original::async::asyncWrapper<void>::setValue()
