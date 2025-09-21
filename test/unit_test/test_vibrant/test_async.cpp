@@ -1267,3 +1267,231 @@ TEST(AsyncTest, PipeOperatorWithConditionalLogic) {
 
     EXPECT_EQ(f.result(), 84);
 }
+
+// 测试 promise 的 valid() 方法
+TEST(AsyncTest, PromiseValidMethod) {
+    // 默认构造的 promise 应该是无效的
+    async::promise<int, std::function<int()>> p1;
+    EXPECT_FALSE(p1.valid());
+
+    // 通过 makePromise 创建的 promise 应该是有效的
+    auto p2 = async::makePromise([] { return 42; });
+    EXPECT_TRUE(p2.valid());
+
+    // 获取 future 后，promise 应该仍然有效
+    auto f = p2.getFuture();
+    EXPECT_TRUE(p2.valid());
+
+    // 运行 promise 后，应该变为无效
+    p2.run();
+    EXPECT_FALSE(p2.valid());
+}
+
+// 测试 promise 的 function() 方法
+TEST(AsyncTest, PromiseFunctionMethod) {
+    auto p = async::makePromise([] { return 42; });
+
+    // 获取函数对象
+    const auto func = p.function();
+    EXPECT_FALSE(p.valid());  // 获取函数后 promise 应该变为无效
+
+    // 执行函数应该返回正确的结果
+    EXPECT_EQ(func(), 42);
+
+    // 再次获取函数应该抛出异常
+    EXPECT_THROW(p.function(), original::error);
+}
+
+// 测试 promise 的 function() 方法在无效时的行为
+TEST(AsyncTest, PromiseFunctionMethodWhenInvalid) {
+    async::promise<int, std::function<int()>> p;  // 默认构造，无效
+
+    // 无效的 promise 获取函数应该抛出异常
+    EXPECT_THROW(p.function(), original::error);
+}
+
+// 测试 promise 的 run() 方法在无效时的行为
+TEST(AsyncTest, PromiseRunMethodWhenInvalid) {
+    async::promise<int, std::function<int()>> p;  // 默认构造，无效
+
+    // 无效的 promise 运行应该抛出异常
+    EXPECT_THROW(p.run(), original::error);
+}
+
+// 测试 promise 的多次运行尝试
+TEST(AsyncTest, PromiseMultipleRunAttempts) {
+    auto p = async::makePromise([] { return 42; });
+
+    // 第一次运行应该成功
+    p.run();
+    EXPECT_FALSE(p.valid());
+
+    // 第二次运行应该抛出异常
+    EXPECT_THROW(p.run(), original::error);
+}
+
+// 测试 promise 的多次获取函数尝试
+TEST(AsyncTest, PromiseMultipleFunctionAttempts) {
+    auto p = async::makePromise([] { return 42; });
+
+    // 第一次获取函数应该成功
+    auto func = p.function();
+    EXPECT_FALSE(p.valid());
+
+    // 第二次获取函数应该抛出异常
+    EXPECT_THROW(p.function(), original::error);
+}
+
+// 测试 promise 的获取函数和运行互斥
+TEST(AsyncTest, PromiseFunctionAndRunMutualExclusion) {
+    auto p = async::makePromise([] { return 42; });
+
+    // 先获取函数
+    const auto func = p.function();
+    EXPECT_FALSE(p.valid());
+
+    // 然后尝试运行应该失败
+    EXPECT_THROW(p.run(), original::error);
+
+    // 但函数应该仍然可以执行
+    EXPECT_EQ(func(), 42);
+}
+
+// 测试 promise 的先运行后获取函数
+TEST(AsyncTest, PromiseRunThenFunction) {
+    auto p = async::makePromise([] { return 42; });
+
+    // 先运行
+    p.run();
+    EXPECT_FALSE(p.valid());
+
+    // 然后尝试获取函数应该失败
+    EXPECT_THROW(p.function(), original::error);
+}
+
+// 测试 void 类型的 promise 的 valid() 方法
+TEST(AsyncTest, PromiseVoidValidMethod) {
+    // 默认构造的 void promise 应该是无效的
+    async::promise<void, std::function<void()>> p1;
+    EXPECT_FALSE(p1.valid());
+
+    // 通过 makePromise 创建的 void promise 应该是有效的
+    auto p2 = async::makePromise([] {});
+    EXPECT_TRUE(p2.valid());
+
+    // 运行后应该变为无效
+    p2.run();
+    EXPECT_FALSE(p2.valid());
+}
+
+// 测试 void 类型的 promise 的 function() 方法
+TEST(AsyncTest, PromiseVoidFunctionMethod) {
+    std::atomic executed{false};
+
+    auto p = async::makePromise([&executed] { executed = true; });
+
+    // 获取函数对象
+    const auto func = p.function();
+    EXPECT_FALSE(p.valid());  // 获取函数后 promise 应该变为无效
+
+    // 执行函数
+    func();
+    EXPECT_TRUE(executed.load());
+}
+
+// 测试 promise 的有效性状态在异常情况下的行为
+TEST(AsyncTest, PromiseValidityWithException) {
+    auto p = async::makePromise([]() -> int {
+        throw runTimeTestError("test error");
+    });
+
+    EXPECT_TRUE(p.valid());
+
+    // 运行应该捕获异常，但 promise 仍然会变为无效
+    EXPECT_NO_THROW(p.run());
+    EXPECT_FALSE(p.valid());
+}
+
+// 测试通过 function() 获取的函数抛出异常
+TEST(AsyncTest, PromiseFunctionThrowsException) {
+    auto p = async::makePromise([]() -> int {
+        throw runTimeTestError("function error");
+    });
+
+    const auto func = p.function();
+    EXPECT_FALSE(p.valid());
+
+    // 执行函数应该抛出异常
+    EXPECT_THROW(func(), runTimeTestError);
+}
+
+// 测试 promise 的有效性状态在多线程环境下的行为
+TEST(AsyncTest, PromiseValidityMultithreaded) {
+    auto p = async::makePromise([] {
+        thread::sleep(milliseconds(100));
+        return 42;
+    });
+
+    std::atomic valid_count{0};
+    std::atomic invalid_count{0};
+
+    // 启动多个线程检查 promise 的有效性
+    std::vector<thread> threads;
+    for (int i = 0; i < 5; i++) {
+        threads.emplace_back([&p, &valid_count, &invalid_count] {
+            if (p.valid()) {
+                ++valid_count;
+            } else {
+                ++invalid_count;
+            }
+        });
+    }
+
+    // 等待所有线程完成
+    for (auto& t : threads) {
+        t.join();
+    }
+
+    // 在运行前，所有线程应该看到 promise 有效
+    EXPECT_EQ(valid_count.load(), 5);
+    EXPECT_EQ(invalid_count.load(), 0);
+
+    // 运行 promise
+    p.run();
+
+    // 再次检查，现在应该无效
+    EXPECT_FALSE(p.valid());
+}
+
+// 测试 promise 的 function() 方法返回的函数对象可以安全存储和执行
+TEST(AsyncTest, PromiseFunctionStorageAndExecution) {
+    auto p = async::makePromise([] {
+        return std::vector{1, 2, 3};
+    });
+
+    // 获取函数并存储
+    const auto stored_func = p.function();
+
+    // 稍后执行
+    thread::sleep(milliseconds(50));
+    const auto result = stored_func();
+
+    EXPECT_EQ(result, std::vector({1, 2, 3}));
+}
+
+// 测试 promise 的 function() 方法与移动语义
+TEST(AsyncTest, PromiseFunctionMoveSemantics) {
+    auto p = async::makePromise([] {
+        return std::make_unique<int>(42);
+    });
+
+    // 获取函数
+    auto func = p.function();
+
+    // 移动函数对象
+    const auto moved_func = std::move(func);
+
+    // 执行移动后的函数
+    const auto result = moved_func();
+    EXPECT_EQ(*result, 42);
+}
