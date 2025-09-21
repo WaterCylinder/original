@@ -447,8 +447,9 @@ namespace original {
 
     /**
      * @brief Pipe operator for chaining asynchronous computations
-     * @details Applies a callback function to the result of a future once it is ready.
-     * Provides a functional style syntax for continuation of asynchronous tasks.
+     * @details This operator dynamically attaches a new callback to an already running future.
+     * The callback will be executed once the asynchronous result becomes available.
+     * Unlike a lazy pipeline builder, this version modifies the execution flow immediately.
      *
      * @tparam T Result type of the future
      * @tparam Callback Callable type, must accept T or T&& (depending on constness and value category)
@@ -461,8 +462,9 @@ namespace original {
 
     /**
      * @brief Pipe operator specialization for future<void>
-     * @details Applies a callback function once the future completes.
-     * Useful for chaining tasks that do not produce a value.
+     * @details This operator dynamically attaches a new callback to an already running future<void>.
+     * The callback will be executed once the asynchronous task completes. This is suitable for
+     * chaining tasks that do not produce a value. Execution is immediate, not deferred.
      *
      * @tparam Callback Callable type, must accept no arguments
      * @param f Source future<void> representing completion of an asynchronous task
@@ -474,8 +476,9 @@ namespace original {
 
     /**
      * @brief Pipe operator for chaining computations on sharedFuture
-     * @details Applies a callback function to the result of a sharedFuture once it is ready.
-     * Unlike future, sharedFuture can be copied and used in multiple places.
+     * @details This operator dynamically attaches a new callback to an already running sharedFuture.
+     * Unlike lazy task builders, the continuation is immediately scheduled to run once the sharedFuture
+     * produces a value. This makes it possible to share and extend asynchronous results across multiple consumers.
      *
      * @tparam T Result type of the sharedFuture
      * @tparam Callback Callable type, must accept T const& or T (depending on design)
@@ -488,8 +491,9 @@ namespace original {
 
     /**
      * @brief Pipe operator specialization for sharedFuture<void>
-     * @details Applies a callback function once the sharedFuture completes.
-     * Suitable for chaining multiple consumers of the same asynchronous task.
+     * @details This operator dynamically attaches a new callback to an already running sharedFuture<void>.
+     * The callback will be executed once the asynchronous task completes. Since sharedFuture can be copied,
+     * multiple consumers can each dynamically attach their own continuations.
      *
      * @tparam Callback Callable type, must accept no arguments
      * @param sf Source sharedFuture<void> representing completion of an asynchronous task
