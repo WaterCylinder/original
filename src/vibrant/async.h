@@ -111,6 +111,7 @@ namespace original {
          * - `valid()`   : check if the consumer is valid
          * - `ready()`   : check if the result is ready
          * - `wait()`    : block until ready
+         * - `waitFor()` : Block with a timeout
          * - `exception()`: retrieve any stored exception
          */
         class futureBase {
@@ -480,6 +481,11 @@ namespace original {
          */
         void wait() const;
 
+        /**
+         * @brief Waits for the result with a timeout
+         * @param timeout Maximum time to wait
+         * @return True if result is ready within timeout, false otherwise
+         */
         bool waitFor(time::duration timeout) const;
 
         /**
@@ -563,6 +569,11 @@ namespace original {
          */
         void wait() const override;
 
+        /**
+         * @brief Waits for the result with a timeout
+         * @param timeout Maximum time to wait
+         * @return True if result is ready within timeout, false otherwise
+         */
         bool waitFor(time::duration timeout) const override;
     };
 
@@ -625,6 +636,11 @@ namespace original {
          */
         void wait() const override;
 
+        /**
+         * @brief Waits for the result with a timeout
+         * @param timeout Maximum time to wait
+         * @return True if result is ready within timeout, false otherwise
+         */
         bool waitFor(time::duration timeout) const override;
 
         /**
