@@ -617,7 +617,7 @@ TEST(TaskDelegatorTest, SubmitWithTimeoutSuccess) {
     EXPECT_GT(delegator.idleThreads(), 0);
 
     // 提交带超时的任务
-    auto future = delegator.submitWithTimeOut(milliseconds(100), []{
+    auto future = delegator.submit(milliseconds(100), []{
         return 42;
     });
 
@@ -640,7 +640,7 @@ TEST(TaskDelegatorTest, SubmitWithTimeoutFailure) {
 
     // 尝试提交带超时的任务，应该超时
     EXPECT_THROW({
-        delegator.submitWithTimeOut(milliseconds(50), []{
+        delegator.submit(milliseconds(50), []{
             return 42;
         });
     }, sysError);
@@ -653,7 +653,7 @@ TEST(TaskDelegatorTest, SubmitWithTimeoutWhenStopped) {
 
     // 在停止状态下提交带超时的任务应该立即抛出异常
     EXPECT_THROW({
-        delegator.submitWithTimeOut(milliseconds(100), []{
+        delegator.submit(milliseconds(100), []{
             return 42;
         });
     }, sysError);

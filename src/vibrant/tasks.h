@@ -242,7 +242,7 @@ namespace original {
          *       no idle threads are available, but waits up to the given timeout.
          */
         template<typename Callback, typename... Args>
-        auto submitWithTimeOut(time::duration timeout, Callback&& c, Args&&... args);
+        auto submit(time::duration timeout, Callback&& c, Args&&... args);
 
         /**
          * @brief Returns the number of waiting (non-immediate, non-deferred) tasks
@@ -404,7 +404,7 @@ auto original::taskDelegator::submit(const priority priority, Callback&& c, Args
 }
 
 template <typename Callback, typename ... Args>
-auto original::taskDelegator::submitWithTimeOut(time::duration timeout, Callback&& c, Args&&... args)
+auto original::taskDelegator::submit(time::duration timeout, Callback&& c, Args&&... args)
 {
     using ReturnType = decltype(c(args...));
     strongPtr<task<ReturnType>> new_task = makeStrongPtr<task<ReturnType>>(
