@@ -1203,12 +1203,7 @@ auto original::operator|(async::future<void> f, Callback&& c)
     strongPtr<async::future<void>> shared_f = makeStrongPtr<async::future<void>>(std::move(f));
     return async::get([shared_f, c = std::forward<Callback>(c)]() mutable -> ResultType {
         shared_f->result();
-        if constexpr (!std::is_void_v<ResultType>) {
-            return c();
-        } else {
-            c();
-            return;
-        }
+        return c();
     });
 }
 
@@ -1232,12 +1227,7 @@ auto original::operator|(async::sharedFuture<void> sf, Callback&& c)
     using ResultType = std::invoke_result_t<Callback>;
     return async::get([sf, c = std::forward<Callback>(c)]() mutable -> ResultType {
         sf.result();
-        if constexpr (!std::is_void_v<ResultType>) {
-            return c();
-        } else {
-            c();
-            return;
-        }
+        return c();
     }).share();
 }
 
