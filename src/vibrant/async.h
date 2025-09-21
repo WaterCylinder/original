@@ -1191,6 +1191,7 @@ auto original::operator|(async::future<T> f, Callback&& c)
         if constexpr (!std::is_void_v<ResultType>) {
             return c(shared_f->result());
         } else {
+            shared_f->result();
             return c();
         }
     });
