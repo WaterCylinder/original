@@ -108,7 +108,7 @@ array("hello world!")
 
 ##### 容器：
 
-定长容器：定长数组 array，位集合 bitSet，变长容器：变长数组 vector，单向链表 forwardChain，双向链表 chain，块状链表 blocksList，关联容器：映射表 hashMap/treeMap，集合 hashSet/treeSet
+定长容器：定长数组 array，位集合 bitSet，变长容器：变长数组 vector，单向链表 forwardChain，双向链表 chain，块状链表 blocksList，关联容器：映射表 hashMap/treeMap，集合 hashSet/treeSet，跳跃表JSet/JMap
 
 ##### 容器接口：
 
@@ -161,7 +161,7 @@ array("hello world!")
 
 ##### 跨线程生产/消费:
 
-跨线程生产者 async::promise，跨线程消费者 async::future
+跨线程生产者 async::promise，跨线程消费者 async::futureBase/async::future/async::sharedFuture
 
 ##### 时间表示：
 
