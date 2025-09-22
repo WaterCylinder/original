@@ -5,7 +5,7 @@ project(original LANGUAGES CXX)
 set(ORIGINAL_VERSION 0.1.4)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 
 include(CMakePackageConfigHelpers)
 include(GNUInstallDirs)
