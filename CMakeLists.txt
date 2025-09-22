@@ -38,6 +38,10 @@ install(DIRECTORY src/core/
         DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/core
         FILES_MATCHING PATTERN "*.h"
 )
+install(DIRECTORY src/vibrant/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/vibrant
+        FILES_MATCHING PATTERN "*.h"
+)
 
 install(EXPORT originalTargets
         FILE originalTargets.cmake
