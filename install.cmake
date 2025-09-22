@@ -2,7 +2,7 @@
 
 cmake_minimum_required(VERSION 3.31)
 
-# An option to control whether to clean the build directory after installing, default: ON
+# An option to control whether to clean the build directory after install, default: ON
 # Use -DCLEAN_BUILD_DIR=OFF to turn off, example:
 # cmake -P install.cmake -DCLEAN_BUILD_DIR=OFF
 option(CLEAN_BUILD_DIR "Remove build directory after install" ON)
