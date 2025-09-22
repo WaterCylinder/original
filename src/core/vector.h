@@ -654,7 +654,7 @@ template<typename TYPE, typename ALLOC>
         this->adjust(list.size());
         for (const TYPE& e: list)
         {
-            this->body[this->inner_begin + this->size()] = e;
+            this->setElem(this->inner_begin + this->size(), e);
             this->size_ += 1;
         }
     }
@@ -673,7 +673,7 @@ template<typename TYPE, typename ALLOC>
         this->body = vector::vectorArrayInit(this->max_size);
         for (u_integer i = 0; i < this->size(); ++i) {
             const TYPE& data = other.body[this->toInnerIdx(i)];
-            this->body[this->toInnerIdx(i)] = data;
+            this->setElem(this->toInnerIdx(i), data);
         }
         if constexpr (ALLOC::propagate_on_container_copy_assignment::value){
             this->allocator = other.allocator;
@@ -712,7 +712,7 @@ template<typename TYPE, typename ALLOC>
         this->adjust(arr.size());
         for (u_integer i = 0; i < arr.size(); i += 1)
         {
-            this->body[this->toInnerIdx(i)] = arr.get(i);
+            this->setElem(this->toInnerIdx(i), arr.get(i));
             this->size_ += 1;
         }
     }

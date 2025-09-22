@@ -4,6 +4,7 @@
 #include <type_traits>
 #include <concepts>
 #include <iosfwd>
+#include <functional>
 #include "config.h"
 
 /**
@@ -76,27 +77,86 @@ namespace original {
     concept EnumType = std::is_enum_v<TYPE>;
 
     /**
-     * @concept Comparable
-     * @brief Requires type to support all comparison operators.
+     * @concept EnumClassType
+     * @brief Requires type to be a scoped enumeration.
      * @tparam TYPE The type to check.
-     * @details Enforces that the type provides all standard comparison operators
-     *          (==, !=, <, <=, >, >=) returning boolean results.
-     *
-     * @code{.cpp}
-     * static_assert(Comparable<int>);  // Succeeds
-     * struct NoCompare {};
-     * static_assert(!Comparable<NoCompare>); // Fails
-     * @endcode
      */
-    template <typename TYPE>
-    concept Comparable = requires(const TYPE& t1, const TYPE& t2) {
-        { t1 == t2 } -> std::same_as<bool>;
-        { t1 != t2 } -> std::same_as<bool>;
-        { t1 < t2 } -> std::same_as<bool>;
-        { t1 <= t2 } -> std::same_as<bool>;
-        { t1 > t2 } -> std::same_as<bool>;
-        { t1 >= t2 } -> std::same_as<bool>;
+    template<typename TYPE>
+    concept EnumClassType = std::is_enum_v<TYPE> && !std::is_convertible_v<TYPE, std::underlying_type_t<TYPE>>;
+
+    // ==================== Comparison Concepts ====================
+
+    /**
+     * @concept EqualityComparable
+     * @brief Requires type to support equality comparison operators.
+     * @tparam T The type to check.
+     * @details Enforces that the type provides equality operators (==, !=).
+     */
+    template <typename T>
+    concept EqualityComparable = requires(const T& a, const T& b) {
+        { a == b } -> std::convertible_to<bool>;
+        { a != b } -> std::convertible_to<bool>;
     };
+
+    /**
+     * @concept WeaklyOrdered
+     * @brief Requires type to support relational comparison operators.
+     * @tparam T The type to check.
+     * @details Enforces that the type provides relational operators (<, <=, >, >=).
+     */
+    template <typename T>
+    concept WeaklyOrdered = requires(const T& a, const T& b) {
+        { a < b } -> std::convertible_to<bool>;
+        { a <= b } -> std::convertible_to<bool>;
+        { a > b } -> std::convertible_to<bool>;
+        { a >= b } -> std::convertible_to<bool>;
+    };
+
+    /**
+     * @concept PartiallyComparable
+     * @brief Requires type to support either equality or relational comparisons.
+     * @tparam T The type to check.
+     * @details Useful for types that may only support partial ordering.
+     */
+    template <typename T>
+    concept PartiallyComparable = EqualityComparable<T> || WeaklyOrdered<T>;
+
+    /**
+     * @concept TotallyComparable
+     * @brief Requires type to support all comparison operators.
+     * @tparam T The type to check.
+     * @details The strictest comparison concept.
+     */
+    template <typename T>
+    concept TotallyComparable = EqualityComparable<T> && WeaklyOrdered<T>;
+
+    /**
+     * @concept ThreeWayComparable
+     * @brief Requires type to support three-way comparison (spaceship operator).
+     * @tparam T The type to check.
+     * @details For modern C++20 types that implement <=> operator.
+     */
+    template <typename T>
+    concept ThreeWayComparable = requires(const T& a, const T& b) {
+        { a <=> b } -> std::convertible_to<std::partial_ordering>;
+    };
+
+    /**
+     * @concept StronglyOrdered
+     * @brief Requires type to support strong ordering via three-way comparison.
+     * @tparam T The type to check.
+     * @details For types that provide strong ordering guarantees.
+     */
+    template <typename T>
+    concept StronglyOrdered = requires(const T& a, const T& b) {
+        { a <=> b } -> std::convertible_to<std::strong_ordering>;
+    };
+
+    // Alias of TotallyComparable
+    template <typename T>
+    concept Comparable = TotallyComparable<T>;
+
+    // ==================== Stream Concepts ====================
 
     /**
      * @concept Printable
@@ -115,7 +175,77 @@ namespace original {
         { os << t } -> std::same_as<std::ostream&>;
     };
 
+    /**
+     * @concept InputStreamable
+     * @brief Requires type to support input stream extraction.
+     * @tparam TYPE The type to check.
+     * @details Ensures the type can be read from std::istream using the >> operator.
+     */
+    template <typename TYPE>
+    concept InputStreamable = requires(std::istream& is, TYPE& t) {
+        { is >> t } -> std::same_as<std::istream&>;
+    };
+
+    /**
+     * @concept Streamable
+     * @brief Requires type to support both input and output stream operations.
+     * @tparam TYPE The type to check.
+     */
+    template <typename TYPE>
+    concept Streamable = Printable<TYPE> && InputStreamable<TYPE>;
+
+    // ==================== Hash Concepts ====================
+
+    /**
+     * @concept Hashable
+     * @brief Concept checking for types that can be hashed.
+     * @tparam T The type to be checked
+     * @details The type must satisfy the concept in this case:
+     * By having std::hash<T> specialization
+     *
+     * @code{.cpp}
+     * namespace std {
+     *     template<> struct hash<MyHashable1> {
+     *         size_t operator()(const MyHashable1& obj) const {
+     *             return std::hash<int>{}(obj.value);
+     *         }
+     *     };
+     * }
+     * @endcode
+     */
+    template <typename T>
+    concept Hashable =
+        requires(const T& obj) {
+            { std::hash<T>{}(obj) } -> std::convertible_to<std::size_t>;
+        };
+
+    /**
+     * @concept Equatable
+     * @brief Requires type to support equality comparison for hashing.
+     * @tparam T The type to check.
+     * @details Complementary concept for Hashable to ensure proper equality.
+     */
+    template <typename T>
+    concept Equatable =
+        requires(const T& a, const T& b) {
+            { a == b } -> std::convertible_to<bool>;
+        } ||
+        requires(const T& a, const T& b) {
+            { a.equals(b) } -> std::convertible_to<bool>;
+        };
+
     // ==================== Callback Concepts ====================
+
+    /**
+     * @concept Callable
+     * @brief Basic concept for any callable type.
+     * @tparam F The callable type to check.
+     * @tparam Args The argument types for invocation.
+     */
+    template <typename F, typename... Args>
+    concept Callable = requires(F&& f, Args&&... args) {
+        std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
+    };
 
     /**
      * @concept CallbackOf
@@ -134,16 +264,25 @@ namespace original {
      */
     template <typename Callback, typename ReturnType, typename... Args>
     concept CallbackOf = requires(Callback callback, Args&&... args) {
-        { callback(std::forward<Args>(args)...) } -> std::same_as<ReturnType>;
+        { callback(std::forward<Args>(args)...) } -> std::convertible_to<ReturnType>;
     };
+
+    /**
+     * @concept Predicate
+     * @brief Constraint for boolean predicate callbacks.
+     * @tparam Callback Predicate function type
+     * @tparam Args Input types for predicate
+     * @details Requires a callback that returns a boolean value.
+     */
+    template <typename Callback, typename... Args>
+    concept Predicate = CallbackOf<Callback, bool, Args...>;
 
     /**
      * @concept Compare
      * @brief Combines Comparable and CallbackOf for comparison callbacks.
      * @tparam Callback Comparison function type
      * @tparam TYPE Type being compared
-     * @details Requires a callback that takes two TYPE references and returns bool,
-     *          while TYPE itself must satisfy Comparable.
+     * @details Requires a callback that takes two TYPE references and returns bool.
      *
      * @code{.cpp}
      * // Validates custom comparator
@@ -156,8 +295,7 @@ namespace original {
      * @endcode
      */
     template <typename Callback, typename TYPE>
-    concept Compare = Comparable<TYPE> &&
-                     CallbackOf<Callback, bool, const TYPE&, const TYPE&>;
+    concept Compare = Predicate<Callback, const TYPE&, const TYPE&>;
 
     /**
      * @concept Condition
@@ -178,7 +316,7 @@ namespace original {
      * @endcode
      */
     template <typename Callback, typename TYPE>
-    concept Condition = CallbackOf<Callback, bool, const TYPE&>;
+    concept Condition = Predicate<Callback, const TYPE&>;
 
     /**
      * @concept Operation
@@ -200,6 +338,17 @@ namespace original {
      */
     template <typename Callback, typename TYPE>
     concept Operation = CallbackOf<Callback, void, TYPE&>;
+
+    /**
+     * @concept Transformer
+     * @brief Constraint for transformation operations.
+     * @tparam Callback Transformation function type
+     * @tparam Input Input type
+     * @tparam Output Output type
+     * @details Requires a callback that transforms Input to Output.
+     */
+    template <typename Callback, typename Input, typename Output>
+    concept Transformer = CallbackOf<Callback, Output, Input>;
 
     // ==================== Type Relationship Concepts ====================
 
@@ -242,6 +391,51 @@ namespace original {
      */
     template <typename Base, typename Derive>
     concept ExtendsOf = std::derived_from<Derive, Base> || std::is_same_v<Base, Derive>;
+
+    /**
+     * @concept ConvertibleTo
+     * @brief Checks if type is convertible to another type.
+     * @tparam From Source type
+     * @tparam To Target type
+     */
+    template <typename From, typename To>
+    concept ConvertibleTo = std::is_convertible_v<From, To>;
+
+    /**
+     * @concept SameAs
+     * @brief Checks if two types are exactly the same.
+     * @tparam T First type
+     * @tparam U Second type
+     */
+    template <typename T, typename U>
+    concept SameAs = std::is_same_v<T, U>;
+
+    // ==================== Container Concepts ====================
+
+    /**
+     * @concept Container
+     * @brief Basic container concept.
+     * @tparam C Container type
+     * @details Requires basic container interface: begin(), end(), size().
+     */
+    template <typename C>
+    concept Container = requires(C& c) {
+        { c.begin() } -> std::input_or_output_iterator;
+        { c.end() } -> std::input_or_output_iterator;
+        { c.size() } -> std::convertible_to<std::size_t>;
+    };
+
+    /**
+     * @concept SequenceContainer
+     * @brief Sequence container concept.
+     * @tparam C Container type
+     * @details Requires sequence container operations.
+     */
+    template <typename C>
+    concept SequenceContainer = Container<C> && requires(C& c, typename C::value_type v) {
+        c.push_back(v);
+        c.pop_back();
+    };
 
     // ==================== Compile-time Index Sequences ====================
 

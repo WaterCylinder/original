@@ -94,11 +94,19 @@ EXPECT_EQ(hash<int>::FNV_OFFSET_BASIS, hash<std::string>::hashFunc(std::string()
 
 // Test trivially copyable types
 TEST_F(HashTest, TriviallyCopyableTypes) {
-TestStruct ts{42, 3.14f, 'a'};
-byte buffer[sizeof(TestStruct)];
-std::memcpy(buffer, &ts, sizeof(TestStruct));
-auto expected = hash<int>::fnv1a(buffer, sizeof(TestStruct));
-EXPECT_EQ(expected, hash<TestStruct>::hashFunc(ts));
+    TestStruct ts{42, 3.14f, 'a'};
+    std::memset(&ts, 0, sizeof(ts)); // Due to memory alignment, the last few bytes are uncertain and need to be set to 0
+    byte buffer[sizeof(TestStruct)];
+    std::memcpy(buffer, &ts, sizeof(TestStruct));
+
+    u_integer expected = 0x811C9DC5; // FNV_OFFSET_BASIS
+    for (const byte i : buffer) {
+        expected ^= i;
+        expected *= static_cast<u_integer>(0x01000193); // FNV_32_PRIME
+    }
+
+    EXPECT_EQ(expected, hash<TestStruct>::hashFunc(ts));
+    std::cout << expected << " vs " << hash<TestStruct>::hashFunc(ts) << std::endl;
 }
 
 // Test hashable objects

@@ -10,8 +10,10 @@ struct TestDeleter final : original::deleterBase<TYPE, TestDeleter>{
     static int delete_count;
 
     void operator()(const TYPE* p) const noexcept override {
-        delete p;
-        delete_count++;
+        if (p) {
+            delete_count++;
+            delete p;
+        }
     }
 };
 
@@ -20,8 +22,10 @@ struct TestDeleter<int[]> final : original::deleterBase<int[], TestDeleter> {
     static int delete_count;
 
     void operator()(const int* p) const noexcept override {
-        delete[] p;
-        delete_count++;
+        if (p) {
+            delete[] p;
+            delete_count++;
+        }
     }
 };
 

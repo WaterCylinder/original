@@ -178,7 +178,7 @@ namespace original {
 
         this->removeStrongRef();
         this->clean();
-        this->ref_count = other.ref_count;
+        this->ref_count = *other.ref_count;
         other.ref_count = autoPtr<TYPE, ownerPtr, DELETER>::newRefCount();
         other.addStrongRef();
         return *this;

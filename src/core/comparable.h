@@ -1,6 +1,7 @@
 #ifndef COMPARABLE_H
 #define COMPARABLE_H
 #include "config.h"
+#include "types.h"
 #include <compare>
 
 
@@ -52,6 +53,7 @@ public:
      *          - std::strong_ordering::greater if lhs > rhs
      */
     template<typename EXTENDED>
+    requires ExtendsOf<comparable<EXTENDED>, EXTENDED>
     friend std::strong_ordering operator<=>(const EXTENDED& lc, const EXTENDED& rc);
 
     /**
@@ -105,6 +107,7 @@ public:
 // ----------------- Definitions of comparable.h -----------------
 
 template<typename EXTENDED>
+requires ExtendsOf<comparable<EXTENDED>, EXTENDED>
 std::strong_ordering operator<=>(const EXTENDED& lc, const EXTENDED& rc) {
     return lc.compareTo(rc) <=> 0;
 }

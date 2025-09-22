@@ -1,3 +1,28 @@
+/**
+ * @file tasks.h
+ * @brief Thread pool and task management utilities
+ * @details
+ * This header defines the `taskDelegator` class, which provides a managed thread pool
+ * with support for prioritized tasks, deferred execution, and futures.
+ *
+ * The file also defines:
+ * - `taskDelegator::taskBase`: abstract base class for tasks
+ * - `taskDelegator::task<TYPE>`: concrete task wrapper with future/promise support
+ *
+ * Features:
+ * - Task prioritization (IMMEDIATE, HIGH, NORMAL, LOW, DEFERRED)
+ * - Automatic or manually shutdown
+ *   with configurable stop modes (DISCARD_DEFERRED, KEEP_DEFERRED, RUN_DEFERRED)
+ *   to handle deferred task
+ * - Deferred task handling (activate, discard, or keep on shutdown)
+ * - Query interfaces for task counts and thread states
+ * - Timeout-based immediate task submission
+ * - Thread-safe execution and synchronization
+ *
+ * @note taskDelegator is **non-copyable** and **non-movable** to prevent accidental
+ * duplication of threads or task state.
+ */
+
 #ifndef ORIGINAL_TASKS_H
 #define ORIGINAL_TASKS_H
 
@@ -11,84 +36,84 @@
 
 namespace original {
 
-    // ==================== Task Base Interface ====================
-
-    /**
-     * @class taskBase
-     * @brief Abstract base class for all task types
-     * @details Defines the common interface for executable tasks
-     */
-    class taskBase {
-    public:
-        /**
-         * @brief Executes the task
-         */
-        virtual void run() = 0;
-
-        /**
-         * @brief Virtual destructor for proper polymorphism
-         */
-        virtual ~taskBase() = default;
-    };
-
-    // ==================== Concrete Task Class ====================
-
-    /**
-     * @class task
-     * @brief Concrete task implementation with result type
-     * @tparam TYPE The return type of the task computation
-     * @details Wraps a computation and provides future/promise integration
-     */
-    template<typename TYPE>
-    class task final : public taskBase {
-        async::promise<TYPE, std::function<TYPE()>> p;  ///< Promise for the computation result
-
-    public:
-        // Disable copying
-        task(const task&) = delete;
-        task& operator=(const task&) = delete;
-
-        // Allow moving
-        task(task&&) = default;
-        task& operator=(task&&) = default;
-
-        /**
-         * @brief Default constructor
-         */
-        task() = default;
-
-        /**
-         * @brief Constructs a task with a callable and arguments
-         * @tparam Callback Type of the callable
-         * @tparam Args Types of the arguments
-         * @param c Callable to execute
-         * @param args Arguments to forward to the callable
-         */
-        template<typename Callback, typename... Args>
-        explicit task(Callback&& c, Args&&... args);
-
-        /**
-         * @brief Executes the task computation
-         */
-        void run() override;
-
-        /**
-         * @brief Gets the future associated with this task
-         * @return A future that will receive the computation result
-         */
-        async::future<TYPE> getFuture();
-    };
-
     // ==================== Task Delegator (Thread Pool) ====================
 
     /**
      * @class taskDelegator
-     * @brief Thread pool for managing and executing tasks with priority
-     * @details Provides a managed thread pool with task prioritization,
-     *          deferred execution, and resource monitoring
+     * @brief Thread pool for managing and executing prioritized tasks
+     * @details
+     * Provides a managed thread pool that can execute tasks with different priority levels.
+     * Supports immediate, high, normal, low, and deferred tasks. Deferred tasks can be
+     * manually activated or discarded on shutdown.
      */
     class taskDelegator {
+        // ==================== Task Base Interface ====================
+
+        /**
+         * @class taskBase
+         * @brief Abstract base class for all tasks
+         * @details
+         * Provides the common interface for tasks to be executed in the thread pool.
+         * Must implement the run() method.
+         */
+        class taskBase {
+        public:
+            /**
+             * @brief Executes the task
+             */
+            virtual void run() = 0;
+
+            /**
+             * @brief Virtual destructor for proper polymorphic behavior
+             */
+            virtual ~taskBase() = default;
+        };
+
+        // ==================== Concrete Task Class ====================
+
+        /**
+         * @class task
+         * @brief Concrete task implementation with future/promise support
+         * @tparam TYPE Return type of the task
+         * @details
+         * Wraps a callable and its arguments, and provides integration with futures.
+         */
+        template<typename TYPE>
+        class task final : public taskBase {
+            async::promise<TYPE, std::function<TYPE()>> p;  ///< Promise for task result
+
+        public:
+            task(const task&) = delete;                 ///< Disable copy constructor
+            task& operator=(const task&) = delete;      ///< Disable copy assignment
+            task(task&&) = default;                     ///< Allow move constructor
+            task& operator=(task&&) = default;          ///< Allow move assignment
+            task() = default;
+
+            /**
+             * @brief Constructs a task from a callable and its arguments
+             * @tparam Callback Callable type
+             * @tparam Args Argument types
+             * @param c Callable to execute
+             * @param args Arguments for the callable
+             */
+            template<typename Callback, typename... Args>
+            explicit task(Callback&& c, Args&&... args);
+
+            /**
+             * @brief Executes the task
+             */
+            void run() override;
+
+            /**
+             * @brief Gets the future associated with this task
+             * @return Future object for the task result
+             */
+            async::future<TYPE> getFuture();
+        };
+
     public:
+        // ==================== Task Priorities ====================
+
         /**
          * @enum priority
          * @brief Task priority levels for execution scheduling
@@ -98,15 +123,29 @@ namespace original {
             HIGH = 1,       ///< High priority task
             NORMAL = 2,     ///< Normal priority task (default)
             LOW = 3,        ///< Low priority task
-            DEFERRED = 4,   ///< Deferred execution (manual activation)
+            DEFERRED = 4,   ///< Deferred execution
         };
 
-        // Priority constants for convenience
+        /**
+         * @enum stopMode
+         * @brief Stop behavior for deferred tasks
+         */
+        enum class stopMode {
+            DISCARD_DEFERRED,  ///< Discard deferred tasks
+            KEEP_DEFERRED,     ///< Keep deferred tasks
+            RUN_DEFERRED,      ///< Execute all deferred tasks before stopping
+        };
+
+        // Convenience constants
         static constexpr auto IMMEDIATE = priority::IMMEDIATE;
         static constexpr auto HIGH = priority::HIGH;
         static constexpr auto NORMAL = priority::NORMAL;
         static constexpr auto LOW = priority::LOW;
         static constexpr auto DEFERRED = priority::DEFERRED;
+
+        static constexpr auto DISCARD_DEFERRED = stopMode::DISCARD_DEFERRED;
+        static constexpr auto KEEP_DEFERRED = stopMode::KEEP_DEFERRED;
+        static constexpr auto RUN_DEFERRED = stopMode::RUN_DEFERRED;
 
     private:
         // Internal type definitions
@@ -114,8 +153,7 @@ namespace original {
 
         /**
          * @struct taskComparator
-         * @brief Comparator for priority-based task ordering
-         * @tparam COUPLE Type of the priority task couple
+         * @brief Comparator for ordering tasks by priority
          */
         template<typename COUPLE>
         struct taskComparator {
@@ -128,23 +166,37 @@ namespace original {
             bool operator()(const COUPLE& lhs, const COUPLE& rhs) const;
         };
 
-        using priorityTaskQueue = prique<priorityTask, taskComparator, vector>;  ///< Priority task queue
+        using priorityTaskQueue = prique<priorityTask, taskComparator, vector>;  ///< Priority queue
 
-        // Member variables
         array<thread> threads_;              ///< Worker threads
-        priorityTaskQueue tasks_waiting_;    ///< Waiting tasks with priority
-        queue<strongPtr<taskBase>> task_immediate_;  ///< Immediate execution tasks
-        queue<strongPtr<taskBase>> tasks_deferred_;  ///< Deferred execution tasks
-        mutable pCondition condition_;       ///< Condition variable for synchronization
+        priorityTaskQueue tasks_waiting_;    ///< Waiting tasks
+        queue<strongPtr<taskBase>> task_immediate_;  ///< Immediate tasks
+        queue<strongPtr<taskBase>> tasks_deferred_;  ///< Deferred tasks
+        mutable pCondition condition_;       ///< Synchronization
         mutable pMutex mutex_;               ///< Mutex for thread safety
         bool stopped_;                       ///< Stop flag
         u_integer active_threads_;           ///< Count of active threads
         u_integer idle_threads_;             ///< Count of idle threads
 
-    public:
         /**
-         * @brief Constructs a task delegator with specified thread count
-         * @param thread_cnt Number of worker threads (default: 8)
+         * @brief Submits a pre-created task with specified priority
+         * @tparam TYPE Task result type
+         * @param priority Task priority level
+         * @param t Shared pointer to the task
+         * @return Future for the task result
+         */
+        template<typename TYPE>
+        async::future<TYPE> submit(priority priority, strongPtr<task<TYPE>>& t);
+
+    public:
+        taskDelegator(const taskDelegator&) = delete;               ///< Disable copy constructor
+        taskDelegator& operator=(const taskDelegator&) = delete;    ///< Disable copy assignment
+        taskDelegator(taskDelegator&&) = delete;                    ///< Disable move constructor
+        taskDelegator& operator=(taskDelegator&&) = delete;         ///< Disable move assignment
+
+        /**
+         * @brief Constructs a task delegator with a given number of threads
+         * @param thread_cnt Number of threads (default: 8)
          */
         explicit taskDelegator(u_integer thread_cnt = 8);
 
@@ -167,43 +219,76 @@ namespace original {
          * @param c Callable to execute
          * @param args Arguments to forward to the callable
          * @return Future for the task result
+         *
+         * @throw sysError if delegator is stopped or no idle thread is available
+         *        for IMMEDIATE submission
          */
         template<typename Callback, typename... Args>
         auto submit(priority priority, Callback&& c, Args&&... args);
 
         /**
-         * @brief Submits a pre-created task with normal priority
-         * @tparam TYPE Task result type
-         * @param t Shared pointer to the task
+         * @brief Submits a task with IMMEDIATE priority and a timeout
+         * @tparam Callback Type of the callable
+         * @tparam Args Types of the arguments
+         * @param timeout Maximum duration to wait for an idle thread
+         * @param c Callable to execute
+         * @param args Arguments to forward to the callable
          * @return Future for the task result
+         *
+         * @throw sysError if delegator is stopped
+         * @throw sysError if no idle thread becomes available within the timeout
+         *
+         * @note Unlike normal submission, this will not throw immediately if
+         *       no idle threads are available, but waits up to the given timeout.
          */
-        template<typename TYPE>
-        async::future<TYPE> submit(strongPtr<task<TYPE>>& t);
+        template<typename Callback, typename... Args>
+        auto submit(time::duration timeout, Callback&& c, Args&&... args);
 
         /**
-         * @brief Submits a pre-created task with specified priority
-         * @tparam TYPE Task result type
-         * @param priority Task priority level
-         * @param t Shared pointer to the task
-         * @return Future for the task result
+         * @brief Returns the number of waiting (non-immediate, non-deferred) tasks
          */
-        template<typename TYPE>
-        async::future<TYPE> submit(priority priority, strongPtr<task<TYPE>>& t);
+        u_integer waitingCnt() const noexcept;
 
         /**
-         * @brief Moves one deferred task to the waiting queue
+         * @brief Returns the number of immediate tasks pending execution
+         */
+        u_integer immediateCnt() const noexcept;
+
+        /**
+         * @brief Activates one deferred task
          */
         void runDeferred();
 
         /**
-         * @brief Moves all deferred tasks to the waiting queue
+         * @brief Activates all deferred tasks
          */
         void runAllDeferred();
 
         /**
-         * @brief Stops the task delegator and waits for completion
+         * @brief Discards one deferred task
+         * @return Remaining number of deferred tasks after discarding
          */
-        void stop();
+        u_integer discardDeferred();
+
+        /**
+         * @brief Discards all deferred tasks
+         */
+        void discardAllDeferred();
+
+        /**
+         * @brief Returns number of deferred tasks
+         */
+        u_integer deferredCnt() const noexcept;
+
+        /**
+         * @brief Stops the task delegator
+         * @param mode Stop mode (default: KEEP_DEFERRED)
+         * @details
+         * - DISCARD_DEFERRED: Discard all deferred tasks
+         * - KEEP_DEFERRED: Keep deferred tasks without executing them
+         * - RUN_DEFERRED: Activate all deferred tasks before stopping
+         */
+        void stop(stopMode mode = stopMode::KEEP_DEFERRED);
 
         /**
          * @brief Gets the number of active threads
@@ -218,30 +303,35 @@ namespace original {
         u_integer idleThreads() const noexcept;
 
         /**
-         * @brief Destructor - automatically stops if not already stopped
+         * @brief Destructor
+         * @details Calls stop(RUN_DEFERRED) and joins all threads
          */
         ~taskDelegator();
     };
 } // namespace original
 
+// ==================== Task Implementation ====================
+
 template <typename TYPE>
 template <typename Callback, typename... Args>
-original::task<TYPE>::task(Callback&& c, Args&&... args)
+original::taskDelegator::task<TYPE>::task(Callback&& c, Args&&... args)
     : p([c = std::forward<Callback>(c), ...args = std::forward<Args>(args)]() mutable {
         return c(args...);
     }) {}
 
 template <typename TYPE>
-void original::task<TYPE>::run()
+void original::taskDelegator::task<TYPE>::run()
 {
     this->p.run();
 }
 
 template <typename TYPE>
-original::async::future<TYPE> original::task<TYPE>::getFuture()
+original::async::future<TYPE> original::taskDelegator::task<TYPE>::getFuture()
 {
     return this->p.getFuture();
 }
+
+// ==================== Task Delegator Implementation ====================
 
 template <typename COUPLE>
 bool original::taskDelegator::taskComparator<COUPLE>::operator()(const COUPLE& lhs, const COUPLE& rhs) const
@@ -268,7 +358,6 @@ inline original::taskDelegator::taskDelegator(const u_integer thread_cnt)
 
                         if (this->stopped_ &&
                             this->tasks_waiting_.empty() &&
-                            this->tasks_deferred_.empty() &&
                             this->task_immediate_.empty()) {
                                 this->idle_threads_ -= 1;
                                 return;
@@ -307,17 +396,49 @@ template <typename Callback, typename ... Args>
 auto original::taskDelegator::submit(const priority priority, Callback&& c, Args&&... args)
 {
     using ReturnType = decltype(c(args...));
-    auto new_task = makeStrongPtr<task<ReturnType>>(
+    strongPtr<task<ReturnType>> new_task = makeStrongPtr<task<ReturnType>>(
         std::forward<Callback>(c),
         std::forward<Args>(args)...
     );
     return this->submit<ReturnType>(priority, new_task);
 }
 
-template <typename TYPE>
-original::async::future<TYPE> original::taskDelegator::submit(strongPtr<task<TYPE>>& t)
+template <typename Callback, typename ... Args>
+auto original::taskDelegator::submit(time::duration timeout, Callback&& c, Args&&... args)
 {
-    return this->submit(priority::NORMAL, t);
+    using ReturnType = decltype(c(args...));
+    strongPtr<task<ReturnType>> new_task = makeStrongPtr<task<ReturnType>>(
+        std::forward<Callback>(c),
+        std::forward<Args>(args)...
+    );
+    auto f = new_task->getFuture();
+    {
+        uniqueLock lock(this->mutex_);
+        if (this->stopped_) {
+            throw sysError("taskDelegator already stopped");
+        }
+        const bool success = this->condition_.waitFor(this->mutex_, timeout, [this]{
+            return this->idle_threads_ > 0;
+        });
+        if (!success) {
+            throw sysError("No idle threads available within timeout");
+        }
+        this->task_immediate_.push(std::move(new_task.template dynamicCastTo<taskBase>()));
+    }
+    this->condition_.notify();
+    return f;
+}
+
+inline original::u_integer original::taskDelegator::waitingCnt() const noexcept
+{
+    uniqueLock lock(this->mutex_);
+    return this->tasks_waiting_.size();
+}
+
+inline original::u_integer original::taskDelegator::immediateCnt() const noexcept
+{
+    uniqueLock lock(this->mutex_);
+    return this->task_immediate_.size();
 }
 
 template <typename TYPE>
@@ -380,19 +501,50 @@ inline void original::taskDelegator::runAllDeferred()
     this->condition_.notifyAll();
 }
 
-inline void original::taskDelegator::stop()
+inline original::u_integer original::taskDelegator::discardDeferred()
+{
+    uniqueLock lock(this->mutex_);
+    if (!this->tasks_deferred_.empty()) {
+        this->tasks_deferred_.pop();
+    }
+    return this->tasks_deferred_.size();
+}
+
+inline void original::taskDelegator::discardAllDeferred()
+{
+    uniqueLock lock(this->mutex_);
+    if (!this->tasks_deferred_.empty()) {
+        this->tasks_deferred_.clear();
+    }
+}
+
+inline original::u_integer original::taskDelegator::deferredCnt() const noexcept
+{
+    uniqueLock lock(this->mutex_);
+    return this->tasks_deferred_.size();
+}
+
+inline void original::taskDelegator::stop(const stopMode mode)
 {
     {
         uniqueLock lock(this->mutex_);
+        switch (mode) {
+        case RUN_DEFERRED:
+            while (!this->tasks_deferred_.empty()) {
+                this->tasks_waiting_.push(priorityTask{this->tasks_deferred_.pop(), DEFERRED});
+            }
+            break;
+        case DISCARD_DEFERRED:
+            this->tasks_deferred_.clear();
+            break;
+        case KEEP_DEFERRED:
+            break;
+        default:
+            throw sysError("Unknown stop mode");
+        }
         this->stopped_ = true;
     }
     this->condition_.notifyAll();
-
-    for (auto& thread_ : this->threads_) {
-        if (thread_.joinable()) {
-            thread_.join();
-        }
-    }
 }
 
 inline original::u_integer original::taskDelegator::activeThreads() const noexcept
@@ -409,13 +561,10 @@ inline original::u_integer original::taskDelegator::idleThreads() const noexcept
 
 inline original::taskDelegator::~taskDelegator()
 {
-    bool stopped;
-    {
-        uniqueLock lock(this->mutex_);
-        stopped = this->stopped_;
-    }
-    if (!stopped) {
-        this->stop();
+    this->stop(stopMode::RUN_DEFERRED);
+    for (auto& thread : threads_) {
+        if (thread.joinable())
+            thread.join();
     }
 }
 

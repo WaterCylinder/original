@@ -102,7 +102,7 @@ TEST(TupleTest, MoveSemantics) {
     EXPECT_EQ(t2.get<1>(), (array{1, 2, 3}));
 
     // Verify original was moved from
-    EXPECT_TRUE(t1.get<0>().empty());
+    EXPECT_TRUE(t1.get<0>().empty()); // NOLINT: Test move
     EXPECT_TRUE(t1.get<1>().empty());
 
     // Test move assignment
@@ -110,7 +110,7 @@ TEST(TupleTest, MoveSemantics) {
     t3 = std::move(t2);
     EXPECT_EQ(t3.get<0>(), "test");
     EXPECT_EQ(t3.get<1>(), (array{1, 2, 3}));
-    EXPECT_TRUE(t2.get<0>().empty());
+    EXPECT_TRUE(t2.get<0>().empty()); // NOLINT: Test move
     EXPECT_TRUE(t2.get<1>().empty());
 }
 
@@ -157,7 +157,7 @@ TEST(TupleTest, SliceOperation) {
 }
 
 TEST(TupleTest, Concatenation) {
-    tuple<int, double> t1(1, 2.3);
+    tuple t1(1, 2.3);
     tuple<std::string, char> t2("concat", 'X');
 
     // Test basic concatenation
@@ -169,7 +169,7 @@ TEST(TupleTest, Concatenation) {
     EXPECT_EQ(t3.get<3>(), 'X');
 
     // Test chained concatenation
-    tuple<bool> t4(true);
+    tuple t4(true);
     auto t5 = t1 + t2 + t4;
     EXPECT_EQ(t5.size(), 5);
     EXPECT_TRUE(t5.get<4>());
@@ -230,4 +230,115 @@ TEST(TupleTest, SetMethodChaining) {
     // 4. 类型安全测试（编译期检查）
     // 以下代码应无法编译（静态断言失败）：
     //     t1.set<0>("字符串").set<1>(42);  // 错误：类型不匹配
+}
+
+// 简单的move-only类型（复用CoupleMoveOnlyTest里的实现）
+class MoveOnly {
+    std::unique_ptr<int> data_;
+
+public:
+    explicit MoveOnly(int value = 0) : data_(std::make_unique<int>(value)) {}
+
+    // 删除拷贝构造函数和拷贝赋值
+    MoveOnly(const MoveOnly&) = delete;
+    MoveOnly& operator=(const MoveOnly&) = delete;
+
+    // 允许移动构造函数和移动赋值
+    MoveOnly(MoveOnly&& other) noexcept = default;
+    MoveOnly& operator=(MoveOnly&& other) noexcept = default;
+
+    [[nodiscard]] int value() const { return data_ ? *data_ : -1; }
+
+    bool operator==(const MoveOnly& other) const { return *data_ == *other.data_; }
+    bool operator!=(const MoveOnly& other) const { return *data_ != *other.data_; }
+    bool operator<(const MoveOnly& other) const { return *data_ < *other.data_; }
+    bool operator>(const MoveOnly& other) const { return *data_ > *other.data_; }
+    bool operator<=(const MoveOnly& other) const { return *data_ <= *other.data_; }
+    bool operator>=(const MoveOnly& other) const { return *data_ >= *other.data_; }
+
+    friend std::ostream& operator<<(std::ostream& os, const MoveOnly& mo) {
+        return os << mo.value();
+    }
+};
+
+// ========== Tuple 的 move-only 测试 ==========
+TEST(TupleMoveOnlyTest, DefaultConstructor) {
+    tuple<MoveOnly, MoveOnly> t;
+    EXPECT_EQ(t.get<0>().value(), 0);
+    EXPECT_EQ(t.get<1>().value(), 0);
+}
+
+TEST(TupleMoveOnlyTest, MoveConstructor) {
+    MoveOnly a(42);
+    MoveOnly b(100);
+    tuple t(std::move(a), std::move(b));
+    EXPECT_EQ(t.get<0>().value(), 42);
+    EXPECT_EQ(t.get<1>().value(), 100);
+}
+
+TEST(TupleMoveOnlyTest, TupleMoveConstructor) {
+    tuple t1(MoveOnly(1), MoveOnly(2));
+    tuple t2(std::move(t1));
+
+    EXPECT_EQ(t2.get<0>().value(), 1);
+    EXPECT_EQ(t2.get<1>().value(), 2);
+}
+
+TEST(TupleMoveOnlyTest, TupleMoveAssignment) {
+    tuple t1(MoveOnly(3), MoveOnly(4));
+    tuple<MoveOnly, MoveOnly> t2 = std::move(t1);
+
+    EXPECT_EQ(t2.get<0>().value(), 3);
+    EXPECT_EQ(t2.get<1>().value(), 4);
+}
+
+TEST(TupleMoveOnlyTest, GetMethod) {
+    tuple t(MoveOnly(10), MoveOnly(20));
+
+    MoveOnly& a = t.get<0>();
+    MoveOnly& b = t.get<1>();
+    EXPECT_EQ(a.value(), 10);
+    EXPECT_EQ(b.value(), 20);
+
+    a = MoveOnly(30);
+    b = MoveOnly(40);
+    EXPECT_EQ(t.get<0>().value(), 30);
+    EXPECT_EQ(t.get<1>().value(), 40);
+}
+
+TEST(TupleMoveOnlyTest, StructuredBinding) {
+    tuple<MoveOnly, MoveOnly> t(MoveOnly(50), MoveOnly(60));
+
+    auto&& [x, y] = t;
+    EXPECT_EQ(x.value(), 50);
+    EXPECT_EQ(y.value(), 60);
+
+    x = MoveOnly(70);
+    y = MoveOnly(80);
+    EXPECT_EQ(t.get<0>().value(), 70);
+    EXPECT_EQ(t.get<1>().value(), 80);
+}
+
+TEST(TupleMoveOnlyTest, Comparison) {
+    tuple t1(MoveOnly(1), MoveOnly(2));
+    tuple t2(MoveOnly(1), MoveOnly(2));
+    tuple t3(MoveOnly(3), MoveOnly(4));
+
+    EXPECT_EQ(t1.compareTo(t2), 0);
+    EXPECT_LT(t1.compareTo(t3), 0);
+    EXPECT_GT(t3.compareTo(t1), 0);
+}
+
+TEST(TupleMoveOnlyTest, MixedTypes) {
+    tuple<std::unique_ptr<int>, std::string> t;
+    t.get<0>() = std::make_unique<int>(123);
+    t.get<1>() = "tuple test";
+
+    EXPECT_EQ(*t.get<0>(), 123);
+    EXPECT_EQ(t.get<1>(), "tuple test");
+
+    auto t2 = std::move(t);
+    EXPECT_EQ(*t2.get<0>(), 123);
+    EXPECT_EQ(t2.get<1>(), "tuple test");
+    EXPECT_EQ(t.get<0>(), nullptr); // NOLINT: moved-from state
 }

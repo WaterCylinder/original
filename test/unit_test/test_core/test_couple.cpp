@@ -58,8 +58,8 @@ TEST(CoupleTest, GetMethodVariants) {
     couple<std::string, int> c("abc", 42);
 
     // 非常量对象调用 -> 匹配 auto&
-    std::string& s1 = c.template get<0>();
-    int& i1 = c.template get<1>();
+    std::string& s1 = c.get<0>();
+    int& i1 = c.get<1>();
     s1 = "def";
     i1 = 99;
     EXPECT_EQ(c.first(), "def");
@@ -67,14 +67,14 @@ TEST(CoupleTest, GetMethodVariants) {
 
     // 常量对象调用 -> 匹配 const auto&
     const couple<std::string, int>& cc = c;
-    const std::string& s2 = cc.template get<0>();
-    const int& i2 = cc.template get<1>();
+    const std::string& s2 = cc.get<0>();
+    const int& i2 = cc.get<1>();
     EXPECT_EQ(s2, "def");
     EXPECT_EQ(i2, 99);
 
     // 右值对象调用 -> 匹配 auto&&
     couple<std::string, int> temp("move", 123);
-    std::string&& moved_str = std::move(temp.template get<0>());
+    std::string&& moved_str = std::move(temp.get<0>());
     EXPECT_EQ(moved_str, "move");
 }
 
@@ -128,4 +128,162 @@ TEST(CoupleTest, ToStringWithSet) {
     couple<std::string, int> c("hello", 0);
     c.set<1>(42);
     EXPECT_EQ(c.toString(false), "couple(\"hello\", 42)");
+}
+
+// 简单的move-only类型
+class MoveOnly {
+    std::unique_ptr<int> data_;
+
+public:
+    explicit MoveOnly(int value = 0) : data_(std::make_unique<int>(value)) {}
+
+    // 删除拷贝构造函数和拷贝赋值
+    MoveOnly(const MoveOnly&) = delete;
+    MoveOnly& operator=(const MoveOnly&) = delete;
+
+    // 允许移动构造函数和移动赋值
+    MoveOnly(MoveOnly&& other) noexcept = default;
+    MoveOnly& operator=(MoveOnly&& other) noexcept = default;
+
+    [[nodiscard]] int value() const { return data_ ? *data_ : -1; }
+
+    bool operator==(const MoveOnly& other) const { return *data_ == *other.data_; }
+    bool operator!=(const MoveOnly& other) const { return *data_ != *other.data_; }
+    bool operator<(const MoveOnly& other) const { return *data_ < *other.data_; }
+    bool operator>(const MoveOnly& other) const { return *data_ > *other.data_; }
+    bool operator<=(const MoveOnly& other) const { return *data_ <= *other.data_; }
+    bool operator>=(const MoveOnly& other) const { return *data_ >= *other.data_; }
+
+    friend std::ostream& operator<<(std::ostream& os, const MoveOnly& mo) {
+        return os << mo.value();
+    }
+};
+
+// 测试move-only类型的默认构造
+TEST(CoupleMoveOnlyTest, DefaultConstructor) {
+    couple<MoveOnly, MoveOnly> c;
+    EXPECT_EQ(c.first().value(), 0);
+    EXPECT_EQ(c.second().value(), 0);
+}
+
+// 测试move-only类型的移动构造
+TEST(CoupleMoveOnlyTest, MoveConstructor) {
+    MoveOnly first(42);
+    MoveOnly second(100);
+
+    couple c1(std::move(first), std::move(second));
+    EXPECT_EQ(c1.first().value(), 42);
+    EXPECT_EQ(c1.second().value(), 100);
+
+    // 移动后原对象应该处于有效但未定义的状态
+    // (对于unique_ptr，移动后变为nullptr)
+}
+
+// 测试couple的移动构造
+TEST(CoupleMoveOnlyTest, CoupleMoveConstructor) {
+    couple c1(MoveOnly(10), MoveOnly(20));
+    couple c2(std::move(c1));
+
+    EXPECT_EQ(c2.first().value(), 10);
+    EXPECT_EQ(c2.second().value(), 20);
+}
+
+// 测试couple的移动赋值
+TEST(CoupleMoveOnlyTest, CoupleMoveAssignment) {
+    couple c1(MoveOnly(30), MoveOnly(40));
+
+    couple<MoveOnly, MoveOnly> c2 = std::move(c1);
+
+    EXPECT_EQ(c2.first().value(), 30);
+    EXPECT_EQ(c2.second().value(), 40);
+}
+
+// 测试get方法对move-only类型的支持
+TEST(CoupleMoveOnlyTest, GetMethod) {
+    couple c(MoveOnly(50), MoveOnly(60));
+
+    // 获取非常量引用
+    MoveOnly& first = c.get<0>();
+    MoveOnly& second = c.get<1>();
+
+    EXPECT_EQ(first.value(), 50);
+    EXPECT_EQ(second.value(), 60);
+
+    // 修改值
+    first = MoveOnly(70);
+    second = MoveOnly(80);
+
+    EXPECT_EQ(c.first().value(), 70);
+    EXPECT_EQ(c.second().value(), 80);
+}
+
+// 测试结构化绑定与move-only类型
+TEST(CoupleMoveOnlyTest, StructuredBinding) {
+    couple<MoveOnly, MoveOnly> c(MoveOnly(90), MoveOnly(100));
+
+    auto&& [first, second] = c;
+    EXPECT_EQ(first.value(), 90);
+    EXPECT_EQ(second.value(), 100);
+
+    // 修改值
+    first = MoveOnly(110);
+    second = MoveOnly(120);
+
+    EXPECT_EQ(c.first().value(), 110);
+    EXPECT_EQ(c.second().value(), 120);
+}
+
+// 测试move-only类型的比较操作
+TEST(CoupleMoveOnlyTest, Comparison) {
+    couple c1(MoveOnly(1), MoveOnly(2));
+    couple c2(MoveOnly(1), MoveOnly(2));
+    couple c3(MoveOnly(3), MoveOnly(4));
+
+    EXPECT_EQ(c1.compareTo(c2), 0);  // 相等
+    EXPECT_LT(c1.compareTo(c3), 0);  // c1 < c3
+}
+
+// 测试包含std::unique_ptr的couple
+TEST(CoupleMoveOnlyTest, WithUniquePtr) {
+    couple<std::unique_ptr<int>, std::unique_ptr<std::string>> c;
+
+    c.first() = std::make_unique<int>(42);
+    c.second() = std::make_unique<std::string>("hello");
+
+    EXPECT_EQ(*c.first(), 42);
+    EXPECT_EQ(*c.second(), "hello");
+
+    // 测试移动
+    auto c2 = std::move(c);
+    EXPECT_EQ(*c2.first(), 42);
+    EXPECT_EQ(*c2.second(), "hello");
+
+    // 原对象的指针应该为nullptr
+    EXPECT_EQ(c.first(), nullptr); // NOLINT: Move test
+    EXPECT_EQ(c.second(), nullptr);
+}
+
+// 测试toString对move-only类型的支持
+TEST(CoupleMoveOnlyTest, ToString) {
+    const couple c(MoveOnly(123), MoveOnly(456));
+
+    const std::string result = c.toString(false);
+    EXPECT_TRUE(result.find("123") != std::string::npos);
+    EXPECT_TRUE(result.find("456") != std::string::npos);
+}
+
+// 测试混合类型：move-only + copyable
+TEST(CoupleMoveOnlyTest, MixedTypes) {
+    couple<std::unique_ptr<int>, std::string> c;
+
+    c.first() = std::make_unique<int>(999);
+    c.second() = "test string";
+
+    EXPECT_EQ(*c.first(), 999);
+    EXPECT_EQ(c.second(), "test string");
+
+    // 测试移动构造
+    auto c2 = std::move(c);
+    EXPECT_EQ(*c2.first(), 999);
+    EXPECT_EQ(c2.second(), "test string");
 }
