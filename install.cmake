@@ -36,7 +36,7 @@ if(NOT result EQUAL 0)
     message(FATAL_ERROR "CMake build failed with result ${result}")
 endif()
 
-message(STATUS "Building library files and Header files of project...")
+message(STATUS "Installing library files and Header files of project...")
 execute_process(
         COMMAND ${CMAKE_COMMAND} --install . --config Release --prefix ${INSTALL_DIR}
         WORKING_DIRECTORY ${INSTALL_DIR}/build
