@@ -113,6 +113,10 @@ array("hello world!")
 
 栈 stack，队列 queue，双端队列 deque，优先队列 prique
 
+##### 通用类型封装类：
+
+存在值可选封装 alternative
+
 ##### 算法适配器：
 
 迭代器 iterator/iterAdaptor，变换器 transform/transformStream，过滤器 filter/filterStream，比较器 comparator
