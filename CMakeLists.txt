@@ -24,6 +24,8 @@ target_include_directories(original PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/core>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src/vibrant>
         $<INSTALL_INTERFACE:include>
+        $<INSTALL_INTERFACE:include/core>
+        $<INSTALL_INTERFACE:include/vibrant>
 )
 
 install(TARGETS original
