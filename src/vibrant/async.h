@@ -1188,12 +1188,7 @@ auto original::operator|(async::future<T> f, Callback&& c)
     using ResultType = std::invoke_result_t<Callback, T>;
     strongPtr<async::future<T>> shared_f = makeStrongPtr<async::future<T>>(std::move(f));
     return async::get([shared_f, c = std::forward<Callback>(c)] mutable -> ResultType {
-        if constexpr (!std::is_void_v<ResultType>) {
-            return c(shared_f->result());
-        } else {
-            shared_f->result();
-            return c();
-        }
+        return c(shared_f->result());
     });
 }
 
@@ -1213,12 +1208,7 @@ auto original::operator|(async::sharedFuture<T> sf, Callback&& c)
 {
     using ResultType = std::invoke_result_t<Callback, T>;
     return async::get([sf, c = std::forward<Callback>(c)] mutable -> ResultType {
-        if constexpr (!std::is_void_v<ResultType>) {
-            return c(sf.result());
-        } else {
-            sf.result();
-            return c();
-        }
+        return c(sf.result());
     }).share();
 }
 
@@ -1241,12 +1231,7 @@ auto original::operator|(async::promise<T, Callback1> p, Callback2&& c)
     using ResultType = decltype(c(std::declval<T>()));
     strongPtr<async::promise<T,Callback1>> shared_p = makeStrongPtr<async::promise<T, Callback1>>(std::move(p));
     return async::makePromise([shared_p, c = std::forward<Callback2>(c)]() mutable -> ResultType {
-        if constexpr (!std::is_void_v<ResultType>) {
-            return c(shared_p->function()());
-        } else {
-            shared_p->function()();
-            return c();
-        }
+        return c(shared_p->function()());
     });
 }
 
