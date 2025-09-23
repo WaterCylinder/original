@@ -132,7 +132,7 @@ namespace original {
              * @param timeout Maximum time to wait
              * @return True if result is ready within timeout, false otherwise
              */
-            virtual bool waitFor(time::duration timeout) const = 0;
+            [[nodiscard]] virtual bool waitFor(time::duration timeout) const = 0;
 
             /**
              * @brief Gets the stored exception if computation failed
@@ -220,7 +220,7 @@ namespace original {
              * @param timeout Maximum time to wait
              * @return True if result is ready within timeout, false otherwise
              */
-            bool waitFor(time::duration timeout) const override;
+            [[nodiscard]] bool waitFor(time::duration timeout) const override;
         };
 
         /**
@@ -272,7 +272,7 @@ namespace original {
              * @throws sysError if the shared future is invalid or not ready
              * @throws std::exception if the computation threw an exception
              */
-            strongPtr<const TYPE> strongPointer() const;
+            [[nodiscard]] strongPtr<const TYPE> strongPointer() const;
 
             /**
              * @brief Checks if the result is ready
@@ -310,7 +310,7 @@ namespace original {
              * @param timeout Maximum time to wait
              * @return True if result is ready within timeout, false otherwise
              */
-            bool waitFor(time::duration timeout) const override;
+            [[nodiscard]] bool waitFor(time::duration timeout) const override;
 
             /**
              * @brief Generates a hash value for the shared future
@@ -678,7 +678,7 @@ namespace original {
          * @param timeout Maximum time to wait
          * @return True if result is ready within timeout, false otherwise
          */
-        bool waitFor(time::duration timeout) const override;
+        [[nodiscard]] bool waitFor(time::duration timeout) const override;
     };
 
     template <>
@@ -745,7 +745,7 @@ namespace original {
          * @param timeout Maximum time to wait
          * @return True if result is ready within timeout, false otherwise
          */
-        bool waitFor(time::duration timeout) const override;
+        [[nodiscard]] bool waitFor(time::duration timeout) const override;
 
         /**
          * @brief Generates a hash value for the shared future
