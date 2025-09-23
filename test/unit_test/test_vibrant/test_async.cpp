@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <numeric>
 #include <unordered_set>
 #include <gtest/gtest.h>
 #include <utility>
@@ -2070,4 +2071,308 @@ TEST(AsyncTest, PromiseVoidMoveSemantics) {
     p2.run();
     EXPECT_FALSE(p2.valid());
     EXPECT_NO_THROW(f.result());
+}
+
+// 测试用例1: 非空 → 非空 (T → U)
+TEST(AsyncTest, DynamicPipeNonVoidToNonVoid) {
+    auto future = async::get([] {
+        thread::sleep(milliseconds(100));
+        return 21;
+    }) | [](int x) -> int {
+        return x * 2;  // 返回非空
+    };
+
+    EXPECT_EQ(future.result(), 42);
+}
+
+// 测试用例2: 非空 → 空 (T → void)
+TEST(AsyncTest, DynamicPipeNonVoidToVoid) {
+    std::atomic<int> consumed_value{0};
+    std::atomic<bool> executed{false};
+
+    auto future = async::get([] {
+        thread::sleep(milliseconds(100));
+        return 42;
+    }) | [&consumed_value, &executed](int value) {
+        consumed_value = value;  // 消费值
+        executed = true;
+        // 隐式返回void
+    };
+
+    future.wait();  // 等待管道完成
+    EXPECT_EQ(consumed_value.load(), 42);
+    EXPECT_TRUE(executed.load());
+}
+
+// 测试用例3: 空 → 空 (void → void)
+TEST(AsyncTest, DynamicPipeVoidToVoid) {
+    std::atomic<int> step_counter{0};
+
+    auto future = async::get([&step_counter] {
+        thread::sleep(milliseconds(100));
+        step_counter = 1;
+    }) | [&step_counter] {
+        step_counter = 2;  // 继续处理
+        // 隐式返回void
+    };
+
+    future.wait();
+    EXPECT_EQ(step_counter.load(), 2);
+}
+
+// 测试用例4: 空 → 非空 (void → U)
+TEST(AsyncTest, DynamicPipeVoidToNonVoid) {
+    auto future = async::get([] {
+        thread::sleep(milliseconds(100));
+        // 无返回值
+    }) | []() -> std::string {
+        return "completed";  // 产生非空结果
+    };
+
+    EXPECT_EQ(future.result(), "completed");
+}
+
+// 测试用例5: 多级管道组合
+TEST(AsyncTest, DynamicPipeMultiStageCombination) {
+    auto future = async::get([] {
+        return 10;
+    }) | [](int x) -> int {          // 非空 → 非空
+        return x + 5;
+    } | [](int x) {                 // 非空 → 空 (消费中间结果)
+        // 消费但不返回值
+    } | []() -> std::string {       // 空 → 非空
+        return "final result";
+    };
+
+    EXPECT_EQ(future.result(), "final result");
+}
+
+// 测试用例6: 异常传播
+TEST(AsyncTest, DynamicPipeExceptionPropagation) {
+    // 非空 → 非空 异常
+    auto future1 = async::get([]() -> int {
+        throw runTimeTestError("source error");
+    }) | [](int x) -> int {
+        ADD_FAILURE() << "Should not be executed";
+        return x + 1;
+    };
+    EXPECT_THROW(future1.result(), runTimeTestError);
+
+    // 非空 → 空 异常
+    auto future2 = async::get([]() -> int {
+        throw runTimeTestError("source error");
+    }) | [](int x) {
+        FAIL() << "Should not be executed";
+    };
+    EXPECT_THROW(future2.result(), runTimeTestError);
+}
+
+// 测试用例1: 非空 → 非空 (T → U)
+TEST(AsyncTest, LazyPipeNonVoidToNonVoid) {
+    auto promise = async::makePromise([] {
+        return 21;
+    }) | [](int x) -> int {
+        return x * 2;  // 返回非空
+    };
+
+    auto future = promise.getFuture();
+    promise.run();  // 惰性执行
+    EXPECT_EQ(future.result(), 42);
+    EXPECT_FALSE(promise.valid());  // 执行后变为无效
+}
+
+// 测试用例2: 非空 → 空 (T → void)
+TEST(AsyncTest, LazyPipeNonVoidToVoid) {
+    std::atomic<int> consumed_value{0};
+    std::atomic<bool> executed{false};
+
+    auto promise = async::makePromise([] {
+        return 42;
+    }) | [&consumed_value, &executed](int value) {
+        consumed_value = value;  // 消费值
+        executed = true;
+        // 隐式返回void
+    };
+
+    auto future = promise.getFuture();
+    promise.run();  // 惰性执行
+
+    future.wait();
+    EXPECT_EQ(consumed_value.load(), 42);
+    EXPECT_TRUE(executed.load());
+}
+
+// 测试用例3: 空 → 空 (void → void)
+TEST(AsyncTest, LazyPipeVoidToVoid) {
+    std::atomic<int> step_counter{0};
+
+    auto promise = async::makePromise([&step_counter] {
+        step_counter = 1;
+    }) | [&step_counter] {
+        step_counter = 2;  // 继续处理
+        // 隐式返回void
+    };
+
+    auto future = promise.getFuture();
+    promise.run();  // 惰性执行
+
+    future.wait();
+    EXPECT_EQ(step_counter.load(), 2);
+}
+
+// 测试用例4: 空 → 非空 (void → U)
+TEST(AsyncTest, LazyPipeVoidToNonVoid) {
+    auto promise = async::makePromise([] {
+        // 无返回值
+    }) | []() -> std::string {
+        return "completed";  // 产生非空结果
+    };
+
+    auto future = promise.getFuture();
+    promise.run();  // 惰性执行
+    EXPECT_EQ(future.result(), "completed");
+}
+
+// 测试用例5: 多级惰性管道
+TEST(AsyncTest, LazyPipeMultiStageLazyPipeline) {
+    auto promise = async::makePromise([] {
+        return 10;
+    }) | [](int x) -> int {          // 非空 → 非空
+        return x + 32;
+    } | [](int x) {                 // 非空 → 空
+        // 消费中间结果
+    } | []() -> std::string {       // 空 → 非空
+        return "pipeline completed";
+    };
+
+    auto future = promise.getFuture();
+
+    // 验证惰性特性：在运行前不会执行
+    std::atomic<bool> executed{false};
+    auto lazy_promise = async::makePromise([&executed] {
+        executed = true;
+        return 100;
+    });
+    EXPECT_FALSE(executed.load());  // 尚未执行
+
+    lazy_promise.run();  // 显式执行
+    EXPECT_TRUE(executed.load());
+
+    promise.run();  // 执行主管道
+    EXPECT_EQ(future.result(), "pipeline completed");
+}
+
+// 测试用例6: 惰性管道异常处理
+TEST(AsyncTest, LazyPipeExceptionHandling) {
+    // 非空 → 非空 异常
+    auto promise1 = async::makePromise([]() -> int {
+        throw runTimeTestError("source error");
+    }) | [](int x) -> int {
+        ADD_FAILURE() << "Should not be executed";
+        return x + 1;
+    };
+
+    auto future1 = promise1.getFuture();
+    promise1.run();
+    EXPECT_THROW(future1.result(), runTimeTestError);
+
+    // 非空 → 空 异常
+    auto promise2 = async::makePromise([]() -> int {
+        throw runTimeTestError("source error");
+    }) | [](int x) {
+        FAIL() << "Should not be executed";
+    };
+
+    auto future2 = promise2.getFuture();
+    promise2.run();
+    EXPECT_THROW(future2.result(), runTimeTestError);
+}
+
+// 测试用例7: 惰性管道函数提取
+TEST(AsyncTest, LazyPipeFunctionExtraction) {
+    std::atomic<int> counter{0};
+
+    auto promise = async::makePromise([&counter] {
+        counter = 10;
+        return 5;
+    }) | [&counter](int x) -> int {
+        counter += x;
+        return counter.load();
+    };
+
+    // 提取函数而不是立即执行
+    auto func = promise.function();
+    EXPECT_FALSE(promise.valid());  // 提取后无效
+
+    // 手动执行提取的函数
+    int result = func();
+    EXPECT_EQ(result, 15);
+    EXPECT_EQ(counter.load(), 15);
+}
+
+// 测试用例8: 复杂类型转换
+TEST(AsyncTest, LazyPipeComplexTypeTransformations) {
+    auto promise = async::makePromise([] {
+        return std::vector{1, 2, 3};
+    }) | [](const std::vector<int>& vec) -> int {
+        return std::accumulate(vec.begin(), vec.end(), 0);  // 容器 → 标量
+    } | [](int sum) -> std::string {
+        return "sum: " + std::to_string(sum);  // 标量 → 字符串
+    };
+
+    auto future = promise.getFuture();
+    promise.run();
+    EXPECT_EQ(future.result(), "sum: 6");
+}
+
+// 测试用例9: 移动语义支持
+TEST(AsyncTest, LazyPipeMoveSemantics) {
+    auto promise = async::makePromise([] {
+        return std::make_unique<int>(21);
+    }) | [](std::unique_ptr<int> ptr) -> std::unique_ptr<int> {
+        *ptr *= 2;
+        return ptr;  // 移动语义
+    };
+
+    auto future = promise.getFuture();
+    promise.run();
+
+    auto result = future.result();
+    EXPECT_EQ(*result, 42);
+}
+
+// 测试用例10: 惰性验证（性能特性）
+TEST(AsyncTest, LazyPipeLazyEvaluationVerification) {
+    const auto start = time::point::now();
+
+    std::atomic<bool> first_stage_executed{false};
+    std::atomic<bool> second_stage_executed{false};
+
+    auto promise = async::makePromise([&first_stage_executed] {
+        thread::sleep(milliseconds(100));
+        first_stage_executed = true;
+        return 1;
+    }) | [&second_stage_executed](int x) {
+        thread::sleep(milliseconds(100));
+        second_stage_executed = true;
+        return x + 1;
+    };
+
+    // 管道创建后立即检查，应该都未执行
+    const auto create_time = time::point::now() - start;
+    EXPECT_LT(create_time.value(), 50);  // 创建应该很快
+    EXPECT_FALSE(first_stage_executed.load());
+    EXPECT_FALSE(second_stage_executed.load());
+
+    // 执行管道
+    auto future = promise.getFuture();
+    promise.run();
+
+    const int result = future.result();
+    const auto total_time = time::point::now() - start;
+
+    EXPECT_EQ(result, 2);
+    EXPECT_TRUE(first_stage_executed.load());
+    EXPECT_TRUE(second_stage_executed.load());
+    EXPECT_GE(total_time.value(), 190);  // 总执行时间至少200ms
 }
