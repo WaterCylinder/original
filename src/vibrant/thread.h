@@ -424,8 +424,8 @@ void* original::threadBase<DERIVED>::threadData<Callback>::run(void* arg)
     auto self = ownerPtr<threadData>(static_cast<threadData*>(arg));
     try {
         self->c();
-    }catch (const error&) {
-        throw sysError("Thread callback execution failed");
+    }catch (const error& e) {
+        throw sysError("Thread callback execution failed with message: " + e.message());
     }
     return nullptr;
 }
