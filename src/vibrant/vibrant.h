@@ -5,6 +5,7 @@
 #include "atomic.h"
 #include "condition.h"
 #include "mutex.h"
+#include "semaphores.h"
 #include "tasks.h"
 #include "thread.h"
 #include "zeit.h"
