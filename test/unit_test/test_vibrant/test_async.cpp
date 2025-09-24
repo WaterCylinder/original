@@ -968,7 +968,8 @@ TEST(AsyncTest, WaitForMultipleCalls) {
     });
 
     // 第一次调用，可能还没完成
-    f.waitFor(milliseconds(50));
+    const bool first_call = f.waitFor(milliseconds(50));
+    std::cout << printable::formatString(first_call) << std::endl;
 
     // 第二次调用，等待更长时间
     const bool second_call = f.waitFor(milliseconds(100));
