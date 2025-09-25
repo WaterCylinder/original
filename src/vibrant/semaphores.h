@@ -1,3 +1,27 @@
+/**
+ * @file semaphores.h
+ * @brief Semaphore synchronization primitives and guards
+ * @details
+ * This header defines the `semaphore` class template and `semaphoreGuard` RAII wrapper
+ * for managing concurrent access to shared resources with counting semaphores.
+ *
+ * The file provides:
+ * - `semaphore<MAX_CNT>`: A counting semaphore with maximum count constraint
+ * - `semaphore<0>`: Specialization for unbounded semaphore (no maximum limit)
+ * - `semaphoreGuard<MAX_CNT>`: RAII wrapper for automatic semaphore acquisition/release
+ *
+ * Features:
+ * - Thread-safe acquisition and release operations
+ * - Timeout support for both acquisition and release operations
+ * - Bounded and unbounded semaphore variants
+ * - Exception safety through RAII guards
+ * - Configurable initial and maximum counts
+ *
+ * @note Semaphores follow the classic synchronization pattern where acquire() decrements
+ *       the count and blocks if zero, while release() increments the count and notifies
+ *       waiting threads.
+ */
+
 #ifndef ORIGINAL_SEMAPHORES_H
 #define ORIGINAL_SEMAPHORES_H
 #include "config.h"
@@ -7,59 +31,169 @@
 
 
 namespace original {
+    /**
+     * @class semaphore
+     * @brief Counting semaphore with maximum count constraint
+     * @tparam MAX_CNT Maximum allowed semaphore count (default: 1, binary semaphore)
+     * @details
+     * A counting semaphore that controls access to a shared resource pool. The semaphore
+     * count represents the number of available resources. acquire() waits for an available
+     * resource, while release() returns a resource to the pool.
+     *
+     * For MAX_CNT = 1, behaves as a binary semaphore/mutex.
+     * For MAX_CNT > 1, implements a counting semaphore for resource pools.
+     * For MAX_CNT = 0, see specialization below for unbounded semaphore.
+     */
     template<u_integer MAX_CNT = 1>
     class semaphore {
-        u_integer count_;
-        pMutex mutex_;
-        pCondition condition_;
+        u_integer count_;           ///< Current semaphore count
+        pMutex mutex_;              ///< Mutex for synchronization
+        pCondition condition_;      ///< Condition variable for waiting
 
     public:
+        /**
+         * @brief Constructs a semaphore with maximum count
+         * @details Initializes the semaphore with MAX_CNT available resources
+         */
         semaphore();
 
+        /**
+         * @brief Constructs a semaphore with specified initial count
+         * @param init_count Initial semaphore count
+         * @throw valueError if init_count exceeds MAX_CNT
+         */
         explicit semaphore(u_integer init_count);
 
+        /**
+         * @brief Acquires one resource (decrements count)
+         * @details
+         * Blocks the calling thread until a resource becomes available (count > 0).
+         * Decrements the semaphore count by 1 upon successful acquisition.
+         */
         void acquire();
 
+        /**
+         * @brief Attempts to acquire one resource without blocking
+         * @return true if resource was acquired, false if no resources available
+         */
         bool tryAcquire();
 
+        /**
+         * @brief Attempts to acquire one resource with timeout
+         * @param timeout Maximum duration to wait for resource availability
+         * @return true if resource was acquired within timeout, false otherwise
+         */
         bool acquireFor(time::duration timeout);
 
+        /**
+         * @brief Releases resources (increments count)
+         * @param increase Number of resources to release (default: 1)
+         * @throw valueError if increase would exceed MAX_CNT
+         * @details
+         * Blocks if releasing would exceed MAX_CNT, waiting until space becomes available.
+         * Notifies waiting threads after successful release.
+         */
         void release(u_integer increase = 1);
 
+        /**
+         * @brief Attempts to release resources without blocking
+         * @param increase Number of resources to release (default: 1)
+         * @return true if resources were released, false if release would exceed MAX_CNT
+         */
         bool tryRelease(u_integer increase = 1);
 
+        /**
+         * @brief Attempts to release resources with timeout
+         * @param increase Number of resources to release
+         * @param timeout Maximum duration to wait for release condition
+         * @return true if resources were released within timeout, false otherwise
+         */
         bool releaseFor(u_integer increase, time::duration timeout);
 
+        /**
+         * @brief Attempts to release one resource with timeout
+         * @param timeout Maximum duration to wait for release condition
+         * @return true if resource was released within timeout, false otherwise
+         */
         bool releaseFor(const time::duration& timeout);
     };
 
+    /**
+     * @class semaphore
+     * @brief Specialization for unbounded semaphore (no maximum count)
+     * @details
+     * A semaphore with no upper limit on the count. release() operations never block,
+     * as there's no constraint on the maximum semaphore value.
+     */
     template<>
     class semaphore<0> {
-        u_integer count_;
-        pMutex mutex_;
-        pCondition condition_;
+        u_integer count_;           ///< Current semaphore count (unbounded)
+        pMutex mutex_;              ///< Mutex for synchronization
+        pCondition condition_;      ///< Condition variable for waiting
 
     public:
+        /**
+         * @brief Constructs an unbounded semaphore with count 0
+         */
         semaphore();
 
+        /**
+         * @brief Constructs an unbounded semaphore with specified initial count
+         * @param init_count Initial semaphore count
+         */
         explicit semaphore(u_integer init_count);
 
+        /**
+         * @brief Acquires one resource (decrements count)
+         * @details Blocks until count > 0, then decrements count by 1
+         */
         void acquire();
 
+        /**
+         * @brief Attempts to acquire one resource without blocking
+         * @return true if resource was acquired, false if count was 0
+         */
         bool tryAcquire();
 
+        /**
+         * @brief Attempts to acquire one resource with timeout
+         * @param timeout Maximum duration to wait for resource availability
+         * @return true if resource was acquired within timeout, false otherwise
+         */
         bool acquireFor(const time::duration& timeout);
 
+        /**
+         * @brief Releases resources (increments count)
+         * @param increase Number of resources to release (default: 1)
+         * @details Never blocks since there's no maximum count constraint
+         */
         void release(u_integer increase = 1);
     };
 
+    /**
+     * @class semaphoreGuard
+     * @brief RAII wrapper for automatic semaphore management
+     * @tparam MAX_CNT Maximum semaphore count (matches semaphore template parameter)
+     * @details
+     * Acquires the semaphore on construction and automatically releases it on destruction.
+     * Ensures exception-safe semaphore usage and prevents resource leaks.
+     */
     template<u_integer MAX_CNT>
     class semaphoreGuard {
-        semaphore<MAX_CNT>& semaphore_;
+        semaphore<MAX_CNT>& semaphore_;  ///< Reference to managed semaphore
 
     public:
+        /**
+         * @brief Constructs a guard and acquires the semaphore
+         * @param sem Semaphore to manage
+         * @details Calls sem.acquire() during construction
+         */
         explicit semaphoreGuard(semaphore<MAX_CNT>& sem);
 
+        /**
+         * @brief Destructor that releases the semaphore
+         * @details Calls sem.release() during destruction
+         */
         ~semaphoreGuard();
     };
 }
