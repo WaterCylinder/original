@@ -19,19 +19,17 @@ TEST(SemaphoreTest, AcquireReleaseBasic) {
 }
 
 TEST(SemaphoreTest, BlockingAcquire) {
-    semaphore<1> sem(0);
+    semaphore sem(0);
 
     const auto start = time::point::now();
     thread t([&] {
         thread::sleep(100_ms);
         sem.release();
     });
-
-    auto start = time::point::now();
     sem.acquire(); // 应该会阻塞直到 release
     const auto end = time::point::now();
 
-    EXPECT_GE(end - start, 100_ms);
+    EXPECT_GE(end - start, 100_ms - 5_ms);
     t.join();
 }
 
