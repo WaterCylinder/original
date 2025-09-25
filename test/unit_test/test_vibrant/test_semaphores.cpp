@@ -29,7 +29,7 @@ TEST(SemaphoreTest, BlockingAcquire) {
     sem.acquire(); // 应该会阻塞直到 release
     const auto end = time::point::now();
 
-    EXPECT_GE(end - start, 100_ms - 5_ms);
+    EXPECT_GE(end - start, 100_ms - 1_ms);
     t.join();
 }
 
