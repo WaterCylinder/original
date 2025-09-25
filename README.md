@@ -144,7 +144,7 @@ array("hello world!")
 
 ##### 临界区管理：
 
-互斥量包装类 mutexBase/pMutex，锁管理器 lockGuard/uniqueLock/multiLock
+互斥量包装类 mutexBase/pMutex，锁管理器 lockGuard/uniqueLock/multiLock，信号量 semaphore/semaphoreGuard
 
 ##### 线程同步：
 
