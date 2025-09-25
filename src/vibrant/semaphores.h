@@ -77,43 +77,54 @@ original::semaphore<MAX_CNT>::semaphore(const u_integer init_count) : count_(ini
 
 template<original::u_integer MAX_CNT>
 void original::semaphore<MAX_CNT>::acquire() {
-    uniqueLock lock{this->mutex_};
-    this->condition_.wait(this->mutex_, [this]{
-        return this->count_ > 0;
-    });
-    this->count_ -= 1;
+    {
+        uniqueLock lock{this->mutex_};
+        this->condition_.wait(this->mutex_, [this]{
+            return this->count_ > 0;
+        });
+        this->count_ -= 1;
+    }
+    this->condition_.notify();
 }
 
 template<original::u_integer MAX_CNT>
 bool original::semaphore<MAX_CNT>::tryAcquire() {
-    uniqueLock lock{this->mutex_};
-    if (this->count_ == 0) {
-        return false;
+    {
+        uniqueLock lock{this->mutex_};
+        if (this->count_ == 0) {
+            return false;
+        }
+        this->count_ -= 1;
     }
-    this->count_ -= 1;
+    this->condition_.notify();
     return true;
 }
 
 template<original::u_integer MAX_CNT>
 bool original::semaphore<MAX_CNT>::acquireFor(time::duration timeout) {
-    uniqueLock lock{this->mutex_};
-    bool success = this->condition_.waitFor(this->mutex_, timeout, [this]{
-        return this->count_ > 0;
-    });
-    if (success){
-        this->count_ -= 1;
+    bool success;
+    {
+        uniqueLock lock{this->mutex_};
+        success = this->condition_.waitFor(this->mutex_, timeout, [this]{
+            return this->count_ > 0;
+        });
+        if (success){
+            this->count_ -= 1;
+        }
+    }
+    if (success) {
+        this->condition_.notify();
     }
     return success;
 }
 
 template<original::u_integer MAX_CNT>
-void original::semaphore<MAX_CNT>::release(u_integer increase) {
 void original::semaphore<MAX_CNT>::release(const u_integer increase) {
+    if (increase > MAX_CNT) {
+        throw valueError("Increase is larger than max count " + printable::formatString(MAX_CNT));
+    }
     {
         uniqueLock lock{this->mutex_};
-        if (increase > MAX_CNT) {
-            throw valueError("Increase is larger than max count " + printable::formatString(MAX_CNT));
-        }
         this->condition_.wait(this->mutex_, [this, increase] {
             return this->count_ + increase <= MAX_CNT;
         });
@@ -123,13 +134,15 @@ void original::semaphore<MAX_CNT>::release(const u_integer increase) {
 }
 
 template<original::u_integer MAX_CNT>
-bool original::semaphore<MAX_CNT>::tryRelease(original::u_integer increase) {
-    uniqueLock lock{this->mutex_};
-    if (this->count_ + increase > MAX_CNT) {
-        return false;
-    }
-    this->count_ += increase;
 bool original::semaphore<MAX_CNT>::tryRelease(const u_integer increase) {
+    {
+        uniqueLock lock{this->mutex_};
+        if (this->count_ + increase > MAX_CNT) {
+            return false;
+        }
+        this->count_ += increase;
+    }
+    this->condition_.notifySome(increase);
     return true;
 }
 
