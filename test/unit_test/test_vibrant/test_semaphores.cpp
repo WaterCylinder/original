@@ -21,6 +21,7 @@ TEST(SemaphoreTest, AcquireReleaseBasic) {
 TEST(SemaphoreTest, BlockingAcquire) {
     semaphore<1> sem(0);
 
+    const auto start = time::point::now();
     thread t([&] {
         thread::sleep(100_ms);
         sem.release();
@@ -28,7 +29,7 @@ TEST(SemaphoreTest, BlockingAcquire) {
 
     auto start = time::point::now();
     sem.acquire(); // 应该会阻塞直到 release
-    auto end = time::point::now();
+    const auto end = time::point::now();
 
     EXPECT_GE(end - start, 100_ms);
     t.join();
@@ -37,9 +38,9 @@ TEST(SemaphoreTest, BlockingAcquire) {
 TEST(SemaphoreTest, AcquireTimeout) {
     semaphore<1> sem(0);
 
-    auto start = time::point::now();
-    bool ok = sem.acquireFor(200_ms);
-    auto end = time::point::now();
+    const auto start = time::point::now();
+    const bool ok = sem.acquireFor(200_ms);
+    const auto end = time::point::now();
 
     EXPECT_FALSE(ok); // 超时失败
     EXPECT_GE(end - start, 200_ms);
@@ -53,9 +54,9 @@ TEST(SemaphoreTest, ReleaseBlocksWhenFull) {
         sem.acquire(); // 消费一个
     });
 
-    auto start = time::point::now();
+    const auto start = time::point::now();
     sem.release(); // 应该会阻塞，直到 acquire 消费一个
-    auto end = time::point::now();
+    const auto end = time::point::now();
 
     EXPECT_GE(end - start, 200_ms);
     t.join();
@@ -64,7 +65,7 @@ TEST(SemaphoreTest, ReleaseBlocksWhenFull) {
 TEST(SemaphoreTest, ReleaseTimeout) {
     semaphore<2> sem(2);
 
-    bool ok = sem.releaseFor(1, 200_ms);
+    const bool ok = sem.releaseFor(1, 200_ms);
     EXPECT_FALSE(ok); // 已经满了，超时失败
 }
 

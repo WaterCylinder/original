@@ -200,7 +200,7 @@ bool original::conditionBase::waitFor(mutexBase& mutex, const time::duration& d,
     return true;
 }
 
-inline void original::conditionBase::notifySome(u_integer n) {
+inline void original::conditionBase::notifySome(const u_integer n) {
     if (n == 0){
         return;
     }

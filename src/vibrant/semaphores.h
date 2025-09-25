@@ -30,7 +30,7 @@ namespace original {
 
         bool releaseFor(u_integer increase, time::duration timeout);
 
-        bool releaseFor(time::duration timeout);
+        bool releaseFor(const time::duration& timeout);
     };
 
     template<>
@@ -48,7 +48,7 @@ namespace original {
 
         bool tryAcquire();
 
-        bool acquireFor(time::duration timeout);
+        bool acquireFor(const time::duration& timeout);
 
         void release(u_integer increase = 1);
     };
@@ -68,7 +68,7 @@ template<original::u_integer MAX_CNT>
 original::semaphore<MAX_CNT>::semaphore() : count_(MAX_CNT) {}
 
 template<original::u_integer MAX_CNT>
-original::semaphore<MAX_CNT>::semaphore(u_integer init_count) : count_(init_count) {
+original::semaphore<MAX_CNT>::semaphore(const u_integer init_count) : count_(init_count) {
     if (init_count > MAX_CNT) {
         throw valueError("Init count is " + printable::formatString(init_count) +
                          ", that is larger than the max count " + printable::formatString(MAX_CNT));
@@ -108,6 +108,7 @@ bool original::semaphore<MAX_CNT>::acquireFor(time::duration timeout) {
 
 template<original::u_integer MAX_CNT>
 void original::semaphore<MAX_CNT>::release(u_integer increase) {
+void original::semaphore<MAX_CNT>::release(const u_integer increase) {
     {
         uniqueLock lock{this->mutex_};
         if (increase > MAX_CNT) {
@@ -128,11 +129,12 @@ bool original::semaphore<MAX_CNT>::tryRelease(original::u_integer increase) {
         return false;
     }
     this->count_ += increase;
+bool original::semaphore<MAX_CNT>::tryRelease(const u_integer increase) {
     return true;
 }
 
 template<original::u_integer MAX_CNT>
-bool original::semaphore<MAX_CNT>::releaseFor(u_integer increase, time::duration timeout){
+bool original::semaphore<MAX_CNT>::releaseFor(const u_integer increase, time::duration timeout){
     bool success;
     {
         uniqueLock lock{this->mutex_};
@@ -150,15 +152,15 @@ bool original::semaphore<MAX_CNT>::releaseFor(u_integer increase, time::duration
 }
 
 template<original::u_integer MAX_CNT>
-bool original::semaphore<MAX_CNT>::releaseFor(time::duration timeout) {
+bool original::semaphore<MAX_CNT>::releaseFor(const time::duration& timeout) {
     return this->releaseFor(1, timeout);
 }
 
-original::semaphore<0>::semaphore() : count_(0) {}
+inline original::semaphore<0>::semaphore() : count_(0) {}
 
-original::semaphore<0>::semaphore(original::u_integer init_count) : count_(init_count) {}
+inline original::semaphore<0>::semaphore(const u_integer init_count) : count_(init_count) {}
 
-void original::semaphore<0>::acquire() {
+inline void original::semaphore<0>::acquire() {
     uniqueLock lock{this->mutex_};
     this->condition_.wait(this->mutex_, [this]{
         return this->count_ > 0;
@@ -167,7 +169,7 @@ void original::semaphore<0>::acquire() {
     this->condition_.notify();
 }
 
-bool original::semaphore<0>::tryAcquire() {
+inline bool original::semaphore<0>::tryAcquire() {
     uniqueLock lock{this->mutex_};
     if (this->count_ == 0) {
         return false;
@@ -176,9 +178,9 @@ bool original::semaphore<0>::tryAcquire() {
     return true;
 }
 
-bool original::semaphore<0>::acquireFor(original::time::duration timeout) {
+inline bool original::semaphore<0>::acquireFor(const time::duration& timeout) {
     uniqueLock lock{this->mutex_};
-    bool success = this->condition_.waitFor(this->mutex_, timeout, [this]{
+    const bool success = this->condition_.waitFor(this->mutex_, timeout, [this]{
         return this->count_ > 0;
     });
     if (success){
@@ -187,7 +189,7 @@ bool original::semaphore<0>::acquireFor(original::time::duration timeout) {
     return success;
 }
 
-void original::semaphore<0>::release(original::u_integer increase) {
+inline void original::semaphore<0>::release(const u_integer increase) {
     {
         uniqueLock lock{this->mutex_};
         this->count_ += increase;
