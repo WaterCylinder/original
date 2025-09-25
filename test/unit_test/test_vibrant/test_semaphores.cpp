@@ -34,7 +34,7 @@ TEST(SemaphoreTest, BlockingAcquire) {
 }
 
 TEST(SemaphoreTest, AcquireTimeout) {
-    semaphore<1> sem(0);
+    semaphore sem(0);
 
     const auto start = time::point::now();
     const bool ok = sem.acquireFor(200_ms);
@@ -82,7 +82,7 @@ TEST(SemaphoreTest, UnboundedSemaphore) {
 TEST(SemaphoreGuardTest, RAII) {
     semaphore<2> sem(1);
     {
-        semaphoreGuard<2> guard(sem);
+        semaphoreGuard guard(sem);
         EXPECT_FALSE(sem.tryAcquire()); // 已经被 guard 拿走了
     }
     EXPECT_TRUE(sem.tryAcquire()); // guard 析构时释放
