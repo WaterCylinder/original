@@ -7,7 +7,7 @@
 
 
 namespace original {
-    template<u_integer = 1>
+    template<u_integer MAX_CNT = 1>
     class semaphore {
         u_integer count_;
         pMutex mutex_;
