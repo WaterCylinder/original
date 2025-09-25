@@ -313,7 +313,6 @@ inline void original::semaphore<0>::acquire() {
         return this->count_ > 0;
     });
     this->count_ -= 1;
-    this->condition_.notify();
 }
 
 inline bool original::semaphore<0>::tryAcquire() {
