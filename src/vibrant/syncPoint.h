@@ -3,7 +3,7 @@
 #include "mutex.h"
 #include "condition.h"
 
-// todo
+
 namespace original {
     class syncPoint {
         const u_integer max_arrived_;
@@ -21,19 +21,29 @@ namespace original {
     };
 }
 
-original::syncPoint::syncPoint()
+inline original::syncPoint::syncPoint()
     : max_arrived_(0), arrived_(0), round_(0) {}
 
-original::syncPoint::syncPoint(original::u_integer max_arrived, const std::function<void()>& func)
+inline original::syncPoint::syncPoint(const u_integer max_arrived, const std::function<void()>& func)
     : max_arrived_(max_arrived), arrived_(0), round_(0), complete_func_(func) {}
 
-void original::syncPoint::arrive() {
+inline void original::syncPoint::arrive() {
     {
         uniqueLock lock{this->mutex_};
         u_integer this_round = this->round_;
         this->arrived_ += 1;
-        if (this->arrived_ < this->max_arrived_) {
-            this->condition_.wait(this->mutex_);
+        if (this->arrived_ != this->max_arrived_) {
+            this->condition_.wait(this->mutex_, [this, this_round]
+            {
+                return this->round_ != this_round;
+            });
+        } else {
+            this->round_ += 1;
+            if (this->complete_func_)
+                this->complete_func_();
+            this->arrived_ -= this->max_arrived_;
+            lock.unlock();
+            this->condition_.notifyAll();
         }
     }
 }
