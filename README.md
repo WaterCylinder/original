@@ -140,11 +140,11 @@ array("hello world!")
 
 ##### 线程：
 
-基类 threadBase，POSIX类线程 pThread，线程包装器 thread
+基类 threadBase，POSIX类线程 pThread，线程 thread
 
 ##### 临界区管理：
 
-互斥量包装类 mutexBase/pMutex，锁管理器 lockGuard/uniqueLock/multiLock，信号量 semaphore/semaphoreGuard
+互斥量 mutexBase/pMutex，锁管理器 lockGuard/uniqueLock/multiLock，信号量 semaphore/semaphoreGuard
 
 ##### 线程同步：
 
