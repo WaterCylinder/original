@@ -12,6 +12,7 @@ namespace original {
         pMutex mutex_;
         pCondition condition_;
         std::function<void()> complete_func_;
+        std::exception_ptr e_;
     public:
         syncPoint();
 
@@ -30,6 +31,9 @@ inline original::syncPoint::syncPoint(const u_integer max_arrived, const std::fu
 inline void original::syncPoint::arrive() {
     {
         uniqueLock lock{this->mutex_};
+        if (max_arrived_ == 0) {
+            return;
+        }
         u_integer this_round = this->round_;
         this->arrived_ += 1;
         if (this->arrived_ != this->max_arrived_) {
@@ -39,11 +43,19 @@ inline void original::syncPoint::arrive() {
             });
         } else {
             this->round_ += 1;
-            if (this->complete_func_)
-                this->complete_func_();
+            if (this->complete_func_) {
+                try {
+                    this->complete_func_();
+                }catch (...){
+                    this->e_ = std::current_exception();
+                }
+            }
             this->arrived_ -= this->max_arrived_;
             lock.unlock();
             this->condition_.notifyAll();
+            if (this->e_) {
+                throw this->e_;
+            }
         }
     }
 }
