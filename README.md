@@ -148,7 +148,7 @@ array("hello world!")
 
 ##### 线程同步：
 
-条件变量包装类 conditionBase/pCondition
+条件变量 conditionBase/pCondition，线程同步点 syncPoint
 
 ##### 原子操作：
 
