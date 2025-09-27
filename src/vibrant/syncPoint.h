@@ -9,8 +9,8 @@ namespace original {
         const u_integer max_arrived_;
         u_integer arrived_;
         u_integer round_;
-        pMutex mutex_;
-        pCondition condition_;
+        mutable pMutex mutex_;
+        mutable pCondition condition_;
         std::function<void()> complete_func_;
         std::exception_ptr e_;
     public:
@@ -19,6 +19,10 @@ namespace original {
         explicit syncPoint(u_integer max_arrived, const std::function<void()>& func = {});
 
         void arrive();
+
+        u_integer maxArrived() const;
+
+        u_integer currentArrived() const;
     };
 }
 
@@ -58,6 +62,17 @@ inline void original::syncPoint::arrive() {
             }
         }
     }
+}
+
+inline original::u_integer original::syncPoint::maxArrived() const
+{
+    return this->max_arrived_;
+}
+
+inline original::u_integer original::syncPoint::currentArrived() const
+{
+    uniqueLock lock{this->mutex_};
+    return this->arrived_;
 }
 
 #endif //ORIGINAL_SYNCPOINT_H
