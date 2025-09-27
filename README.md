@@ -24,7 +24,7 @@ Original是一个C++基础工具库,也是本人的第一个正式项目，用�
 cmake_minimum_required(VERSION 3.30)
 project(hello_original)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 set(BUILD_TESTING OFF CACHE BOOL "Disable tests in the fetched project")
 
@@ -63,7 +63,7 @@ cmake -P install.cmake
 cmake_minimum_required(VERSION 3.30)
 project(hello_original)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/original")
