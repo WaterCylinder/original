@@ -103,7 +103,7 @@ TYPE min(TYPE a, TYPE b);
  * result = original::pow(base, exp); // result will be 0.25
  * @endcode
  */
-double pow(double base, int exp);
+floating pow(floating base, integer exp);
 
 /**
  * @brief Generates a sequence of integers from `start` to `end` (exclusive) with a given `steps`.
@@ -156,14 +156,14 @@ auto original::min(TYPE a, TYPE b) -> TYPE
     return a < b ? a : b;
 }
 
-inline auto original::pow(const double base, const int exp) -> double
+inline auto original::pow(const floating base, const integer exp) -> floating
 {
     if (base == 0 && exp <= 0)
     {
         throw valueError();
     }
-    double res = 1.0;
-    for (int i = 0; i < abs(exp); i += 1)
+    floating res = 1.0;
+    for (integer i = 0; i < abs(exp); i += 1)
     {
         res *= base;
     }
