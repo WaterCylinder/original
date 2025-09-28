@@ -56,6 +56,15 @@ namespace original {
             using promise_type = promise_type;
             using iterator = iterator;
 
+            generator(const generator&) = delete;
+            generator& operator=(const generator&) = delete;
+
+            generator(generator&& other) noexcept;
+
+            generator& operator=(generator&& other) noexcept;
+
+            generator() = default;
+
             explicit generator(handle h);
 
             iterator begin();
@@ -172,6 +181,26 @@ template <typename TYPE>
 bool original::coroutine::generator<TYPE>::iterator::operator==(const iterator& other) const
 {
     return !(*this != other);
+}
+
+template <typename TYPE>
+original::coroutine::generator<TYPE>::generator(generator&& other) noexcept
+{
+    this->handle_ = other.handle_;
+    other.handle_ = nullptr;
+}
+
+template <typename TYPE>
+original::coroutine::generator<TYPE>&
+original::coroutine::generator<TYPE>::operator=(generator&& other) noexcept
+{
+    if (this == &other) {
+        return *this;
+    }
+
+    this->handle_ = other.handle_;
+    other.handle_ = nullptr;
+    return *this;
 }
 
 template <typename TYPE>
