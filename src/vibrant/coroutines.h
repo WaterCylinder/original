@@ -126,7 +126,7 @@ template <typename TYPE>
 void original::coroutine::generator<TYPE>::promise_type::rethrow_if_exception() const
 {
     if (this->e_)
-        throw this->e_;
+        std::rethrow_exception(this->e_);
 }
 
 template <typename TYPE>
@@ -243,11 +243,11 @@ original::coroutine::generator<TYPE>::next()
         return alternative<TYPE>{};
 
     this->handle_.resume();
+    this->handle_.promise().rethrow_if_exception();
 
     if (!this->hasNext())
         return alternative<TYPE>{};
 
-    this->handle_.promise().rethrow_if_exception();
     return this->handle_.promise().value_;
 }
 
