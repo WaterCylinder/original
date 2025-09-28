@@ -4,6 +4,7 @@
 #include "async.h"
 #include "atomic.h"
 #include "condition.h"
+#include "coroutines.h"
 #include "mutex.h"
 #include "semaphores.h"
 #include "syncPoint.h"
