@@ -81,9 +81,6 @@ namespace original {
 
             ~generator();
         };
-
-        template<std::integral INTEGER = int>
-        static generator<INTEGER> rangesOf(INTEGER start, INTEGER end, INTEGER difference = 1);
     };
 }
 
@@ -259,24 +256,6 @@ original::coroutine::generator<TYPE>::~generator()
 {
     if (this->handle_)
         this->handle_.destroy();
-}
-
-template<std::integral INTEGER>
-original::coroutine::generator<INTEGER>
-original::coroutine::rangesOf(INTEGER start, INTEGER end, const INTEGER difference) // NOLINT
-{
-    if (difference == 0 || (start - end) * difference > 0) {
-        co_return; // NOLINT
-    }
-    if (difference > 0) {
-        for (INTEGER i = start; i < end; i += difference) {
-            co_yield i;
-        }
-    } else {
-        for (INTEGER i = start; i > end; i += difference) {
-            co_yield i;
-        }
-    }
 }
 
 #endif //ORIGINAL_COROUTINES_H

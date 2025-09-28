@@ -1,5 +1,6 @@
 #ifndef MATHS_H
 #define MATHS_H
+#include "coroutines.h"
 #include "error.h"
 
 namespace original {
@@ -104,6 +105,9 @@ TYPE min(TYPE a, TYPE b);
  */
 double pow(double base, int exp);
 
+template<std::integral INTEGER = int>
+coroutine::generator<INTEGER> rangesOf(INTEGER start, INTEGER end, INTEGER difference = 1);
+
 } // namespace original
 
 // ----------------- Definitions of maths.h -----------------
@@ -138,6 +142,23 @@ inline auto original::pow(const double base, const int exp) -> double
         res *= base;
     }
     return exp >= 0 ? res : 1 / res;
+}
+
+template <std::integral INTEGER>
+original::coroutine::generator<INTEGER> original::rangesOf(INTEGER start, INTEGER end, INTEGER difference)
+{
+    if (difference == 0 || (start - end) * difference > 0) {
+        co_return;
+    }
+    if (difference > 0) {
+        for (INTEGER i = start; i < end; i += difference) {
+            co_yield i;
+        }
+    } else {
+        for (INTEGER i = start; i > end; i += difference) {
+            co_yield i;
+        }
+    }
 }
 
 #endif //MATHS_H
