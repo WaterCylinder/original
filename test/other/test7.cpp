@@ -66,11 +66,15 @@ int main() {
         std::cout << future.result() << std::endl;
     }
 
-    std::cout << "test generator" << std::endl;
+    std::cout << "test generator1:" << std::endl;
 
     auto ranges = original::rangesOf(0, 100, 6);
     while (auto val = ranges.next()) {
         std::cout << *val << std::endl;
+    }
+    std::cout << "test generator2:" << std::endl;
+    for (const int i : original::rangesOf(1, 5)) {
+        std::cout << i << " "; // Output: 1 2 3 4
     }
     return 0;
 }
