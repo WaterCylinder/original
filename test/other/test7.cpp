@@ -3,6 +3,7 @@
 #include "async.h"
 #include "singleton.h"
 #include "tasks.h"
+#include "coroutines.h"
 
 original::array<int> matrixAdd(const original::array<int>& a, const original::array<int>& b)
 {
@@ -63,6 +64,13 @@ int main() {
     }
     for (auto& future : futures) {
         std::cout << future.result() << std::endl;
+    }
+
+    std::cout << "test generator" << std::endl;
+
+    auto ranges = original::coroutine::rangesOf(0, 100, 6);
+    while (auto val = ranges.next()) {
+        std::cout << *val << std::endl;
     }
     return 0;
 }
