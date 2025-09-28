@@ -166,18 +166,17 @@ TYPE original::coroutine::generator<TYPE>::iterator::operator*()
 template <typename TYPE>
 bool original::coroutine::generator<TYPE>::iterator::operator!=(const iterator& other) const
 {
-    if (!this->gen_ && !other.gen_)
-        return true;
-    if (!this->gen_ || !other.gen_)
-        return this->end_ != other.end_;
-
-    return this->gen_ != other.gen_ || this->end_ != other.end_;
+    return !(*this == other);
 }
 
 template <typename TYPE>
 bool original::coroutine::generator<TYPE>::iterator::operator==(const iterator& other) const
 {
-    return !(*this != other);
+    if (this->end_ && other.end_)
+        return true;
+    if (this->end_ != other.end_)
+        return false;
+    return this->gen_ == other.gen_;
 }
 
 template <typename TYPE>
