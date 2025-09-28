@@ -68,7 +68,7 @@ int main() {
 
     std::cout << "test generator" << std::endl;
 
-    auto ranges = original::coroutine::rangesOf(0, 100, 6);
+    auto ranges = original::rangesOf(0, 100, 6);
     while (auto val = ranges.next()) {
         std::cout << *val << std::endl;
     }
