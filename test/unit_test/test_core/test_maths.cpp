@@ -110,7 +110,7 @@ TEST(MathsTests, RangesOfPeekDoesNotAdvance) {
 }
 
 TEST(MathsTests, RangesOfEmptyWhenInvalidStep) {
-    auto gen = rangesOf(0, 10, 0); // difference == 0
+    auto gen = rangesOf(0, 10, 0); // steps == 0
     EXPECT_FALSE(gen.next());
 }
 

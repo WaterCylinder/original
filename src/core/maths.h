@@ -105,8 +105,34 @@ TYPE min(TYPE a, TYPE b);
  */
 double pow(double base, int exp);
 
+/**
+ * @brief Generates a sequence of integers from `start` to `end` (exclusive) with a given `steps`.
+ *
+ * This function returns a coroutine-based generator that yields integer values
+ * starting from `start`, incrementing or decrementing by `steps`, until `end` is reached (exclusive).
+ *
+ * @tparam INTEGER The integer type (defaults to `int`).
+ * @param start The starting value.
+ * @param end The ending value (exclusive).
+ * @param steps The step size between values (default is 1).
+ * @return A generator that yields the sequence of integers.
+ *
+ * @note If `steps` is zero or the range is invalid (e.g., start > end with positive step),
+ *       the generator will immediately complete without yielding any values.
+ *
+ * @code{.cpp}
+ * // Example usage:
+ * for (int i : original::rangesOf(1, 5)) {
+ *     std::cout << i << " "; // Output: 1 2 3 4
+ * }
+ *
+ * for (int i : original::rangesOf(5, 1, -1)) {
+ *     std::cout << i << " "; // Output: 5 4 3 2
+ * }
+ * @endcode
+ */
 template<std::integral INTEGER = int>
-coroutine::generator<INTEGER> rangesOf(INTEGER start, INTEGER end, INTEGER difference = 1);
+coroutine::generator<INTEGER> rangesOf(INTEGER start, INTEGER end, INTEGER steps = 1);
 
 } // namespace original
 
@@ -145,17 +171,17 @@ inline auto original::pow(const double base, const int exp) -> double
 }
 
 template <std::integral INTEGER>
-original::coroutine::generator<INTEGER> original::rangesOf(INTEGER start, INTEGER end, INTEGER difference)
+original::coroutine::generator<INTEGER> original::rangesOf(INTEGER start, INTEGER end, INTEGER steps)
 {
-    if (difference == 0 || (start - end) * difference > 0) {
+    if (steps == 0 || (start - end) * steps > 0) {
         co_return;
     }
-    if (difference > 0) {
-        for (INTEGER i = start; i < end; i += difference) {
+    if (steps > 0) {
+        for (INTEGER i = start; i < end; i += steps) {
             co_yield i;
         }
     } else {
-        for (INTEGER i = start; i > end; i += difference) {
+        for (INTEGER i = start; i > end; i += steps) {
             co_yield i;
         }
     }
