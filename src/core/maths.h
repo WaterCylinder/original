@@ -20,14 +20,14 @@ namespace original {
  * It is used in various mathematical, scientific, and engineering applications,
  * particularly in exponential growth and decay models, as well as in complex analysis.
  */
-constexpr l_floating E = 2.7182818284590452353602874713526624977572470937000L;
+constexpr l_floating E = 2.7182818284590452353602874713526624977572470937000;
 
 /**
  * @brief The mathematical constant PI (π).
  * @details This is the ratio of a circle's circumference to its diameter, approximately equal to 3.14159.
  * It is used in geometry, trigonometry, and many other mathematical fields, especially when dealing with circular or spherical shapes.
  */
-constexpr l_floating PI = 3.1415926535897932384626433832795028841971693993751L;
+constexpr l_floating PI = 3.1415926535897932384626433832795028841971693993751;
 
 /**
  * @brief Returns the absolute value of a given number.
