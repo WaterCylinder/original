@@ -44,11 +44,11 @@ namespace original {
     template<typename TYPE, typename Callback>
     bool any(coroutine::generator<TYPE> gen, Callback&& c);
 
-    template<typename U, std::convertible_to<U> T>
-    coroutine::generator<U> join(coroutine::generator<U> gen1, coroutine::generator<T> gen2);
+    template<typename T, std::convertible_to<T> U>
+    coroutine::generator<T> join(coroutine::generator<T> gen1, coroutine::generator<U> gen2);
 
-    template<typename U, std::convertible_to<U> T>
-    coroutine::generator<U> flatten(coroutine::generator<couple<U, T>> gen);
+    template<typename T, std::convertible_to<T> U>
+    coroutine::generator<T> flatten(coroutine::generator<couple<T, U>> gen);
 
     template<typename TYPE>
     coroutine::generator<TYPE> take(coroutine::generator<TYPE> gen, u_integer n);
@@ -76,10 +76,10 @@ namespace original {
         template<typename TYPE, typename F>
         friend auto operator|(coroutine::generator<TYPE> gen, genPipe<F> p);
 
-        template<typename U, typename T>
-        friend auto join(coroutine::generator<U> gen2);
+        template<typename T, typename U>
+        friend auto join(coroutine::generator<T> gen2);
 
-        template<typename U, typename T>
+        template<typename T, typename U>
         friend auto flatten();
 
         template<typename F>
@@ -91,15 +91,19 @@ namespace original {
         template<typename F>
         friend auto extract(F&& f);
 
+        template<typename>
         friend auto enumerate();
 
+        template<typename>
         friend auto take(u_integer n);
 
+        template<typename>
         friend auto skip(u_integer n);
 
         template<typename F>
         friend auto zipWith(coroutine::generator<F> gen2);
 
+        template<typename>
         friend auto count();
 
         template<typename F>
@@ -133,21 +137,25 @@ namespace original {
     template<typename F>
     auto extract(F&& f);
 
+    template<typename = void>
     auto enumerate();
 
+    template<typename = void>
     auto take(u_integer n);
 
+    template<typename = void>
     auto skip(u_integer n);
 
-    template<typename U, typename T>
-    auto join(coroutine::generator<T> gen2);
+    template<typename T, typename U>
+    auto join(coroutine::generator<U> gen2);
 
-    template<typename U, typename T>
+    template<typename T, typename U>
     auto flatten();
 
     template<typename U>
     auto zipWith(coroutine::generator<U> gen2);
 
+    template<typename = void>
     auto count();
 
     template<typename F>
@@ -311,9 +319,9 @@ bool original::any(coroutine::generator<TYPE> gen, Callback&& c)
     return false;
 }
 
-template<typename U, std::convertible_to<U> T>
-original::coroutine::generator<U>
-original::join(coroutine::generator<U> gen1, coroutine::generator<T> gen2)
+template<typename T, std::convertible_to<T> U>
+original::coroutine::generator<T>
+original::join(coroutine::generator<T> gen1, coroutine::generator<U> gen2)
 {
     for (auto elem : gen1)
     {
@@ -321,18 +329,18 @@ original::join(coroutine::generator<U> gen1, coroutine::generator<T> gen2)
     }
     for (auto elem : gen2)
     {
-        co_yield static_cast<U>(elem);
+        co_yield static_cast<T>(elem);
     }
 }
 
-template <typename U, std::convertible_to<U> T>
-original::coroutine::generator<U>
-original::flatten(coroutine::generator<couple<U, T>> gen)
+template <typename T, std::convertible_to<T> U>
+original::coroutine::generator<T>
+original::flatten(coroutine::generator<couple<T, U>> gen)
 {
     for (auto [elem1, elem2] : gen)
     {
         co_yield elem1;
-        co_yield static_cast<U>(elem2);
+        co_yield static_cast<T>(elem2);
     }
 }
 
@@ -435,40 +443,43 @@ auto original::extract(F&& f)
     }};
 }
 
-inline auto original::enumerate()
+template<typename>
+auto original::enumerate()
 {
     return genPipe{[]<typename TYPE>(coroutine::generator<TYPE> gen) mutable {
         return enumerate(std::move(gen));
     }};
 }
 
-inline auto original::take(u_integer n)
+template<typename>
+auto original::take(u_integer n)
 {
     return genPipe{[n]<typename TYPE>(coroutine::generator<TYPE> gen) mutable {
         return take(std::move(gen), n);
     }};
 }
 
-inline auto original::skip(u_integer n)
+template<typename>
+auto original::skip(u_integer n)
 {
     return genPipe{[n]<typename TYPE>(coroutine::generator<TYPE> gen) mutable {
         return skip(std::move(gen), n);
     }};
 }
 
-template <typename U, typename T>
-auto original::join(coroutine::generator<T> gen2)
+template <typename T, typename U>
+auto original::join(coroutine::generator<U> gen2)
 {
     return genPipe{[gen2 = std::move(gen2)]<typename TYPE>(coroutine::generator<TYPE> gen1) mutable {
-        return join<U, TYPE>(std::move(gen1), std::move(gen2));
+        return join<T, TYPE>(std::move(gen1), std::move(gen2));
     }};
 }
 
-template<typename U, typename T>
+template<typename T, typename U>
 auto original::flatten()
 {
     return genPipe{[]<typename TYPE>(coroutine::generator<TYPE> gen) mutable {
-        return flatten<U, T>(std::move(gen));
+        return flatten<T, U>(std::move(gen));
     }};
 }
 
@@ -480,7 +491,8 @@ auto original::zipWith(coroutine::generator<U> gen2)
     }};
 }
 
-inline auto original::count()
+template<typename>
+auto original::count()
 {
     return genPipe{[]<typename TYPE>(coroutine::generator<TYPE> gen) {
         return count(std::move(gen));
