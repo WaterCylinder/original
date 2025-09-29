@@ -372,6 +372,37 @@ namespace original {
         void forEach(const Callback& operation = Callback{}) const;
 
         using T = std::remove_const_t<TYPE>;
+        /**
+         * @brief Creates a coroutine generator that yields elements from this container.
+         * @return A generator that produces copies of container elements with const removed.
+         * @details This method provides a coroutine-based iteration interface that:
+         *          - Removes const qualifiers from elements for compatibility with generator storage
+         *          - Creates value copies suitable for coroutine suspension and resumption
+         *          - Supports range-based for loops and generator pipeline operations
+         *          - Maintains element traversal order consistent with begin()/end()
+         *
+         * The generator produces std::remove_const_t<TYPE> to ensure compatibility with
+         * the underlying alternative<TYPE> storage in coroutines, which requires
+         * mutable types for placement new operations.
+         *
+         * Example usage:
+         * @code
+         * // Direct iteration
+         * for (auto value : container.generator()) {
+         *     process(value);
+         * }
+         *
+         * // Generator pipeline operations
+         * auto result = container.generator()
+         *     | transforms([](auto x) { return x * 2; })
+         *     | filters([](auto x) { return x > 10; })
+         *     | collect<vector>();
+         * @endcode
+         *
+         * @note The generator yields copies of elements, not references. For large
+         *       objects, consider using reference wrappers or move semantics.
+         * @note Container lifetime must exceed generator usage to avoid dangling references.
+         */
         coroutine::generator<T> generator() const;
     };
 }
