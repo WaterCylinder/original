@@ -151,7 +151,6 @@ TEST(MathsTests, RangesOfIteratorEdgeCase) {
     auto g = rangesOf(0, 10, 0); // 步长为0
     EXPECT_EQ(g.begin(), g.end());
 
-    auto g2 = rangesOf(0, 10);
-    auto end_it = g2.end();
+    auto end_it = coroutine::generator<int>::end();
     EXPECT_THROW(*end_it, nullPointerError);
 }
