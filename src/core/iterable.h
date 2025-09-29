@@ -400,8 +400,8 @@ namespace original {
          * @endcode
          *
          * @note The generator yields copies of elements, not references. For large
-         *       objects, consider using reference wrappers or move semantics.
-         * @note Container lifetime must exceed generator usage to avoid dangling references.
+         *       objects, consider using iterator to get reference directly.
+         * @warning Container lifetime must exceed generator usage to avoid dangling references.
          */
         coroutine::generator<T> generator() const;
     };
