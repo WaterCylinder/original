@@ -148,8 +148,7 @@ original::coroutine::generator<TYPE>::iterator::operator++()
 {
     if (!this->gen_)
         return *this;
-    auto v = this->gen_->next();
-    if (!v) {
+    if (auto gen_next = this->gen_->next(); !gen_next) {
         this->end_ = true;
     }
     return *this;
