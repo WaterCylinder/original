@@ -1,6 +1,7 @@
 #ifndef ITERABLE_H
 #define ITERABLE_H
 
+#include "coroutines.h"
 #include "transform.h"
 #include "types.h"
 #include "iterator.h"
@@ -369,6 +370,9 @@ namespace original {
         template<typename Callback = transform<TYPE>>
         requires Operation<Callback, TYPE>
         void forEach(const Callback& operation = Callback{}) const;
+
+        using T = std::remove_const_t<TYPE>;
+        coroutine::generator<T> generator() const;
     };
 }
 
@@ -597,6 +601,16 @@ namespace original {
     auto original::iterable<TYPE>::forEach(const Callback &operation) const -> void {
         for (auto it = this->first(); it.isValid(); it.next()) {
             operation(it.getElem());
+        }
+    }
+
+    template <typename TYPE>
+    original::coroutine::generator<std::remove_const_t<TYPE>>
+    original::iterable<TYPE>::generator() const
+    {
+        for (const auto& elem : *this)
+        {
+            co_yield std::remove_const_t<TYPE>(elem);
         }
     }
 
