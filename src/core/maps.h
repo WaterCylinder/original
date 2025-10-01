@@ -92,13 +92,13 @@ namespace original {
          * @typedef hashNode
          * @brief Internal node type used for hash table storage
          */
-        using hashNode = typename hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode;
+        using hashNode = hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::hashNode;
 
         /**
          * @typedef rebind_alloc_pointer
          * @brief Rebound allocator type for pointer storage
          */
-        using rebind_alloc_pointer = typename hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::rebind_alloc_pointer;
+        using rebind_alloc_pointer = hashTable<K_TYPE, V_TYPE, ALLOC, HASH>::rebind_alloc_pointer;
     public:
 
             /**
@@ -435,7 +435,7 @@ namespace original {
          * @typedef RBNode
          * @brief Internal node type used for Red-Black Tree storage
          */
-        using RBNode = typename RBTreeType::RBNode;
+        using RBNode = RBTreeType::RBNode;
     public:
 
         /**
@@ -767,7 +767,7 @@ namespace original {
          * @typedef skipListNode
          * @brief Internal node type used for Skip List storage
          */
-        using skipListNode = typename skipListType::skipListNode;
+        using skipListNode = skipListType::skipListNode;
 
     public:
         /**
@@ -1096,7 +1096,7 @@ original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::Iterator(const Iterato
 }
 
 template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
-typename original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator&
+original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator&
 original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::operator=(const Iterator &other) {
     if (this == &other)
         return *this;
@@ -1106,7 +1106,7 @@ original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::operator=(const Iterat
 }
 
 template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
-typename original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator*
+original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator*
 original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::clone() const {
     return new Iterator(*this);
 }
@@ -1175,7 +1175,7 @@ void original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::prev() const {
 }
 
 template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
-typename original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator*
+original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator*
 original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator::getPrev() const {
     throw unSupportedMethodError();
 }
@@ -1326,7 +1326,7 @@ V_TYPE& original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::operator[](const K_TYPE 
 }
 
 template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
-typename original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator*
+original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator*
 original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::begins() const {
     auto p_buckets = const_cast<vector<hashNode*, rebind_alloc_pointer>*>(&this->buckets);
     if (this->buckets[0]) {
@@ -1337,7 +1337,7 @@ original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::begins() const {
 }
 
 template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
-typename original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator*
+original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::Iterator*
 original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::ends() const {
     auto p_buckets = const_cast<vector<hashNode*, rebind_alloc_pointer>*>(&this->buckets);
     auto bucket = Iterator::findPrevValidBucket(p_buckets, this->buckets.size());
@@ -1398,7 +1398,7 @@ original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::Iterator(const Iter
 }
 
 template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
-typename original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator&
+original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator&
 original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::operator=(const Iterator& other)
 {
     if (this == &other) {
@@ -1411,7 +1411,7 @@ original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::operator=(const Ite
 }
 
 template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
-typename original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
+original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
 original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::clone() const
 {
     return new Iterator(*this);
@@ -1492,7 +1492,7 @@ void original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::prev() const
 }
 
 template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
-typename original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
+original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
 original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::getPrev() const
 {
     auto it = this->clone();
@@ -1650,14 +1650,14 @@ V_TYPE &original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::operator[](const K_TY
 }
 
 template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
-typename original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
+original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
 original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::begins() const
 {
     return new Iterator(const_cast<treeMap*>(this), this->getMinNode());
 }
 
 template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
-typename original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
+original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
 original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::ends() const
 {
     return new Iterator(const_cast<treeMap*>(this), this->getMaxNode());
@@ -1707,14 +1707,14 @@ original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::Iterator(const Iterato
     : skipListType::Iterator(other) {}
 
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
-typename original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator&
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator&
 original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::operator=(const Iterator& other) {
     skipListType::Iterator::operator=(other);
     return *this;
 }
 
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
-typename original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
 original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::clone() const {
     return new Iterator(*this);
 }
@@ -1785,7 +1785,7 @@ void original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::prev() const {
 }
 
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
-typename original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
 original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator::getPrev() const {
     throw unSupportedMethodError();
 }
@@ -1935,13 +1935,13 @@ V_TYPE &original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::operator[](const K_TYPE 
 }
 
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
-typename original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
 original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::begins() const {
     return new Iterator(this->head_->getPNext(1));
 }
 
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
-typename original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
+original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::Iterator*
 original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::ends() const {
     return new Iterator(this->findLastNode());
 }

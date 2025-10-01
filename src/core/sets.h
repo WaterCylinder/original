@@ -82,13 +82,13 @@ namespace original {
          * @typedef hashNode
          * @brief Internal node type used for hash table storage
          */
-        using hashNode = typename hashTable<TYPE, const bool, ALLOC, HASH>::hashNode;
+        using hashNode = hashTable<TYPE, const bool, ALLOC, HASH>::hashNode;
 
         /**
          * @typedef rebind_alloc_pointer
          * @brief Rebound allocator type for pointer storage
          */
-        using rebind_alloc_pointer = typename hashTable<TYPE, const bool, ALLOC, HASH>::rebind_alloc_pointer;
+        using rebind_alloc_pointer = hashTable<TYPE, const bool, ALLOC, HASH>::rebind_alloc_pointer;
 
     public:
         /**
@@ -373,7 +373,7 @@ namespace original {
          * @typedef RBNode
          * @brief Internal node type used for Red-Black Tree storage
          */
-        using RBNode = typename RBTreeType::RBNode;
+        using RBNode = RBTreeType::RBNode;
     public:
         /**
          * @class Iterator
@@ -663,7 +663,7 @@ namespace original {
          * @typedef skipListNode
          * @brief Internal node type used for Skip List storage
          */
-        using skipListNode = typename skipListType::skipListNode;
+        using skipListNode = skipListType::skipListNode;
 
     public:
         /**
@@ -955,7 +955,7 @@ original::hashSet<TYPE, HASH, ALLOC>::Iterator::Iterator(const Iterator &other) 
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
-typename original::hashSet<TYPE, HASH, ALLOC>::Iterator&
+original::hashSet<TYPE, HASH, ALLOC>::Iterator&
 original::hashSet<TYPE, HASH, ALLOC>::Iterator::operator=(const Iterator &other) {
     if (this == &other) {
         return *this;
@@ -966,7 +966,7 @@ original::hashSet<TYPE, HASH, ALLOC>::Iterator::operator=(const Iterator &other)
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
-typename original::hashSet<TYPE, HASH, ALLOC>::Iterator*
+original::hashSet<TYPE, HASH, ALLOC>::Iterator*
 original::hashSet<TYPE, HASH, ALLOC>::Iterator::clone() const {
     return new Iterator(*this);
 }
@@ -1033,7 +1033,7 @@ void original::hashSet<TYPE, HASH, ALLOC>::Iterator::prev() const {
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
-typename original::hashSet<TYPE, HASH, ALLOC>::Iterator*
+original::hashSet<TYPE, HASH, ALLOC>::Iterator*
 original::hashSet<TYPE, HASH, ALLOC>::Iterator::getPrev() const {
     throw unSupportedMethodError();
 }
@@ -1144,7 +1144,7 @@ bool original::hashSet<TYPE, HASH, ALLOC>::remove(const TYPE &e) {
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
-typename original::hashSet<TYPE, HASH, ALLOC>::Iterator*
+original::hashSet<TYPE, HASH, ALLOC>::Iterator*
 original::hashSet<TYPE, HASH, ALLOC>::begins() const {
     auto p_buckets = const_cast<vector<hashNode*, rebind_alloc_pointer>*>(&this->buckets);
     if (this->buckets[0]) {
@@ -1155,7 +1155,7 @@ original::hashSet<TYPE, HASH, ALLOC>::begins() const {
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
-typename original::hashSet<TYPE, HASH, ALLOC>::Iterator*
+original::hashSet<TYPE, HASH, ALLOC>::Iterator*
 original::hashSet<TYPE, HASH, ALLOC>::ends() const {
     auto p_buckets = const_cast<vector<hashNode*, rebind_alloc_pointer>*>(&this->buckets);
     auto bucket = Iterator::findPrevValidBucket(p_buckets, this->buckets.size());
@@ -1214,7 +1214,7 @@ original::treeSet<TYPE, Compare, ALLOC>::Iterator::Iterator(const Iterator& othe
 }
 
 template <typename TYPE, typename Compare, typename ALLOC>
-typename original::treeSet<TYPE, Compare, ALLOC>::Iterator&
+original::treeSet<TYPE, Compare, ALLOC>::Iterator&
 original::treeSet<TYPE, Compare, ALLOC>::Iterator::operator=(const Iterator& other)
 {
     if (this == &other) {
@@ -1227,7 +1227,7 @@ original::treeSet<TYPE, Compare, ALLOC>::Iterator::operator=(const Iterator& oth
 }
 
 template <typename TYPE, typename Compare, typename ALLOC>
-typename original::treeSet<TYPE, Compare, ALLOC>::Iterator*
+original::treeSet<TYPE, Compare, ALLOC>::Iterator*
 original::treeSet<TYPE, Compare, ALLOC>::Iterator::clone() const
 {
     return new Iterator(*this);
@@ -1305,7 +1305,7 @@ void original::treeSet<TYPE, Compare, ALLOC>::Iterator::prev() const
 }
 
 template <typename TYPE, typename Compare, typename ALLOC>
-typename original::treeSet<TYPE, Compare, ALLOC>::Iterator*
+original::treeSet<TYPE, Compare, ALLOC>::Iterator*
 original::treeSet<TYPE, Compare, ALLOC>::Iterator::getPrev() const
 {
     auto it = this->clone();
@@ -1426,14 +1426,14 @@ bool original::treeSet<TYPE, Compare, ALLOC>::remove(const TYPE &e) {
 }
 
 template <typename TYPE, typename Compare, typename ALLOC>
-typename original::treeSet<TYPE, Compare, ALLOC>::Iterator*
+original::treeSet<TYPE, Compare, ALLOC>::Iterator*
 original::treeSet<TYPE, Compare, ALLOC>::begins() const
 {
     return new Iterator(const_cast<treeSet*>(this), this->getMinNode());
 }
 
 template <typename TYPE, typename Compare, typename ALLOC>
-typename original::treeSet<TYPE, Compare, ALLOC>::Iterator*
+original::treeSet<TYPE, Compare, ALLOC>::Iterator*
 original::treeSet<TYPE, Compare, ALLOC>::ends() const
 {
     return new Iterator(const_cast<treeSet*>(this), this->getMaxNode());
