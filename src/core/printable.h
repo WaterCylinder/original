@@ -207,7 +207,7 @@ namespace std {
      */
     template<typename T>
     requires original::ExtendsOf<original::printable, T>
-    struct std::formatter<T> { // NOLINT
+    struct formatter<T> { // NOLINT
 
         /**
         * @brief Parses the format specification
@@ -223,7 +223,8 @@ namespace std {
         * @return Iterator past the formatted output
         */
         static auto format(const T& p, format_context& ctx);
-};
+    };
+}
 
 // ----------------- Definitions of printable.h -----------------
 
