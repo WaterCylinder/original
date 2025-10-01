@@ -187,6 +187,8 @@ namespace original {
          */
         void set(const TYPE& t);
 
+        alternative& operator=(const TYPE& t);
+
         /**
          * @brief Checks if contains a value
          * @return true if contains value, false if empty
@@ -243,6 +245,8 @@ namespace original {
          * @post hasValue() == true
          */
         void set();
+
+        alternative& operator=(std::in_place_t t);
 
         /**
          * @brief Resets to empty state
@@ -445,6 +449,14 @@ void original::alternative<TYPE>::set(const TYPE &t) {
     new (&val_.type_) TYPE{ t };
 }
 
+template <typename TYPE>
+original::alternative<TYPE>&
+original::alternative<TYPE>::operator=(const TYPE& t)
+{
+    this->set(t);
+    return *this;
+}
+
 template<typename TYPE>
 original::alternative<TYPE>::operator bool() const {
     return this->non_none_type_;
@@ -470,6 +482,13 @@ inline original::alternative<void>::alternative(std::in_place_t) : has_value_(tr
 inline void original::alternative<void>::set()
 {
     this->has_value_ = true;
+}
+
+inline original::alternative<void>&
+original::alternative<void>::operator=(std::in_place_t)
+{
+    this->set();
+    return *this;
 }
 
 inline void original::alternative<void>::reset() noexcept
