@@ -189,6 +189,11 @@ std::ostream& operator<<(std::ostream& os, const printable& p);
 
 } // namespace original
 
+namespace std {
+    template<typename T>
+    requires original::ExtendsOf<original::printable, T>
+    std::string to_string(const T& t); // NOLINT
+
     /**
      * @brief std::formatter specialization for printable types
      * @tparam T Type derived from printable
@@ -332,6 +337,13 @@ inline auto original::printable::formatString<const char>(const char* const &ptr
 inline std::ostream& original::operator<<(std::ostream& os, const printable& p){
     os << p.toString(false);
     return os;
+}
+
+template<typename T>
+requires original::ExtendsOf<original::printable, T>
+std::string std::to_string(const T& t)
+{
+    return original::printable::formatString(t);
 }
 
 template<typename T>
