@@ -171,11 +171,6 @@ namespace original {
         auto _slice(std::integer_sequence<u_integer, IDX_S...> indexes,
                     std::integral_constant<u_integer, BEGIN_IDX> begin) const;
 
-        template<typename... O_TYPES, u_integer... T_SIZE, u_integer... O_SIZE>
-        tuple<TYPES..., O_TYPES...> _concat(const tuple<O_TYPES...>& other,
-                                            std::integer_sequence<u_integer, T_SIZE...> ts,
-                                            std::integer_sequence<u_integer, O_SIZE...> os) const;
-
         /**
          * @brief Internal helper to concatenate two tuples
          * @tparam O_TYPES Element types of the other tuple
@@ -187,7 +182,7 @@ namespace original {
          * @return A new tuple containing elements of both tuples
          */
         template<typename... O_TYPES, u_integer... T_SIZE, u_integer... O_SIZE>
-        tuple<TYPES..., O_TYPES...> _concat(tuple<O_TYPES...>&& other,
+        tuple<TYPES..., O_TYPES...> _concat(const tuple<O_TYPES...>& other,
                                             std::integer_sequence<u_integer, T_SIZE...> ts,
                                             std::integer_sequence<u_integer, O_SIZE...> os) const;
 
@@ -218,6 +213,9 @@ namespace original {
         std::string toString(bool enter) const override;
         std::string className() const override;
 
+        template<typename... O_TYPES>
+        tuple<TYPES..., O_TYPES...> operator+(const tuple<O_TYPES...>& other) const;
+
         ~tuple() override = default;
 
         template<typename F_TYPE, typename S_TYPE>
@@ -225,18 +223,6 @@ namespace original {
 
         template<typename F_TYPE, typename S_TYPE>
         friend tuple<F_TYPE, S_TYPE> makeTuple(couple<F_TYPE, S_TYPE>&& cp);
-
-        template<typename... L_TYPES, typename... R_TYPES>
-        friend tuple<L_TYPES..., R_TYPES...> operator+(const tuple<L_TYPES...>& lt, const tuple<R_TYPES...>& rt);
-
-        template<typename... L_TYPES, typename... R_TYPES>
-        friend tuple<L_TYPES..., R_TYPES...> operator+(tuple<L_TYPES...>&& lt, const tuple<R_TYPES...>&& rt);
-
-        template<typename... L_TYPES, typename... R_TYPES>
-        friend tuple<L_TYPES..., R_TYPES...> operator+(tuple<L_TYPES...>&& lt, const tuple<R_TYPES...>& rt);
-
-        template<typename... L_TYPES, typename... R_TYPES>
-        friend tuple<L_TYPES..., R_TYPES...> operator+(const tuple<L_TYPES...>& lt, tuple<R_TYPES...>&& rt);
     };
 
     template<typename F_TYPE, typename S_TYPE>
@@ -244,18 +230,6 @@ namespace original {
 
     template<typename F_TYPE, typename S_TYPE>
     tuple<F_TYPE, S_TYPE> makeTuple(couple<F_TYPE, S_TYPE>&& cp);
-
-    template<typename... L_TYPES, typename... R_TYPES>
-    tuple<L_TYPES..., R_TYPES...> operator+(const tuple<L_TYPES...>& lt, const tuple<R_TYPES...>& rt);
-
-    template<typename... L_TYPES, typename... R_TYPES>
-    tuple<L_TYPES..., R_TYPES...> operator+(tuple<L_TYPES...>&& lt, const tuple<R_TYPES...>&& rt);
-
-    template<typename... L_TYPES, typename... R_TYPES>
-    tuple<L_TYPES..., R_TYPES...> operator+(tuple<L_TYPES...>&& lt, const tuple<R_TYPES...>& rt);
-
-    template<typename... L_TYPES, typename... R_TYPES>
-    tuple<L_TYPES..., R_TYPES...> operator+(const tuple<L_TYPES...>& lt, tuple<R_TYPES...>&& rt);
 }
 
 namespace std {
@@ -616,18 +590,6 @@ original::tuple<TYPES...>::_concat(const tuple<O_TYPES...> &other,
     return tuple<TYPES..., O_TYPES...>{TYPES(this->get<T_SIZE>())..., O_TYPES(other.template get<O_SIZE>())...};
 }
 
-template<typename... TYPES>
-template<typename... O_TYPES, original::u_integer... T_SIZE, original::u_integer... O_SIZE>
-original::tuple<TYPES..., O_TYPES...>
-original::tuple<TYPES...>::_concat(tuple<O_TYPES...> &&other,
-                                   std::integer_sequence<u_integer, T_SIZE...>,
-                                   std::integer_sequence<u_integer, O_SIZE...>) const {
-    return tuple<TYPES..., O_TYPES...>{
-        std::forward<decltype(this->get<T_SIZE>())>(this->get<T_SIZE>())...,
-        std::forward<decltype(other.template get<O_SIZE>())>(other.template get<O_SIZE>())...
-    };
-}
-
 template <typename ... TYPES>
 original::tuple<TYPES...>::tuple(TYPES&&... e)
     : elems(std::forward<TYPES>(e)...) {}
@@ -716,44 +678,22 @@ std::string original::tuple<TYPES...>::className() const {
     return "tuple";
 }
 
+template <typename ... TYPES>
+template <typename ... O_TYPES>
+original::tuple<TYPES..., O_TYPES...>
+original::tuple<TYPES...>::operator+(const tuple<O_TYPES...>& other) const
+{
+    return this->_concat(other,
+                         std::make_integer_sequence<u_integer, sizeof...(TYPES)>{},
+                         std::make_integer_sequence<u_integer, sizeof...(O_TYPES)>{});
+}
+
 template<typename F_TYPE, typename S_TYPE>
 original::tuple<F_TYPE, S_TYPE> original::makeTuple(const couple<F_TYPE, S_TYPE> &cp) {
     return original::tuple<F_TYPE, S_TYPE>{
         F_TYPE(cp.template get<0>()),
         S_TYPE(cp.template get<1>())
     };
-}
-
-template<typename... L_TYPES, typename... R_TYPES>
-original::tuple<L_TYPES..., R_TYPES...>
-original::operator+(const tuple<L_TYPES...> &lt, const tuple<R_TYPES...> &rt) {
-    return lt._concat(rt,
-        std::make_integer_sequence<u_integer, sizeof...(L_TYPES)>{},
-        std::make_integer_sequence<u_integer, sizeof...(R_TYPES)>{});
-}
-
-template<typename... L_TYPES, typename... R_TYPES>
-original::tuple<L_TYPES..., R_TYPES...>
-original::operator+(tuple<L_TYPES...>&& lt, const tuple<R_TYPES...>&& rt) {
-    return std::move(lt)._concat(std::move(rt),
-        std::make_integer_sequence<u_integer, sizeof...(L_TYPES)>{},
-        std::make_integer_sequence<u_integer, sizeof...(R_TYPES)>{});
-}
-
-template<typename... L_TYPES, typename... R_TYPES>
-original::tuple<L_TYPES..., R_TYPES...>
-original::operator+(tuple<L_TYPES...>&& lt, const tuple<R_TYPES...>& rt) {
-    return std::move(lt)._concat(std::move(rt),
-        std::make_integer_sequence<u_integer, sizeof...(L_TYPES)>{},
-        std::make_integer_sequence<u_integer, sizeof...(R_TYPES)>{});
-}
-
-template<typename... L_TYPES, typename... R_TYPES>
-original::tuple<L_TYPES..., R_TYPES...>
-original::operator+(const tuple<L_TYPES...>& lt, tuple<R_TYPES...>&& rt) {
-    return lt._concat(std::move(rt),
-        std::make_integer_sequence<u_integer, sizeof...(L_TYPES)>{},
-        std::make_integer_sequence<u_integer, sizeof...(R_TYPES)>{});
 }
 
 template <typename F_TYPE, typename S_TYPE>
