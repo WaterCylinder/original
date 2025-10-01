@@ -185,5 +185,12 @@ int main(){
     std::cout << original::array({"hello, original!"}) << std::endl;
     struct unprintable {};
     std::cout << original::printable::formatString(unprintable{}) << std::endl;
+    auto lhs = original::array<int, original::objPoolAllocator<int>>{1, 2, 3};
+    auto rhs = original::array<int, original::objPoolAllocator<int>>{4, 5, 6};
+    std::cout << lhs << std::endl;
+    std::cout << rhs << std::endl;
+    std::swap(lhs, rhs);
+    std::cout << lhs << std::endl;
+    std::cout << rhs << std::endl;
     return 0;
 }

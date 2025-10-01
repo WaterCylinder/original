@@ -7,6 +7,7 @@
 #include "zeit.h"
 #include "condition.h"
 #include "optional.h"
+#include "prique.h"
 
 
 using namespace original::literals;
@@ -145,5 +146,19 @@ int main()
 
     original::atomic<bool> flag = original::makeAtomic(true);
     std::cout << original::printable::formatString(*flag) << std::endl;
+    std::cout << "-----" << std::endl;
+    original::tuple swap_t1{original::array<int, original::objPoolAllocator<int>>{1, 2, 3}};
+    original::tuple swap_t2{original::array<int, original::objPoolAllocator<int>>{4, 5, 6}};
+    std::cout << swap_t1 << std::endl;
+    std::cout << swap_t2 << std::endl;
+    std::swap(swap_t1, swap_t2);
+    std::cout << swap_t1 << std::endl;
+    std::cout << swap_t2 << std::endl;
+    std::cout << "std::to_string(swap_t2) = " << std::to_string(swap_t2) << std::endl;
+    original::prique swap_p1 {original::array<int, original::objPoolAllocator<int>>{1, 2, 3}};
+    original::prique swap_p2 {original::array<int, original::objPoolAllocator<int>>{4, 5, 6}};
+    swap_p1.swap(swap_p2);
+    std::cout << swap_p1.pop() << std::endl;
+    std::cout << swap_p2.pop() << std::endl;
     return 0;
 }
