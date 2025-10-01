@@ -268,11 +268,11 @@ namespace original {
         /// Default copy assignment
         alternative& operator=(const alternative& other) = default;
 
-        /// Default move constructor
-        alternative(alternative&& other) noexcept = default;
+        /// Move constructor
+        alternative(alternative&& other) noexcept;
 
-        /// Default move assignment
-        alternative& operator=(alternative&& other) noexcept = default;
+        /// Move assignment
+        alternative& operator=(alternative&& other) noexcept;
 
         void swap(alternative& other) noexcept;
 
@@ -486,6 +486,24 @@ inline original::alternative<void>::operator bool() const
 {
     return this->has_value_;
 }
+
+inline original::alternative<void>::alternative(alternative&& other) noexcept
+{
+    this->has_value_ = other.has_value_;
+    other.has_value_ = false;
+}
+
+inline original::alternative<void>&
+original::alternative<void>::operator=(alternative&& other) noexcept
+{
+    if (this == &other)
+        return *this;
+
+    this->has_value_ = other.has_value_;
+    other.has_value_ = false;
+    return *this;
+}
+
 inline void original::alternative<void>::swap(alternative& other) noexcept
 {
     if (this == &other)
