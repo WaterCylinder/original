@@ -418,6 +418,12 @@ namespace original {
     };
 }
 
+namespace std {
+    template<typename TYPE, typename DERIVED, typename DELETER>
+    void swap(original::autoPtr<TYPE, DERIVED, DELETER>& lhs, // NOLINT
+              original::autoPtr<TYPE, DERIVED, DELETER>& rhs) noexcept;
+}
+
 template<typename TYPE, typename DERIVED, typename DELETER>
 original::autoPtr<TYPE, DERIVED, DELETER>::autoPtr(TYPE* p)
     : ref_count(makeAtomic<refCountBase*>(newRefCount(p))), alias_ptr(nullptr) {}
@@ -614,10 +620,12 @@ TYPE& original::autoPtr<TYPE, DERIVED, DELETER>::operator[](u_integer index) {
 
 template<typename TYPE, typename DERIVED, typename DELETER>
 void original::autoPtr<TYPE, DERIVED, DELETER>::swap(autoPtr& other) noexcept {
-    std::swap(this->alias_ptr, other.alias_ptr);
+    if (this == &other)
+        return;
 
     refCountBase* a = this->ref_count.exchange(nullptr);
     refCountBase* b = other.ref_count.exchange(a);
+    std::swap(this->alias_ptr, other.alias_ptr);
     this->ref_count = b;
 }
 
@@ -723,6 +731,13 @@ void original::refCount<TYPE, DELETER>::destroyPtr() noexcept {
 template<typename TYPE, typename DELETER>
 original::refCount<TYPE, DELETER>::~refCount() {
     this->destroyPtr();
+}
+
+template <typename TYPE, typename DERIVED, typename DELETER>
+void std::swap(original::autoPtr<TYPE, DERIVED, DELETER>& lhs,  // NOLINT
+               original::autoPtr<TYPE, DERIVED, DELETER>& rhs) noexcept
+{
+    lhs.swap(rhs);
 }
 
 #endif //AUTOPTR_H

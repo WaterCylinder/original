@@ -79,6 +79,8 @@ namespace original {
          */
         [[nodiscard]] u_integer size() const override;
 
+        void swap(containerAdapter& other) noexcept;
+
         /**
          * @brief Removes all elements from the adapter
          * @details Clears content through underlying container's clear() method.
@@ -152,6 +154,17 @@ namespace original {
               template <typename, typename> typename SERIAL,
               template <typename> typename ALLOC>
     requires ExtendsOf<baseList<TYPE, ALLOC<TYPE>>, SERIAL<TYPE, ALLOC<TYPE>>>
+    void containerAdapter<TYPE, SERIAL, ALLOC>::swap(containerAdapter& other) noexcept
+    {
+        if (this == &other)
+            return;
+        serial_.swap(other.serial_);
+    }
+
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    requires ExtendsOf<baseList<TYPE, ALLOC<TYPE>>, SERIAL<TYPE, ALLOC<TYPE>>>
     auto containerAdapter<TYPE, SERIAL, ALLOC>::clear() -> void {
         serial_.clear();
     }
@@ -198,6 +211,16 @@ namespace original {
         ss << ")";
         if (enter) ss << "\n";
         return ss.str();
+    }
+}
+
+namespace std {
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    void swap(original::containerAdapter<TYPE, SERIAL, ALLOC>& lhs, // NOLINT
+              original::containerAdapter<TYPE, SERIAL, ALLOC>& rhs) noexcept {
+        lhs.swap(rhs);
     }
 }
 

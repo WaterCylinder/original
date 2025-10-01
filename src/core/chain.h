@@ -290,6 +290,8 @@ namespace original {
          */
         chain& operator=(chain&& other) noexcept;
 
+        void swap(chain& other) noexcept;
+
         /**
         * @brief Concatenates another chain to this one
         * @param other The chain to concatenate
@@ -392,6 +394,11 @@ namespace original {
          */
         ~chain() override;
     };
+}
+
+namespace std {
+    template<typename TYPE, typename ALLOC>
+    void swap(original::chain<TYPE, ALLOC>& lhs, original::chain<TYPE, ALLOC>& rhs) noexcept; // NOLINT
 }
 
     template <typename TYPE, typename ALLOC>
@@ -666,6 +673,21 @@ namespace original {
     }
 
     template <typename TYPE, typename ALLOC>
+    void original::chain<TYPE, ALLOC>::swap(chain& other) noexcept
+    {
+        if (this == &other)
+            return;
+
+        std::swap(this->size_, other.size_);
+        std::swap(this->begin_, other.begin_);
+        std::swap(this->end_, other.end_);
+        if constexpr (ALLOC::propagate_on_container_swap::value) {
+            std::swap(this->allocator, other.allocator);
+            std::swap(this->rebind_alloc, other.rebind_alloc);
+        }
+    }
+
+    template <typename TYPE, typename ALLOC>
     auto original::chain<TYPE, ALLOC>::operator+=(chain& other) -> chain&
     {
         if (this == &other || other.empty()) return *this;
@@ -872,6 +894,12 @@ namespace original {
     template <typename TYPE, typename ALLOC>
     original::chain<TYPE, ALLOC>::~chain() {
         this->chainDestroy();
+    }
+
+    template <typename TYPE, typename ALLOC>
+    void std::swap(original::chain<TYPE, ALLOC>& lhs, original::chain<TYPE, ALLOC>& rhs) noexcept // NOLINT
+    {
+        lhs.swap(rhs);
     }
 
 #endif //CHAIN_H

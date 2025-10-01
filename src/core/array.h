@@ -196,6 +196,8 @@ namespace original {
          */
         array& operator=(array&& other) noexcept;
 
+        void swap(array& other) noexcept;
+
         /**
          * @brief Returns the size of the array.
          * @return The number of elements in the array.
@@ -273,8 +275,12 @@ namespace original {
          */
         ~array() override;
     };
-
 } // namespace original
+
+namespace std {
+    template<typename TYPE, typename ALLOC>
+    void swap(original::array<TYPE, ALLOC>& lhs, original::array<TYPE, ALLOC>& rhs) noexcept; // NOLINT
+}
 
     template<typename TYPE, typename ALLOC>
     void original::array<TYPE, ALLOC>::arrInit(const u_integer size) {
@@ -426,6 +432,18 @@ namespace original {
         return *this;
     }
 
+    template <typename TYPE, typename ALLOC>
+    void original::array<TYPE, ALLOC>::swap(array& other) noexcept {
+        if (this == &other)
+            return;
+
+        std::swap(this->size_, other.size_);
+        std::swap(this->body, other.body);
+        if constexpr (ALLOC::propagate_on_container_swap::value) {
+            std::swap(this->allocator, other.allocator);
+        }
+    }
+
     template<typename TYPE, typename ALLOC>
     original::array<TYPE, ALLOC>::~array() {
         this->arrDestroy();
@@ -504,6 +522,12 @@ namespace original {
     std::string original::array<TYPE, ALLOC>::className() const
     {
         return "array";
+    }
+
+    template <typename TYPE, typename ALLOC>
+    void std::swap(original::array<TYPE, ALLOC>& lhs, original::array<TYPE, ALLOC>& rhs) noexcept // NOLINT
+    {
+        lhs.swap(rhs);
     }
 
 #endif //ARRAY_H

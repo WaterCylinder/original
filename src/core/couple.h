@@ -88,6 +88,8 @@ namespace original
          */
         couple& operator=(couple&& other) noexcept;
 
+        void swap(couple& other) noexcept;
+
         /**
          * @brief Element access template method (non-const version)
          * @tparam IDX element index (0=1st element, 1=2nd element)
@@ -172,6 +174,8 @@ namespace original
 
 
 namespace std {
+    template<typename F, typename S>
+    void swap(original::couple<F, S>& lhs, original::couple<F, S>& rhs) noexcept; // NOLINT
     /**
      * @brief Specialization of tuple_size for couple to enable structured bindings
      * @tparam F Type of first element
@@ -271,6 +275,16 @@ namespace std {
         return *this;
     }
 
+    template <typename F_TYPE, typename S_TYPE>
+    void original::couple<F_TYPE, S_TYPE>::swap(couple& other) noexcept
+    {
+        if (this == &other)
+            return;
+
+        std::swap(this->first_, other.first_);
+        std::swap(this->second_, other.second_);
+    }
+
     template<typename F_TYPE, typename S_TYPE>
     template<original::u_integer IDX>
     auto& original::couple<F_TYPE, S_TYPE>::get() {
@@ -364,6 +378,12 @@ template <typename F_TYPE, typename S_TYPE>
            << ", " << formatString(this->second_) << ")";
         if (enter) ss << "\n";
         return ss.str();
+    }
+
+    template <typename F, typename S>
+    void std::swap(original::couple<F, S>& lhs, original::couple<F, S>& rhs) noexcept // NOLINT
+    {
+        lhs.swap(rhs);
     }
 
     template<std::size_t I, typename F, typename S>

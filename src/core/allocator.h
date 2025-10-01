@@ -320,6 +320,8 @@ namespace original {
         */
         objPoolAllocator& operator=(objPoolAllocator&& other) noexcept;
 
+        void swap(objPoolAllocator& other) noexcept;
+
         /**
         * @brief Allocates memory from the pool
         * @param size Number of elements to allocate
@@ -342,6 +344,11 @@ namespace original {
         */
         ~objPoolAllocator() override;
     };
+}
+
+namespace std {
+    template<typename TYPE>
+    void swap(original::objPoolAllocator<TYPE>& lhs, original::objPoolAllocator<TYPE>& rhs) noexcept; // NOLINT
 }
 
 template<typename TYPE>
@@ -555,6 +562,20 @@ original::objPoolAllocator<TYPE>& original::objPoolAllocator<TYPE>::operator=(ob
 }
 
 template <typename TYPE>
+void original::objPoolAllocator<TYPE>::swap(objPoolAllocator& other) noexcept
+{
+    if (this == &other)
+        return;
+
+    std::swap(this->size_class_count, other.size_class_count);
+    std::swap(this->chunk_count_init, other.chunk_count_init);
+    std::swap(this->chunk_count, other.chunk_count);
+    std::swap(this->free_list_head, other.free_list_head);
+    std::swap(this->allocated_list_head, other.allocated_list_head);
+    std::swap(this->chunks_available, other.chunks_available);
+}
+
+template <typename TYPE>
 TYPE* original::objPoolAllocator<TYPE>::allocate(const u_integer size)
 {
     if (size == 0) {
@@ -600,6 +621,12 @@ void original::objPoolAllocator<TYPE>::deallocate(TYPE* ptr, const u_integer siz
 template<typename TYPE>
 original::objPoolAllocator<TYPE>::~objPoolAllocator() {
     this->release();
+}
+
+template <typename TYPE>
+void std::swap(original::objPoolAllocator<TYPE>& lhs, original::objPoolAllocator<TYPE>& rhs) noexcept // NOLINT
+{
+    lhs.swap(rhs);
 }
 
 #endif //ALLOCATOR_H

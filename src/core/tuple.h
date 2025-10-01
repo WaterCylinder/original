@@ -80,6 +80,7 @@ namespace original {
             tupleImpl(tupleImpl&& other) noexcept;
             tupleImpl(const tupleImpl& other);
             tupleImpl& operator=(tupleImpl&& other) noexcept;
+            void swap(tupleImpl& other) noexcept;
 
             template<u_integer I_DIFF>
             const auto& get() const;
@@ -110,6 +111,7 @@ namespace original {
             tupleImpl(tupleImpl&& other) noexcept;
             tupleImpl(const tupleImpl& other);
             tupleImpl& operator=(tupleImpl&& other) noexcept;
+            void swap(tupleImpl& other) noexcept;
 
             template<u_integer I_DIFF>
             const auto& get() const;
@@ -140,6 +142,7 @@ namespace original {
             tupleImpl(tupleImpl&& other) noexcept;
             tupleImpl(const tupleImpl& other);
             tupleImpl& operator=(tupleImpl&& other) noexcept;
+            void swap(tupleImpl& other) noexcept;
 
             template<u_integer I_DIFF>
             const auto& get() const;
@@ -195,6 +198,7 @@ namespace original {
         tuple& operator=(const tuple& other);
         tuple(tuple&& other) noexcept;
         tuple& operator=(tuple&& other) noexcept;
+        void swap(tuple& other) noexcept;
 
         static consteval u_integer size() noexcept;
 
@@ -255,6 +259,8 @@ namespace original {
 }
 
 namespace std {
+    template<typename... TYPES>
+    void swap(original::tuple<TYPES...>& lhs, original::tuple<TYPES...>& rhs) noexcept; // NOLINT
 
     /**
      * @brief Specialization of tuple_size for tuple to enable structured bindings
@@ -339,6 +345,16 @@ auto original::tuple<TYPES...>::tupleImpl<I, T>::operator=(tupleImpl&& other) no
     return *this;
 }
 
+template <typename ... TYPES>
+template <original::u_integer I, typename T>
+void original::tuple<TYPES...>::tupleImpl<I, T>::swap(tupleImpl& other) noexcept
+{
+    if (this == &other)
+        return;
+
+    std::swap(this->cur_elem, other.cur_elem);
+}
+
 template<typename... TYPES>
 template<original::u_integer I, typename T>
 template<original::u_integer I_DIFF>
@@ -413,6 +429,17 @@ auto original::tuple<TYPES...>::tupleImpl<I, T, TS>::operator=(
     cur_elem = std::move(other.cur_elem);
     next = std::move(other.next);
     return *this;
+}
+
+template <typename ... TYPES>
+template <original::u_integer I, typename T, typename TS>
+void original::tuple<TYPES...>::tupleImpl<I, T, TS>::swap(tupleImpl& other) noexcept
+{
+    if (this == &other)
+        return;
+
+    std::swap(this->cur_elem, other.cur_elem);
+    this->next.swap(other.next);
 }
 
 template<typename... TYPES>
@@ -503,6 +530,17 @@ auto original::tuple<TYPES...>::tupleImpl<I, T, TS...>::operator=(
     cur_elem = std::move(other.cur_elem);
     next = std::move(other.next);
     return *this;
+}
+
+template <typename ... TYPES>
+template <original::u_integer I, typename T, typename ... TS>
+void original::tuple<TYPES...>::tupleImpl<I, T, TS...>::swap(tupleImpl& other) noexcept
+{
+    if (this == &other)
+        return;
+
+    std::swap(this->cur_elem, other.cur_elem);
+    this->next.swap(other.next);
 }
 
 template<typename... TYPES>
@@ -615,6 +653,15 @@ original::tuple<TYPES...>& original::tuple<TYPES...>::operator=(tuple&& other) n
     return *this;
 }
 
+template <typename ... TYPES>
+void original::tuple<TYPES...>::swap(tuple& other) noexcept
+{
+    if (this == &other)
+        return;
+
+    this->elems.swap(other.elems);
+}
+
 template<typename... TYPES>
 consteval original::u_integer original::tuple<TYPES...>::size() noexcept {
     return SIZE;
@@ -716,6 +763,12 @@ original::tuple<F_TYPE, S_TYPE> original::makeTuple(couple<F_TYPE, S_TYPE>&& cp)
         std::move(cp).template get<0>(),
         std::move(cp).template get<1>()
     };
+}
+
+template <typename... TYPES>
+void std::swap(original::tuple<TYPES...>& lhs, original::tuple<TYPES...>& rhs) noexcept // NOLINT
+{
+    lhs.swap(rhs);
 }
 
 template<std::size_t I, typename... TYPES>

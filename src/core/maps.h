@@ -293,6 +293,8 @@ namespace original {
              */
             hashMap& operator=(hashMap&& other) noexcept;
 
+            void swap(hashMap& other) noexcept;
+
             /**
              * @brief Gets number of elements
              * @return Current size
@@ -624,6 +626,8 @@ namespace original {
          */
         treeMap& operator=(treeMap&& other) noexcept;
 
+        void swap(treeMap& other) noexcept;
+
         /**
          * @brief Gets number of elements
          * @return Current size
@@ -954,6 +958,8 @@ namespace original {
          */
         JMap& operator=(JMap&& other) noexcept;
 
+        void swap(JMap& other) noexcept;
+
         /**
          * @brief Gets number of elements
          * @return Current size
@@ -1052,6 +1058,20 @@ namespace original {
          */
         ~JMap() override;
     };
+}
+
+namespace std {
+    template <typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+    void swap(original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>& lhs, // NOLINT
+              original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>& rhs) noexcept;
+
+    template <typename K_TYPE, typename V_TYPE, typename COMPARE, typename ALLOC>
+    void swap(original::treeMap<K_TYPE, V_TYPE, COMPARE, ALLOC>& lhs, // NOLINT
+              original::treeMap<K_TYPE, V_TYPE, COMPARE, ALLOC>& rhs) noexcept;
+
+    template <typename K_TYPE, typename V_TYPE, typename COMPARE, typename ALLOC>
+    void swap(original::JMap<K_TYPE, V_TYPE, COMPARE, ALLOC>& lhs, // NOLINT
+              original::JMap<K_TYPE, V_TYPE, COMPARE, ALLOC>& rhs) noexcept;
 }
 
 template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
@@ -1230,6 +1250,21 @@ original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::operator=(hashMap &&other) noexc
         this->rebind_alloc = std::move(other.rebind_alloc);
     }
     return *this;
+}
+
+template <typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+void original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>::swap(hashMap& other) noexcept
+{
+    if (this == &other)
+        return;
+
+    std::swap(this->size_, other.size_);
+    std::swap(this->buckets, other.buckets);
+    std::swap(this->hash_, other.hash_);
+    if constexpr (ALLOC::propagate_on_container_swap::value) {
+        std::swap(this->allocator, other.allocator);
+        std::swap(this->rebind_alloc, other.rebind_alloc);
+    }
 }
 
 template<typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
@@ -1542,6 +1577,21 @@ original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::operator=(treeMap&& other) no
     return *this;
 }
 
+template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+void original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::swap(treeMap& other) noexcept
+{
+    if (this == &other)
+        return;
+
+    std::swap(this->root_, other.root_);
+    std::swap(this->size_, other.size_);
+    std::swap(this->compare_, other.compare_);
+    if constexpr (ALLOC::propagate_on_container_swap::value) {
+        std::swap(this->allocator, other.allocator);
+        std::swap(this->rebind_alloc, other.rebind_alloc);
+    }
+}
+
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
 original::u_integer original::treeMap<K_TYPE, V_TYPE, Compare, ALLOC>::size() const {
     return this->size_;
@@ -1813,6 +1863,21 @@ original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::operator=(JMap&& other) noexcept
     return *this;
 }
 
+template <typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
+void original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::swap(JMap& other) noexcept
+{
+    if (this == &other)
+        return;
+
+    std::swap(this->size_, other.size_);
+    std::swap(this->head_, other.head_);
+    std::swap(this->compare_, other.compare_);
+    if constexpr(ALLOC::propagate_on_container_swap::value) {
+        std::swap(this->allocator, other.allocator);
+        std::swap(this->rebind_alloc, other.rebind_alloc);
+    }
+}
+
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
 original::u_integer original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::size() const {
     return this->size_;
@@ -1908,5 +1973,26 @@ std::string original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::toString(bool enter)
 
 template<typename K_TYPE, typename V_TYPE, typename Compare, typename ALLOC>
 original::JMap<K_TYPE, V_TYPE, Compare, ALLOC>::~JMap() = default;
+
+template <typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
+void std::swap(original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>& lhs, // NOLINT
+    original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>& rhs) noexcept
+{
+    lhs.swap(rhs);
+}
+
+template <typename K_TYPE, typename V_TYPE, typename COMPARE, typename ALLOC>
+void std::swap(original::treeMap<K_TYPE, V_TYPE, COMPARE, ALLOC>& lhs, // NOLINT
+    original::treeMap<K_TYPE, V_TYPE, COMPARE, ALLOC>& rhs) noexcept
+{
+    lhs.swap(rhs);
+}
+
+template <typename K_TYPE, typename V_TYPE, typename COMPARE, typename ALLOC>
+void std::swap(original::JMap<K_TYPE, V_TYPE, COMPARE, ALLOC>& lhs, // NOLINT
+    original::JMap<K_TYPE, V_TYPE, COMPARE, ALLOC>& rhs) noexcept
+{
+    lhs.swap(rhs);
+}
 
 #endif //MAPS_H

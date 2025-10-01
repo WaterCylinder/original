@@ -101,6 +101,8 @@ namespace original
          */
         prique& operator=(prique&& other) noexcept;
 
+        void swap(prique& other) noexcept;
+
         /**
          * @brief Inserts element maintaining heap property
          * @param e Element to insert
@@ -197,6 +199,17 @@ namespace original
         this->serial_ = std::move(other.serial_);
         this->compare_ = std::move(other.compare_);
         return *this;
+    }
+
+    template<typename TYPE,
+            template <typename> typename Callback,
+            template <typename, typename> typename SERIAL,
+            template <typename> typename ALLOC>
+    requires original::Compare<Callback<TYPE>, TYPE>
+    void original::prique<TYPE, Callback, SERIAL, ALLOC>::swap(prique& other) noexcept
+    {
+        containerAdapter<TYPE, SERIAL, ALLOC>::swap(other);
+        std::swap(this->compare_, other.compare_);
     }
 
     template<typename TYPE,

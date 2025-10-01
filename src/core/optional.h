@@ -123,6 +123,8 @@ namespace original {
          */
         alternative& operator=(alternative&& other) noexcept;
 
+        void swap(alternative& other) noexcept;
+
         /**
          * @brief Const value access
          * @return Const reference to contained value
@@ -272,9 +274,16 @@ namespace original {
         /// Default move assignment
         alternative& operator=(alternative&& other) noexcept = default;
 
+        void swap(alternative& other) noexcept;
+
         /// Default destructor
         ~alternative() = default;
     };
+}
+
+namespace std {
+    template<typename TYPE>
+    void swap(original::alternative<TYPE>& lhs, original::alternative<TYPE>& rhs) noexcept; // NOLINT
 }
 
 template<typename TYPE>
@@ -358,6 +367,16 @@ original::alternative<TYPE>::operator=(alternative&& other)  noexcept {
         new (&val_.none_) none{};
     }
     return *this;
+}
+
+template <typename TYPE>
+void original::alternative<TYPE>::swap(alternative& other) noexcept
+{
+    if (this == &other)
+        return;
+
+    std::swap(this->non_none_type_, other.non_none_type_);
+    std::swap(this->val_, other.val_);
 }
 
 template<typename TYPE>
@@ -466,6 +485,19 @@ inline bool original::alternative<void>::hasValue() const
 inline original::alternative<void>::operator bool() const
 {
     return this->has_value_;
+}
+inline void original::alternative<void>::swap(alternative& other) noexcept
+{
+    if (this == &other)
+        return;
+
+    std::swap(this->has_value_, other.has_value_);
+}
+
+template <typename TYPE>
+void std::swap(original::alternative<TYPE>& lhs, original::alternative<TYPE>& rhs) noexcept // NOLINT
+{
+    lhs.swap(rhs);
 }
 
 #endif //ORIGINAL_OPTIONAL_H

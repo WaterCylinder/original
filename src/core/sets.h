@@ -278,6 +278,8 @@ namespace original {
          */
         hashSet& operator=(hashSet&& other) noexcept;
 
+        void swap(hashSet& other) noexcept;
+
         /**
          * @brief Gets number of elements
          * @return Current size
@@ -561,6 +563,8 @@ namespace original {
          * @note Allocator is moved if propagate_on_container_move_assignment is true
          */
         treeSet& operator=(treeSet&& other) noexcept;
+
+        void swap(treeSet& other) noexcept;
 
         /**
          * @brief Gets number of elements
@@ -850,6 +854,8 @@ namespace original {
          */
         JSet& operator=(JSet&& other) noexcept;
 
+        void swap(JSet& other) noexcept;
+
         /**
          * @brief Gets number of elements
          * @return Current size
@@ -913,6 +919,20 @@ namespace original {
          */
         ~JSet() override;
     };
+}
+
+namespace std {
+    template <typename TYPE, typename HASH, typename ALLOC>
+    void swap(original::hashSet<TYPE, HASH, ALLOC>& lhs, // NOLINT
+              original::hashSet<TYPE, HASH, ALLOC>& rhs) noexcept;
+
+    template <typename TYPE, typename COMPARE, typename ALLOC>
+    void swap(original::treeSet<TYPE, COMPARE, ALLOC>& lhs, // NOLINT
+              original::treeSet<TYPE, COMPARE, ALLOC>& rhs) noexcept;
+
+    template <typename TYPE, typename COMPARE, typename ALLOC>
+    void swap(original::JSet<TYPE, COMPARE, ALLOC>& lhs, // NOLINT
+              original::JSet<TYPE, COMPARE, ALLOC>& rhs) noexcept;
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
@@ -1086,6 +1106,21 @@ original::hashSet<TYPE, HASH, ALLOC>::operator=(hashSet &&other) noexcept {
         this->rebind_alloc = std::move(other.rebind_alloc);
     }
     return *this;
+}
+
+template<typename TYPE, typename HASH, typename ALLOC>
+void original::hashSet<TYPE, HASH, ALLOC>::swap(hashSet& other) noexcept
+{
+    if (this == &other)
+        return;
+
+    std::swap(this->size_, other.size_);
+    std::swap(this->buckets, other.buckets);
+    std::swap(this->hash_, other.hash_);
+    if constexpr (ALLOC::propagate_on_container_swap::value) {
+        std::swap(this->allocator, other.allocator);
+        std::swap(this->rebind_alloc, other.rebind_alloc);
+    }
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
@@ -1356,6 +1391,21 @@ original::treeSet<TYPE, Compare, ALLOC>::operator=(treeSet&& other) noexcept {
 }
 
 template<typename TYPE, typename Compare, typename ALLOC>
+void original::treeSet<TYPE, Compare, ALLOC>::swap(treeSet& other) noexcept
+{
+    if (this == &other)
+        return;
+
+    std::swap(this->root_, other.root_);
+    std::swap(this->size_, other.size_);
+    std::swap(this->compare_, other.compare_);
+    if constexpr (ALLOC::propagate_on_container_swap::value) {
+        std::swap(this->allocator, other.allocator);
+        std::swap(this->rebind_alloc, other.rebind_alloc);
+    }
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
 original::u_integer original::treeSet<TYPE, Compare, ALLOC>::size() const {
     return this->size_;
 }
@@ -1589,6 +1639,21 @@ original::JSet<TYPE, Compare, ALLOC>::operator=(JSet&& other) noexcept {
 }
 
 template<typename TYPE, typename Compare, typename ALLOC>
+void original::JSet<TYPE, Compare, ALLOC>::swap(JSet& other) noexcept
+{
+    if (this == &other)
+        return;
+
+    std::swap(this->size_, other.size_);
+    std::swap(this->head_, other.head_);
+    std::swap(this->compare_, other.compare_);
+    if constexpr (ALLOC::propagate_on_container_swap::value) {
+        std::swap(this->allocator, other.allocator);
+        std::swap(this->rebind_alloc, other.rebind_alloc);
+    }
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
 original::u_integer original::JSet<TYPE, Compare, ALLOC>::size() const {
     return this->size_;
 }
@@ -1646,5 +1711,26 @@ std::string original::JSet<TYPE, Compare, ALLOC>::toString(bool enter) const {
 
 template<typename TYPE, typename Compare, typename ALLOC>
 original::JSet<TYPE, Compare, ALLOC>::~JSet() = default;
+
+template <typename TYPE, typename HASH, typename ALLOC>
+void std::swap(original::hashSet<TYPE, HASH, ALLOC>& lhs, // NOLINT
+               original::hashSet<TYPE, HASH, ALLOC>& rhs) noexcept
+{
+    lhs.swap(rhs);
+}
+
+template <typename TYPE, typename COMPARE, typename ALLOC>
+void std::swap(original::treeSet<TYPE, COMPARE, ALLOC>& lhs, // NOLINT
+               original::treeSet<TYPE, COMPARE, ALLOC>& rhs) noexcept
+{
+    lhs.swap(rhs);
+}
+
+template <typename TYPE, typename COMPARE, typename ALLOC>
+void std::swap(original::JSet<TYPE, COMPARE, ALLOC>& lhs, // NOLINT
+               original::JSet<TYPE, COMPARE, ALLOC>& rhs) noexcept
+{
+    lhs.swap(rhs);
+}
 
 #endif //SETS_H

@@ -387,6 +387,8 @@ namespace original {
          */
         blocksList& operator=(blocksList&& other) noexcept;
 
+        void swap(blocksList& other) noexcept;
+
         /**
          * @brief Gets the element at the specified index.
          * @param index The index of the element to retrieve.
@@ -483,6 +485,11 @@ namespace original {
         ~blocksList() override;
     };
 }// namespace original
+
+namespace std {
+    template<typename TYPE, typename ALLOC>
+    void swap(original::blocksList<TYPE, ALLOC>& lhs, original::blocksList<TYPE, ALLOC>& rhs) noexcept; // NOLINT
+}
 
     template <typename TYPE, typename ALLOC>
     auto original::blocksList<TYPE, ALLOC>::blocksListInit() -> void
@@ -892,6 +899,23 @@ namespace original {
     }
 
     template <typename TYPE, typename ALLOC>
+    void original::blocksList<TYPE, ALLOC>::swap(blocksList& other) noexcept
+    {
+        if (this == &other)
+            return;
+
+        std::swap(this->map, other.map);
+        std::swap(this->size_, other.size_);
+        std::swap(this->first_, other.first_);
+        std::swap(this->last_, other.last_);
+        std::swap(this->first_block, other.first_block);
+        std::swap(this->last_block, other.last_block);
+        if constexpr (ALLOC::propagate_on_container_swap::value) {
+            std::swap(this->allocator, other.allocator);
+        }
+    }
+
+    template <typename TYPE, typename ALLOC>
     auto original::blocksList<TYPE, ALLOC>::get(integer index) const -> TYPE {
         if (this->indexOutOfBound(this->parseNegIndex(index))) throw outOfBoundError();
         index = this->parseNegIndex(index);
@@ -1060,6 +1084,12 @@ namespace original {
     template <typename TYPE, typename ALLOC>
     original::blocksList<TYPE, ALLOC>::~blocksList() {
         this->blocksListDestroy();
+    }
+
+    template <typename TYPE, typename ALLOC>
+    void std::swap(original::blocksList<TYPE, ALLOC>& lhs, original::blocksList<TYPE, ALLOC>& rhs) noexcept // NOLINT
+    {
+        lhs.swap(rhs);
     }
 
 #endif //BLOCKSLIST_H

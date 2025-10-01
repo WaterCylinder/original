@@ -329,6 +329,8 @@ namespace original {
              */
             bitSet& operator=(bitSet&& other) noexcept;
 
+            void swap(bitSet& other) noexcept;
+
             /**
              * @brief Counts the number of bits set to true.
              * @return The count of true bits.
@@ -468,6 +470,11 @@ namespace original {
 
     template<typename ALLOC_>
     bitSet<ALLOC_> operator~(const bitSet<ALLOC_>& bs);
+}
+
+namespace std {
+    template<typename ALLOC>
+    void swap(original::bitSet<ALLOC>& lhs, original::bitSet<ALLOC>& rhs) noexcept; // NOLINT
 }
 
     template<typename ALLOC>
@@ -718,6 +725,19 @@ namespace original {
         return *this;
     }
 
+    template <typename ALLOC>
+    void original::bitSet<ALLOC>::swap(bitSet& other) noexcept
+    {
+        if (this == &other)
+            return;
+
+        std::swap(this->size_, other.size_);
+        std::swap(this->map, other.map);
+        if constexpr (ALLOC::propagate_on_container_swap::value) {
+            std::swap(this->allocator, other.allocator);
+        }
+    }
+
     template<typename ALLOC>
     auto original::bitSet<ALLOC>::count() const -> u_integer {
         u_integer count = 0;
@@ -875,6 +895,12 @@ namespace original {
         }
         nbs.clearRedundantBits();
         return nbs;
+    }
+
+    template <typename ALLOC>
+    void std::swap(original::bitSet<ALLOC>& lhs, original::bitSet<ALLOC>& rhs) noexcept // NOLINT
+    {
+        lhs.swap(rhs);
     }
 
 #endif //BITSET_H
