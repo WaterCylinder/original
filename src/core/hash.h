@@ -244,6 +244,12 @@ struct std::hash<T> { // NOLINT
     std::size_t operator()(const T& t) const noexcept;
 };
 
+template <typename T>
+requires original::ExtendsOf<original::hashable<T>, T>
+struct std::equal_to<T> { // NOLINT
+    bool operator()(const T& t1, const T& t2) const noexcept;
+};
+
 template<typename TYPE>
 template<typename T>
 void original::hash<TYPE>::hashCombine(u_integer &seed, const T& value) noexcept {
@@ -346,6 +352,11 @@ template <typename T>
 requires original::ExtendsOf<original::hashable<T>, T>
 std::size_t std::hash<T>::operator()(const T &t) const noexcept {
     return static_cast<std::size_t>(t.toHash());
+}
+
+template <typename T> requires original::ExtendsOf<original::hashable<T>, T>
+bool std::equal_to<T>::operator()(const T& t1, const T& t2) const noexcept {
+    return t1.equals(t2);
 }
 
 #endif //HASH_H
