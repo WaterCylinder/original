@@ -96,22 +96,35 @@ int main()
 
     struct testClass {
         int a;
+        mutable bool ready_;
         mutable original::pMutex print_mtx;
         mutable original::pCondition p;
 
-        explicit testClass(const int a) : a(a) {}
+        explicit testClass(const int a) : a(a), ready_(false) {}
 
-        void print(const std::string& b) const{
-            original::uniqueLock lock{this->print_mtx};
-            std::cout << b << this->a << std::endl;
+        void print(const std::string& b) const
+        {
+            {
+                original::uniqueLock lock{this->print_mtx};
+                std::cout << b << this->a << std::endl;
+                this->ready_ = true;
+            }
             this->p.notify();
+        }
+
+        bool ready() const noexcept {
+            original::uniqueLock lock{this->print_mtx};
+            return this->ready_;
         }
     };
 
     testClass tc{1};
     original::thread t15{&testClass::print, &tc, "print(): "};
     std::cout << t15 << std::endl;
-    tc.p.wait(tc.print_mtx);
+    tc.p.wait(tc.print_mtx, [&tc]
+    {
+        return tc.ready();
+    });
 
     original::pMutex m1;
     original::pMutex m2;
