@@ -486,23 +486,23 @@ namespace std {
 
     template<typename ALLOC>
     auto original::bitSet<ALLOC>::getBitFromBlock(const underlying_type block_value, const integer bit) -> bool {
-        return block_value & static_cast<underlying_type>(1) << bit;
+        return block_value & underlying_type{1} << bit;
     }
 
     template<typename ALLOC>
     auto original::bitSet<ALLOC>::setBitFromBlock(const underlying_type block_value, const integer bit) -> underlying_type {
-        return block_value | static_cast<underlying_type>(1) << bit;
+        return block_value | underlying_type{1} << bit;
     }
 
     template<typename ALLOC>
     auto original::bitSet<ALLOC>::clearBitFromBlock(const underlying_type block_value, const integer bit) -> underlying_type {
-        return block_value & ~(static_cast<underlying_type>(1) << bit);
+        return block_value & ~(underlying_type{1} << bit);
     }
 
     template<typename ALLOC>
     auto original::bitSet<ALLOC>::clearHigherBitsFromBlock(const underlying_type block_value, const integer bit) -> underlying_type
     {
-        return block_value & (static_cast<underlying_type>(1) << (bit + 1)) - static_cast<underlying_type>(1);
+        return block_value & (underlying_type{1} << (bit + 1)) - underlying_type{1};
     }
 
     template<typename ALLOC>
