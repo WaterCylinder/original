@@ -170,8 +170,8 @@ TEST(TupleTest, Concatenation) {
 
     // Test chained concatenation
     tuple t4(true);
-    auto t5 = t1 + t2 + t4;
-    EXPECT_EQ(t5.size(), 5);
+    auto t5 = t1 + t2 + t4 + tuple{1, 2.3};
+    EXPECT_EQ(t5.size(), 7);
     EXPECT_TRUE(t5.get<4>());
 }
 
