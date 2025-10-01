@@ -1,6 +1,5 @@
 #ifndef CLONEABLE_H
 #define CLONEABLE_H
-#include "config.h"
 
 
 /**
