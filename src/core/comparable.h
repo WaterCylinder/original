@@ -144,4 +144,12 @@ auto comparable<DERIVED>::operator>=(const DERIVED &other) const -> bool {
 
 } // namespace original
 
+template <typename T>
+requires original::ExtendsOf<original::comparable<T>, T>
+struct std::less<T> { // NOLINT
+    bool operator()(const T& t1, const T& t2) const noexcept {
+        return t1 < t2;
+    }
+};
+
 #endif //COMPARABLE_H
