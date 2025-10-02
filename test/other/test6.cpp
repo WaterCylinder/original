@@ -94,38 +94,6 @@ int main()
     std::cout << "On win64: " << original::printable::formatString(original::ON_WIN64()) << std::endl;
     std::cout << "Using GCC: " << original::printable::formatString(original::USING_GCC()) << std::endl;
 
-    struct testClass {
-        int a;
-        mutable bool ready_;
-        mutable original::pMutex print_mtx;
-        mutable original::pCondition p;
-
-        explicit testClass(const int a) : a(a), ready_(false) {}
-
-        void print(const std::string& b) const
-        {
-            {
-                original::uniqueLock lock{this->print_mtx};
-                std::cout << b << this->a << std::endl;
-                this->ready_ = true;
-            }
-            this->p.notify();
-        }
-
-        bool ready() const noexcept {
-            original::uniqueLock lock{this->print_mtx};
-            return this->ready_;
-        }
-    };
-
-    testClass tc{1};
-    original::thread t15{&testClass::print, &tc, "print(): "};
-    std::cout << t15 << std::endl;
-    tc.p.wait(tc.print_mtx, [&tc]
-    {
-        return tc.ready();
-    });
-
     original::pMutex m1;
     original::pMutex m2;
     original::multiLock ml{m1, m2};
