@@ -39,24 +39,6 @@ public:
     virtual integer compareTo(const DERIVED &other) const = 0;
 
     /**
-     * @brief Three-way comparison operator (<=>), returns an ordered comparison result.
-     * @details This operator is implemented by invoking the compareTo() method of the comparable object.
-     *          The result type is std::strong_ordering, indicating strong ordering semantics.
-     *          Defined as a friend function to enable symmetric argument handling.
-     *
-     * @tparam EXTENDED The actual derived type using CRTP pattern.
-     * @param lc Left-hand side comparable object
-     * @param rc Right-hand side comparable object
-     * @return std::strong_ordering
-     *          - std::strong_ordering::less    if lhs < rhs
-     *          - std::strong_ordering::equal    if lhs == rhs
-     *          - std::strong_ordering::greater if lhs > rhs
-     */
-    template<typename EXTENDED>
-    requires ExtendsOf<comparable<EXTENDED>, EXTENDED>
-    friend std::strong_ordering operator<=>(const EXTENDED& lc, const EXTENDED& rc);
-
-    /**
      * @brief Checks if the current object is equal to another.
      * @param other The object to compare against.
      * @return True if equal, otherwise false.
@@ -106,12 +88,6 @@ public:
 
 // ----------------- Definitions of comparable.h -----------------
 
-template<typename EXTENDED>
-requires ExtendsOf<comparable<EXTENDED>, EXTENDED>
-std::strong_ordering operator<=>(const EXTENDED& lc, const EXTENDED& rc) {
-    return lc.compareTo(rc) <=> 0;
-}
-
 template<typename DERIVED>
 auto comparable<DERIVED>::operator==(const DERIVED &other) const -> bool {
     return compareTo(other) == 0;
@@ -144,12 +120,10 @@ auto comparable<DERIVED>::operator>=(const DERIVED &other) const -> bool {
 
 } // namespace original
 
-template <typename T>
-requires original::ExtendsOf<original::comparable<T>, T>
-struct std::less<T> { // NOLINT
-    bool operator()(const T& t1, const T& t2) const noexcept {
-        return t1 < t2;
-    }
-};
+template <original::CmpTraits T>
+std::strong_ordering operator<=>(const T& lhs, const T& rhs)
+{
+    return lhs.compareTo(rhs) <=> 0;
+}
 
 #endif //COMPARABLE_H
