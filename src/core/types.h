@@ -239,6 +239,12 @@ namespace original {
             { a.equals(b) } -> std::convertible_to<bool>;
         };
 
+    template <typename T>
+    concept HashTraits =
+        requires(const T& t) {
+        { t.toHash() } -> std::same_as<u_integer>;
+    } && Equatable<T>;
+
     // ==================== Callback Concepts ====================
 
     /**
