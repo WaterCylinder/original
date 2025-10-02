@@ -156,6 +156,11 @@ namespace original {
     template <typename T>
     concept Comparable = TotallyComparable<T>;
 
+    template <typename T>
+    concept CmpTraits = requires(const T& a, const T& b) {
+        { a.compareTo(b) } -> std::same_as<integer>;
+    };
+
     // ==================== Stream Concepts ====================
 
     /**
