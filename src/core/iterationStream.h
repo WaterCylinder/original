@@ -3,6 +3,7 @@
 
 #include <sstream>
 #include "comparable.h"
+#include "hash.h"
 #include "printable.h"
 #include "iterable.h"
 #include "types.h"
@@ -29,7 +30,10 @@ namespace original {
      * @extends comparable
      */
     template<typename TYPE, typename DERIVED>
-    class iterationStream : public printable, public iterable<TYPE>, public comparable<iterationStream<TYPE, DERIVED>> {
+    class iterationStream : public printable,
+                            public iterable<TYPE>,
+                            public comparable<iterationStream<TYPE, DERIVED>>,
+                            public hashable<iterationStream<TYPE, DERIVED>> {
     protected:
         /**
          * @brief Returns a string representation of the elements in the stream.
@@ -50,6 +54,8 @@ namespace original {
          *         1 if greater, and 0 if equal.
          */
         integer compareTo(const iterationStream &other) const override;
+
+        [[nodiscard]] u_integer toHash() const noexcept override;
 
         /**
          * @brief Returns the class name.
@@ -98,6 +104,16 @@ auto original::iterationStream<TYPE, DERIVED>::compareTo(const iterationStream &
         }
     }
     return this_it.isValid() - other_it.isValid();
+}
+
+template <typename TYPE, typename DERIVED>
+original::u_integer original::iterationStream<TYPE, DERIVED>::toHash() const noexcept
+{
+    u_integer seed = 0;
+    for (const auto& elem : *this) {
+        hash<TYPE>::hashCombine(seed, elem);
+    }
+    return seed;
 }
 
 template<typename TYPE, typename DERIVED>
