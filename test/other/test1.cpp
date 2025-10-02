@@ -1,8 +1,8 @@
 #include <iostream>
-
 #include "array.h"
 #include "chain.h"
 #include "maths.h"
+#include "prique.h"
 #include "vector.h"
 
 
@@ -204,5 +204,10 @@ int main(){
     std::cout << original::printable::formatString(eq(arr1, arr2)) << std::endl;
     std::hash<original::array<int>> hash;
     std::cout << hash(arr1) << std::endl;
+    std::hash<original::prique<int>> hash2;
+    original::prique p {4, 5, 6};
+    std::cout << "------" << std::endl;
+    std::cout << p.toHash() << std::endl;
+    std::cout << hash2(p) << std::endl;
     return 0;
 }
