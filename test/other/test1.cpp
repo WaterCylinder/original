@@ -28,20 +28,22 @@ int main(){
     for (int i = 0; i < chain1.size(); ++i) {
         std::printf("chain1[%d] = %d\n", i, chain1[i]);
     }
-    for (auto* it = chain1.begins(); it->isValid(); it->next()) {
-        std::printf("chain1 element = %d, Iterator: %s\n", it->get(), it->toCString(false));
-    } // memory leaked
+    for (auto it = chain1.begin(); it.isValid(); it.next()) {
+        std::printf("chain1 element = %d, Iterator: %s\n", it.get(), it.toCString(false));
+    }
     std::printf("\n");
-    for (auto* it = chain1.ends(); it->isValid(); it->prev()) {
-        std::printf("chain1 element = %d, Iterator: %s\n", it->get(), it->toCString(false));
-    } // memory leaked
+    for (auto it = chain1.end(); it.isValid(); it.prev()) {
+        std::printf("chain1 element = %d, Iterator: %s\n", it.get(), it.toCString(false));
+    }
     std::printf("\n");
     auto chain2 = original::chain({6, 7, 3, 9, 4, 2, 10, 14, -5});
-    for (auto* l = chain2.begins(), *r = chain2.ends(); r->operator-(*l) > 0; l->next(), r->prev()) {
-        const int val = l->get();
-        l->set(r->get());
-        r->set(val);
-    } // memory leaked
+    auto l = chain2.first();
+    auto r = chain2.last();
+    for (; r - l > 0; l.next(), r.prev()) {
+        const int val = l.get();
+        l.set(r.get());
+        r.set(val);
+    }
     for (int i = 0; i < chain2.size(); ++i) {
         std::printf("chain2[%d] = %d\n", i, chain2[i]);
     }
@@ -181,7 +183,6 @@ int main(){
         i += 1;
     }
     std::cout << "arr9 after: " << arr9 << std::endl;
-    // delete &arr9.data(); // ok
     std::cout << original::array({"hello, original!"}) << std::endl;
     struct unprintable {};
     std::cout << original::printable::formatString(unprintable{}) << std::endl;
