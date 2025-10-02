@@ -4,6 +4,7 @@
 #include "types.h"
 #include "printable.h"
 #include "comparable.h"
+#include "hash.h"
 
 
 namespace original {
@@ -50,7 +51,8 @@ namespace original {
     class containerAdapter
             : public printable,
               public container<TYPE, ALLOC<TYPE>>,
-              public comparable<containerAdapter<TYPE, SERIAL, ALLOC>>{
+              public comparable<containerAdapter<TYPE, SERIAL, ALLOC>>,
+              public hashable<containerAdapter<TYPE, SERIAL, ALLOC>> {
     protected:
         /**
          * @brief The underlying container instance
@@ -114,6 +116,8 @@ namespace original {
          *          3. If all elements are equal, the adapters are considered equivalent
          */
         integer compareTo(const containerAdapter &other) const override;
+
+        [[nodiscard]] u_integer toHash() const noexcept override;
 
         /**
          * @brief Gets class name identifier for type information
@@ -184,6 +188,15 @@ namespace original {
     auto containerAdapter<TYPE, SERIAL, ALLOC>::compareTo(const containerAdapter& other) const -> integer
     {
         return serial_.compareTo(other.serial_);
+    }
+
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    requires ExtendsOf<baseList<TYPE, ALLOC<TYPE>>, SERIAL<TYPE, ALLOC<TYPE>>>
+    u_integer containerAdapter<TYPE, SERIAL, ALLOC>::toHash() const noexcept
+    {
+        return this->serial_.toHash();
     }
 
     template <typename TYPE,
