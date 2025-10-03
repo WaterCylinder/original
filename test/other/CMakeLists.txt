@@ -11,5 +11,9 @@ foreach(TEST_FILE ${TEST_OTHER})
 
     target_link_libraries(${TEST_NAME} original)
 
-    add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
+    add_test(
+            NAME other_${TEST_NAME}
+            COMMAND $<TARGET_FILE:${TEST_NAME}>
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    )
 endforeach()

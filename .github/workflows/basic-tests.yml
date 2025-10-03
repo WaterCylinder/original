@@ -20,10 +20,6 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y cmake g++ ninja-build libgtest-dev
-          cd /usr/src/gtest
-          sudo cmake .
-          sudo make
-          sudo cp lib/*.a /usr/lib
 
       - name: Configure (Debug)
         run: cmake -B build -DCMAKE_BUILD_TYPE=Debug -G Ninja
@@ -31,5 +27,14 @@ jobs:
       - name: Build
         run: cmake --build build
 
-      - name: Run tests
-        run: ctest --test-dir build --output-on-failure
+      - name: List generated test executables
+        run: |
+          find build -name "*test*" -type f -executable | grep -v ".a$" | sort
+
+      - name: Show CTest available tests
+        run: |
+          cd build && ctest -N
+
+      - name: Run tests with verbose output
+        run: |
+          cd build && ctest --verbose --output-on-failure
