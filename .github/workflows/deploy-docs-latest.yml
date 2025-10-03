@@ -1,6 +1,7 @@
 # .github/workflows/deploy-docs-latest.yml
 
-name: deploy-docs-latest.yml
+name: Deploy Documentation - Latest
+
 on:
   push:
     branches: [ test ]
@@ -20,81 +21,76 @@ jobs:
 
       - name: Build documentation
         run: |
-          # Create the necessary directory structure
-            mkdir -p ../original_docs
+          mkdir -p ../original_docs
+          doxygen Doxyfile
           
-          # Run doxygen
-            doxygen Doxyfile
+          if [ ! -d "../original_docs/docs/html" ]; then
+            echo "Error: Documentation was not generated"
+            ls -la ../original_docs/docs/ || echo "Docs directory not found"
+            exit 1
+          fi
           
-          # Check whether the document was generated successfully
-            if [ ! -d "../original_docs/docs/html" ]; then
-              echo "Error: Documentation was not generated in expected location"
-              ls -la ../original_docs/docs/ || echo "Docs directory not found"
-              exit 1
-            fi
-          
-          # Create version information file
-            cat > ../original_docs/docs/html/version.html << EOF
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <title>Version Info</title>
-            </head>
-            <body>
-                <h1>Documentation Version</h1>
-                <p>Version: latest</p>
-                <p>Branch: test</p>
-                <p>Build Date: $(date -u)</p>
-                <p>Commit: ${{ github.sha }}</p>
-            </body>
-            </html>
-            EOF
+          echo '<!DOCTYPE html>' > ../original_docs/docs/html/version.html
+          echo '<html>' >> ../original_docs/docs/html/version.html
+          echo '<head>' >> ../original_docs/docs/html/version.html
+          echo '    <title>Version Info</title>' >> ../original_docs/docs/html/version.html
+          echo '</head>' >> ../original_docs/docs/html/version.html
+          echo '<body>' >> ../original_docs/docs/html/version.html
+          echo '    <h1>Documentation Version</h1>' >> ../original_docs/docs/html/version.html
+          echo '    <p>Version: latest</p>' >> ../original_docs/docs/html/version.html
+          echo '    <p>Branch: test</p>' >> ../original_docs/docs/html/version.html
+          echo '    <p>Build Date: $(date -u)</p>' >> ../original_docs/docs/html/version.html
+          echo '    <p>Commit: ${{ github.sha }}</p>' >> ../original_docs/docs/html/version.html
+          echo '</body>' >> ../original_docs/docs/html/version.html
+          echo '</html>' >> ../original_docs/docs/html/version.html
 
-      - name: Deploy to original-docs repository
+      - name: Debug - Check generated files
+        run: |
+          echo "=== Checking generated documentation ==="
+          ls -la ../original_docs/docs/html/ || echo "HTML directory not found"
+
+      - name: Deploy to original_docs repository
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
-          # Configure git
-            git config --global user.name "github-actions[bot]"
-            git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Clone document repository
-            git clone https://${{ secrets.GH_PAT }}@github.com/FrozenLemonTee/original_docs.git deploy-repo
-            
-            cd deploy-repo
+          git clone https://${{ secrets.GH_PAT }}@github.com/FrozenLemonTee/original_docs.git deploy-repo
+          cd deploy-repo
           
-          # Clean up old files (keep the .git directory)
-            find . -maxdepth 1 ! -name '.git' ! -name '.' ! -name 'CNAME' -exec rm -rf {} + 2>/dev/null || true
+          find . -maxdepth 1 ! -name '.git' ! -name '.' ! -name 'CNAME' -exec rm -rf {} + 2>/dev/null || true
           
-          # Copy the newly generated document to the latest directory
-            mkdir -p latest
-            cp -r ../../original_docs/docs/html/* latest/
+          mkdir -p latest
+          cp -r ../../original_docs/docs/html/* latest/
           
-          # Create index.html to redirect to the latest version
-            cat > index.html << EOF
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta http-equiv="refresh" content="0; url=latest/index.html">
-            </head>
-            <body>
-                <p>Redirecting to <a href="latest/index.html">latest documentation</a>...</p>
-                <p>Available versions:</p>
-                <ul>
-                    <li><a href="stable/index.html">Stable (master branch)</a></li>
-                    <li><a href="latest/index.html">Latest (test branch)</a></li>
-                    <li><a href="versions/">Tag versions</a></li>
-                </ul>
-            </body>
-            </html>
-            EOF
+          echo '<!DOCTYPE html>' > index.html
+          echo '<html>' >> index.html
+          echo '<head>' >> index.html
+          echo '    <meta http-equiv="refresh" content="0; url=latest/index.html">' >> index.html
+          echo '</head>' >> index.html
+          echo '<body>' >> index.html
+          echo '    <p>Redirecting to <a href="latest/index.html">latest documentation</a>...</p>' >> index.html
+          echo '    <p>Available versions:</p>' >> index.html
+          echo '    <ul>' >> index.html
+          echo '        <li><a href="stable/index.html">Stable (master branch)</a></li>' >> index.html
+          echo '        <li><a href="latest/index.html">Latest (test branch)</a></li>' >> index.html
+          echo '        <li><a href="versions/">Tag versions</a></li>' >> index.html
+          echo '    </ul>' >> index.html
+          echo '</body>' >> index.html
+          echo '</html>' >> index.html
+
+          git add .
+          git status
           
-          # Submit and push
-            git add .
-            if git diff-index --quiet HEAD --; then
-              echo "No changes to deploy"
-            else
-              git commit -m "Deploy latest documentation from test branch - ${{ github.sha }}"
-              git push origin main
-              echo "Latest documentation deployed successfully"
-            fi
+          if git diff-index --quiet HEAD --; then
+            echo "No changes to deploy"
+            echo "Creating test commit to verify deployment..."
+            git commit --allow-empty -m "Test deployment - ${{ github.sha }}"
+            git push origin main
+            echo "Test deployment completed"
+          else
+            git commit -m "Deploy latest documentation from test branch - ${{ github.sha }}"
+            git push origin main
+            echo "Latest documentation deployed successfully"
+          fi
