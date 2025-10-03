@@ -183,8 +183,8 @@ namespace original {
          */
         template<typename... O_TYPES, u_integer... T_SIZE, u_integer... O_SIZE>
         tuple<TYPES..., O_TYPES...> _concat(const tuple<O_TYPES...>& other,
-                                            std::integer_sequence<u_integer, T_SIZE...> ts,
-                                            std::integer_sequence<u_integer, O_SIZE...> os) const;
+                                            indexSequence<T_SIZE...> ts,
+                                            indexSequence<O_SIZE...> os) const;
 
     public:
         tuple() = default;
@@ -585,8 +585,8 @@ template<typename... TYPES>
 template<typename... O_TYPES, original::u_integer... T_SIZE, original::u_integer... O_SIZE>
 original::tuple<TYPES..., O_TYPES...>
 original::tuple<TYPES...>::_concat(const tuple<O_TYPES...> &other,
-                                   std::integer_sequence<u_integer, T_SIZE...>,
-                                   std::integer_sequence<u_integer, O_SIZE...>) const {
+                                   indexSequence<T_SIZE...>,
+                                   indexSequence<O_SIZE...>) const {
     return tuple<TYPES..., O_TYPES...>{TYPES(this->get<T_SIZE>())..., O_TYPES(other.template get<O_SIZE>())...};
 }
 
@@ -684,8 +684,8 @@ original::tuple<TYPES..., O_TYPES...>
 original::tuple<TYPES...>::operator+(const tuple<O_TYPES...>& other) const
 {
     return this->_concat(other,
-                         std::make_integer_sequence<u_integer, sizeof...(TYPES)>{},
-                         std::make_integer_sequence<u_integer, sizeof...(O_TYPES)>{});
+                         makeSequence<sizeof...(TYPES)>(),
+                         makeSequence<sizeof...(O_TYPES)>());
 }
 
 template<typename F_TYPE, typename S_TYPE>
