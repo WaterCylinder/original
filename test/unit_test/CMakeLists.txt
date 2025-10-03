@@ -1,5 +1,7 @@
 # test/unit_test/CMakeLists.txt
 
+enable_testing()
+
 if(NOT TARGET GTest::gtest)
     include(FetchContent)
 
