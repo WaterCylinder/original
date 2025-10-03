@@ -13,7 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        sanitizer: [none, asan, ubsan]
+        build_type: [ Debug ]
+        sanitizer: [ none, asan, ubsan ]
 
     steps:
       - name: Checkout repository
@@ -26,23 +27,30 @@ jobs:
 
       - name: Configure CMake
         run: |
-          cmake -B build \
-                -DCMAKE_BUILD_TYPE=Debug \
-                -G Ninja \
-                $([[ "${{ matrix.sanitizer }}" == "asan" ]] && echo "-DCMAKE_CXX_FLAGS='-fsanitize=address -fno-omit-frame-pointer'") \
-                $([[ "${{ matrix.sanitizer }}" == "ubsan" ]] && echo "-DCMAKE_CXX_FLAGS='-fsanitize=undefined -fno-sanitize-recover'")
+          CMAKE_FLAGS=""
+          LINKER_FLAGS=""
+          
+          if [[ "${{ matrix.sanitizer }}" == "asan" ]]; then
+            CMAKE_FLAGS="-DCMAKE_CXX_FLAGS=-fsanitize=address -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=address"
+          elif [[ "${{ matrix.sanitizer }}" == "ubsan" ]]; then
+            CMAKE_FLAGS="-DCMAKE_CXX_FLAGS='-fsanitize=undefined -fno-sanitize-recover' -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=undefined"
+          fi
+          
+          echo "Using CMake flags: $CMAKE_FLAGS"
+          cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -G Ninja $CMAKE_FLAGS
 
       - name: Build
         run: cmake --build build
 
       - name: List generated test executables
         run: |
+          echo "=== Test executables ==="
           find build -name "*test*" -type f -executable | grep -v ".a$" | sort
+          echo "=== All executables ==="
+          find build -type f -executable | grep -v ".a$" | sort
 
       - name: Show CTest available tests
-        run: |
-          cd build && ctest -N
+        run: cd build && ctest -N
 
       - name: Run tests with verbose output
-        run: |
-          cd build && ctest --verbose --output-on-failure
+        run: cd build && ctest --verbose --output-on-failure

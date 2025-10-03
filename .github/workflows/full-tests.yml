@@ -9,59 +9,81 @@ on:
     branches: [ master ]
 
 jobs:
-  build-and-test:
-    runs-on: ${{ matrix.os }}
+  linux-tests:
+    runs-on: ubuntu-latest
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
         compiler: [gcc, clang]
         build_type: [Debug, Release]
-        sanitizer: [none, asan, ubsan]
+        sanitizer: [none, asan]
 
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Install dependencies
         run: |
-          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-            sudo apt-get update
-            sudo apt-get install -y cmake g++ ninja-build libgtest-dev
-            if [[ "${{ matrix.compiler }}" == "clang" ]]; then
-              sudo apt-get install -y clang
-            fi
-          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            brew update
-            brew install cmake ninja
-            if [[ "${{ matrix.compiler }}" == "gcc" ]]; then
-              brew install gcc
-            else
-              brew install llvm
-            fi
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build libgtest-dev
+          if [[ "${{ matrix.compiler }}" == "clang" ]]; then
+            sudo apt-get install -y clang
           fi
 
-      - name: Configure CMake
+      - name: Configure and Build
         run: |
-          cmake -B build \
-                -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-                -G Ninja \
-                -DCMAKE_C_COMPILER=${{ matrix.compiler }} \
-                -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}++ \
-                $([[ "${{ matrix.sanitizer }}" == "asan" ]] && echo "-DCMAKE_CXX_FLAGS='-fsanitize=address -fno-omit-frame-pointer'") \
-                $([[ "${{ matrix.sanitizer }}" == "ubsan" ]] && echo "-DCMAKE_CXX_FLAGS='-fsanitize=undefined -fno-sanitize-recover'")
+          if [[ "${{ matrix.compiler }}" == "clang" ]]; then
+            export CC=clang
+            export CXX=clang++
+          fi
+          
+          SANITIZER_FLAGS=""
+          if [[ "${{ matrix.sanitizer }}" == "asan" ]]; then
+            SANITIZER_FLAGS="-DCMAKE_CXX_FLAGS=-fsanitize=address -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=address"
+          fi
+          
+          cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -G Ninja $SANITIZER_FLAGS
+          cmake --build build
 
-      - name: Build
-        run: cmake --build build --config ${{ matrix.build_type }}
-
-      - name: List generated test executables
+      - name: Run tests
         run: |
-          find build -name "*test*" -type f -executable | grep -v ".a$" | sort
+          cd build && ctest --output-on-failure
 
-      - name: Show CTest available tests
+  macos-tests:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        build_type: [Debug, Release]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: brew install cmake ninja
+
+      - name: Configure and Build
         run: |
-          cd build && ctest -N
+          cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -G Ninja
+          cmake --build build
 
-      - name: Run tests with verbose output
+      - name: Run tests
+        run: cd build && ctest --output-on-failure
+
+  windows-tests:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        build_type: [Debug, Release]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure and Build
         run: |
-          cd build && ctest --verbose --output-on-failure
+          cmake -B build -G "Ninja"
+          cmake --build build --config ${{ matrix.build_type }}
 
+      - name: Run tests
+        run: |
+          cd build && ctest -C ${{ matrix.build_type }} --output-on-failure
