@@ -112,7 +112,7 @@ std::suspend_always original::coroutine::generator<TYPE>::promise_type::yield_va
     if (!this->initial_staus) {
         this->initial_staus = true;
     }
-    this->value_.set(std::move(value));
+    this->value_ = std::move(value);
     return std::suspend_always{};
 }
 
