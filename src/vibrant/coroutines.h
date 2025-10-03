@@ -193,6 +193,10 @@ original::coroutine::generator<TYPE>::operator=(generator&& other) noexcept
         return *this;
     }
 
+    if (this->handle_) {
+        this->handle_.destroy();
+    }
+
     this->handle_ = other.handle_;
     other.handle_ = nullptr;
     return *this;
