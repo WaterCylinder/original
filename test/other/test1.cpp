@@ -197,11 +197,11 @@ int main(){
     std::cout << original::printable::formatString(three_way_cmp_res) << std::endl;
     std::cout << original::printable::formatString(three_way_cmp_res < 0) << std::endl;
     std::cout << original::printable::formatString(arr1 < arr2) << std::endl;
-    std::less<original::array<int>> less;
+    std::less<> less;
     std::cout << original::printable::formatString(less(arr1, arr2)) << std::endl;
     std::cout << arr1.toHash() << std::endl;
     std::cout << arr2.toHash() << std::endl;
-    std::equal_to<original::array<int>> eq;
+    std::equal_to<> eq;
     std::cout << original::printable::formatString(eq(arr1, arr2)) << std::endl;
     std::hash<original::array<int>> hash;
     std::cout << hash(arr1) << std::endl;
