@@ -146,7 +146,7 @@ template <typename TYPE>
 original::coroutine::generator<TYPE>::iterator&
 original::coroutine::generator<TYPE>::iterator::operator++()
 {
-    if (!this->gen_)
+    if (this->end_)
         return *this;
     if (auto gen_next = this->gen_->next(); !gen_next) {
         this->end_ = true;
@@ -157,7 +157,7 @@ original::coroutine::generator<TYPE>::iterator::operator++()
 template <typename TYPE>
 TYPE original::coroutine::generator<TYPE>::iterator::operator*()
 {
-    if (!this->gen_)
+    if (this->end_)
         throw nullPointerError("Dereferencing end iterator");
     return *this->gen_->peek();
 }
