@@ -30,6 +30,7 @@ jobs:
             exit 1
           fi
           
+          # Create version information file
           echo '<!DOCTYPE html>' > ../original_docs/docs/html/version.html
           echo '<html>' >> ../original_docs/docs/html/version.html
           echo '<head>' >> ../original_docs/docs/html/version.html
@@ -51,21 +52,18 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          echo "=== Cloning repository ==="
+          # Clone document repository
           git clone -b master https://${{ secrets.GH_PAT }}@github.com/FrozenLemonTee/original_docs.git deploy-repo
           cd deploy-repo
           
-          echo "=== Current branch ==="
-          git branch -a
-          echo "Current branch: $(git branch --show-current)"
-          
-          echo "=== Cleaning old files ==="
+          # Clean up old files (keep the .git directory)
           find . -maxdepth 1 ! -name '.git' ! -name '.' ! -name 'CNAME' -exec rm -rf {} + 2>/dev/null || true
           
-          echo "=== Copying new documentation ==="
+          # Copy the new document to directory latest
           mkdir -p latest
           cp -r ../../original_docs/docs/html/* latest/
           
+          # Create index.html
           echo '<!DOCTYPE html>' > index.html
           echo '<html>' >> index.html
           echo '<head>' >> index.html
@@ -82,18 +80,12 @@ jobs:
           echo '</body>' >> index.html
           echo '</html>' >> index.html
 
-          echo "=== Preparing to commit ==="
+          # Submit and push
           git add .
-          git status
-          
           if git diff-index --quiet HEAD --; then
             echo "No changes to deploy"
           else
-            echo "=== Committing changes ==="
             git commit -m "Deploy latest documentation from test branch - ${{ github.sha }}"
-          
-            echo "=== Pushing to master branch ==="
             git push origin master
-          
-            echo "✅ Latest documentation deployed successfully to master branch"
+            echo "✅ Latest documentation deployed successfully"
           fi
