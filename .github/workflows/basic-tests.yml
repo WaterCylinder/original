@@ -29,19 +29,21 @@ jobs:
 
       - name: Configure CMake
         run: |
+          EXTRA_ARGS=()
+          
           case "${{ matrix.sanitizer }}" in
             "asan")
-              EXTRA_FLAGS="-DCMAKE_CXX_FLAGS=-fsanitize=address -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=address"
+              EXTRA_ARGS+=(-DCMAKE_CXX_FLAGS=-fsanitize=address)
+              EXTRA_ARGS+=(-DCMAKE_EXE_LINKER_FLAGS=-fsanitize=address)
               ;;
             "ubsan") 
-              EXTRA_FLAGS="-DCMAKE_CXX_FLAGS='-fsanitize=undefined -fno-sanitize-recover' -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=undefined"
-              ;;
-            *)
-              EXTRA_FLAGS=""
+              EXTRA_ARGS+=(-DCMAKE_CXX_FLAGS=-fsanitize=undefined -fno-sanitize-recover)
+              EXTRA_ARGS+=(-DCMAKE_EXE_LINKER_FLAGS=-fsanitize=undefined)
               ;;
           esac
           
-          cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -G Ninja $EXTRA_FLAGS
+          echo "Configuring with extra args: ${EXTRA_ARGS[@]}"
+          cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -G Ninja "${EXTRA_ARGS[@]}"
 
       - name: Build
         run: cmake --build build
