@@ -39,28 +39,31 @@ jobs:
           echo '    <h1>Documentation Version</h1>' >> ../original_docs/docs/html/version.html
           echo '    <p>Version: latest</p>' >> ../original_docs/docs/html/version.html
           echo '    <p>Branch: test</p>' >> ../original_docs/docs/html/version.html
-          echo '    <p>Build Date: $(date -u)</p>' >> ../original_docs/docs/html/version.html
-          echo '    <p>Commit: ${{ github.sha }}</p>' >> ../original_docs/docs/html/version.html
+          echo "    <p>Build Date: $(date -u)</p>" >> ../original_docs/docs/html/version.html
+          echo "    <p>Commit: ${{ github.sha }}</p>" >> ../original_docs/docs/html/version.html
           echo '</body>' >> ../original_docs/docs/html/version.html
           echo '</html>' >> ../original_docs/docs/html/version.html
-
-      - name: Debug - Check generated files
-        run: |
-          echo "=== Checking generated documentation ==="
-          ls -la ../original_docs/docs/html/ || echo "HTML directory not found"
 
       - name: Deploy to original_docs repository
         env:
           GH_PAT: ${{ secrets.GH_PAT }}
         run: |
+          # 配置 git
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          git clone https://${{ secrets.GH_PAT }}@github.com/FrozenLemonTee/original_docs.git deploy-repo
+          echo "=== Cloning repository ==="
+          git clone -b master https://${{ secrets.GH_PAT }}@github.com/FrozenLemonTee/original_docs.git deploy-repo
           cd deploy-repo
           
+          echo "=== Current branch ==="
+          git branch -a
+          echo "Current branch: $(git branch --show-current)"
+          
+          echo "=== Cleaning old files ==="
           find . -maxdepth 1 ! -name '.git' ! -name '.' ! -name 'CNAME' -exec rm -rf {} + 2>/dev/null || true
           
+          echo "=== Copying new documentation ==="
           mkdir -p latest
           cp -r ../../original_docs/docs/html/* latest/
           
@@ -80,17 +83,18 @@ jobs:
           echo '</body>' >> index.html
           echo '</html>' >> index.html
 
+          echo "=== Preparing to commit ==="
           git add .
           git status
           
           if git diff-index --quiet HEAD --; then
             echo "No changes to deploy"
-            echo "Creating test commit to verify deployment..."
-            git commit --allow-empty -m "Test deployment - ${{ github.sha }}"
-            git push origin main
-            echo "Test deployment completed"
           else
+            echo "=== Committing changes ==="
             git commit -m "Deploy latest documentation from test branch - ${{ github.sha }}"
-            git push origin main
-            echo "Latest documentation deployed successfully"
+          
+            echo "=== Pushing to master branch ==="
+            git push origin master
+          
+            echo "✅ Latest documentation deployed successfully to master branch"
           fi
