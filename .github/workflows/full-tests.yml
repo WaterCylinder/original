@@ -1,0 +1,67 @@
+# .github/workflows/full-tests.yml
+
+name: Master Branch CI - Full Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-and-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        compiler: [gcc, clang]
+        build_type: [Debug, Release]
+        sanitizer: [none, asan, ubsan]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            sudo apt-get update
+            sudo apt-get install -y cmake g++ ninja-build libgtest-dev
+            if [[ "${{ matrix.compiler }}" == "clang" ]]; then
+              sudo apt-get install -y clang
+            fi
+          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            brew update
+            brew install cmake ninja
+            if [[ "${{ matrix.compiler }}" == "gcc" ]]; then
+              brew install gcc
+            else
+              brew install llvm
+            fi
+          fi
+
+      - name: Configure CMake
+        run: |
+          cmake -B build \
+                -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+                -G Ninja \
+                -DCMAKE_C_COMPILER=${{ matrix.compiler }} \
+                -DCMAKE_CXX_COMPILER=${{ matrix.compiler }}++ \
+                $([[ "${{ matrix.sanitizer }}" == "asan" ]] && echo "-DCMAKE_CXX_FLAGS='-fsanitize=address -fno-omit-frame-pointer'") \
+                $([[ "${{ matrix.sanitizer }}" == "ubsan" ]] && echo "-DCMAKE_CXX_FLAGS='-fsanitize=undefined -fno-sanitize-recover'")
+
+      - name: Build
+        run: cmake --build build --config ${{ matrix.build_type }}
+
+      - name: List generated test executables
+        run: |
+          find build -name "*test*" -type f -executable | grep -v ".a$" | sort
+
+      - name: Show CTest available tests
+        run: |
+          cd build && ctest -N
+
+      - name: Run tests with verbose output
+        run: |
+          cd build && ctest --verbose --output-on-failure
+
