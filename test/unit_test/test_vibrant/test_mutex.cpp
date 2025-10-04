@@ -23,12 +23,13 @@ TEST(MutexTest, TryLockContested) {
         [&m]
         {
             m.lock();
-            std::this_thread::sleep_for(std::chrono::milliseconds(300));
+            thread::sleep(milliseconds(300));
             m.unlock();
         }
     );
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(100)); // 确保 t 抢先上锁
+    // 确保 t 抢先上锁
+    thread::sleep(milliseconds(100));
 
     EXPECT_FALSE(m.tryLock());  // 此时 tryLock 应该失败
     t.join();
