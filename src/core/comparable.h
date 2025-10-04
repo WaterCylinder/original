@@ -27,6 +27,9 @@ namespace original {
  *  - A negative value if the current object is less than the other.
  *  - Zero if the current object is equal to the other.
  *  - A positive value if the current object is greater than the other.
+ *
+ * Classes implementing this interface automatically satisfy the `CmpTraits` concept.
+ * @see CmpTraits
  */
 template <typename DERIVED>
 class comparable {
@@ -120,6 +123,25 @@ auto comparable<DERIVED>::operator>=(const DERIVED &other) const -> bool {
 
 } // namespace original
 
+/**
+ * @brief Three-way comparison operator for CmpTraits types
+ * @tparam T Type satisfying CmpTraits concept
+ * @param lhs Left-hand side object
+ * @param rhs Right-hand side object
+ * @return std::strong_ordering result based on compareTo()
+ * @details Provides C++20 spaceship operator support for types implementing
+ *          the comparable interface. Enables modern comparison syntax.
+ *
+ * Example:
+ * @code{.cpp}
+ * class MyComparable : public original::comparable<MyComparable> {
+ *     integer compareTo(const MyComparable& other) const override { ... }
+ * };
+ *
+ * MyComparable a, b;
+ * auto result = a <=> b; // Uses this operator
+ * @endcode
+ */
 template <original::CmpTraits T>
 std::strong_ordering operator<=>(const T& lhs, const T& rhs)
 {

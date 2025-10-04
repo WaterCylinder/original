@@ -81,6 +81,11 @@ namespace original {
          */
         [[nodiscard]] u_integer size() const override;
 
+        /**
+         * @brief Swaps the contents of this container adapter with another
+         * @param other The container adapter to swap with
+         * @details Exchanges the underlying serial containers between this adapter and another
+         */
         void swap(containerAdapter& other) noexcept;
 
         /**
@@ -117,6 +122,11 @@ namespace original {
          */
         integer compareTo(const containerAdapter &other) const override;
 
+        /**
+         * @brief Computes hash value for the container adapter
+         * @return u_integer Hash value based on the underlying container's contents
+         * @details Delegates to the underlying serial container's toHash method
+         */
         [[nodiscard]] u_integer toHash() const noexcept override;
 
         /**
@@ -228,6 +238,14 @@ namespace original {
 }
 
 namespace std {
+    /**
+     * @brief Specialization of std::swap for original::containerAdapter
+     * @tparam TYPE Element type
+     * @tparam SERIAL Underlying container type
+     * @tparam ALLOC Allocator type
+     * @param lhs Left container adapter
+     * @param rhs Right container adapter
+     */
     template <typename TYPE,
               template <typename, typename> typename SERIAL,
               template <typename> typename ALLOC>
@@ -236,5 +254,6 @@ namespace std {
         lhs.swap(rhs);
     }
 }
+
 
 #endif //CONTAINERADAPTER_H

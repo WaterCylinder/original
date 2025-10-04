@@ -290,12 +290,20 @@ namespace original {
          */
         chain& operator=(chain&& other) noexcept;
 
+        /**
+         * @brief Swaps the contents of this chain with another
+         * @param other The chain to swap with
+         * @details Exchanges the contents and allocators (if propagate_on_container_swap is true)
+         *          of this chain with another
+         */
         void swap(chain& other) noexcept;
 
         /**
         * @brief Concatenates another chain to this one
         * @param other The chain to concatenate
         * @return Reference to this chain after merge
+        * @details Merges the contents of another chain into this one
+        *          and optionally merges allocators if propagate_on_container_merge is true
         */
         chain& operator+=(chain& other);
 
@@ -397,6 +405,13 @@ namespace original {
 }
 
 namespace std {
+    /**
+     * @brief Specialization of std::swap for original::chain
+     * @tparam TYPE Element type
+     * @tparam ALLOC Allocator type
+     * @param lhs Left chain
+     * @param rhs Right chain
+     */
     template<typename TYPE, typename ALLOC>
     void swap(original::chain<TYPE, ALLOC>& lhs, original::chain<TYPE, ALLOC>& rhs) noexcept; // NOLINT
 }

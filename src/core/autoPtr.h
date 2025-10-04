@@ -47,6 +47,17 @@ namespace original {
     * - Custom deletion policies via template parameter
     * - Exception-safe operations
     *
+    * Memory Management Strategy:
+    * - Each managed object has an associated refCount object
+    * - Strong references control object lifetime
+    * - Weak references allow observation without ownership
+    * - Object destroyed when strong references reach zero
+    * - refCount destroyed when both strong and weak references reach zero
+    *
+    * Thread Safety:
+    * - Reference counting operations are atomic and thread-safe
+    * - Managed object access requires external synchronization
+    *
     * @extends printable For string representation capabilities
     * @extends comparable For comparison operations
     * @extends hashable For hashing support
@@ -64,30 +75,37 @@ namespace original {
         * @brief Construct from raw pointer
         * @param p Raw pointer to manage
         * @warning Ownership is transferred to autoPtr
+        * @post ref_count points to new refCount object managing p
         */
         explicit autoPtr(TYPE* p);
 
         /**
         * @brief Increment strong reference count
         * @internal Reference set method
+        * @note Thread-safe atomic operation
         */
         void addStrongRef() const;
 
         /**
         * @brief Increment weak reference count
         * @internal Reference set method
+        * @note Thread-safe atomic operation
         */
         void addWeakRef() const;
 
         /**
         * @brief Decrement strong reference count
         * @internal Reference set method
+        * @note Thread-safe atomic operation
+        * @post May trigger object destruction if count reaches zero
         */
         void removeStrongRef() const;
 
         /**
         * @brief Decrement weak reference count
         * @internal Reference set method
+        * @note Thread-safe atomic operation
+        * @post May trigger refCount destruction if both counts reach zero
         */
         void removeWeakRef() const;
 
@@ -96,18 +114,21 @@ namespace original {
         * @return Raw pointer to the managed object
         * @note The caller becomes responsible for deleting the returned pointer
         * @post Reference counter retains weak references but no strong references
+        * @warning After release, the autoPtr becomes empty and should not be used
         */
         TYPE* releasePtr() noexcept;
 
         /**
         * @brief Destroy reference counter
         * @note Only destroys counter when both ref counts reach zero
+        * @internal Called during cleanup operations
         */
         void destroyRefCnt() noexcept;
 
         /**
         * @brief Cleanup resources when expired
         * @internal Resource management method
+        * @details Performs reference count checks and triggers destruction when needed
         */
         void clean() noexcept;
 
@@ -115,6 +136,7 @@ namespace original {
         * @brief Create new reference counter
         * @param p Pointer to manage (nullptr allowed)
         * @return Newly created counter object
+        * @throws std::bad_alloc if memory allocation fails
         */
         static refCount<TYPE, DELETER>* newRefCount(TYPE* p = nullptr);
 
@@ -123,30 +145,35 @@ namespace original {
         /**
         * @brief Get strong reference count
         * @return Current number of strong references
+        * @note Returns 0 if no reference counter exists
         */
         u_integer strongRefs() const;
 
         /**
         * @brief Get weak reference count
         * @return Current number of weak references
+        * @note Returns 0 if no reference counter exists
         */
         u_integer weakRefs() const;
 
         /**
         * @brief Check active ownership
-        * @return True if it has active references
+        * @return True if it has active references (strong or weak)
+        * @note Different from operator bool() which checks for valid object
         */
         bool exist() const;
 
         /**
         * @brief Check resource validity
         * @return True if strong references == 0
+        * @note Indicates the managed object has been destroyed
         */
         bool expired() const;
 
         /**
         * @brief Boolean conversion operator
-        * @return Equivalent to a non null managed pointer
+        * @return True if has strong reference and managed pointer is non-null
+        * @note Considers both reference count and pointer validity
         */
         explicit operator bool() const;
 
@@ -160,6 +187,7 @@ namespace original {
         * @brief Get managed pointer const version
         * @return Raw pointer to managed object
         * @throws nullPointerError if no active references
+        * @note Returns alias_ptr if set, otherwise the actual managed pointer
         */
         const TYPE* get() const;
 
@@ -167,6 +195,7 @@ namespace original {
         * @brief Get managed pointer
         * @return Raw pointer to managed object
         * @throws nullPointerError if no active references
+        * @note Returns alias_ptr if set, otherwise the actual managed pointer
         */
         TYPE* get();
 
@@ -189,6 +218,7 @@ namespace original {
         * @param index Array index
         * @return Reference to element
         * @throws nullPointerError if no managed array
+        * @throws outOfBoundError if index is invalid
         */
         virtual const TYPE& operator[](u_integer index) const;
 
@@ -212,24 +242,29 @@ namespace original {
         * @param index Array index
         * @return Reference to element
         * @throws nullPointerError if no managed array
+        * @throws outOfBoundError if index is invalid
         */
         virtual TYPE& operator[](u_integer index);
 
         /**
         * @brief Swaps the reference counters between two autoPtr instances
         * @param other Another autoPtr instance to swap with
-        *
         * @post After swapping:
         * - Current object acquires other's reference counter
         * - Other object acquires current object's reference counter
         * - Managed object ownership transfers implicitly
+        * - alias_ptr values are also swapped
+        * @warning This operation is not thread-safe. Do not call swap concurrently
+        *          from multiple threads on the same autoPtr instances, as it may
+        *          lead to data races and undefined behavior.
         */
         void swap(autoPtr& other) noexcept;
 
         /**
         * @brief Compare reference counters
         * @param other autoPtr to compare with
-        * @return Difference between refcount addresses
+        * @return Difference between managed pointer addresses
+        * @note Comparison is based on pointer values, not object contents
         */
         integer compareTo(const autoPtr& other) const override;
 
@@ -242,7 +277,7 @@ namespace original {
         /**
         * @brief String representation formatter
         * @param enter Add newline if true
-        * @return Formatted resource info
+        * @return Formatted resource info including pointer address and reference counts
         */
         std::string toString(bool enter) const override;
 
@@ -250,6 +285,7 @@ namespace original {
         * @brief Compute hash value for the pointer
         * @return Hash of managed pointer address
         * @note Uses hash<TYPE> specialization
+        * @warning Hash is based on pointer address, not object contents
         */
         [[nodiscard]] u_integer toHash() const noexcept override;
 
@@ -263,6 +299,7 @@ namespace original {
 
         /**
         * @brief Destructor triggers reference cleanup
+        * @details Decrements reference counts and may trigger object destruction
         */
         ~autoPtr() override;
 
@@ -334,7 +371,8 @@ namespace original {
     /**
     * @class refCountBase
     * @brief Base class for reference counting metadata
-    * @details Stores reference counts and provides interface for pointer management
+    * @details Stores reference counts and provides interface for pointer management.
+    *          This is an abstract base class that defines the reference counting interface.
     */
     class refCountBase {
         template <typename, typename, typename>
@@ -346,18 +384,21 @@ namespace original {
 
         /**
         * @brief Construct refCountBase object
+        * @post Initializes both reference counts to zero
         */
         refCountBase();
 
         /**
         * @brief Get managed pointer (const version)
         * @return Const pointer to managed object
+        * @note Pure virtual function to be implemented by derived classes
         */
         virtual const void* getPtr() const noexcept = 0;
 
         /**
         * @brief Get managed pointer
         * @return Pointer to managed object
+        * @note Pure virtual function to be implemented by derived classes
         */
         virtual void* getPtr() noexcept = 0;
 
@@ -365,14 +406,19 @@ namespace original {
         * @brief Release ownership of the managed pointer
         * @return Raw pointer to the managed object
         * @note The caller becomes responsible for deleting the returned pointer
+        * @note Pure virtual function to be implemented by derived classes
         */
         virtual void* releasePtr() noexcept = 0;
 
         /**
         * @brief Destroy managed pointer using deleter
+        * @note Pure virtual function to be implemented by derived classes
         */
         virtual void destroyPtr() noexcept = 0;
 
+        /**
+        * @brief Virtual destructor for proper cleanup
+        */
         virtual ~refCountBase() = default;
     };
 
@@ -385,6 +431,11 @@ namespace original {
     * - Managed pointer
     * - Strong/weak reference counts
     * - Deleter policy instance
+    *
+    * Lifecycle Management:
+    * - Created when first autoPtr takes ownership of an object
+    * - Destroyed when both strong and weak reference counts reach zero
+    * - Manages object destruction through the provided deleter
     */
     template<typename TYPE, typename DELETER>
     class refCount final : public refCountBase {
@@ -397,28 +448,58 @@ namespace original {
         /**
         * @brief Construct refCount object
         * @param p Pointer to manage (nullptr allowed)
+        * @post Initializes reference counts and stores the pointer
         */
         explicit refCount(TYPE* p = nullptr);
 
+        /**
+        * @brief Get managed pointer (const version)
+        * @return Const pointer to managed object
+        */
         const void* getPtr() const noexcept override;
 
+        /**
+        * @brief Get managed pointer
+        * @return Pointer to managed object
+        * @note Handles const-correctness for the managed pointer
+        */
         void* getPtr() noexcept override;
 
+        /**
+        * @brief Release ownership of the managed pointer
+        * @return Raw pointer to the managed object
+        * @post Sets internal pointer to nullptr
+        * @note Caller becomes responsible for the returned pointer
+        */
         void* releasePtr() noexcept override;
 
         /**
         * @brief Destroy managed pointer using deleter
+        * @post Sets internal pointer to nullptr after destruction
+        * @note Uses the provided deleter policy for destruction
         */
         void destroyPtr() noexcept override;
 
         /**
         * @brief Destructor ensures resource cleanup
+        * @note Calls destroyPtr() to ensure proper cleanup
         */
         ~refCount() override;
     };
 }
 
 namespace std {
+    /**
+    * @brief Specialization of std::swap for autoPtr
+    * @tparam TYPE Managed object type
+    * @tparam DERIVED CRTP derived class type
+    * @tparam DELETER Deleter policy type
+    * @param lhs First autoPtr to swap
+    * @param rhs Second autoPtr to swap
+    * @post Both autoPtr instances exchange their managed resources
+    * @warning This operation is not thread-safe. Do not call std::swap concurrently
+    *          from multiple threads on the same autoPtr instances.
+    */
     template<typename TYPE, typename DERIVED, typename DELETER>
     void swap(original::autoPtr<TYPE, DERIVED, DELETER>& lhs, // NOLINT
               original::autoPtr<TYPE, DERIVED, DELETER>& rhs) noexcept;

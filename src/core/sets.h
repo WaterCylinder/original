@@ -14,19 +14,21 @@
 
 /**
  * @file sets.h
- * @brief Implementation of set containers
- * @details Provides three set implementations with different underlying data structures:
- * 1. hashSet - Hash table based implementation
- * 2. treeSet - Red-Black Tree based implementation
- * 3. JSet - Skip List based implementation
+ * @brief Implementation of set containers with different underlying data structures
+ * @details Provides three set implementations with different performance characteristics
+ * and iteration capabilities:
+ * 1. hashSet - Hash table based implementation (unordered, fastest average case)
+ * 2. treeSet - Red-Black Tree based implementation (ordered, consistent performance)
+ * 3. JSet - Skip List based implementation (ordered, probabilistic balance)
  *
  * Common Features:
  * - Unique element storage (no duplicates)
- * - Full iterator support
+ * - Full iterator support with different capabilities
  * - Customizable comparison/hash functions
- * - Customizable allocators
- * - Exception safety guarantees
+ * - Customizable allocators with propagation support
+ * - Exception safety guarantees (basic guarantee for most operations)
  * - Polymorphic usage through set interface
+ * - Integration with printable for string representation
  *
  * Performance Characteristics:
  * | Container | Insertion    | Lookup   | Deletion | Ordered | Memory Usage |
@@ -36,14 +38,25 @@
  * | JSet      | O(log n) avg | O(log n) | O(log n) | Yes     | Medium       |
  *
  * Usage Guidelines:
- * - Use hashSet for maximum performance when order doesn't matter
- * - Use treeSet for ordered traversal and consistent performance
- * - Use JSet for concurrent scenarios or when probabilistic balance is preferred
+ * - Use hashSet for maximum performance when order doesn't matter and elements are hashable
+ * - Use treeSet for ordered traversal, range queries, and consistent worst-case performance
+ * - Use JSet for concurrent scenarios (external synchronization) or when probabilistic balance is preferred
+ *
+ * Iterator Invalidation:
+ * - hashSet: Iterators invalidate on rehash (insertion that causes capacity change)
+ * - treeSet: Iterators invalidate on element removal that affects the current position
+ * - JSet: Iterators invalidate on any structural modification
+ *
+ * Exception Safety:
+ * - Basic guarantee: Container remains valid but unspecified state on exception
+ * - Strong guarantee for some operations (no-throw if element operations are noexcept)
+ * - Allocator-aware exception handling
  *
  * @see set.h For the base interface definition
  * @see hashTable.h For hashSet implementation details
  * @see RBTree.h For treeSet implementation details
  * @see skipList.h For JSet implementation details
+ * @see printable.h For string formatting support
  */
 
 namespace original {
@@ -278,6 +291,27 @@ namespace original {
          */
         hashSet& operator=(hashSet&& other) noexcept;
 
+        /**
+         * @brief Swaps contents with another hashSet
+         * @param other hashSet to swap with
+         * @note No-throw guarantee if element swap and allocator swap are noexcept
+         * @details Efficiently exchanges:
+         * - Bucket arrays and their contents
+         * - Size counters
+         * - Hash function instances
+         * - Allocators (if propagate_on_container_swap is true)
+         *
+         * Performance: O(1) - pointer swaps only
+         * Iterator Invalidation: All iterators from both sets are invalidated
+         *
+         * Example usage:
+         * @code{.cpp}
+         * hashSet<int> set1, set2;
+         * set1.add(1); set2.add(2);
+         * set1.swap(set2);
+         * // Now set1 contains 2, set2 contains 1
+         * @endcode
+         */
         void swap(hashSet& other) noexcept;
 
         /**
@@ -564,6 +598,27 @@ namespace original {
          */
         treeSet& operator=(treeSet&& other) noexcept;
 
+        /**
+         * @brief Swaps contents with another treeSet
+         * @param other treeSet to swap with
+         * @note No-throw guarantee if element swap and allocator swap are noexcept
+         * @details Efficiently exchanges:
+         * - Root nodes of the Red-Black Trees
+         * - Size counters
+         * - Comparison function instances
+         * - Allocators (if propagate_on_container_swap is true)
+         *
+         * Performance: O(1) - pointer swaps only
+         * Iterator Invalidation: All iterators from both sets are invalidated
+         *
+         * Example usage:
+         * @code{.cpp}
+         * treeSet<int> set1, set2;
+         * set1.add(1); set2.add(2);
+         * set1.swap(set2);
+         * // Now set1 contains 2, set2 contains 1
+         * @endcode
+         */
         void swap(treeSet& other) noexcept;
 
         /**
@@ -854,6 +909,27 @@ namespace original {
          */
         JSet& operator=(JSet&& other) noexcept;
 
+        /**
+         * @brief Swaps contents with another JSet
+         * @param other JSet to swap with
+         * @note No-throw guarantee if element swap and allocator swap are noexcept
+         * @details Efficiently exchanges:
+         * - Head nodes of the skip lists
+         * - Size counters
+         * - Comparison function instances
+         * - Allocators (if propagate_on_container_swap is true)
+         *
+         * Performance: O(1) - pointer swaps only
+         * Iterator Invalidation: All iterators from both sets are invalidated
+         *
+         * Example usage:
+         * @code{.cpp}
+         * JSet<int> set1, set2;
+         * set1.add(1); set2.add(2);
+         * set1.swap(set2);
+         * // Now set1 contains 2, set2 contains 1
+         * @endcode
+         */
         void swap(JSet& other) noexcept;
 
         /**
@@ -922,14 +998,74 @@ namespace original {
 }
 
 namespace std {
+    /**
+     * @brief std::swap specialization for hashSet
+     * @tparam TYPE Element type
+     * @tparam HASH Hash function type
+     * @tparam ALLOC Allocator type
+     * @param lhs First hashSet to swap
+     * @param rhs Second hashSet to swap
+     * @note No-throw guarantee if hashSet::swap is noexcept
+     * @details Enables ADL-friendly swapping for use with standard algorithms
+     * and containers. Delegates to hashSet::swap for actual implementation.
+     *
+     * Example usage with standard algorithms:
+     * @code{.cpp}
+     * hashSet<int> set1, set2;
+     * std::swap(set1, set2);  // Uses this specialization
+     * std::sort(/* ... * /, [](auto& a, auto& b) {
+     *     std::swap(a, b);    // Also uses this specialization
+     * });
+     * @endcode
+     */
     template <typename TYPE, typename HASH, typename ALLOC>
     void swap(original::hashSet<TYPE, HASH, ALLOC>& lhs, // NOLINT
               original::hashSet<TYPE, HASH, ALLOC>& rhs) noexcept;
 
+    /**
+     * @brief std::swap specialization for treeSet
+     * @tparam TYPE Element type
+     * @tparam COMPARE Comparison function type
+     * @tparam ALLOC Allocator type
+     * @param lhs First treeSet to swap
+     * @param rhs Second treeSet to swap
+     * @note No-throw guarantee if treeSet::swap is noexcept
+     * @details Enables ADL-friendly swapping for use with standard algorithms
+     * and containers. Delegates to treeSet::swap for actual implementation.
+     *
+     * Example usage with standard algorithms:
+     * @code{.cpp}
+     * treeSet<int> set1, set2;
+     * std::swap(set1, set2);  // Uses this specialization
+     * std::sort(/* ... * /, [](auto& a, auto& b) {
+     *     std::swap(a, b);    // Also uses this specialization
+     * });
+     * @endcode
+     */
     template <typename TYPE, typename COMPARE, typename ALLOC>
     void swap(original::treeSet<TYPE, COMPARE, ALLOC>& lhs, // NOLINT
               original::treeSet<TYPE, COMPARE, ALLOC>& rhs) noexcept;
 
+    /**
+     * @brief std::swap specialization for JSet
+     * @tparam TYPE Element type
+     * @tparam COMPARE Comparison function type
+     * @tparam ALLOC Allocator type
+     * @param lhs First JSet to swap
+     * @param rhs Second JSet to swap
+     * @note No-throw guarantee if JSet::swap is noexcept
+     * @details Enables ADL-friendly swapping for use with standard algorithms
+     * and containers. Delegates to JSet::swap for actual implementation.
+     *
+     * Example usage with standard algorithms:
+     * @code{.cpp}
+     * JSet<int> set1, set2;
+     * std::swap(set1, set2);  // Uses this specialization
+     * std::sort(/* ... * /, [](auto& a, auto& b) {
+     *     std::swap(a, b);    // Also uses this specialization
+     * });
+     * @endcode
+     */
     template <typename TYPE, typename COMPARE, typename ALLOC>
     void swap(original::JSet<TYPE, COMPARE, ALLOC>& lhs, // NOLINT
               original::JSet<TYPE, COMPARE, ALLOC>& rhs) noexcept;

@@ -9,6 +9,23 @@
  * @brief Custom exception classes and callback validation utilities.
  * @details This header defines domain-specific exception types for the Original project,
  *          along with compile-time and runtime validation utilities for callback signatures.
+ *
+ * @section Exception_Hierarchy Exception Hierarchy
+ *
+ * The exception system follows this inheritance structure:
+ * @code
+ * std::exception
+ * └── original::error (implements printable)
+ *     ├── outOfBoundError
+ *     ├── valueError
+ *     ├── nullPointerError
+ *     ├── unSupportedMethodError
+ *     ├── noElementError
+ *     ├── callbackSignatureError
+ *     ├── callbackReturnTypeError
+ *     ├── allocateError
+ *     └── sysError
+ * @endcode
  */
 
 namespace original {
@@ -18,6 +35,22 @@ namespace original {
      * @brief Static utility for validating callback signatures.
      * @details Provides compile-time and runtime checks for callback function signatures,
      *          ensuring they match expected parameter types and return types.
+     *
+     * @section Usage_Examples Usage Examples
+     *
+     * @code
+     * // Valid callback check
+     * auto valid_cb = [](int x, float y) -> double { return x + y; };
+     * callBackChecker::check<decltype(valid_cb), double, int, float>(); // OK
+     *
+     * // Invalid callback check - throws callbackSignatureError
+     * auto invalid_cb = [](int x) { return x; };
+     * callBackChecker::check<decltype(invalid_cb), int, std::string>(); // Throws
+     *
+     * // Invalid return type - throws callbackReturnTypeError
+     * auto wrong_return_cb = [](int x) -> float { return x; };
+     * callBackChecker::check<decltype(wrong_return_cb), int, int>(); // Throws
+     * @endcode
      */
     class callBackChecker {
     public:
@@ -47,6 +80,12 @@ namespace original {
      *
      * @note All exceptions in Original should inherit from this class to
      * maintain consistent error handling behavior across the codebase.
+     *
+     * @section Features Features
+     * - Integrates with C++ standard exception handling
+     * - Provides formatted string output through printable interface
+     * - Supports custom error messages with default fallback
+     * - Enables compile-time error checking through staticError
      */
     class error
             : public std::exception,
@@ -57,6 +96,7 @@ namespace original {
 
         /**
          * @brief Provides default message when no custom message is supplied.
+         * @return Default error message string
          */
         virtual std::string defaultMsg() const {
             return ORIGINAL_ERROR_MSG;
@@ -70,11 +110,16 @@ namespace original {
 
         /**
          * @brief Returns the class name as string.
+         * @return Class name identifier
          */
         std::string className() const override {
             return "error";
         }
 
+        /**
+         * @brief Generates formatted error message
+         * @return Complete error message with class name and description
+         */
         std::string message() const noexcept {
             std::stringstream ss;
             ss << "Original::" << this->className() << ": ";
@@ -88,6 +133,7 @@ namespace original {
 
         /**
          * @brief Returns the full error message.
+         * @return C-style string of the error message
          */
         const char* what() const noexcept override {
             this->msg_ = this->message();
@@ -102,8 +148,17 @@ namespace original {
      * @tparam TRIGGERING_CONDITION Whether to trigger the static assertion.
      * @requires ERR must inherit from error.
      *
+     * @section Usage_Examples Usage Examples
+     *
      * @code
+     * // Compile-time type checking
      * staticError<valueError, !std::is_integral_v<integer>>::asserts();
+     *
+     * // Compile-time bounds checking
+     * staticError<outOfBoundError, (SIZE > MAX_SIZE)>::asserts();
+     *
+     * // Compile-time null pointer checking
+     * staticError<nullPointerError, (ptr == nullptr)>::asserts();
      * @endcode
      */
     template<typename ERR, const bool TRIGGERING_CONDITION>
@@ -113,6 +168,8 @@ namespace original {
     public:
         /**
          * @brief Triggers static assertion if the condition is true.
+         * @details When TRIGGERING_CONDITION is true, this method will cause
+         * a compilation error with a descriptive message based on the ERR type.
          */
         static void asserts(){
             static_assert(!TRIGGERING_CONDITION);
@@ -125,6 +182,12 @@ namespace original {
  * @class outOfBoundError
  * @brief Exception for container index out-of-range errors.
  * @details Thrown when accessing elements beyond valid boundaries.
+ *
+ * @section Typical_Scenarios Typical Scenarios
+ * - Accessing array elements with negative indices
+ * - Using indices >= container size
+ * - Invalid iterator dereferencing
+ * - Buffer overflow attempts
  */
 class outOfBoundError final : public error {
 public:
@@ -146,6 +209,12 @@ public:
  * @class valueError
  * @brief Exception for invalid parameter values.
  * @details Thrown when receiving logically incorrect values (e.g., negative size).
+ *
+ * @section Typical_Scenarios Typical Scenarios
+ * - Negative sizes for containers
+ * - Invalid enum values
+ * - Out-of-range numeric parameters
+ * - Invalid configuration values
  */
 class valueError final : public error {
 public:
@@ -167,6 +236,11 @@ public:
  * @class nullPointerError
  * @brief Exception for null pointer dereference attempts.
  * @details Thrown when accessing resources through null pointers.
+ *
+ * @section Typical_Scenarios Typical Scenarios
+ * - Dereferencing null smart pointers
+ * - Accessing uninitialized raw pointers
+ * - Calling methods on null object references
  */
 class nullPointerError final : public error {
 public:
@@ -188,6 +262,11 @@ public:
  * @class unSupportedMethodError
  * @brief Exception for unimplemented method calls.
  * @details Thrown when calling methods not supported by the target class.
+ *
+ * @section Typical_Scenarios Typical Scenarios
+ * - Calling abstract base class methods
+ * - Using platform-specific features on wrong platforms
+ * - Accessing deprecated or removed functionality
  */
 class unSupportedMethodError final : public error {
 public:
@@ -209,6 +288,12 @@ public:
  * @class noElementError
  * @brief Exception for missing element requests.
  * @details Thrown when querying non-existent elements in containers.
+ *
+ * @section Typical_Scenarios Typical Scenarios
+ * - Removing from empty containers
+ * - Accessing non-existent map keys
+ * - Querying empty optional values
+ * - Popping from empty stacks/queues
  */
 class noElementError final : public error {
 public:
@@ -230,6 +315,11 @@ public:
  * @class callbackSignatureError
  * @brief Exception for callback argument mismatch.
  * @details Thrown when callback parameters don't match expected types.
+ *
+ * @section Typical_Scenarios Typical Scenarios
+ * - Wrong number of callback parameters
+ * - Incompatible parameter types
+ * - Missing required parameters
  */
 class callbackSignatureError final : public error {
 public:
@@ -251,6 +341,11 @@ public:
  * @class callbackReturnTypeError
  * @brief Exception for callback return type mismatch.
  * @details Thrown when callback return type differs from expected type.
+ *
+ * @section Typical_Scenarios Typical Scenarios
+ * - Callback returns wrong type
+ * - Return type not convertible to expected type
+ * - Void return when value expected
  */
 class callbackReturnTypeError final : public error {
 public:
@@ -280,6 +375,11 @@ public:
 *
 * @note Consider checking system memory status before large allocations
 *       when this exception might be expected.
+*
+* @section Typical_Scenarios Typical Scenarios
+* - Large container allocations
+* - Memory pool exhaustion
+* - System out-of-memory conditions
 */
 class allocateError final : public error
 {
@@ -301,6 +401,13 @@ public:
 /**
  * @class sysError
  * @brief Exception for generic system failure.
+ * @details Thrown for operating system or low-level failures.
+ *
+ * @section Typical_Scenarios Typical Scenarios
+ * - File system errors
+ * - Network operation failures
+ * - Hardware access violations
+ * - System call failures
  */
 class sysError final : public error
 {

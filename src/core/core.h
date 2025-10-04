@@ -12,21 +12,31 @@
  * @subsection Containers
  * - Fixed-size containers: array, bitSet
  * - Variable-size containers: vector, forwardChain, chain, blocksList
+ * - Associative containers: hashMap, treeMap, hashSet, treeSet, JSet, JMap
+ * - Container adapters: stack, queue, deque, prique
  *
  * @subsection Memory_Management
  * - Smart pointers: ownerPtr, strongPtr, weakPtr
  * - Allocators: allocatorBase, allocator, objPoolAllocator
  * - Deleters: deleterBase, deleter
+ * - Singleton pattern: singleton
  *
  * @subsection Algorithms_Iterators
- * - Algorithms: allOf/anyOf, find/count, sort/stableSort etc.
+ * - Boolean algorithms: allOf, anyOf, noneOf
+ * - Non-modifying algorithms: find, count, equal
+ * - Modifying algorithms: fill, swap, forEach
+ * - Sorting algorithms: sort, stableSort, introSort
  * - Iterators: iterator, iterAdaptor, directional iterators
  * - Algorithm adapters: transform, filter, comparator
  *
  * @subsection Utilities
- * - Interfaces: printable, comparable, cloneable
+ * - Interfaces: printable, comparable, cloneable, iterable
  * - Tuples: couple, tuple
- * - Others: error handling, maths utilities, config
+ * - Optional types: alternative
+ * - Error handling: error, outOfBoundError, unSupportedMethodError, allocateError, staticError
+ * - Maths utilities: maths
+ * - Configuration: config
+ * - Type definitions: types
  *
  * @section Usage
  * Include this single header to access all core functionality:
@@ -38,6 +48,9 @@
  * @see README.md for project overview and build instructions
  * @see allocator.h For detailed memory management documentation
  * @see chain.h For linked list implementation details
+ * @see array.h For fixed-size array implementation
+ * @see vector.h For dynamic array implementation
+ * @see algorithms.h For algorithm implementations
  */
 
 

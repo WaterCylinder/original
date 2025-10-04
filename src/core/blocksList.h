@@ -387,6 +387,12 @@ namespace original {
          */
         blocksList& operator=(blocksList&& other) noexcept;
 
+        /**
+         * @brief Swaps the contents of this blocksList with another.
+         * @param other The blocksList to swap with.
+         * @details Exchanges the contents and allocators (if propagate_on_container_swap is true)
+         *          of this blocksList with another.
+         */
         void swap(blocksList& other) noexcept;
 
         /**
@@ -487,6 +493,13 @@ namespace original {
 }// namespace original
 
 namespace std {
+    /**
+     * @brief Specialization of std::swap for original::blocksList
+     * @tparam TYPE Element type
+     * @tparam ALLOC Allocator type
+     * @param lhs Left blocksList
+     * @param rhs Right blocksList
+     */
     template<typename TYPE, typename ALLOC>
     void swap(original::blocksList<TYPE, ALLOC>& lhs, original::blocksList<TYPE, ALLOC>& rhs) noexcept; // NOLINT
 }

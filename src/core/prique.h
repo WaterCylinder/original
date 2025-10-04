@@ -101,6 +101,22 @@ namespace original
          */
         prique& operator=(prique&& other) noexcept;
 
+        /**
+         * @brief Swaps contents with another priority queue
+         * @param other Priority queue to swap with
+         * @note No-throw guarantee
+         * @details Exchanges both the underlying container and the comparison
+         * functor. This method shadows the base class swap to ensure all
+         * resources (container and comparator) are properly exchanged.
+         *
+         * Example usage:
+         * @code{.cpp}
+         * prique<int> q1, q2;
+         * q1.push(1);
+         * q2.push(2);
+         * q1.swap(q2);  // Now q1 contains 2, q2 contains 1
+         * @endcode
+         */
         void swap(prique& other) noexcept;
 
         /**

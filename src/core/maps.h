@@ -14,42 +14,67 @@
 
 /**
  * @file maps.h
- * @brief Implementation of map containers
- * @details Provides three map implementations with different underlying data structures:
- * 1. hashMap - Hash table based implementation
- * 2. treeMap - Red-Black Tree based implementation
- * 3. JMap - Skip List based implementation
+ * @brief Implementation of map containers with different underlying data structures
+ * @details Provides three map implementations with different performance characteristics
+ * and iteration capabilities:
+ * 1. hashMap - Hash table based implementation (unordered, fastest average case)
+ * 2. treeMap - Red-Black Tree based implementation (ordered, consistent performance)
+ * 3. JMap - Skip List based implementation (ordered, probabilistic balance)
  *
  * Common Features:
  * - Key-value pair storage with unique keys
- * - Full iterator support
+ * - Full iterator support with different capabilities
  * - Customizable comparison/hash functions
- * - Customizable allocators
- * - Exception safety guarantees
+ * - Customizable allocators with propagation support
+ * - Exception safety guarantees (basic guarantee for most operations)
  * - Polymorphic usage through map interface
  * - Both const and non-const element access
+ * - Operator[] for convenient element access and insertion
+ * - Key existence checking with contains() method
+ * - Value updating with insert() or operator[]
+ * - Integration with printable for string representation
  *
  * Performance Characteristics:
- * | Container | Insertion    | Lookup   | Deletion | Ordered | Memory Usage |
- * |-----------|--------------|----------|----------|---------|--------------|
- * | hashMap   | O(1) avg     | O(1)     | O(1)     | No      | Medium-High  |
- * | treeMap   | O(log n)     | O(log n) | O(log n) | Yes     | Low          |
- * | JMap      | O(log n) avg | O(log n) | O(log n) | Yes     | Medium       |
+ * | Container | Insertion    | Lookup   | Deletion | Ordered | Memory Usage | Iterator Type |
+ * |-----------|--------------|----------|----------|---------|--------------|---------------|
+ * | hashMap   | O(1) avg     | O(1)     | O(1)     | No      | Medium-High  | Forward-only  |
+ * | treeMap   | O(log n)     | O(log n) | O(log n) | Yes     | Low          | Bidirectional |
+ * | JMap      | O(log n) avg | O(log n) | O(log n) | Yes     | Medium       | Forward-only  |
+ *
+ * Memory Characteristics:
+ * | Container | Node Structure | Overhead | Rehashing | Balance Operations |
+ * |-----------|----------------|----------|-----------|-------------------|
+ * | hashMap   | Key-Value + Next | 1 pointer | Yes       | No                |
+ * | treeMap   | Key-Value + Parent/Child/Color | 3 pointers + color | No | Yes (Red-Black) |
+ * | JMap      | Key-Value + Multi-level links | ~2 pointers avg | No | Probabilistic |
  *
  * Usage Guidelines:
- * - Use hashMap for maximum performance when order doesn't matter
- * - Use treeMap for ordered traversal and consistent performance
- * - Use JMap for concurrent scenarios or when probabilistic balance is preferred
+ * - Use hashMap for maximum performance when key order doesn't matter and keys are hashable
+ * - Use treeMap for ordered traversal, range queries, and consistent worst-case performance
+ * - Use JMap for concurrent scenarios (external synchronization) or when probabilistic balance is preferred
  *
- * Additional Features:
- * - Operator[] for convenient element access
- * - Key existence checking
- * - Value updating
+ * Iterator Invalidation:
+ * - hashMap: Iterators invalidate on rehash (insertion that causes capacity change)
+ * - treeMap: Iterators invalidate on element removal that affects the current position
+ * - JMap: Iterators invalidate on any structural modification
+ *
+ * Key Requirements:
+ * - hashMap: Keys must be hashable (provide std::hash specialization or custom HASH)
+ * - treeMap/JMap: Keys must be comparable (provide operator< or custom Compare)
+ * - All keys must be copyable and movable
+ * - Values must be default constructible for operator[] usage
+ *
+ * Exception Safety:
+ * - Basic guarantee: Container remains valid but unspecified state on exception
+ * - Strong guarantee for some operations (no-throw if element operations are noexcept)
+ * - Allocator-aware exception handling
  *
  * @see map.h For the base interface definition
  * @see hashTable.h For hashMap implementation details
  * @see RBTree.h For treeMap implementation details
  * @see skipList.h For JMap implementation details
+ * @see printable.h For string formatting support
+ * @see couple.h For key-value pair implementation
  */
 
 namespace original {
@@ -293,6 +318,30 @@ namespace original {
              */
             hashMap& operator=(hashMap&& other) noexcept;
 
+            /**
+             * @brief Swaps contents with another hashMap
+             * @param other hashMap to swap with
+             * @note No-throw guarantee if element swap and allocator swap are noexcept
+             * @details Efficiently exchanges all internal resources between two hashMaps:
+             * - Bucket arrays and their contents (key-value pairs)
+             * - Size counters
+             * - Hash function instances
+             * - Allocators (if ALLOC::propagate_on_container_swap::value is true)
+             *
+             * Performance: O(1) - pointer and integer swaps only, no element copying
+             * Memory: No additional memory allocation during swap
+             * Iterator Invalidation: All iterators from both maps are invalidated
+             *
+             * Allocator Handling:
+             * - If ALLOC::propagate_on_container_swap::value is true, allocators are swapped
+             * - Otherwise, allocators remain with their original containers
+             * - Behavior consistent with C++ standard container requirements
+             *
+             * @warning All existing iterators, pointers, and references to elements
+             *          in both containers are invalidated by this operation
+             * @see std::swap For the standard swap algorithm
+             * @see hashMap::operator= For copy and move assignment alternatives
+             */
             void swap(hashMap& other) noexcept;
 
             /**
@@ -626,6 +675,31 @@ namespace original {
          */
         treeMap& operator=(treeMap&& other) noexcept;
 
+        /**
+         * @brief Swaps contents with another treeMap
+         * @param other treeMap to swap with
+         * @note No-throw guarantee if element swap and allocator swap are noexcept
+         * @details Efficiently exchanges all internal resources between two treeMaps:
+         * - Root nodes of the Red-Black Trees (entire tree structures)
+         * - Size counters
+         * - Comparison function instances
+         * - Allocators (if ALLOC::propagate_on_container_swap::value is true)
+         *
+         * Performance: O(1) - pointer and integer swaps only, no tree rebalancing
+         * Memory: No additional memory allocation during swap
+         * Iterator Invalidation: All iterators from both maps are invalidated
+         *
+         * Allocator Handling:
+         * - If ALLOC::propagate_on_container_swap::value is true, allocators are swapped
+         * - Otherwise, each tree retains its original allocator
+         * - Consistent with C++ standard associative container behavior
+         *
+         * @warning All existing iterators, pointers, and references to elements
+         *          in both containers are invalidated by this operation
+         * @note The Red-Black tree balance properties are preserved in both maps
+         * @see std::swap For the standard swap algorithm
+         * @see treeMap::operator= For copy and move assignment alternatives
+         */
         void swap(treeMap& other) noexcept;
 
         /**
@@ -958,6 +1032,31 @@ namespace original {
          */
         JMap& operator=(JMap&& other) noexcept;
 
+        /**
+         * @brief Swaps contents with another JMap
+         * @param other JMap to swap with
+         * @note No-throw guarantee if element swap and allocator swap are noexcept
+         * @details Efficiently exchanges all internal resources between two JMaps:
+         * - Head nodes of the skip lists (entire multi-level structures)
+         * - Size counters
+         * - Comparison function instances
+         * - Allocators (if ALLOC::propagate_on_container_swap::value is true)
+         *
+         * Performance: O(1) - pointer and integer swaps only, no node reconstruction
+         * Memory: No additional memory allocation during swap
+         * Iterator Invalidation: All iterators from both maps are invalidated
+         *
+         * Allocator Handling:
+         * - If ALLOC::propagate_on_container_swap::value is true, allocators are swapped
+         * - Otherwise, each skip list retains its original allocator
+         * - Behavior designed for consistency with other map implementations
+         *
+         * @warning All existing iterators, pointers, and references to elements
+         *          in both containers are invalidated by this operation
+         * @note The skip list level structures and ordering are preserved in both maps
+         * @see std::swap For the standard swap algorithm
+         * @see JMap::operator= For copy and move assignment alternatives
+         */
         void swap(JMap& other) noexcept;
 
         /**
@@ -1061,14 +1160,96 @@ namespace original {
 }
 
 namespace std {
+    /**
+     * @brief std::swap specialization for hashMap
+     * @tparam K_TYPE Key type (must be hashable and copyable)
+     * @tparam V_TYPE Value type (must be copyable and movable)
+     * @tparam HASH Hash function type (default: hash<K_TYPE>)
+     * @tparam ALLOC Allocator type for memory management
+     * @param lhs First hashMap to swap
+     * @param rhs Second hashMap to swap
+     * @note No-throw guarantee if hashMap::swap is noexcept
+     * @details Provides standard library integration for hashMap by specializing
+     * std::swap. This enables:
+     * - ADL-friendly swapping in generic code
+     * - Use with standard algorithms (std::sort, std::rotate, etc.)
+     * - Consistent behavior with standard containers
+     *
+     * The implementation delegates to hashMap::swap() to ensure proper handling of:
+     * - Bucket array exchange
+     * - Size counter swapping
+     * - Hash function transfer
+     * - Allocator propagation according to ALLOC traits
+     *
+     * Iterator Invalidation: All iterators from both maps are invalidated
+     * Exception Safety: No-throw if hashMap::swap is noexcept
+     *
+     * @see hashMap::swap For the underlying swap implementation
+     * @see std::swap For the general swap algorithm
+     * @see <algorithm> For standard algorithms that use swap
+     */
     template <typename K_TYPE, typename V_TYPE, typename HASH, typename ALLOC>
     void swap(original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>& lhs, // NOLINT
               original::hashMap<K_TYPE, V_TYPE, HASH, ALLOC>& rhs) noexcept;
 
+    /**
+     * @brief std::swap specialization for treeMap
+     * @tparam K_TYPE Key type (must be comparable and copyable)
+     * @tparam V_TYPE Value type (must be copyable and movable)
+     * @tparam COMPARE Comparison function type (default: increaseComparator<K_TYPE>)
+     * @tparam ALLOC Allocator type for memory management
+     * @param lhs First treeMap to swap
+     * @param rhs Second treeMap to swap
+     * @note No-throw guarantee if treeMap::swap is noexcept
+     * @details Provides standard library integration for treeMap by specializing
+     * std::swap. This enables consistent behavior with standard ordered containers
+     * like std::map and std::set.
+     *
+     * The implementation delegates to treeMap::swap() to ensure proper handling of:
+     * - Red-Black tree root node exchange
+     * - Size counter swapping
+     * - Comparison function transfer
+     * - Allocator propagation according to ALLOC traits
+     *
+     * Iterator Invalidation: All iterators from both maps are invalidated
+     * Exception Safety: No-throw if treeMap::swap is noexcept
+     * Order Preservation: Both maps maintain their key ordering after swap
+     *
+     * @see treeMap::swap For the underlying swap implementation
+     * @see std::map For the standard ordered map comparison
+     * @see std::swap For the general swap algorithm
+     */
     template <typename K_TYPE, typename V_TYPE, typename COMPARE, typename ALLOC>
     void swap(original::treeMap<K_TYPE, V_TYPE, COMPARE, ALLOC>& lhs, // NOLINT
               original::treeMap<K_TYPE, V_TYPE, COMPARE, ALLOC>& rhs) noexcept;
 
+    /**
+     * @brief std::swap specialization for JMap
+     * @tparam K_TYPE Key type (must be comparable and copyable)
+     * @tparam V_TYPE Value type (must be copyable and movable)
+     * @tparam COMPARE Comparison function type (default: increaseComparator<K_TYPE>)
+     * @tparam ALLOC Allocator type for memory management
+     * @param lhs First JMap to swap
+     * @param rhs Second JMap to swap
+     * @note No-throw guarantee if JMap::swap is noexcept
+     * @details Provides standard library integration for JMap by specializing
+     * std::swap. This enables probabilistic skip list containers to work seamlessly
+     * with standard C++ algorithms and generic programming patterns.
+     *
+     * The implementation delegates to JMap::swap() to ensure proper handling of:
+     * - Skip list head node exchange (entire multi-level structure)
+     * - Size counter swapping
+     * - Comparison function transfer
+     * - Allocator propagation according to ALLOC traits
+     *
+     * Iterator Invalidation: All iterators from both maps are invalidated
+     * Exception Safety: No-throw if JMap::swap is noexcept
+     * Probabilistic Structure: Both skip lists maintain their level distributions
+     *
+     * @see JMap::swap For the underlying swap implementation
+     * @see skipList For the underlying probabilistic data structure
+     * @see std::swap For the general swap algorithm
+     */
     template <typename K_TYPE, typename V_TYPE, typename COMPARE, typename ALLOC>
     void swap(original::JMap<K_TYPE, V_TYPE, COMPARE, ALLOC>& lhs, // NOLINT
               original::JMap<K_TYPE, V_TYPE, COMPARE, ALLOC>& rhs) noexcept;

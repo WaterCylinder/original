@@ -196,6 +196,11 @@ namespace original {
          */
         array& operator=(array&& other) noexcept;
 
+        /**
+         * @brief Swaps the contents of two arrays
+         * @param other Array to swap with
+         * @details Exchanges the size, data pointer, and optionally the allocator between two arrays
+         */
         void swap(array& other) noexcept;
 
         /**
@@ -278,6 +283,13 @@ namespace original {
 } // namespace original
 
 namespace std {
+    /**
+     * @brief Specialization of std::swap for array
+     * @tparam TYPE Type of elements in the array
+     * @tparam ALLOC Allocator type used by the array
+     * @param lhs First array to swap
+     * @param rhs Second array to swap
+     */
     template<typename TYPE, typename ALLOC>
     void swap(original::array<TYPE, ALLOC>& lhs, original::array<TYPE, ALLOC>& rhs) noexcept; // NOLINT
 }

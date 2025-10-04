@@ -156,6 +156,36 @@ namespace original {
     template <typename T>
     concept Comparable = TotallyComparable<T>;
 
+    /**
+     * @concept CmpTraits
+     * @brief Requires type to implement the comparable interface with compareTo method
+     * @tparam T The type to check
+     * @details This concept enforces that a type provides a Java-style comparison interface
+     *          through a `compareTo` method that returns an integer indicating ordering.
+     *          Types satisfying this concept can be used with the `comparable` base class
+     *          and benefit from automatically generated comparison operators.
+     *
+     * Requirements:
+     * - Must have method: `integer compareTo(const T& other) const`
+     * - Return value semantics: negative (less), zero (equal), positive (greater)
+     *
+     * @code{.cpp}
+     * // Example of a type satisfying CmpTraits
+     * class MyComparable {
+     * public:
+     *     integer compareTo(const MyComparable& other) const {
+     *         return this->value - other.value;
+     *     }
+     *     // Automatically gets ==, !=, <, >, <=, >= operators
+     * private:
+     *     int value;
+     * };
+     *
+     * static_assert(CmpTraits<MyComparable>);  // Succeeds
+     * @endcode
+     *
+     * @see comparable
+     */
     template <typename T>
     concept CmpTraits = requires(const T& a, const T& b) {
         { a.compareTo(b) } -> std::same_as<integer>;
@@ -239,6 +269,44 @@ namespace original {
             { a.equals(b) } -> std::convertible_to<bool>;
         };
 
+    /**
+     * @concept HashTraits
+     * @brief Requires type to implement the hashable interface with toHash method
+     * @tparam T The type to check
+     * @details This concept enforces that a type provides a custom hashing interface
+     *          through a `toHash` method and supports equality comparison. Types
+     *          satisfying this concept can be used with the `hashable` base class
+     *          and benefit from automatic STL hash integration.
+     *
+     * Requirements:
+     * - Must have method: `u_integer toHash() const noexcept`
+     * - Must support equality comparison (either `operator==` or `equals` method)
+     * - Should provide consistent hashing (equal objects have equal hash codes)
+     *
+     * @code{.cpp}
+     * // Example of a type satisfying HashTraits
+     * class MyHashable {
+     * public:
+     *     u_integer toHash() const noexcept {
+     *         return std::hash<int>{}(value);
+     *     }
+     *     bool operator==(const MyHashable& other) const {
+     *         return value == other.value;
+     *     }
+     * private:
+     *     int value;
+     * };
+     *
+     * static_assert(HashTraits<MyHashable>);  // Succeeds
+     * @endcode
+     *
+     * Hash Consistency Requirement:
+     * - If `a == b`, then `a.toHash() == b.toHash()`
+     * - The converse is not required (hash collisions are allowed)
+     *
+     * @see hashable
+     * @see hash
+     */
     template <typename T>
     concept HashTraits =
         requires(const T& t) {

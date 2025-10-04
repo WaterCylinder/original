@@ -1,7 +1,6 @@
 #ifndef ALLOCATOR_H
 #define ALLOCATOR_H
 
-
 #include "config.h"
 #include "error.h"
 #include "maths.h"
@@ -41,7 +40,7 @@ namespace original {
     *          for other allocator implementations in this namespace.
     */
     class allocators final {
-        public:
+    public:
         /**
         * @brief Allocates raw memory using global operator new
         * @tparam TYPE Type of objects to allocate
@@ -239,7 +238,6 @@ namespace original {
         allocatedChunks* allocated_list_head; ///< List of all allocated blocks
         u_integer* chunks_available;     ///< Array of available chunks per size class
 
-
         /**
         * @brief Initializes the memory pool structures
         * @details Allocates and initializes:
@@ -320,6 +318,10 @@ namespace original {
         */
         objPoolAllocator& operator=(objPoolAllocator&& other) noexcept;
 
+        /**
+        * @brief Swaps the contents of two allocators
+        * @param other Allocator to swap with
+        */
         void swap(objPoolAllocator& other) noexcept;
 
         /**
@@ -347,6 +349,12 @@ namespace original {
 }
 
 namespace std {
+    /**
+    * @brief Specialization of std::swap for objPoolAllocator
+    * @tparam TYPE Type of objects allocated
+    * @param lhs First allocator to swap
+    * @param rhs Second allocator to swap
+    */
     template<typename TYPE>
     void swap(original::objPoolAllocator<TYPE>& lhs, original::objPoolAllocator<TYPE>& rhs) noexcept; // NOLINT
 }

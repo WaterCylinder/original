@@ -2,6 +2,48 @@
 #define ORIGINAL_SINGLETON_H
 #include "ownerPtr.h"
 
+
+/**
+ * @file singleton.h
+ * @brief Thread-safe singleton pattern implementation with ownership management
+ *
+ * This file implements a robust singleton pattern with the following features:
+ * - Lazy initialization with thread safety
+ * - Exclusive ownership management using ownerPtr
+ * - Controlled lifecycle management (init/clear/reset)
+ * - Exception-safe operations
+ * - Prevention of copy and move operations
+ * - Runtime instance existence checking
+ *
+ * The singleton ensures that only one instance of the templated type exists
+ * throughout the application lifetime, with proper initialization order and
+ * destruction guarantees.
+ *
+ * @note This implementation is not thread-safe for simultaneous init()/reset() calls.
+ *       For thread-safe usage, ensure proper synchronization at the application level.
+ * @note The singleton instance is automatically destroyed when the program exits
+ *       or when explicitly cleared/reset.
+ *
+ * @example
+ * // Initialize singleton with constructor arguments
+ * singleton<DatabaseConnection>::init("localhost", 3306, "username", "password");
+ *
+ * // Access the singleton instance
+ * auto& db = singleton<DatabaseConnection>::instance();
+ * db.executeQuery("SELECT * FROM users");
+ *
+ * // Check if singleton exists
+ * if (singleton<DatabaseConnection>::exist()) {
+ *     // Safe to use instance
+ * }
+ *
+ * // Reset with new configuration
+ * singleton<DatabaseConnection>::reset("newhost", 3306, "newuser", "newpass");
+ *
+ * // Clean up
+ * singleton<DatabaseConnection>::clear();
+ */
+
 namespace original {
     /**
      * @class singleton

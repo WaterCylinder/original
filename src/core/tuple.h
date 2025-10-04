@@ -18,9 +18,13 @@
  * - Move semantics
  * - Structured binding support
  * - Tuple concatenation and slicing
+ * - Compile-time bounds checking
+ * - Type conversion validation
  *
  * @note Structured binding is enabled via `std::tuple_size` and `std::tuple_element` specializations.
  *       Value type deduction is used to ensure compatibility with `const auto& [a, b, c] = myTuple` syntax.
+ * @note All index operations are compile-time checked for bounds safety.
+ * @note Type conversion validation ensures type safety during element assignment.
  *
  * @example
  * original::tuple<int, std::string> t(10, "hi");
@@ -69,6 +73,12 @@ namespace original {
 
         /**
          * @brief Specialization for single element (base case)
+         * @tparam I Current element index
+         * @tparam T Element type
+         *
+         * @details This is the base case of the recursive tuple implementation.
+         *          Stores a single element and provides the termination condition
+         *          for recursive template operations.
          */
         template<u_integer I, typename T>
         class tupleImpl<I, T> : public printable, public comparable<tupleImpl<I, T>> {
@@ -99,6 +109,13 @@ namespace original {
 
         /**
          * @brief Specialization for two elements
+         * @tparam I Current element index
+         * @tparam T First element type
+         * @tparam TS Second element type
+         *
+         * @details Stores two elements in a recursive structure. The current element
+         *          is stored directly, while the remaining elements are stored in
+         *          a nested tupleImpl structure.
          */
         template<u_integer I, typename T, typename TS>
         class tupleImpl<I, T, TS> : public printable, public comparable<tupleImpl<I, T, TS>> {
@@ -130,6 +147,13 @@ namespace original {
 
         /**
          * @brief General case for three or more elements
+         * @tparam I Current element index
+         * @tparam T First element type
+         * @tparam TS Remaining element types
+         *
+         * @details Recursively stores multiple elements. Each level stores one element
+         *          and contains the next level for remaining elements. This creates
+         *          a compile-time recursive data structure.
          */
         template<u_integer I, typename T, typename... TS>
         class tupleImpl<I, T, TS...> : public printable, public comparable<tupleImpl<I, T, TS...>> {
@@ -165,7 +189,11 @@ namespace original {
          * @brief Internal helper to slice a tuple from a specific index with given indices
          * @tparam IDX_S Compile-time index sequence (used to construct elements)
          * @tparam BEGIN_IDX The beginning index of the slice
+         * @param indexes Compile-time integer sequence representing indices to extract
+         * @param begin Starting index marker
          * @return A new tuple containing elements from index BEGIN_IDX to BEGIN_IDX + N_ELEMS - 1
+         *
+         * @note This is an internal implementation detail used by the public slice() method.
          */
         template<u_integer... IDX_S, u_integer BEGIN_IDX>
         auto _slice(std::integer_sequence<u_integer, IDX_S...> indexes,
@@ -180,6 +208,8 @@ namespace original {
          * @param ts Compile-time index sequence for current tuple
          * @param os Compile-time index sequence for other tuple
          * @return A new tuple containing elements of both tuples
+         *
+         * @note This is an internal implementation detail used by the operator+ method.
          */
         template<typename... O_TYPES, u_integer... T_SIZE, u_integer... O_SIZE>
         tuple<TYPES..., O_TYPES...> _concat(const tuple<O_TYPES...>& other,
@@ -188,31 +218,172 @@ namespace original {
 
     public:
         tuple() = default;
+
+        /**
+         * @brief Constructs a tuple with the given elements
+         * @param e Elements to store in the tuple
+         *
+         * @note Uses perfect forwarding to preserve value categories.
+         */
         explicit tuple(TYPES&&... e);
+
+        /**
+         * @brief Copy constructor - creates a deep copy of another tuple
+         * @param other Tuple to copy from
+         *
+         * @note Performs element-wise copy construction of all stored elements.
+         *       Each element's copy constructor is invoked.
+         */
         tuple(const tuple& other);
+
+        /**
+         * @brief Copy assignment operator - assigns contents from another tuple
+         * @param other Tuple to assign from
+         * @return Reference to this tuple
+         *
+         * @note Performs element-wise copy assignment of all stored elements.
+         *       Self-assignment check is performed for safety.
+         *       Each element's copy assignment operator is invoked.
+         */
         tuple& operator=(const tuple& other);
+
+        /**
+         * @brief Move constructor - transfers ownership from another tuple
+         * @param other Tuple to move from
+         *
+         * @note Performs element-wise move construction of all stored elements.
+         *       The source tuple is left in a valid but unspecified state.
+         *       Each element's move constructor is invoked.
+         * @note noexcept qualified for compatibility with STL containers.
+         */
         tuple(tuple&& other) noexcept;
+
+        /**
+         * @brief Move assignment operator - transfers ownership from another tuple
+         * @param other Tuple to move from
+         * @return Reference to this tuple
+         *
+         * @note Performs element-wise move assignment of all stored elements.
+         *       Self-assignment check is performed for safety.
+         *       The source tuple is left in a valid but unspecified state.
+         *       Each element's move assignment operator is invoked.
+         * @note noexcept qualified for compatibility with STL containers.
+         */
         tuple& operator=(tuple&& other) noexcept;
+
+        /**
+         * @brief Swaps contents with another tuple
+         * @param other Tuple to swap with
+         *
+         * @note Performs element-wise swap of all stored elements.
+         *       Self-swap check is performed (no-op if same object).
+         *       Each element's swap operation or move semantics are used.
+         * @note noexcept qualified for compatibility with STL algorithms.
+         * @note More efficient than copy-and-swap for large tuples.
+         */
         void swap(tuple& other) noexcept;
 
+        /**
+         * @brief Gets the number of elements in the tuple
+         * @return Compile-time constant representing tuple size
+         *
+         * @note consteval ensures this is evaluated at compile-time.
+         * @note The size is determined from the template parameter pack.
+         * @example
+         * constexpr auto s = tuple<int, string, double>::size(); // s == 3
+         */
         static consteval u_integer size() noexcept;
 
+        /**
+         * @brief Gets the element at the specified index (const version)
+         * @tparam IDX Index of the element to retrieve
+         * @return Const reference to the element at index IDX
+         *
+         * @note Compile-time bounds checking is performed.
+         */
         template<u_integer IDX>
         const auto& get() const;
 
+        /**
+         * @brief Gets the element at the specified index (non-const version)
+         * @tparam IDX Index of the element to retrieve
+         * @return Reference to the element at index IDX
+         *
+         * @note Compile-time bounds checking is performed.
+         */
         template<u_integer IDX>
         auto& get();
 
+        /**
+         * @brief Sets the element at the specified index
+         * @tparam IDX Index of the element to set
+         * @tparam E Type of the value to assign (must be convertible to target type)
+         * @param e Value to assign
+         * @return Reference to this tuple for chaining
+         *
+         * @note Compile-time type conversion validation is performed.
+         */
         template<u_integer IDX, typename E>
         tuple& set(const E& e);
 
+        /**
+         * @brief Extracts a sub-tuple from this tuple
+         * @tparam BEGIN_IDX Starting index of the slice
+         * @tparam N_ELEMS Number of elements to extract
+         * @return A new tuple containing the specified slice of elements
+         *
+         * @note Compile-time bounds checking ensures the slice is valid.
+         */
         template<u_integer BEGIN_IDX, u_integer N_ELEMS>
         auto slice() const;
 
+        /**
+         * @brief Compares this tuple with another tuple lexicographically
+         * @param other Tuple to compare with
+         * @return Negative integer if this < other, zero if equal, positive if this > other
+         *
+         * @note Performs element-wise comparison in order from first to last element.
+         *       Comparison stops at the first unequal element.
+         *       Only comparable elements (satisfying Comparable concept) participate in comparison.
+         *       If all comparable elements are equal, tuples are considered equal.
+         * @example
+         * tuple<int, string> t1(1, "a"), t2(1, "b");
+         * t1.compareTo(t2); // returns negative (1 == 1, but "a" < "b")
+         */
         integer compareTo(const tuple& other) const override;
+
+        /**
+         * @brief Converts the tuple to a human-readable string representation
+         * @param enter If true, includes newlines for formatting (currently unused)
+         * @return String representation of the tuple in format "tuple(elem1, elem2, ...)"
+         *
+         * @note Delegates to individual element's toString/formatString methods.
+         *       The output format is consistent and parseable.
+         *       Example: tuple(1, "hello", 3.14)
+         * @note The enter parameter is provided for interface consistency but may be used
+         *       in future versions for pretty-printing with indentation.
+         */
         std::string toString(bool enter) const override;
+
+        /**
+         * @brief Returns the class name identifier for this tuple type
+         * @return String "tuple" representing the class name
+         *
+         * @note Used for runtime type identification and debugging.
+         *       Consistent naming allows for predictable serialization formats.
+         *       All tuple specializations return the same class name.
+         * @see toString() Uses this method to prefix the string representation.
+         */
         std::string className() const override;
 
+        /**
+         * @brief Concatenates this tuple with another tuple
+         * @tparam O_TYPES Element types of the other tuple
+         * @param other Tuple to concatenate with this one
+         * @return A new tuple containing all elements from both tuples
+         *
+         * @note The resulting tuple has type tuple<TYPES..., O_TYPES...>
+         */
         template<typename... O_TYPES>
         tuple<TYPES..., O_TYPES...> operator+(const tuple<O_TYPES...>& other) const;
 
@@ -225,9 +396,27 @@ namespace original {
         friend tuple<F_TYPE, S_TYPE> makeTuple(couple<F_TYPE, S_TYPE>&& cp);
     };
 
+    /**
+     * @brief Creates a tuple from a couple (copy version)
+     * @tparam F_TYPE First element type
+     * @tparam S_TYPE Second element type
+     * @param cp Couple to convert to tuple
+     * @return A new tuple containing the couple's elements
+     *
+     * @note Elements are copy-constructed from the couple.
+     */
     template<typename F_TYPE, typename S_TYPE>
     tuple<F_TYPE, S_TYPE> makeTuple(const couple<F_TYPE, S_TYPE>& cp);
 
+    /**
+     * @brief Creates a tuple from a couple (move version)
+     * @tparam F_TYPE First element type
+     * @tparam S_TYPE Second element type
+     * @param cp Couple to convert to tuple
+     * @return A new tuple containing the couple's elements
+     *
+     * @note Elements are move-constructed from the couple.
+     */
     template<typename F_TYPE, typename S_TYPE>
     tuple<F_TYPE, S_TYPE> makeTuple(couple<F_TYPE, S_TYPE>&& cp);
 }

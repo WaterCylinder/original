@@ -590,7 +590,7 @@ namespace original {
          * @param timeout Maximum time to wait
          * @return True if result is ready within timeout, false otherwise
          */
-        bool waitFor(time::duration timeout) const;
+        bool waitFor(const time::duration& timeout) const;
 
         /**
          * @brief Waits for completion and checks for exceptions
@@ -1273,10 +1273,10 @@ inline void original::async::asyncWrapper<void>::wait() const
     });
 }
 
-inline bool original::async::asyncWrapper<void>::waitFor(time::duration timeout) const
+inline bool original::async::asyncWrapper<void>::waitFor(const time::duration& timeout) const
 {
     uniqueLock lock{this->mutex_};
-    return this->cond_.waitFor(this->mutex_, std::move(timeout), [this]
+    return this->cond_.waitFor(this->mutex_, timeout, [this]
     {
        return this->ready();
     });

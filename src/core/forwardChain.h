@@ -37,6 +37,7 @@ namespace original {
          * @brief Internal node structure for elements in forwardChain.
          * @extends wrapper
          * @details Represents a node in the linked list containing the element data and a pointer to the next node.
+         *          Nodes are allocated using the rebound allocator for forwardChainNode type.
          */
         class forwardChainNode final : public wrapper<TYPE>{
             public:
@@ -88,6 +89,7 @@ namespace original {
                 /**
                  * @brief Gets the pointer to the previous node (not supported in this class).
                  * @return Throws an exception.
+                 * @throws unSupportedMethodError Always thrown as previous pointer is not supported
                  */
                 forwardChainNode* getPPrev() const override;
 
@@ -107,6 +109,7 @@ namespace original {
                  * @brief Connects two nodes by adjusting their pointers.
                  * @param prev The previous node.
                  * @param next The next node.
+                 * @details If prev is not nullptr, sets its next pointer to next
                  */
                 static void connect(forwardChainNode* prev, forwardChainNode* next);
         };
@@ -116,11 +119,11 @@ namespace original {
          * @details The allocator rebound to allocate forwardChainNode objects instead of TYPE elements.
          *          Used internally for all node allocations and de-allocations.
          */
-        using rebind_alloc_node = typename ALLOC::template rebind_alloc<forwardChainNode>;
+        using rebind_alloc_node = ALLOC::template rebind_alloc<forwardChainNode>;
 
         u_integer size_;         ///< The number of elements in the chain
-        forwardChainNode* begin_; ///< Pointer to the first node in the chain
-        rebind_alloc_node rebind_alloc{};
+        forwardChainNode* begin_; ///< Pointer to the first node in the chain (sentinel node)
+        rebind_alloc_node rebind_alloc{}; ///< Rebound allocator for node memory management
 
 
         /**
@@ -133,6 +136,7 @@ namespace original {
          * @brief Finds the node at the specified index.
          * @param index The index of the node to find.
          * @return A pointer to the node at the specified index.
+         * @details Performs linear search from beginning of chain
          */
         forwardChainNode* findNode(integer index) const;
 
@@ -142,6 +146,7 @@ namespace original {
          * @param next Pointer to the next node (default: nullptr)
          * @return Pointer to the newly created node
          * @details Uses the rebound allocator to allocate memory and construct the node
+         * @throws std::bad_alloc if memory allocation fails
          */
         forwardChainNode* createNode(const TYPE& value = TYPE{}, forwardChainNode* next = nullptr);
 
@@ -155,23 +160,27 @@ namespace original {
 
         /**
          * @brief Initializes the chain with a sentinel node.
+         * @details Creates an empty chain with sentinel node and zero size
          */
         void chainInit();
 
         /**
          * @brief Adds a node to the beginning of the chain.
          * @param node The node to add to the beginning.
+         * @details Connects the node after the sentinel and increments size
          */
         void firstAdd(forwardChainNode* node);
 
         /**
          * @brief Deletes the last node of the chain.
          * @return The last node that was deleted.
+         * @details Used when chain has only one element
          */
         forwardChainNode* lastDelete();
 
         /**
          * @brief Destroys the chain by deleting all nodes.
+         * @details Iterates through all nodes and destroys them using destroyNode
          */
         void chainDestroy();
     public:
@@ -181,6 +190,7 @@ namespace original {
          * @brief Iterator for forwardChain, supports single-direction traversal
          * @extends singleDirectionIterator
          * @details Allows forward iteration through the forwardChain with operations like cloning, comparison, etc.
+         *          Provides read and write access to elements.
          */
         class Iterator final : public singleDirectionIterator<TYPE>
         {
@@ -208,6 +218,7 @@ namespace original {
             /**
              * @brief Clones the iterator.
              * @return A new iterator pointing to the same position.
+             * @throws std::bad_alloc if memory allocation fails
              */
             Iterator* clone() const override;
 
