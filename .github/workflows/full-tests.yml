@@ -29,7 +29,7 @@ jobs:
           if [[ "${{ matrix.compiler }}" == "gcc" ]]; then
             sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
             sudo apt-get update
-            sudo apt-get install -y gcc-15 g++-15
+            sudo apt-get install -y gcc-13 g++-13
           fi
           
           if [[ "${{ matrix.compiler }}" == "clang" ]]; then
@@ -41,8 +41,8 @@ jobs:
       - name: Configure and Build
         run: |
           if [[ "${{ matrix.compiler }}" == "gcc" ]]; then
-            export CC=gcc-15
-            export CXX=g++-15
+            export CC=gcc-13
+            export CXX=g++-13
           elif [[ "${{ matrix.compiler }}" == "clang" ]]; then
             export CC=clang-20
             export CXX=clang++-20
