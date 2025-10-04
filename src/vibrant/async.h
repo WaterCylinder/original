@@ -878,12 +878,6 @@ template <typename TYPE>
 TYPE original::async::asyncWrapper<TYPE>::get()
 {
     uniqueLock lock{this->mutex_};
-    this->rethrowIfException();
-    if (this->result_) {
-        TYPE result = std::move(*this->result_);
-        this->result_.reset();
-        return result;
-    }
     this->cond_.wait(this->mutex_, [this]{
         return this->ready();
     });
@@ -899,10 +893,6 @@ template <typename TYPE>
 const TYPE& original::async::asyncWrapper<TYPE>::peek() const
 {
     uniqueLock lock{this->mutex_};
-    this->rethrowIfException();
-    if (this->result_) {
-        return *this->result_;
-    }
     this->cond_.wait(this->mutex_, [this]{
         return this->ready();
     });
@@ -1295,11 +1285,6 @@ inline bool original::async::asyncWrapper<void>::waitFor(time::duration timeout)
 inline void original::async::asyncWrapper<void>::get()
 {
     uniqueLock lock{this->mutex_};
-    this->rethrowIfException();
-    if (this->result_) {
-        this->result_.reset();
-        return;
-    }
     this->cond_.wait(this->mutex_, [this] {
         return this->ready();
     });
@@ -1311,10 +1296,6 @@ inline void original::async::asyncWrapper<void>::get()
 inline void original::async::asyncWrapper<void>::peek() const
 {
     uniqueLock lock{this->mutex_};
-    this->rethrowIfException();
-    if (this->result_) {
-        return;
-    }
     this->cond_.wait(this->mutex_, [this] {
         return this->ready();
     });
