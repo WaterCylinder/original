@@ -834,7 +834,7 @@ void original::async::asyncWrapper<TYPE>::setValue(TYPE&& v)
         this->result_ = makeStrongPtr<TYPE>(std::move(v));
         this->ready_.store(true);
     }
-    this->cond_.notify();
+    this->cond_.notifyAll();
 }
 
 template <typename TYPE>
@@ -845,7 +845,7 @@ void original::async::asyncWrapper<TYPE>::setException(std::exception_ptr e)
         this->e_ = std::move(e);
         this->ready_.store(true);
     }
-    this->cond_.notify();
+    this->cond_.notifyAll();
 }
 
 template <typename TYPE>
@@ -1256,7 +1256,7 @@ inline void original::async::asyncWrapper<void>::setValue()
         this->result_.set();
         this->ready_.store(true);
     }
-    this->cond_.notify();
+    this->cond_.notifyAll();
 }
 
 inline void original::async::asyncWrapper<void>::setException(std::exception_ptr e)
@@ -1266,7 +1266,7 @@ inline void original::async::asyncWrapper<void>::setException(std::exception_ptr
         this->e_ = std::move(e);
         this->ready_.store(true);
     }
-    this->cond_.notify();
+    this->cond_.notifyAll();
 }
 
 inline bool original::async::asyncWrapper<void>::ready() const
