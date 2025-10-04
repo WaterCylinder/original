@@ -1,0 +1,139 @@
+# .github/workflows/deploy-docs-tags.yml
+
+name: Deploy Documentation - Tag Versions
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "docs-version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Detected version: $VERSION"
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz plantuml
+
+      - name: Build documentation
+        run: |
+          # Create the necessary directory structure
+          mkdir -p ../original_docs
+          
+          # Run doxygen
+          doxygen Doxyfile
+          
+          # Check whether the document was generated successfully
+          if [ ! -d "../original_docs/docs/html" ]; then
+            echo "Error: Documentation was not generated in expected location"
+            ls -la ../original_docs/docs/ || echo "Docs directory not found"
+            exit 1
+          fi
+          
+          # Create version information file
+          echo '<!DOCTYPE html>' > ../original_docs/docs/html/version.html
+          echo '<html>' >> ../original_docs/docs/html/version.html
+          echo '<head>' >> ../original_docs/docs/html/version.html
+          echo '    <title>Version Info</title>' >> ../original_docs/docs/html/version.html
+          echo '</head>' >> ../original_docs/docs/html/version.html
+          echo '<body>' >> ../original_docs/docs/html/version.html
+          echo '    <h1>Documentation Version</h1>' >> ../original_docs/docs/html/version.html
+          echo "    <p>Version: ${{ steps.version.outputs.docs-version }}</p>" >> ../original_docs/docs/html/version.html
+          echo "    <p>Tag: ${{ github.ref_name }}</p>" >> ../original_docs/docs/html/version.html
+          echo "    <p>Build Date: $(date -u)</p>" >> ../original_docs/docs/html/version.html
+          echo "    <p>Commit: ${{ github.sha }}</p>" >> ../original_docs/docs/html/version.html
+          echo '</body>' >> ../original_docs/docs/html/version.html
+          echo '</html>' >> ../original_docs/docs/html/version.html
+
+      - name: Deploy to original_docs repository
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          # Configure git
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Clone document repository
+          git clone -b master https://${{ secrets.GH_PAT }}@github.com/FrozenLemonTee/original_docs.git deploy-repo
+          cd deploy-repo
+          
+          # Create versions directory if it doesn't exist
+          mkdir -p versions
+          
+          # Update specific version directory
+          VERSION_DIR="versions/${{ steps.version.outputs.docs-version }}"
+          rm -rf "$VERSION_DIR"
+          mkdir -p "$VERSION_DIR"
+          cp -r ../../original_docs/docs/html/* "$VERSION_DIR"/
+          
+          # Update main index.html to include this version
+          echo '<!DOCTYPE html>' > index.html
+          echo '<html>' >> index.html
+          echo '<head>' >> index.html
+          echo '    <meta http-equiv="refresh" content="0; url=stable/index.html">' >> index.html
+          echo '</head>' >> index.html
+          echo '<body>' >> index.html
+          echo '    <p>Redirecting to <a href="stable/index.html">stable documentation</a>...</p>' >> index.html
+          echo '    <p>Available versions:</p>' >> index.html
+          echo '    <ul>' >> index.html
+          echo '        <li><a href="stable/index.html">Stable (master branch)</a></li>' >> index.html
+          echo '        <li><a href="latest/index.html">Latest (test branch)</a></li>' >> index.html
+          echo '        <li><a href="versions/">Tag versions</a></li>' >> index.html
+          echo '    </ul>' >> index.html
+          echo '    <p>Recent tag versions:</p>' >> index.html
+          echo '    <ul>' >> index.html
+          
+          # List recent tag versions (last 5)
+          for dir in $(ls -1 versions/ | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V -r | head -5); do
+            echo "        <li><a href=\"versions/$dir/index.html\">Version $dir</a></li>" >> index.html
+          done
+          
+          echo '    </ul>' >> index.html
+          echo '</body>' >> index.html
+          echo '</html>' >> index.html
+          
+          # Create versions/index.html to list all available versions
+          echo '<!DOCTYPE html>' > versions/index.html
+          echo '<html>' >> versions/index.html
+          echo '<head>' >> versions/index.html
+          echo '    <title>Versioned Documentation</title>' >> versions/index.html
+          echo '</head>' >> versions/index.html
+          echo '<body>' >> versions/index.html
+          echo '    <h1>Versioned Documentation</h1>' >> versions/index.html
+          echo '    <p>Select a version:</p>' >> versions/index.html
+          echo '    <ul>' >> versions/index.html
+          
+          # List all versions in reverse order (newest first)
+          for dir in $(ls -1 versions/ | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V -r); do
+            echo "        <li><a href=\"$dir/index.html\">Version $dir</a></li>" >> versions/index.html
+          done
+          
+          echo '    </ul>' >> versions/index.html
+          echo '    <p><a href="../stable/index.html">Stable (master branch)</a></p>' >> versions/index.html
+          echo '    <p><a href="../latest/index.html">Latest (test branch)</a></p>' >> versions/index.html
+          echo '</body>' >> versions/index.html
+          echo '</html>' >> versions/index.html
+
+          # Submit and push
+          git add .
+          if git diff-index --quiet HEAD --; then
+            echo "No changes to deploy"
+          else
+            git commit -m "Deploy ${{ steps.version.outputs.docs-version }} documentation from tag ${{ github.ref_name }}"
+            git push origin master
+            echo "✅ Tag documentation version ${{ steps.version.outputs.docs-version }} deployed successfully"
+          fi
