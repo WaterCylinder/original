@@ -4,7 +4,7 @@ name: Deploy Documentation - Latest
 
 on:
   push:
-    branches: [ test ]
+    branches: [ master ] # Temporary change from test to master to avoid concurrency push
 
 jobs:
   build-and-deploy:
