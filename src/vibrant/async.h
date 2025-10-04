@@ -851,7 +851,7 @@ void original::async::asyncWrapper<TYPE>::setException(std::exception_ptr e)
 template <typename TYPE>
 bool original::async::asyncWrapper<TYPE>::ready() const
 {
-    return this->ready_.load();
+    return *this->ready_;
 }
 
 template <typename TYPE>
@@ -1271,7 +1271,7 @@ inline void original::async::asyncWrapper<void>::setException(std::exception_ptr
 
 inline bool original::async::asyncWrapper<void>::ready() const
 {
-    return this->ready_.load();
+    return *this->ready_;
 }
 
 inline void original::async::asyncWrapper<void>::wait() const
