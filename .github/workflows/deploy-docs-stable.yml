@@ -4,7 +4,7 @@ name: Deploy Documentation - Stable
 
 on:
   push:
-    branches: [ master, test ] # Temporary add test branch to deploy list
+    branches: [ master ]
 
 jobs:
   build-and-deploy:
