@@ -4,8 +4,7 @@ name: Deploy Documentation - Stable
 
 on:
   push:
-    branches: [ master ]
-    tags: [ 'v*' ]
+    branches: [ master, test ] # Temporary add test branch to deploy list
 
 jobs:
   build-and-deploy:
@@ -16,19 +15,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Determine documentation version
-        id: version
-        run: |
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
-            TAG=${GITHUB_REF#refs/tags/}
-            echo "docs-version=$TAG" >> $GITHUB_OUTPUT
-            echo "is-tag=true" >> $GITHUB_OUTPUT
-          else
-            echo "docs-version=stable" >> $GITHUB_OUTPUT
-            echo "is-tag=false" >> $GITHUB_OUTPUT
-          fi
-          echo "Version: ${{ steps.version.outputs.docs-version }}"
 
       - name: Install dependencies
         run: |
@@ -58,8 +44,8 @@ jobs:
           echo '</head>' >> ../original_docs/docs/html/version.html
           echo '<body>' >> ../original_docs/docs/html/version.html
           echo '    <h1>Documentation Version</h1>' >> ../original_docs/docs/html/version.html
-          echo "    <p>Version: ${{ steps.version.outputs.docs-version }}</p>" >> ../original_docs/docs/html/version.html
-          echo '    <p>Branch: master</p>' >> ../original_docs/docs/html/version.html
+          echo '    <p>Version: stable</p>' >> ../original_docs/docs/html/version.html
+          echo '    <p>Branch: master</p>' >> index.html
           echo "    <p>Build Date: $(date -u)</p>" >> ../original_docs/docs/html/version.html
           echo "    <p>Commit: ${{ github.sha }}</p>" >> ../original_docs/docs/html/version.html
           echo '</body>' >> ../original_docs/docs/html/version.html
