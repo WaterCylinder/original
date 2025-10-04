@@ -588,7 +588,7 @@ inline void original::thread::sleep(const time::duration& d)
     if (d.value() < 0)
         return;
 
-#ifdef ORIGINAL_COMPILER_GCC
+#if ORIGINAL_COMPILER_GCC || ORIGINAL_COMPILER_CLANG
     const auto deadline = time::point::now() + d;
     const auto ts = deadline.toTimespec();
     int ret;

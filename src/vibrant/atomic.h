@@ -8,7 +8,7 @@
 #include "mutex.h"
 
 namespace original {
-#ifdef ORIGINAL_COMPILER_GCC
+#if ORIGINAL_COMPILER_GCC || ORIGINAL_COMPILER_CLANG
 
     // ==================== Memory Order Enumeration ====================
 
