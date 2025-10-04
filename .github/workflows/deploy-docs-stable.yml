@@ -78,20 +78,10 @@ jobs:
           
           cd deploy-repo
           
-          # Clean up old files (keep the .git directory)
-          find . -maxdepth 1 ! -name '.git' ! -name '.' ! -name 'CNAME' -exec rm -rf {} + 2>/dev/null || true
-          
-          if [[ "${{ steps.version.outputs.is-tag }}" == "true" ]]; then
-            # Tag Version: Create Version Directory
-            mkdir -p versions/${{ steps.version.outputs.docs-version }}
-            cp -r ../../original_docs/docs/html/* versions/${{ steps.version.outputs.docs-version }}/
-            echo "Deployed tag version: ${{ steps.version.outputs.docs-version }}"
-          else
-            # Branch master: update stable version
-            mkdir -p stable
-            cp -r ../../original_docs/docs/html/* stable/
-            echo "Deployed stable version from master"
-          fi
+          # Only update stable directory
+          rm -rf stable
+          mkdir -p stable
+          cp -r ../../original_docs/docs/html/* stable/
           
           # Create index.html redirection
           echo '<!DOCTYPE html>' > index.html
@@ -117,5 +107,5 @@ jobs:
           else
             git commit -m "Deploy ${{ steps.version.outputs.docs-version }} documentation from ${{ github.sha }}"
             git push origin master
-            echo "Documentation deployed successfully"
+            echo "✅ Stable documentation deployed successfully"
           fi
