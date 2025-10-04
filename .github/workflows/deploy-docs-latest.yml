@@ -56,10 +56,8 @@ jobs:
           git clone -b master https://${{ secrets.GH_PAT }}@github.com/FrozenLemonTee/original_docs.git deploy-repo
           cd deploy-repo
           
-          # Clean up old files (keep the .git directory)
-          find . -maxdepth 1 ! -name '.git' ! -name '.' ! -name 'CNAME' -exec rm -rf {} + 2>/dev/null || true
-          
-          # Copy the new document to directory latest
+          # Only update latest directory
+          rm -rf latest
           mkdir -p latest
           cp -r ../../original_docs/docs/html/* latest/
           

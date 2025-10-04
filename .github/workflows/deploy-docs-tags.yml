@@ -1,10 +1,11 @@
-# .github/workflows/deploy-docs-stable.yml
+# .github/workflows/deploy-docs-tags.yml
 
-name: Deploy Documentation - Stable
+name: Deploy Documentation - Tag Versions
 
 on:
   push:
-    branches: [ master ]
+    tags:
+      - 'v*.*.*'
 
 jobs:
   build-and-deploy:
@@ -15,6 +16,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "docs-version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Detected version: $VERSION"
 
       - name: Install dependencies
         run: |
@@ -44,8 +52,8 @@ jobs:
           echo '</head>' >> ../original_docs/docs/html/version.html
           echo '<body>' >> ../original_docs/docs/html/version.html
           echo '    <h1>Documentation Version</h1>' >> ../original_docs/docs/html/version.html
-          echo '    <p>Version: stable</p>' >> ../original_docs/docs/html/version.html
-          echo '    <p>Branch: master</p>' >> index.html
+          echo "    <p>Version: ${{ steps.version.outputs.docs-version }}</p>" >> ../original_docs/docs/html/version.html
+          echo "    <p>Tag: ${{ github.ref_name }}</p>" >> ../original_docs/docs/html/version.html
           echo "    <p>Build Date: $(date -u)</p>" >> ../original_docs/docs/html/version.html
           echo "    <p>Commit: ${{ github.sha }}</p>" >> ../original_docs/docs/html/version.html
           echo '</body>' >> ../original_docs/docs/html/version.html
@@ -61,15 +69,18 @@ jobs:
           
           # Clone document repository
           git clone -b master https://${{ secrets.GH_PAT }}@github.com/FrozenLemonTee/original_docs.git deploy-repo
-          
           cd deploy-repo
           
-          # Only update stable directory
-          rm -rf stable
-          mkdir -p stable
-          cp -r ../../original_docs/docs/html/* stable/
+          # Create versions directory if it doesn't exist
+          mkdir -p versions
           
-          # Create index.html redirection
+          # Update specific version directory
+          VERSION_DIR="versions/${{ steps.version.outputs.docs-version }}"
+          rm -rf "$VERSION_DIR"
+          mkdir -p "$VERSION_DIR"
+          cp -r ../../original_docs/docs/html/* "$VERSION_DIR"/
+          
+          # Update main index.html to include this version
           echo '<!DOCTYPE html>' > index.html
           echo '<html>' >> index.html
           echo '<head>' >> index.html
@@ -83,15 +94,46 @@ jobs:
           echo '        <li><a href="latest/index.html">Latest (test branch)</a></li>' >> index.html
           echo '        <li><a href="versions/">Tag versions</a></li>' >> index.html
           echo '    </ul>' >> index.html
+          echo '    <p>Recent tag versions:</p>' >> index.html
+          echo '    <ul>' >> index.html
+          
+          # List recent tag versions (last 5)
+          for dir in $(ls -1 versions/ | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V -r | head -5); do
+            echo "        <li><a href=\"versions/$dir/index.html\">Version $dir</a></li>" >> index.html
+          done
+          
+          echo '    </ul>' >> index.html
           echo '</body>' >> index.html
           echo '</html>' >> index.html
           
+          # Create versions/index.html to list all available versions
+          echo '<!DOCTYPE html>' > versions/index.html
+          echo '<html>' >> versions/index.html
+          echo '<head>' >> versions/index.html
+          echo '    <title>Versioned Documentation</title>' >> versions/index.html
+          echo '</head>' >> versions/index.html
+          echo '<body>' >> versions/index.html
+          echo '    <h1>Versioned Documentation</h1>' >> versions/index.html
+          echo '    <p>Select a version:</p>' >> versions/index.html
+          echo '    <ul>' >> versions/index.html
+          
+          # List all versions in reverse order (newest first)
+          for dir in $(ls -1 versions/ | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V -r); do
+            echo "        <li><a href=\"$dir/index.html\">Version $dir</a></li>" >> versions/index.html
+          done
+          
+          echo '    </ul>' >> versions/index.html
+          echo '    <p><a href="../stable/index.html">Stable (master branch)</a></p>' >> versions/index.html
+          echo '    <p><a href="../latest/index.html">Latest (test branch)</a></p>' >> versions/index.html
+          echo '</body>' >> versions/index.html
+          echo '</html>' >> versions/index.html
+
           # Submit and push
           git add .
           if git diff-index --quiet HEAD --; then
             echo "No changes to deploy"
           else
-            git commit -m "Deploy ${{ steps.version.outputs.docs-version }} documentation from ${{ github.sha }}"
+            git commit -m "Deploy ${{ steps.version.outputs.docs-version }} documentation from tag ${{ github.ref_name }}"
             git push origin master
-            echo "✅ Stable documentation deployed successfully"
+            echo "✅ Tag documentation version ${{ steps.version.outputs.docs-version }} deployed successfully"
           fi
