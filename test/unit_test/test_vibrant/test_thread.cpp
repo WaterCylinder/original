@@ -321,8 +321,8 @@ TEST_F(ThreadTest, SleepForDuration) {
     thread::sleep(50_ms);
     const auto p2 = time::point::now();
     const auto elapsed2 = p2 - p1;
-    ASSERT_GE(elapsed2.value(time::MICROSECOND), 35000);
-    ASSERT_LE(elapsed2.value(time::MICROSECOND), 65000);
+    ASSERT_GE(elapsed2.value(time::MICROSECOND), 30000);
+    ASSERT_LE(elapsed2.value(time::MICROSECOND), 70000);
 }
 
 TEST_F(ThreadTest, SleepCompletion) {

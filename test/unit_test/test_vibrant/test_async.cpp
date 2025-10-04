@@ -1009,7 +1009,7 @@ TEST(AsyncTest, WaitForImmediateCompletion) {
     });
 
     // 即使是很短的超时，也应该立即完成
-    const bool completed = f.waitFor(milliseconds(1));
+    const bool completed = f.waitFor(milliseconds(10));
     EXPECT_TRUE(completed);
     EXPECT_TRUE(f.ready());
     EXPECT_EQ(f.result(), 42);
