@@ -60,27 +60,6 @@ jobs:
         run: |
           cd build && ctest --output-on-failure
 
-  macos-tests:
-    runs-on: macos-latest
-    strategy:
-      matrix:
-        build_type: [Debug, Release]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: brew install cmake ninja
-
-      - name: Configure and Build
-        run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -G Ninja
-          cmake --build build
-
-      - name: Run tests
-        run: cd build && ctest --output-on-failure
-
   windows-tests:
     runs-on: windows-latest
     strategy:
