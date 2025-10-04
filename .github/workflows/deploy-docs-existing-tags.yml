@@ -1,0 +1,168 @@
+# .github/workflows/deploy-docs-existing-tags.yml
+# Temporary workflow to deploying docs for existing tags
+
+name: Deploy Documentation - Existing Tags
+
+on:
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: '要生成文档的标签列表（空格分隔，如 v1.0.0 v1.1.0），留空则处理所有标签'
+        required: false
+        default: ''
+
+jobs:
+  deploy-existing-tags:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get tags to process
+        id: get-tags
+        run: |
+          # 获取所有符合条件的标签
+          if [ -n "${{ github.event.inputs.tags }}" ]; then
+            # 使用用户指定的标签
+            TAGS="${{ github.event.inputs.tags }}"
+            echo "Using specified tags: $TAGS"
+          else
+            # 获取所有 v*.*.* 格式的标签
+            TAGS=$(git tag -l "v*.*.*" | sort -V -r)
+            echo "Using all v*.*.* tags: $TAGS"
+          fi
+          
+          # 将标签列表转换为JSON数组格式
+          TAGS_JSON=$(echo "$TAGS" | jq -R -s -c 'split("\n") | map(select(. != ""))')
+          echo "tags=$TAGS_JSON" >> $GITHUB_OUTPUT
+
+      - name: Process each tag
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+          TAGS_JSON: ${{ steps.get-tags.outputs.tags }}
+        run: |
+          # 安装 jq 用于 JSON 解析
+          sudo apt-get update
+          sudo apt-get install -y jq doxygen graphviz plantuml
+          
+          # 配置 git
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # 克隆文档仓库
+          git clone -b master https://$GH_PAT@github.com/FrozenLemonTee/original_docs.git deploy-repo
+          
+          # 解析标签数组
+          TAGS_ARRAY=$(echo "$TAGS_JSON" | jq -r '.[]')
+          
+          for TAG in $TAGS_ARRAY; do
+            echo "Processing tag: $TAG"
+          
+            # 检出特定标签
+            git checkout $TAG
+          
+            # 提取版本号（移除 v 前缀）
+            VERSION=${TAG#v}
+            echo "Version: $VERSION"
+          
+            # 构建文档
+            mkdir -p ../original_docs
+            doxygen Doxyfile
+          
+            if [ ! -d "../original_docs/docs/html" ]; then
+              echo "Warning: Documentation was not generated for tag $TAG"
+              continue
+            fi
+          
+            # 创建版本信息文件
+            echo '<!DOCTYPE html>' > ../original_docs/docs/html/version.html
+            echo '<html>' >> ../original_docs/docs/html/version.html
+            echo '<head>' >> ../original_docs/docs/html/version.html
+            echo '    <title>Version Info</title>' >> ../original_docs/docs/html/version.html
+            echo '</head>' >> ../original_docs/docs/html/version.html
+            echo '<body>' >> ../original_docs/docs/html/version.html
+            echo '    <h1>Documentation Version</h1>' >> ../original_docs/docs/html/version.html
+            echo "    <p>Version: $VERSION</p>" >> ../original_docs/docs/html/version.html
+            echo "    <p>Tag: $TAG</p>" >> ../original_docs/docs/html/version.html
+            echo "    <p>Build Date: $(date -u)</p>" >> ../original_docs/docs/html/version.html
+            echo "    <p>Commit: $(git rev-parse $TAG)</p>" >> ../original_docs/docs/html/version.html
+            echo '</body>' >> ../original_docs/docs/html/version.html
+            echo '</html>' >> ../original_docs/docs/html/version.html
+          
+            # 部署到文档仓库
+            cd deploy-repo
+          
+            # 创建版本目录
+            mkdir -p versions
+            VERSION_DIR="versions/$VERSION"
+            rm -rf "$VERSION_DIR"
+            mkdir -p "$VERSION_DIR"
+            cp -r ../original_docs/docs/html/* "$VERSION_DIR"/
+          
+            # 回到工作目录继续处理下一个标签
+            cd ..
+          done
+          
+          # 更新导航页面
+          cd deploy-repo
+          
+          # 更新主 index.html
+          echo '<!DOCTYPE html>' > index.html
+          echo '<html>' >> index.html
+          echo '<head>' >> index.html
+          echo '    <meta http-equiv="refresh" content="0; url=stable/index.html">' >> index.html
+          echo '</head>' >> index.html
+          echo '<body>' >> index.html
+          echo '    <p>Redirecting to <a href="stable/index.html">stable documentation</a>...</p>' >> index.html
+          echo '    <p>Available versions:</p>' >> index.html
+          echo '    <ul>' >> index.html
+          echo '        <li><a href="stable/index.html">Stable (master branch)</a></li>' >> index.html
+          echo '        <li><a href="latest/index.html">Latest (test branch)</a></li>' >> index.html
+          echo '        <li><a href="versions/">Tag versions</a></li>' >> index.html
+          echo '    </ul>' >> index.html
+          echo '    <p>Recent tag versions:</p>' >> index.html
+          echo '    <ul>' >> index.html
+          
+          # 列出最近5个版本
+          for dir in $(ls -1 versions/ | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V -r | head -5); do
+            echo "        <li><a href=\"versions/$dir/index.html\">Version $dir</a></li>" >> index.html
+          done
+          
+          echo '    </ul>' >> index.html
+          echo '</body>' >> index.html
+          echo '</html>' >> index.html
+          
+          # 创建 versions/index.html
+          echo '<!DOCTYPE html>' > versions/index.html
+          echo '<html>' >> versions/index.html
+          echo '<head>' >> versions/index.html
+          echo '    <title>Versioned Documentation</title>' >> versions/index.html
+          echo '</head>' >> versions/index.html
+          echo '<body>' >> versions/index.html
+          echo '    <h1>Versioned Documentation</h1>' >> versions/index.html
+          echo '    <p>Select a version:</p>' >> versions/index.html
+          echo '    <ul>' >> versions/index.html
+          
+          # 列出所有版本
+          for dir in $(ls -1 versions/ | grep -E '^[0-9]+\.[0-9]+\.[0-9]+$' | sort -V -r); do
+            echo "        <li><a href=\"$dir/index.html\">Version $dir</a></li>" >> versions/index.html
+          done
+          
+          echo '    </ul>' >> versions/index.html
+          echo '    <p><a href="../stable/index.html">Stable (master branch)</a></p>' >> versions/index.html
+          echo '    <p><a href="../latest/index.html">Latest (test branch)</a></p>' >> versions/index.html
+          echo '</body>' >> versions/index.html
+          echo '</html>' >> versions/index.html
+
+          # 提交更改
+          git add .
+          if git diff-index --quiet HEAD --; then
+            echo "No changes to deploy"
+          else
+            git commit -m "Deploy documentation for existing tags"
+            git push origin master
+            echo "✅ Existing tags documentation deployed successfully"
+          fi
