@@ -50,13 +50,17 @@ TEST(TaskDelegatorTest, StopPreventsNewSubmits) {
 
 // 测试立即任务在没有空闲线程时提交会抛出异常
 TEST(TaskDelegatorTest, SubmitImmediateWithoutIdleThreadThrows) {
-    taskDelegator delegator(1);
+    taskDelegator delegator{4};
 
-    // 提交一个长时间运行的任务，使线程繁忙
-    auto long_task = delegator.submit([]{
-        thread::sleep(seconds(2));
-        return 42;
-    });
+
+    for (int i = 0; i < 10; ++i)
+    {
+        // 提交长时间运行的任务，使线程繁忙
+        auto long_task = delegator.submit([]{
+            thread::sleep(milliseconds(1500));
+            return 42;
+        });
+    }
 
     // 尝试提交立即任务，应抛出异常
     EXPECT_THROW({
