@@ -7,7 +7,7 @@
 #include "printable.h"
 #include "error.h"
 #include <iomanip>
-#ifdef ORIGINAL_COMPILER_GCC
+#if ORIGINAL_COMPILER_GCC || ORIGINAL_COMPILER_CLANG
 #include <ctime>
 #endif
 
@@ -147,7 +147,7 @@ namespace original {
              */
             explicit duration(time_val_type val = 0, unit unit = MILLISECOND);
 
-#ifdef ORIGINAL_COMPILER_GCC
+#if ORIGINAL_COMPILER_GCC || ORIGINAL_COMPILER_CLANG
             /**
              * @brief Constructs a duration from a POSIX timespec structure
              * @param ts timespec structure containing seconds and nanoseconds
@@ -210,7 +210,7 @@ namespace original {
              */
             std::string toString(bool enter) const override;
 
-#ifdef ORIGINAL_COMPILER_GCC
+#if ORIGINAL_COMPILER_GCC || ORIGINAL_COMPILER_CLANG
             /**
              * @brief Converts duration to timespec (POSIX time structure)
              * @return timespec structure containing seconds and nanoseconds
@@ -396,7 +396,7 @@ namespace original {
              */
             explicit point(duration d);
 
-#ifdef ORIGINAL_COMPILER_GCC
+#if ORIGINAL_COMPILER_GCC || ORIGINAL_COMPILER_CLANG
             /**
              * @brief Constructs a time point from a POSIX timespec structure.
              * @param ts The timespec structure containing seconds and nanoseconds since the epoch.
@@ -438,7 +438,7 @@ namespace original {
              */
             std::string toString(bool enter) const override;
 
-#ifdef ORIGINAL_COMPILER_GCC
+#if ORIGINAL_COMPILER_GCC || ORIGINAL_COMPILER_CLANG
             /**
              * @brief Converts this time point to a POSIX timespec structure.
              * @return A timespec representing this time point with seconds and nanoseconds since the epoch.
@@ -1104,7 +1104,7 @@ inline original::time::duration::duration(const time_val_type val, const unit un
     }
 }
 
-#ifdef ORIGINAL_COMPILER_GCC
+#if ORIGINAL_COMPILER_GCC || ORIGINAL_COMPILER_CLANG
 inline original::time::duration::duration(const timespec& ts)
     : nano_seconds_(ts.tv_sec * FACTOR_SECOND + ts.tv_nsec) {}
 #endif
@@ -1178,7 +1178,7 @@ inline std::string original::time::duration::toString(const bool enter) const {
     return ss.str();
 }
 
-#ifdef ORIGINAL_COMPILER_GCC
+#if ORIGINAL_COMPILER_GCC || ORIGINAL_COMPILER_CLANG
 inline original::time::duration::operator timespec() const
 {
     auto nanoseconds = this->value(NANOSECOND);
@@ -1371,7 +1371,7 @@ inline original::time::point::point(const time_val_type val, const unit unit)
 inline original::time::point::point(duration d)
     : nano_since_epoch_(std::move(d)) {}
 
-#ifdef ORIGINAL_COMPILER_GCC
+#if ORIGINAL_COMPILER_GCC || ORIGINAL_COMPILER_CLANG
 inline original::time::point::point(const timespec& ts)
     : nano_since_epoch_(ts) {}
 #endif
@@ -1404,7 +1404,7 @@ original::time::point::toString(const bool enter) const {
     return ss.str();
 }
 
-#ifdef ORIGINAL_COMPILER_GCC
+#if ORIGINAL_COMPILER_GCC || ORIGINAL_COMPILER_CLANG
 inline original::time::point::operator timespec() const
 {
     return static_cast<timespec>(this->nano_since_epoch_);
@@ -1511,7 +1511,7 @@ original::time::UTCTime::now() {
 inline original::integer
 original::time::UTCTime::localZonedOffset() {
     integer offset_seconds = 0;
-#if ORIGINAL_COMPILER_GCC
+#if ORIGINAL_COMPILER_GCC || ORIGINAL_COMPILER_CLANG
     integer t = std::time(nullptr);
     tm local_tm{};
 #if ORIGINAL_PLATFORM_WINDOWS
