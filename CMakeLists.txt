@@ -6,7 +6,7 @@ set(ORIGINAL_VERSION 0.1.5)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 if (NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type (default Debug)" FORCE)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type (default Release)" FORCE)
 endif()
 
 include(CMakePackageConfigHelpers)
