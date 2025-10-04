@@ -2,7 +2,7 @@
 
 
 
-## 简介
+## 📖 简介
 
 Original是一个C++基础工具库,也是本人的第一个正式项目，用于学习C++相关基础以及STL、Boost等库。项目的目标是实现STL的主要内容以及Boost的某些相关功能，具体已经实现和未来计划实现的模块内容在下文列出，计划实现的部分会根据情况进行调整，不一定都实现，以最终项目为准。
 
@@ -18,7 +18,24 @@ Original是一个C++基础工具库,也是本人的第一个正式项目，用�
 
 
 
-## 安装
+## 📚 文档版本选择
+
+### 🏷️ 稳定版本 (Stable)
+- **版本**: master 分支最新版本
+- [进入稳定版文档](../stable/index.html)
+
+### 🔥 最新版本 (Latest)
+- **版本**: test 分支最新构建
+- [进入最新版文档](../latest/index.html)
+
+### 📋 历史版本 (Historical Versions)
+- **版本**: 按发布标签
+- [查看所有历史版本](../versions/)
+
+---
+
+
+## 🚀 快速开始
 
 这里以项目`hello_original`为例：
 ```text
@@ -33,7 +50,7 @@ Original是一个C++基础工具库,也是本人的第一个正式项目，用�
 cmake_minimum_required(VERSION 3.30)
 project(hello_original)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 set(BUILD_TESTING OFF CACHE BOOL "Disable tests in the fetched project")
 
@@ -72,7 +89,7 @@ cmake -P install.cmake
 cmake_minimum_required(VERSION 3.30)
 project(hello_original)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/original")
@@ -100,7 +117,7 @@ int main() {
 array("hello world!")
 ```
 
-## 模块进度
+## 📊 模块进度
 
 #### Core
 
@@ -149,15 +166,15 @@ array("hello world!")
 
 ##### 线程：
 
-基类 threadBase，POSIX类线程 pThread，线程包装器 thread
+基类 threadBase，POSIX类线程 pThread，线程 thread
 
 ##### 临界区管理：
 
-互斥量包装类 mutexBase/pMutex，锁管理器 lockGuard/uniqueLock/multiLock
+互斥量 mutexBase/pMutex，锁管理器 lockGuard/uniqueLock/multiLock，信号量 semaphore/semaphoreGuard
 
 ##### 线程同步：
 
-条件变量包装类 conditionBase/pCondition
+条件变量 conditionBase/pCondition，线程同步点 syncPoint
 
 ##### 原子操作：
 

@@ -1,0 +1,91 @@
+# .github/workflows/deploy-docs-latest.yml
+
+name: Deploy Documentation - Latest
+
+on:
+  push:
+    branches: [ test ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz plantuml
+
+      - name: Build documentation
+        run: |
+          mkdir -p ../original_docs
+          doxygen Doxyfile
+          
+          if [ ! -d "../original_docs/docs/html" ]; then
+            echo "Error: Documentation was not generated"
+            ls -la ../original_docs/docs/ || echo "Docs directory not found"
+            exit 1
+          fi
+          
+          # Create version information file
+          echo '<!DOCTYPE html>' > ../original_docs/docs/html/version.html
+          echo '<html>' >> ../original_docs/docs/html/version.html
+          echo '<head>' >> ../original_docs/docs/html/version.html
+          echo '    <title>Version Info</title>' >> ../original_docs/docs/html/version.html
+          echo '</head>' >> ../original_docs/docs/html/version.html
+          echo '<body>' >> ../original_docs/docs/html/version.html
+          echo '    <h1>Documentation Version</h1>' >> ../original_docs/docs/html/version.html
+          echo '    <p>Version: latest</p>' >> ../original_docs/docs/html/version.html
+          echo '    <p>Branch: test</p>' >> ../original_docs/docs/html/version.html
+          echo "    <p>Build Date: $(date -u)</p>" >> ../original_docs/docs/html/version.html
+          echo "    <p>Commit: ${{ github.sha }}</p>" >> ../original_docs/docs/html/version.html
+          echo '</body>' >> ../original_docs/docs/html/version.html
+          echo '</html>' >> ../original_docs/docs/html/version.html
+
+      - name: Deploy to original_docs repository
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Clone document repository
+          git clone -b master https://${{ secrets.GH_PAT }}@github.com/FrozenLemonTee/original_docs.git deploy-repo
+          cd deploy-repo
+          
+          # Clean up old files (keep the .git directory)
+          find . -maxdepth 1 ! -name '.git' ! -name '.' ! -name 'CNAME' -exec rm -rf {} + 2>/dev/null || true
+          
+          # Copy the new document to directory latest
+          mkdir -p latest
+          cp -r ../../original_docs/docs/html/* latest/
+          
+          # Create index.html
+          echo '<!DOCTYPE html>' > index.html
+          echo '<html>' >> index.html
+          echo '<head>' >> index.html
+          echo '    <meta http-equiv="refresh" content="0; url=latest/index.html">' >> index.html
+          echo '</head>' >> index.html
+          echo '<body>' >> index.html
+          echo '    <p>Redirecting to <a href="latest/index.html">latest documentation</a>...</p>' >> index.html
+          echo '    <p>Available versions:</p>' >> index.html
+          echo '    <ul>' >> index.html
+          echo '        <li><a href="stable/index.html">Stable (master branch)</a></li>' >> index.html
+          echo '        <li><a href="latest/index.html">Latest (test branch)</a></li>' >> index.html
+          echo '        <li><a href="versions/">Tag versions</a></li>' >> index.html
+          echo '    </ul>' >> index.html
+          echo '</body>' >> index.html
+          echo '</html>' >> index.html
+
+          # Submit and push
+          git add .
+          if git diff-index --quiet HEAD --; then
+            echo "No changes to deploy"
+          else
+            git commit -m "Deploy latest documentation from test branch - ${{ github.sha }}"
+            git push origin master
+            echo "✅ Latest documentation deployed successfully"
+          fi

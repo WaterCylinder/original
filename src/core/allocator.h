@@ -1,7 +1,6 @@
 #ifndef ALLOCATOR_H
 #define ALLOCATOR_H
 
-
 #include "config.h"
 #include "error.h"
 #include "maths.h"
@@ -41,7 +40,7 @@ namespace original {
     *          for other allocator implementations in this namespace.
     */
     class allocators final {
-        public:
+    public:
         /**
         * @brief Allocates raw memory using global operator new
         * @tparam TYPE Type of objects to allocate
@@ -239,7 +238,6 @@ namespace original {
         allocatedChunks* allocated_list_head; ///< List of all allocated blocks
         u_integer* chunks_available;     ///< Array of available chunks per size class
 
-
         /**
         * @brief Initializes the memory pool structures
         * @details Allocates and initializes:
@@ -321,6 +319,12 @@ namespace original {
         objPoolAllocator& operator=(objPoolAllocator&& other) noexcept;
 
         /**
+        * @brief Swaps the contents of two allocators
+        * @param other Allocator to swap with
+        */
+        void swap(objPoolAllocator& other) noexcept;
+
+        /**
         * @brief Allocates memory from the pool
         * @param size Number of elements to allocate
         * @return Pointer to allocated memory
@@ -342,6 +346,17 @@ namespace original {
         */
         ~objPoolAllocator() override;
     };
+}
+
+namespace std {
+    /**
+    * @brief Specialization of std::swap for objPoolAllocator
+    * @tparam TYPE Type of objects allocated
+    * @param lhs First allocator to swap
+    * @param rhs Second allocator to swap
+    */
+    template<typename TYPE>
+    void swap(original::objPoolAllocator<TYPE>& lhs, original::objPoolAllocator<TYPE>& rhs) noexcept; // NOLINT
 }
 
 template<typename TYPE>
@@ -555,6 +570,20 @@ original::objPoolAllocator<TYPE>& original::objPoolAllocator<TYPE>::operator=(ob
 }
 
 template <typename TYPE>
+void original::objPoolAllocator<TYPE>::swap(objPoolAllocator& other) noexcept
+{
+    if (this == &other)
+        return;
+
+    std::swap(this->size_class_count, other.size_class_count);
+    std::swap(this->chunk_count_init, other.chunk_count_init);
+    std::swap(this->chunk_count, other.chunk_count);
+    std::swap(this->free_list_head, other.free_list_head);
+    std::swap(this->allocated_list_head, other.allocated_list_head);
+    std::swap(this->chunks_available, other.chunks_available);
+}
+
+template <typename TYPE>
 TYPE* original::objPoolAllocator<TYPE>::allocate(const u_integer size)
 {
     if (size == 0) {
@@ -600,6 +629,12 @@ void original::objPoolAllocator<TYPE>::deallocate(TYPE* ptr, const u_integer siz
 template<typename TYPE>
 original::objPoolAllocator<TYPE>::~objPoolAllocator() {
     this->release();
+}
+
+template <typename TYPE>
+void std::swap(original::objPoolAllocator<TYPE>& lhs, original::objPoolAllocator<TYPE>& rhs) noexcept // NOLINT
+{
+    lhs.swap(rhs);
 }
 
 #endif //ALLOCATOR_H

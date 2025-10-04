@@ -14,12 +14,15 @@
  * - Safe access operations with error checking
  * - In-place construction
  * - Move and copy operations
+ * - Specialization for void type
+ * - Integration with std::swap
  *
  * Key features:
  * - Type-safe alternative to raw pointers for optional values
- * - No dynamic memory allocation
- * - Explicit empty state handling
- * - Integration with original::none from types.h
+ * - No dynamic memory allocation (uses union storage)
+ * - Explicit empty state handling with original::none
+ * - Exception-safe operations
+ * - STL-compatible interface
  */
 
 namespace original {
@@ -32,12 +35,26 @@ namespace original {
      * using pointers. It can either contain a value of type TYPE or be empty.
      * The empty state is represented using original::none from types.h.
      *
+     * The implementation uses a union for storage to avoid dynamic allocation
+     * and ensure optimal performance. All operations provide strong exception
+     * safety guarantee when TYPE operations are exception-safe.
+     *
      * Example usage:
      * @code
      * alternative<int> opt;          // Empty state
      * alternative<int> opt2(42);     // Contains value 42
      * if (opt2) {                    // Check if has value
      *     int val = *opt2;           // Access the value
+     * }
+     *
+     * // In-place construction
+     * alternative<std::string> str(std::in_place, "hello", 5);
+     *
+     * // Safe access with error checking
+     * try {
+     *     auto value = *opt;  // Throws valueError if empty
+     * } catch (const valueError& e) {
+     *     // Handle empty case
      * }
      * @endcode
      */
@@ -47,7 +64,9 @@ namespace original {
          * @union storage
          * @brief Internal storage for either TYPE or none
          * @details Uses a union to store either the value type or none,
-         * with proper construction/destruction handling.
+         * with proper construction/destruction handling. The union ensures
+         * that only one member is active at any time, managed by the
+         * non_none_type_ flag.
          */
         union storage {
             TYPE type_;     ///< Storage for the contained value
@@ -68,12 +87,14 @@ namespace original {
             ~storage();
         };
 
-        bool non_none_type_; ///< Flag indicating whether value is present
-        storage val_;       ///< The actual storage
+        bool non_none_type_; ///< Flag indicating whether value is present (true = TYPE, false = none)
+        storage val_;       ///< The actual storage union
 
         /**
          * @brief Safely destroys the current contents
          * @note Properly calls destructor based on current state
+         * @details If non_none_type_ is true, calls TYPE destructor,
+         * otherwise calls none destructor. Ensures RAII compliance.
          */
         void destroy() noexcept;
 
@@ -122,6 +143,14 @@ namespace original {
          * @post other is left in valid but unspecified state
          */
         alternative& operator=(alternative&& other) noexcept;
+
+        /**
+         * @brief Swaps contents with another alternative
+         * @param other Alternative to swap with
+         * @note No-throw guarantee if TYPE's swap is noexcept
+         * @details Efficiently exchanges contents without copying
+         */
+        void swap(alternative& other) noexcept;
 
         /**
          * @brief Const value access
@@ -186,6 +215,28 @@ namespace original {
         void set(const TYPE& t);
 
         /**
+         * @brief Copy assignment from value type
+         * @param t Value to copy into the alternative
+         * @return Reference to this alternative
+         * @post hasValue() == true
+         * @details Replaces the current contents (if any) with a copy of the given value.
+         * If the alternative was previously empty, constructs a new value. If it already
+         * contained a value, assigns the new value using TYPE's copy assignment operator.
+         * Provides strong exception safety guarantee if TYPE's copy constructor/assignment
+         * is exception-safe.
+         *
+         * Example usage:
+         * @code
+         * alternative<std::string> opt;
+         * opt = "hello";  // Now contains "hello"
+         *
+         * alternative<int> opt2(42);
+         * opt2 = 100;     // Replaces 42 with 100
+         * @endcode
+         */
+        alternative& operator=(const TYPE& t);
+
+        /**
          * @brief Checks if contains a value
          * @return true if contains value, false if empty
          */
@@ -209,7 +260,19 @@ namespace original {
      * @brief Specialization for void type alternative
      * @details Represents a simple boolean flag indicating presence or absence
      * of a value without storing actual data. Useful for signaling states
-     * without associated data.
+     * without associated data, similar to std::optional<std::monostate>.
+     *
+     * This specialization is more memory efficient than alternative<bool>
+     * and provides a clean interface for presence/absence signaling.
+     *
+     * Example usage:
+     * @code
+     * alternative<void> flag;                    // Empty state
+     * alternative<void> present(std::in_place); // Present state
+     * if (present) {
+     *     // Do something when value is present
+     * }
+     * @endcode
      */
     template<>
     class alternative<void> {
@@ -240,7 +303,63 @@ namespace original {
          * @brief Sets the alternative to have a value
          * @post hasValue() == true
          */
-        void set();
+        void set() noexcept;
+
+        /**
+         * @brief Assignment from in_place tag to set as present
+         * @param t std::in_place_t tag to indicate value should be present
+         * @return Reference to this alternative
+         * @post hasValue() == true
+         * @details Sets the alternative<void> to the "present" state without storing
+         * any actual data. This is equivalent to calling set() but allows for more
+         * expressive syntax in template code.
+         *
+         * Example usage:
+         * @code
+         * alternative<void> flag;
+         * flag = std::in_place;  // Now has value present
+         *
+         * // In template context:
+         * template<typename T>
+         * void setPresent(alternative<T>& opt) {
+         *     opt = std::in_place;
+         * }
+         * @endcode
+         * @note This operation is noexcept and always succeeds.
+         * @see set()
+         */
+        alternative& operator=(std::in_place_t t) noexcept;
+
+        /**
+         * @brief Assignment from none to reset to empty state
+         * @param n none value indicating empty state
+         * @return Reference to this alternative
+         * @post hasValue() == false
+         * @details Resets the alternative<void> to the empty state. This operation
+         * is equivalent to calling reset() but provides a more expressive syntax
+         * when working with none values. The assignment clears the "present" state
+         * and ensures the alternative is empty.
+         *
+         * Example usage:
+         * @code
+         * alternative<void> flag(std::in_place);  // Present state
+         * flag = original::none;                  // Now empty
+         *
+         * if (!flag) {
+         *     // This will execute since flag is now empty
+         * }
+         *
+         * // In generic code:
+         * template<typename T>
+         * void clearAlternative(alternative<T>& opt) {
+         *     opt = original::none;  // Works for both alternative<T> and alternative<void>
+         * }
+         * @endcode
+         *
+         * @note This operation is noexcept and always succeeds.
+         * @see reset()
+         */
+        alternative& operator=(none n) noexcept;
 
         /**
          * @brief Resets to empty state
@@ -266,17 +385,40 @@ namespace original {
         /// Default copy assignment
         alternative& operator=(const alternative& other) = default;
 
-        /// Default move constructor
-        alternative(alternative&& other) noexcept = default;
+        /// Move constructor
+        alternative(alternative&& other) noexcept;
 
-        /// Default move assignment
-        alternative& operator=(alternative&& other) noexcept = default;
+        /// Move assignment
+        alternative& operator=(alternative&& other) noexcept;
+
+        /**
+         * @brief Swaps contents with another alternative<void>
+         * @param other Alternative to swap with
+         * @note No-throw guarantee
+         */
+        void swap(alternative& other) noexcept;
 
         /// Default destructor
         ~alternative() = default;
     };
 }
 
+/**
+ * @namespace std
+ * @brief Standard namespace extensions for original::alternative
+ */
+namespace std {
+    /**
+     * @brief Specialization of std::swap for original::alternative
+     * @tparam TYPE The value type of the alternative
+     * @param lhs First alternative to swap
+     * @param rhs Second alternative to swap
+     * @note No-throw guarantee if alternative<TYPE>::swap is noexcept
+     * @details Enables ADL-friendly swapping with standard algorithms
+     */
+    template<typename TYPE>
+    void swap(original::alternative<TYPE>& lhs, original::alternative<TYPE>& rhs) noexcept; // NOLINT
+}
 template<typename TYPE>
 original::alternative<TYPE>::storage::storage() noexcept
 {
@@ -360,6 +502,16 @@ original::alternative<TYPE>::operator=(alternative&& other)  noexcept {
     return *this;
 }
 
+template <typename TYPE>
+void original::alternative<TYPE>::swap(alternative& other) noexcept
+{
+    if (this == &other)
+        return;
+
+    std::swap(this->non_none_type_, other.non_none_type_);
+    std::swap(this->val_, other.val_);
+}
+
 template<typename TYPE>
 const TYPE&
 original::alternative<TYPE>::operator*() const {
@@ -426,6 +578,14 @@ void original::alternative<TYPE>::set(const TYPE &t) {
     new (&val_.type_) TYPE{ t };
 }
 
+template <typename TYPE>
+original::alternative<TYPE>&
+original::alternative<TYPE>::operator=(const TYPE& t)
+{
+    this->set(t);
+    return *this;
+}
+
 template<typename TYPE>
 original::alternative<TYPE>::operator bool() const {
     return this->non_none_type_;
@@ -448,9 +608,23 @@ inline original::alternative<void>::alternative(none) {}
 
 inline original::alternative<void>::alternative(std::in_place_t) : has_value_(true) {}
 
-inline void original::alternative<void>::set()
+inline void original::alternative<void>::set() noexcept
 {
     this->has_value_ = true;
+}
+
+inline original::alternative<void>&
+original::alternative<void>::operator=(std::in_place_t) noexcept
+{
+    this->set();
+    return *this;
+}
+
+inline original::alternative<void>&
+original::alternative<void>::operator=(none) noexcept
+{
+    this->reset();
+    return *this;
 }
 
 inline void original::alternative<void>::reset() noexcept
@@ -466,6 +640,37 @@ inline bool original::alternative<void>::hasValue() const
 inline original::alternative<void>::operator bool() const
 {
     return this->has_value_;
+}
+
+inline original::alternative<void>::alternative(alternative&& other) noexcept
+{
+    this->has_value_ = other.has_value_;
+    other.has_value_ = false;
+}
+
+inline original::alternative<void>&
+original::alternative<void>::operator=(alternative&& other) noexcept
+{
+    if (this == &other)
+        return *this;
+
+    this->has_value_ = other.has_value_;
+    other.has_value_ = false;
+    return *this;
+}
+
+inline void original::alternative<void>::swap(alternative& other) noexcept
+{
+    if (this == &other)
+        return;
+
+    std::swap(this->has_value_, other.has_value_);
+}
+
+template <typename TYPE>
+void std::swap(original::alternative<TYPE>& lhs, original::alternative<TYPE>& rhs) noexcept // NOLINT
+{
+    lhs.swap(rhs);
 }
 
 #endif //ORIGINAL_OPTIONAL_H

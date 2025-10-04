@@ -50,13 +50,17 @@ TEST(TaskDelegatorTest, StopPreventsNewSubmits) {
 
 // 测试立即任务在没有空闲线程时提交会抛出异常
 TEST(TaskDelegatorTest, SubmitImmediateWithoutIdleThreadThrows) {
-    taskDelegator delegator(1);
+    taskDelegator delegator{4};
 
-    // 提交一个长时间运行的任务，使线程繁忙
-    auto long_task = delegator.submit([]{
-        thread::sleep(seconds(2));
-        return 42;
-    });
+
+    for (int i = 0; i < 10; ++i)
+    {
+        // 提交长时间运行的任务，使线程繁忙
+        auto long_task = delegator.submit([]{
+            thread::sleep(milliseconds(1500));
+            return 42;
+        });
+    }
 
     // 尝试提交立即任务，应抛出异常
     EXPECT_THROW({
@@ -345,12 +349,12 @@ TEST(TaskDelegatorTest, StopModeDiscardDeferred) {
 TEST(TaskDelegatorTest, StopModeKeepDeferred) {
     taskDelegator delegator(2);
 
-    std::atomic executed_count{0};
+    auto executed_count = std::make_shared<std::atomic<int>>(0);
 
     // 提交一些延迟任务
     for (int i = 0; i < 3; ++i) {
-        delegator.submit(taskDelegator::DEFERRED, [&executed_count, i]{
-            ++executed_count;
+        delegator.submit(taskDelegator::DEFERRED, [executed_count, i]{
+            ++*executed_count;
             return i;
         });
     }
@@ -361,7 +365,7 @@ TEST(TaskDelegatorTest, StopModeKeepDeferred) {
     delegator.stop(taskDelegator::KEEP_DEFERRED);
 
     // 延迟任务应该保持，没有执行
-    EXPECT_EQ(executed_count.load(), 0);
+    EXPECT_EQ(executed_count->load(), 0);
     EXPECT_EQ(delegator.deferredCnt(), 3);
 }
 
@@ -501,12 +505,12 @@ TEST(TaskDelegatorTest, StopAfterStop) {
 TEST(TaskDelegatorTest, StopModeDefaultParameter) {
     taskDelegator delegator(2);
 
-    std::atomic executed_count{0};
+    auto executed_count = std::make_shared<std::atomic<int>>(0);
 
     // 提交一些延迟任务
     for (int i = 0; i < 2; ++i) {
-        delegator.submit(taskDelegator::DEFERRED, [&executed_count, i]{
-            ++executed_count;
+        delegator.submit(taskDelegator::DEFERRED, [executed_count, i]{
+            ++*executed_count;
             return i;
         });
     }
@@ -515,7 +519,7 @@ TEST(TaskDelegatorTest, StopModeDefaultParameter) {
     delegator.stop();
 
     // 延迟任务应该保持，没有执行
-    EXPECT_EQ(executed_count.load(), 0);
+    EXPECT_EQ(executed_count->load(), 0);
     EXPECT_EQ(delegator.deferredCnt(), 2);
 
     // 线程池自动析构应无崩溃触发或异常抛出

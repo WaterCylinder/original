@@ -1,6 +1,7 @@
 #ifndef ITERABLE_H
 #define ITERABLE_H
 
+#include "coroutines.h"
 #include "transform.h"
 #include "types.h"
 #include "iterator.h"
@@ -13,9 +14,12 @@
  * - iterAdaptor nested class implementing iterator pattern
  * - Range-based for loop support via begin()/end() methods
  * - Element traversal and manipulation operations
+ * - Coroutine generator support for modern C++ iteration
+ * - RAII-managed iterator lifetime
  *
  * @see iterator.h For base iterator implementation
  * @see transform.h For operation callback templates
+ * @see coroutines.h For generator support
  */
 
 namespace original {
@@ -29,11 +33,14 @@ namespace original {
      * - Standard library compatible iteration (begin()/ end())
      * - Direct element access (first()/ last())
      * - RAII-managed iterator adapters (iterAdaptor)
+     * - Coroutine-based generator interface
+     * - Functional-style forEach operations
      *
-     * The class provides three levels of iteration interface:
+     * The class provides four levels of iteration interface:
      * 1. Low-level: begins()/ ends() - Factory methods returning raw base iterators
      * 2. Mid-level: first()/ last() - RAII-wrapped direct element access
      * 3. High-level: begin()/ end() - STL-compatible range iteration
+     * 4. Modern: generator() - Coroutine-based lazy evaluation
      *
      * @note Derived classes must implement begins()/ends() to return their specific
      *       iterator type (covariant return types supported). All other iteration
@@ -50,10 +57,14 @@ namespace original {
      *
      * // Polymorphic iteration
      * baseIterator<T>* it = container.begins();
+     *
+     * // Coroutine generator
+     * for (auto value : container.generator()) { ... }
      * @endcode
      *
      * @see iterator.h For base iterator implementation
      * @see iterAdaptor For the RAII iterator wrapper
+     * @see coroutines.h For generator implementation
      */
     template <typename TYPE>
     class iterable {
@@ -67,16 +78,19 @@ namespace original {
          *          - Transforms begins()/ ends() results into standard-compatible iterators
          *          - Enables range-based for loops through begin()/ end()
          *          - Provides exception-safe resource handling
+         *          - Forwards all iterator operations to the wrapped base iterator
          *
-         * The adapter forwards all iterator operations to the wrapped base iterator while
-         * ensuring proper cleanup when destroyed.
+         * The adapter ensures proper cleanup when destroyed and provides a unified
+         * interface regardless of the underlying iterator implementation.
          */
         class iterAdaptor final : public iterator<TYPE> {
-            baseIterator<TYPE>* it_;  ///< Pointer to the base iterator
+            baseIterator<TYPE>* it_;  ///< Pointer to the base iterator being adapted
 
             /**
              * @brief Constructs an `iterAdaptor` from a base iterator.
              * @param it A pointer to the base iterator to be adapted.
+             * @details Takes ownership of the base iterator pointer.
+             * @warning The adaptor assumes ownership and will delete the pointer on destruction.
              */
             explicit iterAdaptor(baseIterator<TYPE>* it);
 
@@ -85,24 +99,30 @@ namespace original {
              * @brief Compares the current iterator with another iterator.
              * @param other The iterator to compare with.
              * @return `true` if the iterators are pointing to the same element.
+             * @details Performs dynamic type checking and delegates to underlying iterator.
              */
             bool equalPtr(const iterator<TYPE>* other) const override;
 
             /**
              * @brief Creates a copy of the current iterator.
              * @return A new `iterAdaptor` pointing to the same element as the current iterator.
+             * @throws std::bad_alloc if memory allocation fails
              */
             iterAdaptor* clone() const override;
 
             /**
              * @brief Gets the previous iterator.
              * @return A new `iterAdaptor` pointing to the previous element.
+             * @throws std::bad_alloc if memory allocation fails
+             * @note This creates a new iterator instance, does not modify the current one.
              */
             iterAdaptor* getPrev() const override;
 
             /**
              * @brief Gets the next iterator.
              * @return A new `iterAdaptor` pointing to the next element.
+             * @throws std::bad_alloc if memory allocation fails
+             * @note This creates a new iterator instance, does not modify the current one.
              */
             iterAdaptor* getNext() const override;
 
@@ -112,6 +132,7 @@ namespace original {
             /**
              * @brief Copy constructor for the `iterAdaptor`.
              * @param other The `iterAdaptor` to copy.
+             * @details Performs deep copy of the underlying iterator.
              */
             iterAdaptor(const iterAdaptor& other);
 
@@ -119,6 +140,7 @@ namespace original {
              * @brief Copy assignment operator for the `iterAdaptor`.
              * @param other The `iterAdaptor` to copy.
              * @return A reference to the current `iterAdaptor`.
+             * @details Performs deep copy and properly handles self-assignment.
              */
             iterAdaptor& operator=(const iterAdaptor& other);
 
@@ -131,12 +153,14 @@ namespace original {
             /**
              * @brief Checks if there is a next element.
              * @return `true` if there is a next element.
+             * @details Delegates to the underlying iterator's hasNext() method.
              */
             [[nodiscard]] bool hasNext() const override;
 
             /**
              * @brief Checks if there is a previous element.
              * @return `true` if there is a previous element.
+             * @details Delegates to the underlying iterator's hasPrev() method.
              */
             [[nodiscard]] bool hasPrev() const override;
 
@@ -144,6 +168,7 @@ namespace original {
              * @brief Checks if the current iterator is at the previous element relative to another iterator.
              * @param other The iterator to compare with.
              * @return `true` if this iterator is positioned just before the other iterator.
+             * @details Performs dynamic type checking and delegates to underlying iterator.
              */
             bool atPrev(const iterator<TYPE>* other) const override;
 
@@ -151,28 +176,37 @@ namespace original {
              * @brief Checks if the current iterator is at the next element relative to another iterator.
              * @param other The iterator to compare with.
              * @return `true` if this iterator is positioned just after the other iterator.
+             * @details Performs dynamic type checking and delegates to underlying iterator.
              */
             bool atNext(const iterator<TYPE>* other) const override;
 
             /**
              * @brief Moves the iterator to the next element.
+             * @details Delegates to the underlying iterator's next() method.
+             * @warning Invalidates any previous references to the current element.
              */
             void next() const override;
 
             /**
              * @brief Moves the iterator to the previous element.
+             * @details Delegates to the underlying iterator's prev() method.
+             * @warning Invalidates any previous references to the current element.
              */
             void prev() const override;
 
             /**
              * @brief Advances the iterator by a specified number of steps.
              * @param steps The number of steps to move forward.
+             * @details Delegates to the underlying iterator's operator+= method.
+             * @throws outOfBoundError if stepping beyond container boundaries
              */
             void operator+=(integer steps) const override;
 
             /**
              * @brief Moves the iterator backward by a specified number of steps.
              * @param steps The number of steps to move backward.
+             * @details Delegates to the underlying iterator's operator-= method.
+             * @throws outOfBoundError if stepping beyond container boundaries
              */
             void operator-=(integer steps) const override;
 
@@ -180,30 +214,36 @@ namespace original {
              * @brief Calculates the distance between this iterator and another iterator.
              * @param other The iterator to compare with.
              * @return The number of steps between the two iterators.
+             * @details Positive if this iterator is after the other, negative if before.
+             *          Delegates to the underlying iterator's distance calculation.
              */
             integer operator-(const iterator<TYPE>& other) const override;
 
             /**
              * @brief Gets the value of the element the iterator is pointing to.
              * @return A reference to the element.
+             * @throws invalidIteratorError if iterator is not valid
              */
             TYPE& get() override;
 
             /**
              * @brief Sets the value of the element the iterator is pointing to.
              * @param data The value to set.
+             * @throws invalidIteratorError if iterator is not valid
              */
             void set(const TYPE& data) override;
 
             /**
              * @brief Gets the value of the element the iterator is pointing to (const version).
              * @return The element value.
+             * @throws invalidIteratorError if iterator is not valid
              */
             TYPE get() const override;
 
             /**
              * @brief Checks if the iterator is pointing to a valid element.
              * @return `true` if the iterator is valid, `false` otherwise.
+             * @details Delegates to the underlying iterator's isValid() method.
              */
             [[nodiscard]] bool isValid() const override;
 
@@ -217,12 +257,13 @@ namespace original {
              * @brief Converts the iterator to a string representation.
              * @param enter If `true`, adds a newline at the end.
              * @return A string representation of the iterator.
+             * @details Includes the class name and the underlying iterator's string representation.
              */
             [[nodiscard]] std::string toString(bool enter) const override;
 
             /**
              * @brief Destructor for `iterAdaptor`.
-             * @details Deletes the underlying base iterator.
+             * @details Deletes the underlying base iterator, ensuring proper cleanup.
              */
             ~iterAdaptor() override;
         };
@@ -356,6 +397,13 @@ namespace original {
          * @brief Applies a given operation to each element in the iterable container.
          * @tparam Callback A callable object that defines the operation to be applied to each element.
          * @param operation The operation to be applied.
+         * @details Iterates through all elements using first() and applies the operation to each.
+         *          The operation should accept a TYPE parameter by reference for modification.
+         *
+         * Example:
+         * @code
+         * container.forEach([](auto& elem) { elem.process(); });
+         * @endcode
          */
         template<typename Callback = transform<TYPE>>
         requires Operation<Callback, TYPE>
@@ -365,10 +413,51 @@ namespace original {
          * @brief Applies a given operation to each element in the iterable container (const version).
          * @tparam Callback A callable object that defines the operation to be applied to each element.
          * @param operation The operation to be applied.
+         * @details Iterates through all elements using first() and applies the operation to each.
+         *          The operation should accept a TYPE parameter by value or const reference.
+         *
+         * Example:
+         * @code
+         * container.forEach([](auto elem) { std::cout << elem; });
+         * @endcode
          */
         template<typename Callback = transform<TYPE>>
         requires Operation<Callback, TYPE>
         void forEach(const Callback& operation = Callback{}) const;
+
+        using T = std::remove_const_t<TYPE>;
+        /**
+         * @brief Creates a coroutine generator that yields elements from this container.
+         * @return A generator that produces copies of container elements with const removed.
+         * @details This method provides a coroutine-based iteration interface that:
+         *          - Removes const qualifiers from elements for compatibility with generator storage
+         *          - Creates value copies suitable for coroutine suspension and resumption
+         *          - Supports range-based for loops and generator pipeline operations
+         *          - Maintains element traversal order consistent with begin()/end()
+         *
+         * The generator produces std::remove_const_t<TYPE> to ensure compatibility with
+         * the underlying alternative<TYPE> storage in coroutines, which requires
+         * mutable types for placement new operations.
+         *
+         * Example usage:
+         * @code
+         * // Direct iteration
+         * for (auto value : container.generator()) {
+         *     process(value);
+         * }
+         *
+         * // Generator pipeline operations
+         * auto result = container.generator()
+         *     | transforms([](auto x) { return x * 2; })
+         *     | filters([](auto x) { return x > 10; })
+         *     | collect<vector>();
+         * @endcode
+         *
+         * @note The generator yields copies of elements, not references. For large
+         *       objects, consider using iterator to get reference directly.
+         * @warning Container lifetime must exceed generator usage to avoid dangling references.
+         */
+        coroutine::generator<T> generator() const;
     };
 }
 
@@ -597,6 +686,16 @@ namespace original {
     auto original::iterable<TYPE>::forEach(const Callback &operation) const -> void {
         for (auto it = this->first(); it.isValid(); it.next()) {
             operation(it.getElem());
+        }
+    }
+
+    template <typename TYPE>
+    original::coroutine::generator<std::remove_const_t<TYPE>>
+    original::iterable<TYPE>::generator() const
+    {
+        for (const auto& elem : *this)
+        {
+            co_yield std::remove_const_t<TYPE>(elem);
         }
     }
 

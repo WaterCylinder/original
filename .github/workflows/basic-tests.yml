@@ -1,0 +1,72 @@
+# .github/workflows/basic-tests.yml
+
+name: Test Branch CI - Basic Tests
+
+on:
+  push:
+    branches: [ test ]
+  pull_request:
+    branches: [ test ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    name: Test (${{ matrix.build_type }} - ${{ matrix.sanitizer }} - ${{ matrix.compiler }})
+
+    strategy:
+      matrix:
+        compiler: [gcc, clang]
+        build_type: [Debug]
+        sanitizer: [none, asan]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build libgtest-dev wget lsb-release software-properties-common
+
+          if [[ "${{ matrix.compiler }}" == "gcc" ]]; then
+            sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+            sudo apt-get update
+            sudo apt-get install -y gcc-13 g++-13
+          fi
+
+          if [[ "${{ matrix.compiler }}" == "clang" ]]; then
+            wget https://apt.llvm.org/llvm.sh
+            chmod +x llvm.sh
+            sudo ./llvm.sh 20
+          fi
+
+      - name: Set compiler
+        run: |
+          if [[ "${{ matrix.compiler }}" == "gcc" ]]; then
+            export CC=gcc-13
+            export CXX=g++-13
+          elif [[ "${{ matrix.compiler }}" == "clang" ]]; then
+            export CC=clang-20
+            export CXX=clang++-20
+          fi
+          echo "Using compiler: $CC / $CXX"
+
+      - name: Configure CMake
+        run: |
+          EXTRA_FLAGS=""
+          if [[ "${{ matrix.sanitizer }}" == "asan" ]]; then
+            EXTRA_FLAGS="-DCMAKE_CXX_FLAGS=-fsanitize=address -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=address"
+          fi
+          cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -G Ninja $EXTRA_FLAGS
+
+      - name: Build
+        run: cmake --build build
+
+      - name: List test executables
+        run: find build -name "*test*" -type f -executable | grep -v ".a$" | sort
+
+      - name: Show available tests
+        run: cd build && ctest -N
+
+      - name: Run tests
+        run: cd build && ctest --verbose --output-on-failure

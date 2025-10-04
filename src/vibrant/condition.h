@@ -93,6 +93,21 @@ namespace original
          */
         virtual void notifyAll() = 0;
 
+        /**
+         * @brief Notifies a specified number of waiting threads
+         * @param n Number of threads to notify
+         * @details This method provides a flexible notification mechanism:
+         * - If n == 0: No operation is performed
+         * - If n == 1: Equivalent to calling notify()
+         * - If n >= 2: Equivalent to calling notifyAll()
+         *
+         * @note This is a convenience method for scenarios where the exact
+         *       number of threads to notify depends on runtime conditions.
+         *       For precise control over thread notification, use notify()
+         *       or notifyAll() directly.
+         */
+        void notifySome(u_integer n);
+
         /// Virtual destructor
         virtual ~conditionBase() = default;
 
@@ -183,6 +198,17 @@ bool original::conditionBase::waitFor(mutexBase& mutex, const time::duration& d,
             return true;
     }
     return true;
+}
+
+inline void original::conditionBase::notifySome(const u_integer n) {
+    if (n == 0){
+        return;
+    }
+    if (n == 1){
+        this->notify();
+    } else {
+        this->notifyAll();
+    }
 }
 
 inline original::pCondition::pCondition() : cond_{}

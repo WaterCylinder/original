@@ -1,8 +1,8 @@
 #include <iostream>
-
 #include "array.h"
 #include "chain.h"
 #include "maths.h"
+#include "prique.h"
 #include "vector.h"
 
 
@@ -28,20 +28,22 @@ int main(){
     for (int i = 0; i < chain1.size(); ++i) {
         std::printf("chain1[%d] = %d\n", i, chain1[i]);
     }
-    for (auto* it = chain1.begins(); it->isValid(); it->next()) {
-        std::printf("chain1 element = %d, Iterator: %s\n", it->get(), it->toCString(false));
-    } // memory leaked
+    for (auto it = chain1.begin(); it.isValid(); it.next()) {
+        std::printf("chain1 element = %d, Iterator: %s\n", it.get(), it.toCString(false));
+    }
     std::printf("\n");
-    for (auto* it = chain1.ends(); it->isValid(); it->prev()) {
-        std::printf("chain1 element = %d, Iterator: %s\n", it->get(), it->toCString(false));
-    } // memory leaked
+    for (auto it = chain1.end(); it.isValid(); it.prev()) {
+        std::printf("chain1 element = %d, Iterator: %s\n", it.get(), it.toCString(false));
+    }
     std::printf("\n");
     auto chain2 = original::chain({6, 7, 3, 9, 4, 2, 10, 14, -5});
-    for (auto* l = chain2.begins(), *r = chain2.ends(); r->operator-(*l) > 0; l->next(), r->prev()) {
-        const int val = l->get();
-        l->set(r->get());
-        r->set(val);
-    } // memory leaked
+    auto l = chain2.first();
+    auto r = chain2.last();
+    for (; r - l > 0; l.next(), r.prev()) {
+        const int val = l.get();
+        l.set(r.get());
+        r.set(val);
+    }
     for (int i = 0; i < chain2.size(); ++i) {
         std::printf("chain2[%d] = %d\n", i, chain2[i]);
     }
@@ -181,9 +183,32 @@ int main(){
         i += 1;
     }
     std::cout << "arr9 after: " << arr9 << std::endl;
-    // delete &arr9.data(); // ok
     std::cout << original::array({"hello, original!"}) << std::endl;
     struct unprintable {};
     std::cout << original::printable::formatString(unprintable{}) << std::endl;
+    auto lhs = original::array<int, original::objPoolAllocator<int>>{1, 2, 3};
+    auto rhs = original::array<int, original::objPoolAllocator<int>>{4, 5, 6};
+    std::cout << lhs << std::endl;
+    std::cout << rhs << std::endl;
+    std::swap(lhs, rhs);
+    std::cout << lhs << std::endl;
+    std::cout << rhs << std::endl;
+    auto three_way_cmp_res = arr1 <=> arr2;
+    std::cout << original::printable::formatString(three_way_cmp_res) << std::endl;
+    std::cout << original::printable::formatString(three_way_cmp_res < 0) << std::endl;
+    std::cout << original::printable::formatString(arr1 < arr2) << std::endl;
+    std::less<> less;
+    std::cout << original::printable::formatString(less(arr1, arr2)) << std::endl;
+    std::cout << arr1.toHash() << std::endl;
+    std::cout << arr2.toHash() << std::endl;
+    std::equal_to<> eq;
+    std::cout << original::printable::formatString(eq(arr1, arr2)) << std::endl;
+    std::hash<original::array<int>> hash;
+    std::cout << hash(arr1) << std::endl;
+    std::hash<original::prique<int>> hash2;
+    original::prique p {4, 5, 6};
+    std::cout << "------" << std::endl;
+    std::cout << p.toHash() << std::endl;
+    std::cout << hash2(p) << std::endl;
     return 0;
 }

@@ -50,7 +50,7 @@ namespace original {
      * - Pointers (address-based hashing)
      * - Strings (FNV-1a over characters)
      * - Trivially copyable types (byte-wise hashing)
-     * - Types implementing hashable interface
+     * - Types implementing hashable interface (HashTraits concept)
      *
      * Example Usage:
      * @code{.cpp}
@@ -125,8 +125,18 @@ namespace original {
         template <typename T>
         static u_integer hashFunc(const T& t) noexcept;
 
-        template <typename T>
-        requires ExtendsOf<hashable<T>, T>
+        /**
+         * @brief Hash function for types implementing HashTraits concept
+         * @tparam T Type that satisfies HashTraits concept
+         * @param t The object to hash
+         * @return Hash value via toHash() method
+         * @details This specialization is used for types that provide a toHash() method
+         *          and support equality comparison, regardless of inheritance hierarchy.
+         *          This includes types inheriting from hashable<T> and standalone types
+         *          that meet the HashTraits requirements.
+         * @see HashTraits
+         */
+        template <HashTraits T>
         static u_integer hashFunc(const T& t) noexcept;
 
         /**
@@ -193,6 +203,9 @@ namespace original {
      * - toHash(): Uses byte-wise hashing of object representation
      * - equals(): Uses operator== comparison
      *
+     * Classes implementing this interface automatically satisfy the `HashTraits` concept,
+     * which requires both `toHash()` method and equality comparison support.
+     *
      * Usage Example:
      * @code{.cpp}
      * class MyType : public hashable<MyType> {
@@ -201,6 +214,7 @@ namespace original {
      *     // Optionally override toHash() and equals()
      * };
      * @endcode
+     * @see HashTraits
      */
     template <typename DERIVED>
     class hashable {
@@ -209,6 +223,7 @@ namespace original {
          * @brief Computes the hash of the object
          * @return A hash value
          * @details Default implementation uses byte-wise hashing of object
+         *          representation. Override for custom hashing logic.
          */
         [[nodiscard]] virtual u_integer toHash() const noexcept;
 
@@ -217,6 +232,7 @@ namespace original {
          * @param other The object to compare with
          * @return True if equal
          * @details Default implementation uses operator==
+         *          Override for custom equality logic.
          */
         virtual bool equals(const DERIVED& other) const noexcept;
 
@@ -230,11 +246,21 @@ namespace original {
 
 
 /**
- * @brief std::hash specialization for derived types of hashable
- * @tparam T Type that extends hashable
+ * @brief std::hash specialization for HashTraits types
+ * @tparam T Type that satisfies HashTraits concept
+ * @details Provides STL compatibility for types implementing the hashable interface.
+ *          Enables use of custom hashable types in std::unordered_map, std::unordered_set, etc.
+ *
+ * Example:
+ * @code{.cpp}
+ * class MyHashable : public original::hashable<MyHashable> {
+ *     // Implements toHash() and equals() or operator==
+ * };
+ *
+ * std::unordered_set<MyHashable> set; // Uses this specialization
+ * @endcode
  */
-template <typename T>
-requires original::ExtendsOf<original::hashable<T>, T>
+template <original::HashTraits T>
 struct std::hash<T> { // NOLINT
     /**
      * @brief Hash function operator for STL compatibility
@@ -286,7 +312,7 @@ original::u_integer original::hash<TYPE>::hashFunc(const T &t) noexcept {
 }
 
 template <typename TYPE>
-template <typename T> requires original::ExtendsOf<original::hashable<T>, T>
+template <original::HashTraits T>
 original::u_integer original::hash<TYPE>::hashFunc(const T& t) noexcept {
     return t.toHash();
 }
@@ -342,9 +368,8 @@ bool original::hashable<DERIVED>::equals(const DERIVED &other) const noexcept {
 template <typename DERIVED>
 original::hashable<DERIVED>::~hashable() = default;
 
-template <typename T>
-requires original::ExtendsOf<original::hashable<T>, T>
-std::size_t std::hash<T>::operator()(const T &t) const noexcept {
+template <original::HashTraits T>
+std::size_t std::hash<T>::operator()(const T& t) const noexcept {
     return static_cast<std::size_t>(t.toHash());
 }
 

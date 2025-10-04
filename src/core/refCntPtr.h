@@ -184,7 +184,7 @@ namespace original{
         strongPtr<const U, DEL> dynamicCastTo() const;
 
         /**
-        * @brief Const cast to remove const qualifier
+        * @brief Const cast to remove/add const qualifier
         * @tparam U Target type for const cast
         * @tparam DEL Rebound deleter type for target type
         * @return strongPtr<U, DEL> with const removed
@@ -357,7 +357,7 @@ namespace original{
         weakPtr<const U, DEL> dynamicCastTo() const;
 
         /**
-        * @brief Const cast to remove const qualifier
+        * @brief Const cast to remove/add const qualifier
         * @tparam U Target type for const cast
         * @tparam DEL Rebound deleter type for target type
         * @return weakPtr<U, DEL> with const removed

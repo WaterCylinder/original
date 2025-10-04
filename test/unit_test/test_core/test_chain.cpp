@@ -188,13 +188,13 @@ namespace original {
         chain c1 = {1, 2, 3};
         chain c2 = {1, 2, 3};
         const chain c3 = c2;
-        EXPECT_TRUE(c1 == c2);
-        EXPECT_TRUE(c1 == c3);
+        EXPECT_EQ(c1, c2);
+        EXPECT_EQ(c1, c3);
         c2.pushEnd(4);
-        EXPECT_FALSE(c1 == c2);
+        EXPECT_NE(c1, c2);
         c1.pushEnd(5);
-        EXPECT_FALSE(c1 == c3);
-    } // TODO: Also
+        EXPECT_NE(c1, c3);
+    }
 
     TEST(ChainTest, OutOfBoundsAccess) {
         const chain c = {1, 2, 3};

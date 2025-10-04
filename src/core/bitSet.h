@@ -49,7 +49,6 @@ namespace original {
 
             u_integer size_; ///< The total number of bits in the set.
 
-
             /**
              * @brief Initializes the bitSet with the given size.
              * @param size The size of the bitSet.
@@ -330,6 +329,14 @@ namespace original {
             bitSet& operator=(bitSet&& other) noexcept;
 
             /**
+             * @brief Swaps the contents of this bitSet with another.
+             * @param other The bitSet to swap with.
+             * @details Exchanges the contents and allocators (if propagate_on_container_swap is true)
+             *          of this bitSet with another.
+             */
+            void swap(bitSet& other) noexcept;
+
+            /**
              * @brief Counts the number of bits set to true.
              * @return The count of true bits.
              */
@@ -417,7 +424,11 @@ namespace original {
              */
             [[nodiscard]] std::string className() const override;
 
-
+            /**
+             * @brief Deleted forEach method to prevent misuse.
+             * @details This method is deleted because it doesn't make sense for a bitSet
+             *          to use the generic forEach with transform callbacks.
+             */
             template<typename Callback = transform<bool>>
             void forEach(Callback operation = Callback{}) = delete;
 
@@ -457,17 +468,55 @@ namespace original {
             friend bitSet<ALLOC_> operator~(const bitSet<ALLOC_>& bs);
     };
 
+    /**
+     * @brief Bitwise AND operator for two bitSets.
+     * @tparam ALLOC_ Allocator type
+     * @param lbs Left bitSet
+     * @param rbs Right bitSet
+     * @return Result of bitwise AND operation
+     */
     template<typename ALLOC_>
     bitSet<ALLOC_> operator&(const bitSet<ALLOC_>& lbs, const bitSet<ALLOC_>& rbs);
 
+    /**
+     * @brief Bitwise OR operator for two bitSets.
+     * @tparam ALLOC_ Allocator type
+     * @param lbs Left bitSet
+     * @param rbs Right bitSet
+     * @return Result of bitwise OR operation
+     */
     template<typename ALLOC_>
     bitSet<ALLOC_> operator|(const bitSet<ALLOC_>& lbs, const bitSet<ALLOC_>& rbs);
 
+    /**
+     * @brief Bitwise XOR operator for two bitSets.
+     * @tparam ALLOC_ Allocator type
+     * @param lbs Left bitSet
+     * @param rbs Right bitSet
+     * @return Result of bitwise XOR operation
+     */
     template<typename ALLOC_>
     bitSet<ALLOC_> operator^(const bitSet<ALLOC_>& lbs, const bitSet<ALLOC_>& rbs);
 
+    /**
+     * @brief Bitwise NOT operator for a bitSet.
+     * @tparam ALLOC_ Allocator type
+     * @param bs bitSet to negate
+     * @return Result of bitwise NOT operation
+     */
     template<typename ALLOC_>
     bitSet<ALLOC_> operator~(const bitSet<ALLOC_>& bs);
+}
+
+namespace std {
+    /**
+     * @brief Specialization of std::swap for original::bitSet
+     * @tparam ALLOC Allocator type
+     * @param lhs Left bitSet
+     * @param rhs Right bitSet
+     */
+    template<typename ALLOC>
+    void swap(original::bitSet<ALLOC>& lhs, original::bitSet<ALLOC>& rhs) noexcept; // NOLINT
 }
 
     template<typename ALLOC>
@@ -479,23 +528,23 @@ namespace original {
 
     template<typename ALLOC>
     auto original::bitSet<ALLOC>::getBitFromBlock(const underlying_type block_value, const integer bit) -> bool {
-        return block_value & static_cast<underlying_type>(1) << bit;
+        return block_value & underlying_type{1} << bit;
     }
 
     template<typename ALLOC>
     auto original::bitSet<ALLOC>::setBitFromBlock(const underlying_type block_value, const integer bit) -> underlying_type {
-        return block_value | static_cast<underlying_type>(1) << bit;
+        return block_value | underlying_type{1} << bit;
     }
 
     template<typename ALLOC>
     auto original::bitSet<ALLOC>::clearBitFromBlock(const underlying_type block_value, const integer bit) -> underlying_type {
-        return block_value & ~(static_cast<underlying_type>(1) << bit);
+        return block_value & ~(underlying_type{1} << bit);
     }
 
     template<typename ALLOC>
     auto original::bitSet<ALLOC>::clearHigherBitsFromBlock(const underlying_type block_value, const integer bit) -> underlying_type
     {
-        return block_value & (static_cast<underlying_type>(1) << (bit + 1)) - static_cast<underlying_type>(1);
+        return block_value & (underlying_type{1} << (bit + 1)) - underlying_type{1};
     }
 
     template<typename ALLOC>
@@ -718,6 +767,19 @@ namespace original {
         return *this;
     }
 
+    template <typename ALLOC>
+    void original::bitSet<ALLOC>::swap(bitSet& other) noexcept
+    {
+        if (this == &other)
+            return;
+
+        std::swap(this->size_, other.size_);
+        std::swap(this->map, other.map);
+        if constexpr (ALLOC::propagate_on_container_swap::value) {
+            std::swap(this->allocator, other.allocator);
+        }
+    }
+
     template<typename ALLOC>
     auto original::bitSet<ALLOC>::count() const -> u_integer {
         u_integer count = 0;
@@ -875,6 +937,12 @@ namespace original {
         }
         nbs.clearRedundantBits();
         return nbs;
+    }
+
+    template <typename ALLOC>
+    void std::swap(original::bitSet<ALLOC>& lhs, original::bitSet<ALLOC>& rhs) noexcept // NOLINT
+    {
+        lhs.swap(rhs);
     }
 
 #endif //BITSET_H

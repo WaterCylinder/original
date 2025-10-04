@@ -93,79 +93,115 @@ public:
     // ----------------- Static Format Utilities -----------------
 
     /**
-     * @brief Universal value-to-string conversion.
+     * @brief Universal value-to-string conversion with type-specific formatting.
      * @tparam TYPE Input value type
      * @param t Value to format
      * @return Formatted string with type-specific handling
-     * @details Automatically handles:
-     *          - Enums (via formatEnum)
-     *          - Strings (quoted)
-     *          - Chars (quoted)
-     *          - Pointers (hex address)
-     *          - Specializations for nullptr_t, bool, etc.
+     * @details Automatically dispatches to appropriate formatting based on type:
+     *          - Printable types: Uses operator<< or toString()
+     *          - Enum types: Formats as "EnumName(value)" via formatEnum
+     *          - String types: Wraps in quotes
+     *          - Character types: Wraps in single quotes
+     *          - Pointer types: Formats as hex address with @ prefix
+     *          - Boolean types: Formats as "true"/"false"
+     *          - nullptr_t: Formats as "nullptr"
+     *          - Other types: Uses typeid and address formatting
      *
+     * The function uses template specialization and concept constraints to
+     * select the appropriate formatting strategy at compile time.
+     *
+     * Example outputs:
      * @code{.cpp}
-     * printable::formatString(42);        // "42"
-     * printable::formatString("hello");   // "\"hello\""
-     * printable::formatString('A');       // "'A'"
+     * printable::formatString(42);              // "42"
+     * printable::formatString("hello");         // "\"hello\""
+     * printable::formatString('A');             // "'A'"
+     * printable::formatString(true);            // "true"
+     * printable::formatString(nullptr);         // "nullptr"
+     * printable::formatString((void*)0x1234);  // "@0x1234"
+     *
+     * enum Color { Red, Green };
+     * printable::formatString(Color::Red);     // "Color(0)"
      * @endcode
      */
     template<typename TYPE>
     static std::string formatString(const TYPE& t);
 
     /**
-     * @brief Specialization for printable types
-     * @tparam TYPE Printable-derived type
+     * @brief Specialization for types deriving from printable
+     * @tparam TYPE Printable-derived type (constrained by Printable concept)
      * @param t Printable object to format
      * @return String representation using the object's toString() method
+     * @details Uses the printable object's streaming operator or toString()
+     *          method to generate the string representation. This ensures
+     *          consistent formatting across all printable-derived types.
      */
     template<Printable TYPE>
     static std::string formatString(const TYPE& t);
 
     /**
-     * @brief Specialization for enum types
-     * @tparam TYPE Enum type
+     * @brief Specialization for enum types with type-safe formatting
+     * @tparam TYPE Enum type (constrained by EnumType concept)
      * @param t Enum value to format
      * @return String in "EnumName(value)" format
+     * @details Extracts the underlying integer value and combines it with
+     *          the type name for readable enum representation. Uses
+     *          std::underlying_type_t for safe value extraction.
      */
     template<EnumType TYPE>
     static std::string formatString(const TYPE& t);
 
     /**
-     * @brief Pointer-specific formatting.
+     * @brief Pointer-specific formatting with null safety
      * @tparam TYPE Pointer type
      * @param ptr Pointer to format
-     * @return String with hex address prefixed by @
+     * @return String with hex address prefixed by @, or "nullptr" for null
+     * @details Safely handles null pointers by returning "nullptr" and
+     *          formats valid pointers as hexadecimal addresses with @ prefix
+     *          for easy identification.
      *
      * @code{.cpp}
      * int* p = nullptr;
-     * printable::formatString(p); // "@0x0"
+     * printable::formatString(p);          // "nullptr"
+     *
+     * int x = 42;
+     * printable::formatString(&x);         // "@0x7ffeeb4a4c5c"
      * @endcode
      */
     template <typename TYPE>
     static std::string formatString(TYPE* const& ptr);
 
     /**
-     * @brief C-string cache for temporary usage.
+     * @brief C-string cache for temporary usage with static storage
      * @tparam TYPE Input type
      * @param t Value to format
-     * @return Static C-string buffer (thread-unsafe)
+     * @return Static C-string buffer containing formatted result
+     * @warning Not thread-safe due to static buffer - avoid in multi-threaded contexts
+     * @note The returned pointer points to static storage that will be
+     *       overwritten on subsequent calls. For thread-safe usage or
+     *       persistent strings, use formatString() and store the result.
      *
-     * @warning Not thread-safe due to static buffer
-     * @note For thread-safe usage, prefer formatString() and store the result
+     * @code{.cpp}
+     * // Single-threaded usage only:
+     * const char* str = printable::formatCString(42);
+     * printf("%s\n", str);  // Safe if no concurrent calls
+     * @endcode
      */
     template<typename TYPE>
     static const char* formatCString(const TYPE& t);
 
     /**
-     * @brief Enum formatting utility.
+     * @brief Enum formatting utility with underlying value extraction
      * @tparam TYPE Enum type
      * @param t Enum value
      * @return String in "EnumName(value)" format
+     * @details Formats enum values by combining the type name from typeid
+     *          with the underlying integer value. Provides consistent
+     *          enum representation across the codebase.
      *
      * @code{.cpp}
-     * enum Color { Red };
-     * printable::formatEnum(Color::Red); // "Color(0)"
+     * enum Color { Red = 1, Green = 2 };
+     * printable::formatEnum(Color::Red);  // "Color(1)"
+     * printable::formatEnum(Color::Green); // "Color(2)"
      * @endcode
      */
     template<typename TYPE>
@@ -175,50 +211,90 @@ public:
 };
 
 /**
- * @brief Stream insertion operator for printable objects.
+ * @brief Stream insertion operator for printable objects
  * @param os Output stream
  * @param p Printable object
  * @return Modified output stream
+ * @details Enables direct streaming of printable objects to output streams.
+ *          Uses the object's toString(false) method to generate the output
+ *          without trailing newline.
  *
  * @code{.cpp}
  * MyClass obj;
- * std::cout << obj; // Outputs "printable(@0x7ffd)"
+ * std::cout << obj;                    // Outputs "MyClass(custom_data)"
+ * std::cout << obj << std::endl;       // Adds newline separately
  * @endcode
  */
 std::ostream& operator<<(std::ostream& os, const printable& p);
 
 } // namespace original
 
+/**
+ * @namespace std
+ * @brief Standard namespace extensions for printable integration
+ */
+namespace std {
     /**
-     * @brief std::formatter specialization for printable types
+     * @brief std::to_string overload for printable-derived types
      * @tparam T Type derived from printable
-     * @details Enables use of printable-derived types with std::format.
-     *          Uses the toString() method for formatting.
+     * @param t Printable object to convert
+     * @return String representation using printable::formatString
+     * @details Provides integration with standard library functions that
+     *          use std::to_string, enabling seamless use of printable
+     *          types in standard contexts.
      *
      * @code{.cpp}
      * MyClass obj;
-     * auto s = std::format("{}", obj); // "printable(@0x7ffd)"
+     * std::string s = std::to_string(obj);  // Uses printable formatting
      * @endcode
      */
     template<typename T>
     requires original::ExtendsOf<original::printable, T>
-    struct std::formatter<T> { // NOLINT
+    std::string to_string(const T& t); // NOLINT
+
+    /**
+     * @brief std::formatter specialization for printable types
+     * @tparam T Type derived from printable
+     * @details Enables use of printable-derived types with C++20 std::format.
+     *          Uses the object's string conversion operators for consistent
+     *          formatting across all output mechanisms.
+     *
+     * Example usage:
+     * @code{.cpp}
+     * MyClass obj;
+     * auto s1 = std::format("Object: {}", obj);       // Basic formatting
+     * auto s2 = std::format("Object: {:<20}", obj);   // With format spec
+     * auto s3 = std::format("Object: {:.10}", obj);   // With precision
+     * @endcode
+     *
+     * @note The formatter delegates to std::string formatter after
+     *       converting the printable object to string.
+     */
+    template<typename T>
+    requires original::ExtendsOf<original::printable, T>
+    struct formatter<T> { // NOLINT
 
         /**
-        * @brief Parses the format specification
-        * @param ctx Format parse context
-        * @return Iterator past the parsed format specification
-        */
+         * @brief Parses the format specification for printable types
+         * @param ctx Format parse context
+         * @return Iterator past the parsed format specification
+         * @details Currently accepts any format specification and delegates
+         *          parsing to the underlying string formatter.
+         */
         static constexpr auto parse(format_parse_context& ctx);
 
         /**
-        * @brief Formats the printable object
-        * @param p Printable object to format
-        * @param ctx Format context
-        * @return Iterator past the formatted output
-        */
+         * @brief Formats the printable object using its string conversion
+         * @param p Printable object to format
+         * @param ctx Format context
+         * @return Iterator past the formatted output
+         * @details Converts the printable object to string using its
+         *          explicit conversion operator, then delegates to the
+         *          std::string formatter for actual formatting.
+         */
         static auto format(const T& p, format_context& ctx);
-};
+    };
+}
 
 // ----------------- Definitions of printable.h -----------------
 
@@ -332,6 +408,13 @@ inline auto original::printable::formatString<const char>(const char* const &ptr
 inline std::ostream& original::operator<<(std::ostream& os, const printable& p){
     os << p.toString(false);
     return os;
+}
+
+template<typename T>
+requires original::ExtendsOf<original::printable, T>
+std::string std::to_string(const T& t)
+{
+    return original::printable::formatString(t);
 }
 
 template<typename T>

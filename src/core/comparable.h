@@ -27,6 +27,9 @@ namespace original {
  *  - A negative value if the current object is less than the other.
  *  - Zero if the current object is equal to the other.
  *  - A positive value if the current object is greater than the other.
+ *
+ * Classes implementing this interface automatically satisfy the `CmpTraits` concept.
+ * @see CmpTraits
  */
 template <typename DERIVED>
 class comparable {
@@ -37,24 +40,6 @@ public:
      * @return A negative value if less than, zero if equal, and positive if greater than.
      */
     virtual integer compareTo(const DERIVED &other) const = 0;
-
-    /**
-     * @brief Three-way comparison operator (<=>), returns an ordered comparison result.
-     * @details This operator is implemented by invoking the compareTo() method of the comparable object.
-     *          The result type is std::strong_ordering, indicating strong ordering semantics.
-     *          Defined as a friend function to enable symmetric argument handling.
-     *
-     * @tparam EXTENDED The actual derived type using CRTP pattern.
-     * @param lc Left-hand side comparable object
-     * @param rc Right-hand side comparable object
-     * @return std::strong_ordering
-     *          - std::strong_ordering::less    if lhs < rhs
-     *          - std::strong_ordering::equal    if lhs == rhs
-     *          - std::strong_ordering::greater if lhs > rhs
-     */
-    template<typename EXTENDED>
-    requires ExtendsOf<comparable<EXTENDED>, EXTENDED>
-    friend std::strong_ordering operator<=>(const EXTENDED& lc, const EXTENDED& rc);
 
     /**
      * @brief Checks if the current object is equal to another.
@@ -106,12 +91,6 @@ public:
 
 // ----------------- Definitions of comparable.h -----------------
 
-template<typename EXTENDED>
-requires ExtendsOf<comparable<EXTENDED>, EXTENDED>
-std::strong_ordering operator<=>(const EXTENDED& lc, const EXTENDED& rc) {
-    return lc.compareTo(rc) <=> 0;
-}
-
 template<typename DERIVED>
 auto comparable<DERIVED>::operator==(const DERIVED &other) const -> bool {
     return compareTo(other) == 0;
@@ -143,5 +122,30 @@ auto comparable<DERIVED>::operator>=(const DERIVED &other) const -> bool {
 }
 
 } // namespace original
+
+/**
+ * @brief Three-way comparison operator for CmpTraits types
+ * @tparam T Type satisfying CmpTraits concept
+ * @param lhs Left-hand side object
+ * @param rhs Right-hand side object
+ * @return std::strong_ordering result based on compareTo()
+ * @details Provides C++20 spaceship operator support for types implementing
+ *          the comparable interface. Enables modern comparison syntax.
+ *
+ * Example:
+ * @code{.cpp}
+ * class MyComparable : public original::comparable<MyComparable> {
+ *     integer compareTo(const MyComparable& other) const override { ... }
+ * };
+ *
+ * MyComparable a, b;
+ * auto result = a <=> b; // Uses this operator
+ * @endcode
+ */
+template <original::CmpTraits T>
+std::strong_ordering operator<=>(const T& lhs, const T& rhs)
+{
+    return lhs.compareTo(rhs) <=> 0;
+}
 
 #endif //COMPARABLE_H

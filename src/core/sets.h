@@ -14,19 +14,21 @@
 
 /**
  * @file sets.h
- * @brief Implementation of set containers
- * @details Provides three set implementations with different underlying data structures:
- * 1. hashSet - Hash table based implementation
- * 2. treeSet - Red-Black Tree based implementation
- * 3. JSet - Skip List based implementation
+ * @brief Implementation of set containers with different underlying data structures
+ * @details Provides three set implementations with different performance characteristics
+ * and iteration capabilities:
+ * 1. hashSet - Hash table based implementation (unordered, fastest average case)
+ * 2. treeSet - Red-Black Tree based implementation (ordered, consistent performance)
+ * 3. JSet - Skip List based implementation (ordered, probabilistic balance)
  *
  * Common Features:
  * - Unique element storage (no duplicates)
- * - Full iterator support
+ * - Full iterator support with different capabilities
  * - Customizable comparison/hash functions
- * - Customizable allocators
- * - Exception safety guarantees
+ * - Customizable allocators with propagation support
+ * - Exception safety guarantees (basic guarantee for most operations)
  * - Polymorphic usage through set interface
+ * - Integration with printable for string representation
  *
  * Performance Characteristics:
  * | Container | Insertion    | Lookup   | Deletion | Ordered | Memory Usage |
@@ -36,14 +38,25 @@
  * | JSet      | O(log n) avg | O(log n) | O(log n) | Yes     | Medium       |
  *
  * Usage Guidelines:
- * - Use hashSet for maximum performance when order doesn't matter
- * - Use treeSet for ordered traversal and consistent performance
- * - Use JSet for concurrent scenarios or when probabilistic balance is preferred
+ * - Use hashSet for maximum performance when order doesn't matter and elements are hashable
+ * - Use treeSet for ordered traversal, range queries, and consistent worst-case performance
+ * - Use JSet for concurrent scenarios (external synchronization) or when probabilistic balance is preferred
+ *
+ * Iterator Invalidation:
+ * - hashSet: Iterators invalidate on rehash (insertion that causes capacity change)
+ * - treeSet: Iterators invalidate on element removal that affects the current position
+ * - JSet: Iterators invalidate on any structural modification
+ *
+ * Exception Safety:
+ * - Basic guarantee: Container remains valid but unspecified state on exception
+ * - Strong guarantee for some operations (no-throw if element operations are noexcept)
+ * - Allocator-aware exception handling
  *
  * @see set.h For the base interface definition
  * @see hashTable.h For hashSet implementation details
  * @see RBTree.h For treeSet implementation details
  * @see skipList.h For JSet implementation details
+ * @see printable.h For string formatting support
  */
 
 namespace original {
@@ -82,13 +95,13 @@ namespace original {
          * @typedef hashNode
          * @brief Internal node type used for hash table storage
          */
-        using hashNode = typename hashTable<TYPE, const bool, ALLOC, HASH>::hashNode;
+        using hashNode = hashTable<TYPE, const bool, ALLOC, HASH>::hashNode;
 
         /**
          * @typedef rebind_alloc_pointer
          * @brief Rebound allocator type for pointer storage
          */
-        using rebind_alloc_pointer = typename hashTable<TYPE, const bool, ALLOC, HASH>::rebind_alloc_pointer;
+        using rebind_alloc_pointer = hashTable<TYPE, const bool, ALLOC, HASH>::rebind_alloc_pointer;
 
     public:
         /**
@@ -279,6 +292,29 @@ namespace original {
         hashSet& operator=(hashSet&& other) noexcept;
 
         /**
+         * @brief Swaps contents with another hashSet
+         * @param other hashSet to swap with
+         * @note No-throw guarantee if element swap and allocator swap are noexcept
+         * @details Efficiently exchanges:
+         * - Bucket arrays and their contents
+         * - Size counters
+         * - Hash function instances
+         * - Allocators (if propagate_on_container_swap is true)
+         *
+         * Performance: O(1) - pointer swaps only
+         * Iterator Invalidation: All iterators from both sets are invalidated
+         *
+         * Example usage:
+         * @code{.cpp}
+         * hashSet<int> set1, set2;
+         * set1.add(1); set2.add(2);
+         * set1.swap(set2);
+         * // Now set1 contains 2, set2 contains 1
+         * @endcode
+         */
+        void swap(hashSet& other) noexcept;
+
+        /**
          * @brief Gets number of elements
          * @return Current size
          */
@@ -371,7 +407,7 @@ namespace original {
          * @typedef RBNode
          * @brief Internal node type used for Red-Black Tree storage
          */
-        using RBNode = typename RBTreeType::RBNode;
+        using RBNode = RBTreeType::RBNode;
     public:
         /**
          * @class Iterator
@@ -563,6 +599,29 @@ namespace original {
         treeSet& operator=(treeSet&& other) noexcept;
 
         /**
+         * @brief Swaps contents with another treeSet
+         * @param other treeSet to swap with
+         * @note No-throw guarantee if element swap and allocator swap are noexcept
+         * @details Efficiently exchanges:
+         * - Root nodes of the Red-Black Trees
+         * - Size counters
+         * - Comparison function instances
+         * - Allocators (if propagate_on_container_swap is true)
+         *
+         * Performance: O(1) - pointer swaps only
+         * Iterator Invalidation: All iterators from both sets are invalidated
+         *
+         * Example usage:
+         * @code{.cpp}
+         * treeSet<int> set1, set2;
+         * set1.add(1); set2.add(2);
+         * set1.swap(set2);
+         * // Now set1 contains 2, set2 contains 1
+         * @endcode
+         */
+        void swap(treeSet& other) noexcept;
+
+        /**
          * @brief Gets number of elements
          * @return Current size
          */
@@ -659,7 +718,7 @@ namespace original {
          * @typedef skipListNode
          * @brief Internal node type used for Skip List storage
          */
-        using skipListNode = typename skipListType::skipListNode;
+        using skipListNode = skipListType::skipListNode;
 
     public:
         /**
@@ -851,6 +910,29 @@ namespace original {
         JSet& operator=(JSet&& other) noexcept;
 
         /**
+         * @brief Swaps contents with another JSet
+         * @param other JSet to swap with
+         * @note No-throw guarantee if element swap and allocator swap are noexcept
+         * @details Efficiently exchanges:
+         * - Head nodes of the skip lists
+         * - Size counters
+         * - Comparison function instances
+         * - Allocators (if propagate_on_container_swap is true)
+         *
+         * Performance: O(1) - pointer swaps only
+         * Iterator Invalidation: All iterators from both sets are invalidated
+         *
+         * Example usage:
+         * @code{.cpp}
+         * JSet<int> set1, set2;
+         * set1.add(1); set2.add(2);
+         * set1.swap(set2);
+         * // Now set1 contains 2, set2 contains 1
+         * @endcode
+         */
+        void swap(JSet& other) noexcept;
+
+        /**
          * @brief Gets number of elements
          * @return Current size
          */
@@ -915,6 +997,80 @@ namespace original {
     };
 }
 
+namespace std {
+    /**
+     * @brief std::swap specialization for hashSet
+     * @tparam TYPE Element type
+     * @tparam HASH Hash function type
+     * @tparam ALLOC Allocator type
+     * @param lhs First hashSet to swap
+     * @param rhs Second hashSet to swap
+     * @note No-throw guarantee if hashSet::swap is noexcept
+     * @details Enables ADL-friendly swapping for use with standard algorithms
+     * and containers. Delegates to hashSet::swap for actual implementation.
+     *
+     * Example usage with standard algorithms:
+     * @code{.cpp}
+     * hashSet<int> set1, set2;
+     * std::swap(set1, set2);  // Uses this specialization
+     * std::sort(/* ... * /, [](auto& a, auto& b) {
+     *     std::swap(a, b);    // Also uses this specialization
+     * });
+     * @endcode
+     */
+    template <typename TYPE, typename HASH, typename ALLOC>
+    void swap(original::hashSet<TYPE, HASH, ALLOC>& lhs, // NOLINT
+              original::hashSet<TYPE, HASH, ALLOC>& rhs) noexcept;
+
+    /**
+     * @brief std::swap specialization for treeSet
+     * @tparam TYPE Element type
+     * @tparam COMPARE Comparison function type
+     * @tparam ALLOC Allocator type
+     * @param lhs First treeSet to swap
+     * @param rhs Second treeSet to swap
+     * @note No-throw guarantee if treeSet::swap is noexcept
+     * @details Enables ADL-friendly swapping for use with standard algorithms
+     * and containers. Delegates to treeSet::swap for actual implementation.
+     *
+     * Example usage with standard algorithms:
+     * @code{.cpp}
+     * treeSet<int> set1, set2;
+     * std::swap(set1, set2);  // Uses this specialization
+     * std::sort(/* ... * /, [](auto& a, auto& b) {
+     *     std::swap(a, b);    // Also uses this specialization
+     * });
+     * @endcode
+     */
+    template <typename TYPE, typename COMPARE, typename ALLOC>
+    void swap(original::treeSet<TYPE, COMPARE, ALLOC>& lhs, // NOLINT
+              original::treeSet<TYPE, COMPARE, ALLOC>& rhs) noexcept;
+
+    /**
+     * @brief std::swap specialization for JSet
+     * @tparam TYPE Element type
+     * @tparam COMPARE Comparison function type
+     * @tparam ALLOC Allocator type
+     * @param lhs First JSet to swap
+     * @param rhs Second JSet to swap
+     * @note No-throw guarantee if JSet::swap is noexcept
+     * @details Enables ADL-friendly swapping for use with standard algorithms
+     * and containers. Delegates to JSet::swap for actual implementation.
+     *
+     * Example usage with standard algorithms:
+     * @code{.cpp}
+     * JSet<int> set1, set2;
+     * std::swap(set1, set2);  // Uses this specialization
+     * std::sort(/* ... * /, [](auto& a, auto& b) {
+     *     std::swap(a, b);    // Also uses this specialization
+     * });
+     * @endcode
+     */
+    template <typename TYPE, typename COMPARE, typename ALLOC>
+    void swap(original::JSet<TYPE, COMPARE, ALLOC>& lhs, // NOLINT
+              original::JSet<TYPE, COMPARE, ALLOC>& rhs) noexcept;
+}
+
 template<typename TYPE, typename HASH, typename ALLOC>
 original::hashSet<TYPE, HASH, ALLOC>::Iterator::Iterator(vector<hashNode*, rebind_alloc_pointer> *buckets,
 u_integer bucket, hashNode *node) : hashTable<TYPE, const bool, ALLOC, HASH>::Iterator(
@@ -935,7 +1091,7 @@ original::hashSet<TYPE, HASH, ALLOC>::Iterator::Iterator(const Iterator &other) 
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
-typename original::hashSet<TYPE, HASH, ALLOC>::Iterator&
+original::hashSet<TYPE, HASH, ALLOC>::Iterator&
 original::hashSet<TYPE, HASH, ALLOC>::Iterator::operator=(const Iterator &other) {
     if (this == &other) {
         return *this;
@@ -946,7 +1102,7 @@ original::hashSet<TYPE, HASH, ALLOC>::Iterator::operator=(const Iterator &other)
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
-typename original::hashSet<TYPE, HASH, ALLOC>::Iterator*
+original::hashSet<TYPE, HASH, ALLOC>::Iterator*
 original::hashSet<TYPE, HASH, ALLOC>::Iterator::clone() const {
     return new Iterator(*this);
 }
@@ -1013,7 +1169,7 @@ void original::hashSet<TYPE, HASH, ALLOC>::Iterator::prev() const {
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
-typename original::hashSet<TYPE, HASH, ALLOC>::Iterator*
+original::hashSet<TYPE, HASH, ALLOC>::Iterator*
 original::hashSet<TYPE, HASH, ALLOC>::Iterator::getPrev() const {
     throw unSupportedMethodError();
 }
@@ -1089,6 +1245,21 @@ original::hashSet<TYPE, HASH, ALLOC>::operator=(hashSet &&other) noexcept {
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
+void original::hashSet<TYPE, HASH, ALLOC>::swap(hashSet& other) noexcept
+{
+    if (this == &other)
+        return;
+
+    std::swap(this->size_, other.size_);
+    std::swap(this->buckets, other.buckets);
+    std::swap(this->hash_, other.hash_);
+    if constexpr (ALLOC::propagate_on_container_swap::value) {
+        std::swap(this->allocator, other.allocator);
+        std::swap(this->rebind_alloc, other.rebind_alloc);
+    }
+}
+
+template<typename TYPE, typename HASH, typename ALLOC>
 original::u_integer original::hashSet<TYPE, HASH, ALLOC>::size() const {
     return this->size_;
 }
@@ -1109,7 +1280,7 @@ bool original::hashSet<TYPE, HASH, ALLOC>::remove(const TYPE &e) {
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
-typename original::hashSet<TYPE, HASH, ALLOC>::Iterator*
+original::hashSet<TYPE, HASH, ALLOC>::Iterator*
 original::hashSet<TYPE, HASH, ALLOC>::begins() const {
     auto p_buckets = const_cast<vector<hashNode*, rebind_alloc_pointer>*>(&this->buckets);
     if (this->buckets[0]) {
@@ -1120,7 +1291,7 @@ original::hashSet<TYPE, HASH, ALLOC>::begins() const {
 }
 
 template<typename TYPE, typename HASH, typename ALLOC>
-typename original::hashSet<TYPE, HASH, ALLOC>::Iterator*
+original::hashSet<TYPE, HASH, ALLOC>::Iterator*
 original::hashSet<TYPE, HASH, ALLOC>::ends() const {
     auto p_buckets = const_cast<vector<hashNode*, rebind_alloc_pointer>*>(&this->buckets);
     auto bucket = Iterator::findPrevValidBucket(p_buckets, this->buckets.size());
@@ -1179,7 +1350,7 @@ original::treeSet<TYPE, Compare, ALLOC>::Iterator::Iterator(const Iterator& othe
 }
 
 template <typename TYPE, typename Compare, typename ALLOC>
-typename original::treeSet<TYPE, Compare, ALLOC>::Iterator&
+original::treeSet<TYPE, Compare, ALLOC>::Iterator&
 original::treeSet<TYPE, Compare, ALLOC>::Iterator::operator=(const Iterator& other)
 {
     if (this == &other) {
@@ -1192,7 +1363,7 @@ original::treeSet<TYPE, Compare, ALLOC>::Iterator::operator=(const Iterator& oth
 }
 
 template <typename TYPE, typename Compare, typename ALLOC>
-typename original::treeSet<TYPE, Compare, ALLOC>::Iterator*
+original::treeSet<TYPE, Compare, ALLOC>::Iterator*
 original::treeSet<TYPE, Compare, ALLOC>::Iterator::clone() const
 {
     return new Iterator(*this);
@@ -1270,7 +1441,7 @@ void original::treeSet<TYPE, Compare, ALLOC>::Iterator::prev() const
 }
 
 template <typename TYPE, typename Compare, typename ALLOC>
-typename original::treeSet<TYPE, Compare, ALLOC>::Iterator*
+original::treeSet<TYPE, Compare, ALLOC>::Iterator*
 original::treeSet<TYPE, Compare, ALLOC>::Iterator::getPrev() const
 {
     auto it = this->clone();
@@ -1356,6 +1527,21 @@ original::treeSet<TYPE, Compare, ALLOC>::operator=(treeSet&& other) noexcept {
 }
 
 template<typename TYPE, typename Compare, typename ALLOC>
+void original::treeSet<TYPE, Compare, ALLOC>::swap(treeSet& other) noexcept
+{
+    if (this == &other)
+        return;
+
+    std::swap(this->root_, other.root_);
+    std::swap(this->size_, other.size_);
+    std::swap(this->compare_, other.compare_);
+    if constexpr (ALLOC::propagate_on_container_swap::value) {
+        std::swap(this->allocator, other.allocator);
+        std::swap(this->rebind_alloc, other.rebind_alloc);
+    }
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
 original::u_integer original::treeSet<TYPE, Compare, ALLOC>::size() const {
     return this->size_;
 }
@@ -1376,14 +1562,14 @@ bool original::treeSet<TYPE, Compare, ALLOC>::remove(const TYPE &e) {
 }
 
 template <typename TYPE, typename Compare, typename ALLOC>
-typename original::treeSet<TYPE, Compare, ALLOC>::Iterator*
+original::treeSet<TYPE, Compare, ALLOC>::Iterator*
 original::treeSet<TYPE, Compare, ALLOC>::begins() const
 {
     return new Iterator(const_cast<treeSet*>(this), this->getMinNode());
 }
 
 template <typename TYPE, typename Compare, typename ALLOC>
-typename original::treeSet<TYPE, Compare, ALLOC>::Iterator*
+original::treeSet<TYPE, Compare, ALLOC>::Iterator*
 original::treeSet<TYPE, Compare, ALLOC>::ends() const
 {
     return new Iterator(const_cast<treeSet*>(this), this->getMaxNode());
@@ -1589,6 +1775,21 @@ original::JSet<TYPE, Compare, ALLOC>::operator=(JSet&& other) noexcept {
 }
 
 template<typename TYPE, typename Compare, typename ALLOC>
+void original::JSet<TYPE, Compare, ALLOC>::swap(JSet& other) noexcept
+{
+    if (this == &other)
+        return;
+
+    std::swap(this->size_, other.size_);
+    std::swap(this->head_, other.head_);
+    std::swap(this->compare_, other.compare_);
+    if constexpr (ALLOC::propagate_on_container_swap::value) {
+        std::swap(this->allocator, other.allocator);
+        std::swap(this->rebind_alloc, other.rebind_alloc);
+    }
+}
+
+template<typename TYPE, typename Compare, typename ALLOC>
 original::u_integer original::JSet<TYPE, Compare, ALLOC>::size() const {
     return this->size_;
 }
@@ -1646,5 +1847,26 @@ std::string original::JSet<TYPE, Compare, ALLOC>::toString(bool enter) const {
 
 template<typename TYPE, typename Compare, typename ALLOC>
 original::JSet<TYPE, Compare, ALLOC>::~JSet() = default;
+
+template <typename TYPE, typename HASH, typename ALLOC>
+void std::swap(original::hashSet<TYPE, HASH, ALLOC>& lhs, // NOLINT
+               original::hashSet<TYPE, HASH, ALLOC>& rhs) noexcept
+{
+    lhs.swap(rhs);
+}
+
+template <typename TYPE, typename COMPARE, typename ALLOC>
+void std::swap(original::treeSet<TYPE, COMPARE, ALLOC>& lhs, // NOLINT
+               original::treeSet<TYPE, COMPARE, ALLOC>& rhs) noexcept
+{
+    lhs.swap(rhs);
+}
+
+template <typename TYPE, typename COMPARE, typename ALLOC>
+void std::swap(original::JSet<TYPE, COMPARE, ALLOC>& lhs, // NOLINT
+               original::JSet<TYPE, COMPARE, ALLOC>& rhs) noexcept
+{
+    lhs.swap(rhs);
+}
 
 #endif //SETS_H

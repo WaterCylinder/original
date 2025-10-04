@@ -102,6 +102,24 @@ namespace original
         prique& operator=(prique&& other) noexcept;
 
         /**
+         * @brief Swaps contents with another priority queue
+         * @param other Priority queue to swap with
+         * @note No-throw guarantee
+         * @details Exchanges both the underlying container and the comparison
+         * functor. This method shadows the base class swap to ensure all
+         * resources (container and comparator) are properly exchanged.
+         *
+         * Example usage:
+         * @code{.cpp}
+         * prique<int> q1, q2;
+         * q1.push(1);
+         * q2.push(2);
+         * q1.swap(q2);  // Now q1 contains 2, q2 contains 1
+         * @endcode
+         */
+        void swap(prique& other) noexcept;
+
+        /**
          * @brief Inserts element maintaining heap property
          * @param e Element to insert
          * @details Uses algorithms::heapAdjustUp after insertion.
@@ -197,6 +215,17 @@ namespace original
         this->serial_ = std::move(other.serial_);
         this->compare_ = std::move(other.compare_);
         return *this;
+    }
+
+    template<typename TYPE,
+            template <typename> typename Callback,
+            template <typename, typename> typename SERIAL,
+            template <typename> typename ALLOC>
+    requires original::Compare<Callback<TYPE>, TYPE>
+    void original::prique<TYPE, Callback, SERIAL, ALLOC>::swap(prique& other) noexcept
+    {
+        containerAdapter<TYPE, SERIAL, ALLOC>::swap(other);
+        std::swap(this->compare_, other.compare_);
     }
 
     template<typename TYPE,

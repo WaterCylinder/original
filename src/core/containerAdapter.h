@@ -4,6 +4,7 @@
 #include "types.h"
 #include "printable.h"
 #include "comparable.h"
+#include "hash.h"
 
 
 namespace original {
@@ -50,7 +51,8 @@ namespace original {
     class containerAdapter
             : public printable,
               public container<TYPE, ALLOC<TYPE>>,
-              public comparable<containerAdapter<TYPE, SERIAL, ALLOC>>{
+              public comparable<containerAdapter<TYPE, SERIAL, ALLOC>>,
+              public hashable<containerAdapter<TYPE, SERIAL, ALLOC>> {
     protected:
         /**
          * @brief The underlying container instance
@@ -78,6 +80,13 @@ namespace original {
          * Memory usage depends on the underlying container's allocator.
          */
         [[nodiscard]] u_integer size() const override;
+
+        /**
+         * @brief Swaps the contents of this container adapter with another
+         * @param other The container adapter to swap with
+         * @details Exchanges the underlying serial containers between this adapter and another
+         */
+        void swap(containerAdapter& other) noexcept;
 
         /**
          * @brief Removes all elements from the adapter
@@ -112,6 +121,13 @@ namespace original {
          *          3. If all elements are equal, the adapters are considered equivalent
          */
         integer compareTo(const containerAdapter &other) const override;
+
+        /**
+         * @brief Computes hash value for the container adapter
+         * @return u_integer Hash value based on the underlying container's contents
+         * @details Delegates to the underlying serial container's toHash method
+         */
+        [[nodiscard]] u_integer toHash() const noexcept override;
 
         /**
          * @brief Gets class name identifier for type information
@@ -152,6 +168,17 @@ namespace original {
               template <typename, typename> typename SERIAL,
               template <typename> typename ALLOC>
     requires ExtendsOf<baseList<TYPE, ALLOC<TYPE>>, SERIAL<TYPE, ALLOC<TYPE>>>
+    void containerAdapter<TYPE, SERIAL, ALLOC>::swap(containerAdapter& other) noexcept
+    {
+        if (this == &other)
+            return;
+        serial_.swap(other.serial_);
+    }
+
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    requires ExtendsOf<baseList<TYPE, ALLOC<TYPE>>, SERIAL<TYPE, ALLOC<TYPE>>>
     auto containerAdapter<TYPE, SERIAL, ALLOC>::clear() -> void {
         serial_.clear();
     }
@@ -171,6 +198,15 @@ namespace original {
     auto containerAdapter<TYPE, SERIAL, ALLOC>::compareTo(const containerAdapter& other) const -> integer
     {
         return serial_.compareTo(other.serial_);
+    }
+
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    requires ExtendsOf<baseList<TYPE, ALLOC<TYPE>>, SERIAL<TYPE, ALLOC<TYPE>>>
+    u_integer containerAdapter<TYPE, SERIAL, ALLOC>::toHash() const noexcept
+    {
+        return this->serial_.toHash();
     }
 
     template <typename TYPE,
@@ -200,5 +236,24 @@ namespace original {
         return ss.str();
     }
 }
+
+namespace std {
+    /**
+     * @brief Specialization of std::swap for original::containerAdapter
+     * @tparam TYPE Element type
+     * @tparam SERIAL Underlying container type
+     * @tparam ALLOC Allocator type
+     * @param lhs Left container adapter
+     * @param rhs Right container adapter
+     */
+    template <typename TYPE,
+              template <typename, typename> typename SERIAL,
+              template <typename> typename ALLOC>
+    void swap(original::containerAdapter<TYPE, SERIAL, ALLOC>& lhs, // NOLINT
+              original::containerAdapter<TYPE, SERIAL, ALLOC>& rhs) noexcept {
+        lhs.swap(rhs);
+    }
+}
+
 
 #endif //CONTAINERADAPTER_H

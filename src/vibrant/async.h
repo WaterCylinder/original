@@ -132,7 +132,7 @@ namespace original {
              * @param timeout Maximum time to wait
              * @return True if result is ready within timeout, false otherwise
              */
-            virtual bool waitFor(time::duration timeout) const = 0;
+            [[nodiscard]] virtual bool waitFor(time::duration timeout) const = 0;
 
             /**
              * @brief Gets the stored exception if computation failed
@@ -220,7 +220,7 @@ namespace original {
              * @param timeout Maximum time to wait
              * @return True if result is ready within timeout, false otherwise
              */
-            bool waitFor(time::duration timeout) const override;
+            [[nodiscard]] bool waitFor(time::duration timeout) const override;
         };
 
         /**
@@ -272,7 +272,7 @@ namespace original {
              * @throws sysError if the shared future is invalid or not ready
              * @throws std::exception if the computation threw an exception
              */
-            strongPtr<const TYPE> strongPointer() const;
+            [[nodiscard]] strongPtr<const TYPE> strongPointer() const;
 
             /**
              * @brief Checks if the result is ready
@@ -310,7 +310,7 @@ namespace original {
              * @param timeout Maximum time to wait
              * @return True if result is ready within timeout, false otherwise
              */
-            bool waitFor(time::duration timeout) const override;
+            [[nodiscard]] bool waitFor(time::duration timeout) const override;
 
             /**
              * @brief Generates a hash value for the shared future
@@ -590,7 +590,7 @@ namespace original {
          * @param timeout Maximum time to wait
          * @return True if result is ready within timeout, false otherwise
          */
-        bool waitFor(time::duration timeout) const;
+        bool waitFor(const time::duration& timeout) const;
 
         /**
          * @brief Waits for completion and checks for exceptions
@@ -678,7 +678,7 @@ namespace original {
          * @param timeout Maximum time to wait
          * @return True if result is ready within timeout, false otherwise
          */
-        bool waitFor(time::duration timeout) const override;
+        [[nodiscard]] bool waitFor(time::duration timeout) const override;
     };
 
     template <>
@@ -745,7 +745,7 @@ namespace original {
          * @param timeout Maximum time to wait
          * @return True if result is ready within timeout, false otherwise
          */
-        bool waitFor(time::duration timeout) const override;
+        [[nodiscard]] bool waitFor(time::duration timeout) const override;
 
         /**
          * @brief Generates a hash value for the shared future
@@ -834,7 +834,7 @@ void original::async::asyncWrapper<TYPE>::setValue(TYPE&& v)
         this->result_ = makeStrongPtr<TYPE>(std::move(v));
         this->ready_.store(true);
     }
-    this->cond_.notify();
+    this->cond_.notifyAll();
 }
 
 template <typename TYPE>
@@ -845,13 +845,13 @@ void original::async::asyncWrapper<TYPE>::setException(std::exception_ptr e)
         this->e_ = std::move(e);
         this->ready_.store(true);
     }
-    this->cond_.notify();
+    this->cond_.notifyAll();
 }
 
 template <typename TYPE>
 bool original::async::asyncWrapper<TYPE>::ready() const
 {
-    return this->ready_.load();
+    return *this->ready_;
 }
 
 template <typename TYPE>
@@ -878,12 +878,6 @@ template <typename TYPE>
 TYPE original::async::asyncWrapper<TYPE>::get()
 {
     uniqueLock lock{this->mutex_};
-    this->rethrowIfException();
-    if (this->result_) {
-        TYPE result = std::move(*this->result_);
-        this->result_.reset();
-        return result;
-    }
     this->cond_.wait(this->mutex_, [this]{
         return this->ready();
     });
@@ -899,10 +893,6 @@ template <typename TYPE>
 const TYPE& original::async::asyncWrapper<TYPE>::peek() const
 {
     uniqueLock lock{this->mutex_};
-    this->rethrowIfException();
-    if (this->result_) {
-        return *this->result_;
-    }
     this->cond_.wait(this->mutex_, [this]{
         return this->ready();
     });
@@ -1188,12 +1178,7 @@ auto original::operator|(async::future<T> f, Callback&& c)
     using ResultType = std::invoke_result_t<Callback, T>;
     strongPtr<async::future<T>> shared_f = makeStrongPtr<async::future<T>>(std::move(f));
     return async::get([shared_f, c = std::forward<Callback>(c)] mutable -> ResultType {
-        if constexpr (!std::is_void_v<ResultType>) {
-            return c(shared_f->result());
-        } else {
-            shared_f->result();
-            return c();
-        }
+        return c(shared_f->result());
     });
 }
 
@@ -1213,12 +1198,7 @@ auto original::operator|(async::sharedFuture<T> sf, Callback&& c)
 {
     using ResultType = std::invoke_result_t<Callback, T>;
     return async::get([sf, c = std::forward<Callback>(c)] mutable -> ResultType {
-        if constexpr (!std::is_void_v<ResultType>) {
-            return c(sf.result());
-        } else {
-            sf.result();
-            return c();
-        }
+        return c(sf.result());
     }).share();
 }
 
@@ -1241,12 +1221,7 @@ auto original::operator|(async::promise<T, Callback1> p, Callback2&& c)
     using ResultType = decltype(c(std::declval<T>()));
     strongPtr<async::promise<T,Callback1>> shared_p = makeStrongPtr<async::promise<T, Callback1>>(std::move(p));
     return async::makePromise([shared_p, c = std::forward<Callback2>(c)]() mutable -> ResultType {
-        if constexpr (!std::is_void_v<ResultType>) {
-            return c(shared_p->function()());
-        } else {
-            shared_p->function()();
-            return c();
-        }
+        return c(shared_p->function()());
     });
 }
 
@@ -1271,7 +1246,7 @@ inline void original::async::asyncWrapper<void>::setValue()
         this->result_.set();
         this->ready_.store(true);
     }
-    this->cond_.notify();
+    this->cond_.notifyAll();
 }
 
 inline void original::async::asyncWrapper<void>::setException(std::exception_ptr e)
@@ -1281,12 +1256,12 @@ inline void original::async::asyncWrapper<void>::setException(std::exception_ptr
         this->e_ = std::move(e);
         this->ready_.store(true);
     }
-    this->cond_.notify();
+    this->cond_.notifyAll();
 }
 
 inline bool original::async::asyncWrapper<void>::ready() const
 {
-    return this->ready_.load();
+    return *this->ready_;
 }
 
 inline void original::async::asyncWrapper<void>::wait() const
@@ -1298,10 +1273,10 @@ inline void original::async::asyncWrapper<void>::wait() const
     });
 }
 
-inline bool original::async::asyncWrapper<void>::waitFor(time::duration timeout) const
+inline bool original::async::asyncWrapper<void>::waitFor(const time::duration& timeout) const
 {
     uniqueLock lock{this->mutex_};
-    return this->cond_.waitFor(this->mutex_, std::move(timeout), [this]
+    return this->cond_.waitFor(this->mutex_, timeout, [this]
     {
        return this->ready();
     });
@@ -1310,11 +1285,6 @@ inline bool original::async::asyncWrapper<void>::waitFor(time::duration timeout)
 inline void original::async::asyncWrapper<void>::get()
 {
     uniqueLock lock{this->mutex_};
-    this->rethrowIfException();
-    if (this->result_) {
-        this->result_.reset();
-        return;
-    }
     this->cond_.wait(this->mutex_, [this] {
         return this->ready();
     });
@@ -1326,10 +1296,6 @@ inline void original::async::asyncWrapper<void>::get()
 inline void original::async::asyncWrapper<void>::peek() const
 {
     uniqueLock lock{this->mutex_};
-    this->rethrowIfException();
-    if (this->result_) {
-        return;
-    }
     this->cond_.wait(this->mutex_, [this] {
         return this->ready();
     });

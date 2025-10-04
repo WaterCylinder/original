@@ -174,15 +174,12 @@ namespace original {
         forwardChain c1 = {1, 2, 3};
         forwardChain c2 = {1, 2, 3};
         const forwardChain c3 = c2;
-        EXPECT_TRUE(c1 == c2);
-        EXPECT_TRUE(c1 == c3);
+        EXPECT_EQ(c1, c2);
+        EXPECT_EQ(c1, c3);
         c2.pushEnd(4);
-        EXPECT_FALSE(c1 == c2);
+        EXPECT_NE(c1, c2);
         c1.pushEnd(5);
-        EXPECT_FALSE(c1 == c3);
-        // FIX TODO: Crash at end of this test when enable these options in CMakeLists.txt:
-        // set(CMAKE_BUILD_TYPE Release)
-        // set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0 -pthread")
+        EXPECT_NE(c1, c3);
     }
 
     TEST(forwardChainTest, OutOfBoundsAccess) {

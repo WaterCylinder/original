@@ -307,6 +307,8 @@ namespace original {
          */
         ~vector() override;
 
+        void swap(vector& other) noexcept;
+
         // ==================== Capacity Methods ====================
 
         /**
@@ -453,6 +455,11 @@ namespace original {
      */
     template<typename T, typename... ARGS>
     vector<T> makeVector(u_integer size, ARGS&&... args);
+}
+
+namespace std {
+    template<typename TYPE, typename ALLOC>
+    void swap(original::vector<TYPE, ALLOC>& lhs, original::vector<TYPE, ALLOC>& rhs) noexcept; // NOLINT
 }
 
     template <typename TYPE, typename ALLOC>
@@ -914,9 +921,30 @@ template<typename TYPE, typename ALLOC>
         this->vectorArrayDestroy();
     }
 
+    template <typename TYPE, typename ALLOC>
+    void original::vector<TYPE, ALLOC>::swap(vector& other) noexcept
+    {
+        if (this == &other)
+            return;
+
+        std::swap(this->size_, other.size_);
+        std::swap(this->max_size, other.max_size);
+        std::swap(this->inner_begin, other.inner_begin);
+        std::swap(this->body, other.body);
+        if constexpr (ALLOC::propagate_on_container_swap::value) {
+            std::swap(this->allocator, other.allocator);
+        }
+    }
+
     template<typename T, typename... ARGS>
     original::vector<T> original::makeVector(u_integer size, ARGS &&... args) {
         return original::vector<T>(size, original::allocator<T>{}, std::forward<ARGS>(args)...);
+    }
+
+    template <typename TYPE, typename ALLOC>
+    void std::swap(original::vector<TYPE, ALLOC>& lhs, original::vector<TYPE, ALLOC>& rhs) noexcept // NOLINT
+    {
+        lhs.swap(rhs);
     }
 
 #endif //VECTOR_H

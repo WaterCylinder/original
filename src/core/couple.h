@@ -31,6 +31,24 @@ namespace original
      * - Formatted string output through printable interface
      * - Comparable interface implementation
      * - Structured binding support via std::tuple_size and std::tuple_element specializations
+     *
+     * @section Usage_Examples Usage Examples
+     *
+     * @code
+     * // Basic construction
+     * original::couple<int, std::string> c1(42, "hello");
+     *
+     * // Element access
+     * c1.first() = 100;
+     * c1.second() = "world";
+     *
+     * // Template-based element access
+     * auto& first = c1.get<0>();
+     * auto& second = c1.get<1>();
+     *
+     * // Structured binding support
+     * auto [x, y] = c1;
+     * @endcode
      */
     template<typename F_TYPE, typename S_TYPE>
     class couple final : public printable, public comparable<couple<F_TYPE, S_TYPE>>
@@ -58,6 +76,11 @@ namespace original
          */
         couple(const F_TYPE& first, const S_TYPE& second);
 
+        /**
+         * @brief Constructs from rvalue references
+         * @param first First element to move
+         * @param second Second element to move
+         */
         couple(F_TYPE&& first, S_TYPE&& second);
 
         /**
@@ -89,6 +112,12 @@ namespace original
         couple& operator=(couple&& other) noexcept;
 
         /**
+         * @brief Swaps the contents of this couple with another
+         * @param other The couple to swap with
+         */
+        void swap(couple& other) noexcept;
+
+        /**
          * @brief Element access template method (non-const version)
          * @tparam IDX element index (0=1st element, 1=2nd element)
          * @return Reference to the corresponding element
@@ -109,11 +138,12 @@ namespace original
         const auto& get() const;
 
         /**
-         * @brief element modifies the template method
+         * @brief Element modification template method
          * @tparam IDX element index (0=1st element, 1=2nd element)
          * @tparam T Element type (auto-derivation)
          * @param e new element value
          * @return Reference to this object for method chaining
+         * @throws valueError if type conversion fails
          */
         template<u_integer IDX, typename T>
         couple& set(const T& e);
@@ -172,6 +202,16 @@ namespace original
 
 
 namespace std {
+    /**
+     * @brief Specialization of std::swap for original::couple
+     * @tparam F Type of first element
+     * @tparam S Type of second element
+     * @param lhs Left couple
+     * @param rhs Right couple
+     */
+    template<typename F, typename S>
+    void swap(original::couple<F, S>& lhs, original::couple<F, S>& rhs) noexcept; // NOLINT
+
     /**
      * @brief Specialization of tuple_size for couple to enable structured bindings
      * @tparam F Type of first element
@@ -271,6 +311,16 @@ namespace std {
         return *this;
     }
 
+    template <typename F_TYPE, typename S_TYPE>
+    void original::couple<F_TYPE, S_TYPE>::swap(couple& other) noexcept
+    {
+        if (this == &other)
+            return;
+
+        std::swap(this->first_, other.first_);
+        std::swap(this->second_, other.second_);
+    }
+
     template<typename F_TYPE, typename S_TYPE>
     template<original::u_integer IDX>
     auto& original::couple<F_TYPE, S_TYPE>::get() {
@@ -364,6 +414,12 @@ template <typename F_TYPE, typename S_TYPE>
            << ", " << formatString(this->second_) << ")";
         if (enter) ss << "\n";
         return ss.str();
+    }
+
+    template <typename F, typename S>
+    void std::swap(original::couple<F, S>& lhs, original::couple<F, S>& rhs) noexcept // NOLINT
+    {
+        lhs.swap(rhs);
     }
 
     template<std::size_t I, typename F, typename S>

@@ -24,7 +24,7 @@ Original是一个C++基础工具库,也是本人的第一个正式项目，用�
 cmake_minimum_required(VERSION 3.30)
 project(hello_original)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 set(BUILD_TESTING OFF CACHE BOOL "Disable tests in the fetched project")
 
@@ -63,7 +63,7 @@ cmake -P install.cmake
 cmake_minimum_required(VERSION 3.30)
 project(hello_original)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/original")
@@ -140,15 +140,15 @@ array("hello world!")
 
 ##### 线程：
 
-基类 threadBase，POSIX类线程 pThread，线程包装器 thread
+基类 threadBase，POSIX类线程 pThread，线程 thread
 
 ##### 临界区管理：
 
-互斥量包装类 mutexBase/pMutex，锁管理器 lockGuard/uniqueLock/multiLock
+互斥量 mutexBase/pMutex，锁管理器 lockGuard/uniqueLock/multiLock，信号量 semaphore/semaphoreGuard
 
 ##### 线程同步：
 
-条件变量包装类 conditionBase/pCondition
+条件变量 conditionBase/pCondition，线程同步点 syncPoint
 
 ##### 原子操作：
 

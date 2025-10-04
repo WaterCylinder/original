@@ -1,0 +1,80 @@
+# .github/workflows/full-tests.yml
+
+name: Master Branch CI - Full Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  linux-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [gcc, clang]
+        build_type: [Debug, Release]
+        sanitizer: [none, asan]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build libgtest-dev wget lsb-release software-properties-common
+          
+          if [[ "${{ matrix.compiler }}" == "gcc" ]]; then
+            sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
+            sudo apt-get update
+            sudo apt-get install -y gcc-13 g++-13
+          fi
+          
+          if [[ "${{ matrix.compiler }}" == "clang" ]]; then
+            wget https://apt.llvm.org/llvm.sh
+            chmod +x llvm.sh
+            sudo ./llvm.sh 20
+          fi
+
+      - name: Configure and Build
+        run: |
+          if [[ "${{ matrix.compiler }}" == "gcc" ]]; then
+            export CC=gcc-13
+            export CXX=g++-13
+          elif [[ "${{ matrix.compiler }}" == "clang" ]]; then
+            export CC=clang-20
+            export CXX=clang++-20
+          fi
+
+          SANITIZER_FLAGS=""
+          if [[ "${{ matrix.sanitizer }}" == "asan" ]]; then
+            SANITIZER_FLAGS="-DCMAKE_CXX_FLAGS=-fsanitize=address -DCMAKE_EXE_LINKER_FLAGS=-fsanitize=address"
+          fi
+
+          cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -G Ninja $SANITIZER_FLAGS
+          cmake --build build
+
+      - name: Run tests
+        run: |
+          cd build && ctest --output-on-failure
+
+  windows-tests:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        build_type: [Debug, Release]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure and Build
+        run: |
+          cmake -B build -G "Ninja"
+          cmake --build build --config ${{ matrix.build_type }}
+
+      - name: Run tests
+        run: |
+          cd build && ctest -C ${{ matrix.build_type }} --output-on-failure
